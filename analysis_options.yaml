@@ -1,0 +1,59 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - "**/*.mocks.dart"
+    - "**/l10n/*.dart"
+    - build/**
+    - android/**
+    - web/**
+    - linux/**
+    # Вендорный форк restrict_raw_flutter — вложенный пакет со своим pubspec и
+    # dev-deps, недоступными из контекста основного пакета. Анализируется и
+    # тестируется отдельно — CI-шаг «Vendor restrict_raw_flutter».
+    - vendor/**
+
+linter:
+  rules:
+    avoid_print: true
+    prefer_single_quotes: true
+    always_use_package_imports: true
+
+# Запрет сырых Material-виджетов вне lib/uikit/ (перенесённый подход
+# референсного проекта). Гейт — `dart analyze lib --fatal-infos`
+# (каталог-таргет): на Dart 3.14 плагин-диагностики стабильно отдаются только
+# при каталоге-таргете (dart-lang/sdk#64208); `flutter analyze` диагностику
+# плагина не показывает.
+#
+# Точки, где сырые виджеты разрешены (подавление `// ignore_for_file: type=lint`):
+#   lib/uikit/**            — здесь и живут обёртки;
+#   lib/app/theme/**        — дизайн-токены (seed и др.);
+#   test/**, integration_test/** — тестовые фикстуры.
+# В любом другом файле `lib/` подавление запрещено (CI-шаг «Guard uikit exemptions»).
+plugins:
+  restrict_raw_flutter:
+    # Вендорный форк (pub-версия 0.2.2 несовместима с Dart 3.14): поднятые
+    # зависимости analysis_server_plugin ^0.3.26 / analyzer ^14.
+    # Upstream: github.com/SoutaTanaka/restrict_raw_flutter.
+    path: vendor/restrict_raw_flutter
+    diagnostics:
+      ban_text_widget: true
+      ban_icon_widget: true
+      ban_container_widget: true
+      ban_card_widget: true
+      ban_scaffold_widget: true
+      ban_appbar_widget: true
+      ban_listview_widget: true
+      ban_gridview_widget: true
+      ban_image_widget: true
+      ban_textfield_widget: true
+      ban_textformfield_widget: true
+      ban_elevated_button_widget: true
+      ban_text_button_widget: true
+      ban_outlined_button_widget: true
+      ban_colors: true
+      ban_color: true
+      ban_inkwell_widget: true
+      ban_gesture_detector_widget: true

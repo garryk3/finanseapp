@@ -147,3 +147,32 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# === Flutter / Dart ===
+# Flutter-generated
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+*.iml
+.idea/
+.metadata
+
+# Android
+android/.gradle/
+android/local.properties
+android/key.properties
+**/android/app/debug
+**/android/app/profile
+**/android/app/release
+*.jks
+*.keystore
+
+# Generated code коммитится (drift *.g.dart, l10n app_localizations*) — НЕ игнорировать.
+# Скриншоты и временные артефакты агентов
+/tmp/
+*.png.tmp
+
+# opencode локальное (агенты — симлинки на .agents/agents)
+.opencode/

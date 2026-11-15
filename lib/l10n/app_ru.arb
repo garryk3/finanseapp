@@ -1,0 +1,19 @@
+{
+  "@@locale": "ru",
+  "appTitle": "FinanseApp",
+  "@appTitle": {
+    "description": "Заголовок приложения."
+  },
+  "homeDemoSection": "Демо состояния",
+  "@homeDemoSection": {
+    "description": "Заголовок секции демо-счётчика на домашнем экране."
+  },
+  "counterLabel": "Счётчик",
+  "@counterLabel": {
+    "description": "Подпись значения демо-счётчика."
+  },
+  "increment": "Увеличить",
+  "@increment": {
+    "description": "Кнопка увеличения демо-счётчика."
+  }
+}
