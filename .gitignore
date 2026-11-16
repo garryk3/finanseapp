@@ -162,12 +162,13 @@ build/
 # Android
 android/.gradle/
 android/local.properties
-android/key.properties
+# TEMP_KEY (задача 10.6): android/key.properties и android/app/upload-keystore.jks
+# НАМЕРЕННО трекаются в git — временный release-ключ, заменяется перед Google Play.
 **/android/app/debug
 **/android/app/profile
 **/android/app/release
-*.jks
 *.keystore
+# *.jks не игнорируется: см. TEMP_KEY выше.
 
 # Generated code коммитится (drift *.g.dart, l10n app_localizations*) — НЕ игнорировать.
 # Скриншоты и временные артефакты агентов

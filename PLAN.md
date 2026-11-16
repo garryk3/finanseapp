@@ -37,9 +37,9 @@
 | 7 | Доходы, расходы и связь со счетами | 7.1–7.4 | ⬜ | — |
 | 8 | Финансовые цели | 8.1–8.2 | ⬜ | — |
 | 9 | Аналитика и графики | 9.1–9.4 | ⬜ | — |
-| 10 | Dashboard, настройки, backup и updates | 10.1–10.5 | ⬜ | — |
+| 10 | Dashboard, настройки, backup и updates | 10.1–10.6 | ⬜ | — |
 | 11 | Сквозное качество и release readiness | 11.1–11.4 | ⬜ | — |
-| 12 | Расширения после v1 | 12.1–12.4 | P2 | — |
+| 12 | Расширения после v1 | 12.1–12.5 | P2 | — |
 
 ## Этап 1 — Базовый каркас приложения
 
@@ -718,6 +718,33 @@
   review. Перед PR спросить о e2e.
 - **Предлагаемый commit:** `task/10.5: добавить проверку обновлений`.
 
+### 10.6 Подпись release APK временным ключом — [x] 2026-11-16
+
+- **Приоритет/зависимости:** P1; без зависимостей — нужна для тестирования release-сборок
+  на реальном устройстве. **BR:** нет (инфраструктура сборки).
+- **Files:** Create `android/key.properties` (с дисклеймером TEMP_KEY) и
+  `android/app/upload-keystore.jks`; Modify `android/app/build.gradle.kts` (загрузка
+  key.properties с фолбэком на debug при отсутствии, `signingConfigs.release`,
+  `buildTypes.release.signingConfig`), `.gitignore` и `android/.gitignore` (убрать
+  исключения `key.properties`/`*.jks` с комментарием об осознанном решении MVP),
+  `.github/workflows/ci.yml` (`flutter build apk --debug` → `--release`, artifact
+  `app-release.apk`).
+- **Consumes:** keystore из keytool (RSA 2048, validity 10000, alias `upload`,
+  storePassword=keyPassword — ограничение PKCS12); образец — донорский проект fitnessappai
+  (задача 48.6): оба файла лежат в git, ключ — «несекрет», заменяется перед Google Play.
+- **Produces:** подписанный release APK, устанавливаемый на реальное устройство;
+  SHA-256 отпечаток ключа записан в этой секции; CI-гейт реально проверяет подпись.
+- **Отпечаток TEMP_KEY (SHA-256):**
+  `F2:C9:B7:BC:28:CD:60:A9:26:3D:23:3F:58:D0:12:E6:6A:FE:E5:5E:5B:F0:27:F2:05:4B:92:F6:72:66:05:CA`
+  (alias `upload`, validity до 2054-04-03). При замене ключа — обновить здесь.
+- **TDD:** не применимо (Dart-кода нет). Проверки: `flutter build apk --release`
+  собирается и подписывается; `apksigner verify --print-certs` показывает alias `upload`;
+  временное удаление `key.properties` → сборка откатывается на debug без ошибки.
+- **DoD:** дисклеймер «заменить перед публикацией в Google Play» в key.properties;
+  отпечаток SHA-256 в секции; общий DoD (format, оба analyze, flutter test,
+  `git diff --check`); design review не требуется (UI нет).
+- **Предлагаемый commit:** `task/10.6: подписать release-сборку временным ключом`.
+
 ## Этап 11 — Сквозное качество и release readiness
 
 ### 11.1 Golden calculations и проверка покрытия каждого BR — [ ]
@@ -853,3 +880,30 @@
 - **DoD:** не создаёт демо-активы и не запрашивает сеть/аккаунт; общий DoD/design review.
   Перед PR спросить о e2e.
 - **Предлагаемый commit:** `task/12.4: добавить первичный онбординг`.
+
+### 12.5 App lock: PIN-код и биометрия — [ ]
+
+- **Приоритет/зависимости:** P2 (можно поднять — финансовые данные); после 10.3
+  (настройки/хранение флагов). **BR:** новые privacy-правила — описать в BR docs до кода.
+- **Files:** Create `lib/core/features/applock/{domain,data,logic,ui}/…` (сервис PIN,
+  политика попыток, экран блокировки, setup/toggles в настройках из 10.3);
+  Modify pubspec + lock (`local_auth`, `flutter_secure_storage`), DI, router (guard
+  маршрутов / overlay блокировки), `lib/l10n/app_ru.arb`, BR docs, навигационные docs;
+  Test `test/core/features/applock/{domain,data,logic,ui}/…` unit + widget.
+- **Consumes:** `local_auth` (биометрия; на Linux/desktop — graceful fallback на PIN),
+  `flutter_secure_storage` (hardware-backed хранилище хэша PIN, вне БД — backup/import
+  его не переносят), `app_settings` из 10.3 (enabled-флаги, auto-lock таймаут),
+  AppLifecycle (блокировка на cold start и при возврате из фона).
+- **Produces:** PIN 4–6 цифр с подтверждением при включении; отключение только по PIN;
+  опциональная биометрия с fallback на PIN при недоступности/отмене; политика попыток
+  (5 неудачных → блокировка с экспоненциальной задержкой); настройка auto-lock
+  (сразу / через N минут в фоне); экран блокировки на uikit-компонентах.
+- **TDD:** salted hash/verify (включая wrong PIN); 5 неверных → lockout-задержка;
+  biometric unavailable/cancelled → fallback на PIN; fresh install → lock выключен;
+  backup import не восстанавливает хэш (secure storage вне БД); back из экрана блокировки
+  не обходит защиту; затем service+VM+UI.
+- **Генерация:** pub get; Drift не меняется (хэш — в secure storage, флаги — в
+  существующем app_settings); gen-l10n.
+- **DoD:** хэш PIN никогда не в Drift/логах; биометрия за интерфейсом (fake в тестах,
+  Linux/CI не падает); общий DoD/design review (UI-задача). Перед PR спросить о e2e.
+- **Предлагаемый commit:** `task/12.5: добавить защиту входа PIN-кодом и биометрией`.
