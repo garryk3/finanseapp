@@ -35,6 +35,13 @@ flutter build apk --debug       # сборка Android APK
 
 Подробности — `docs/PROJECT.md`. Правила для агентов — `AGENTS.md`.
 
+## Проектные контракты
+
+Перед реализацией читать `docs/architecture/README.md`: там связаны продуктовые правила,
+доменные сигнатуры, Drift-схема, маршруты, безопасный backup/restore и обновления.
+Контракты UI — `lib/uikit/design/README.md`, визуальные правила — `DESIGN.md`.
+Пошаговые TDD-задачи с точными файлами и проверками — `PLAN.md`.
+
 ## Структура проекта
 
 ```

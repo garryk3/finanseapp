@@ -1,58 +1,57 @@
 # docs/PROJECT.md — стабильный технический контекст FinanseApp
 
-Сюда выносится стабильный техконтекст из `PLAN.md`: решения по проекту,
-окружение, стек, структура кода, схема БД, seed-данные. Обновляется по мере
-принятия решений; не дублирует живой план.
+Документ содержит краткий стек и ссылки на нормативные архитектурные контракты.
+Живые задачи и статусы находятся только в `PLAN.md`.
 
-## Стек (утверждён переносом подходов референсного проекта)
+## Стек
 
-- Flutter / Dart (stable, без пина — в ногу со стейблом, см. `AGENTS.md`).
-- State management: `signals` + `signals_flutter` (native-first;
-  Riverpod/Bloc/GetX запрещены, см. `.agents/rules/FLUTTER.md`).
-- SQLite через `drift` (типобезопасный ORM), generated-код коммитится.
-- `go_router` (навигация), `fl_chart` (графики),
-  `flutter_localizations` + `intl` (RU-локаль, `lib/l10n/app_ru.arb`).
-- Архитектура: MVVM, manual DI (зависимости через конструктор), слои
-  UI → logic → data, `lib/uikit/` — единый источник базовых компонентов.
-- Material 3, светлая + тёмная темы, offline-first.
-- CI: GitHub Actions — format, analyze (+ analyzer-плагин `restrict_raw_flutter`),
-  tests, debug APK; релизы по тегу `v*` в GitHub Releases.
+- Flutter / Dart stable без пина; Android 12+ (minSdk 31), Linux desktop для integration.
+- `signals` + `signals_flutter`, MVVM; Riverpod/Bloc/GetX запрещены.
+- SQLite через Drift; generated Drift/l10n и schema dumps коммитятся.
+- `go_router`, `fl_chart`, `flutter_localizations` + `intl`, русская локаль.
+- Manual DI через конструкторы, feature-first внутри `lib/core/features/`.
+- Material 3 через `package:material_ui/material_ui.dart`; светлая и тёмная темы.
+- UI только через `lib/uikit/`; analyzer guard `restrict_raw_flutter` обязателен.
+- Offline-first; сеть нужна для точных курсов ЦБ РФ и ручной проверки GitHub Updates.
+- CI: format, оба analyze-гейта, unit/widget tests и debug APK; releases по тегам `v*`.
+
+## Архитектурные контракты
+
+Начинать с `docs/architecture/README.md`. Нормативные документы:
+
+- `../PRODUCT.md` — пользователь, scope, принципы и accessibility.
+- `architecture/business_rules.md` — канонические BR и матрица покрытия.
+- `architecture/domain_model.md` — entities, drafts, repositories, use cases, ViewState.
+- `architecture/calculations.md` — формулы и 36 числовых эталонов.
+- `architecture/file_structure.md` — целевые пути lib/test/integration/drift_schemas.
+- `architecture/data_schema.md` — Drift v1, constraints, indexes и DB-транзакции.
+- `architecture/navigation_and_screens.md` — routes, экраны, prefill и состояния.
+- `architecture/backup_and_updates.md` — SQLite export/import, rollback, SAF, GitHub Releases.
+- `../lib/uikit/design/README.md` — контракты всех UI-компонентов.
+- `../DESIGN.md` — визуальная система.
+
+## Ключевые решения
+
+- Деньги — integer minor units; курсы — Decimal TEXT; операции — LocalDate `yyyy-MM-dd`;
+  timestamps — UTC. `rateToRub` означает RUB за единицу валюты, конвертация в RUB — умножение.
+- RUB snapshot неизменяем; пользовательская базовая валюта применяется только к отчётам.
+- Current projections отделены от append-only revisions; create/edit/delete атомарны.
+- Cashflow и asset transactions имеют разные итоги. Единственная связь —
+  `cashflow_entries.assetTransactionId`; reverse join производный.
+- Перевод — две ноги transfer group, никогда не доход/расход. Отрицательный баланс запрещён.
+- Backup проверяется до закрытия текущей БД; candidate мигрируется отдельно, rollback snapshot
+  восстанавливает старые данные при любой ошибке replace/reopen/rebuild.
+- Импорт/обновления находятся в Settings; backup не является облачной синхронизацией.
+
+## Текущая структура
+
+Этап 1 содержит только каркас `main.dart`, app/router/theme, demo Home и минимальный UIKit.
+Целевое дерево — `architecture/file_structure.md`; пустые Dart-заглушки заранее не создаются.
+Этап 2 содержит проектные документы без реализации продукта. Демо Home удаляется задачей 3.5.
 
 ## Окружение
 
-- Android 12+ (minSdk 31). Эмулятор AVD `Pixel_10_Pro` (x86_64, Android 16),
-  adb `~/Android/Sdk/platform-tools/adb`, SDK `~/Android/Sdk`.
-- JDK 21 (Temurin), пины см. в `AGENTS.md` («Commands»).
-- Integration-тесты — на Linux desktop (`flutter test integration_test -d linux`),
-  в CI не прогоняются.
-
-## Структура кода
-
-(Этап 1, 2026-11-15 — каркас создан.)
-
-```
-lib/
-  main.dart           # вход: DI-локатор → runApp(FinanseApp)
-  app/                # app.dart (MaterialApp.router, ru-локаль), router.dart (go_router), theme/app_theme.dart
-  core/
-    di/               # service_locator.dart (manual DI)
-    features/home/ui/ # home_screen.dart + home_view_model.dart (демо-счётчик на signals)
-  uikit/              # app_scaffold, app_text, app_button, app_section (+AppSectionHeader)
-  l10n/               # app_ru.arb + app_localizations*.dart (генерируемые, коммитятся)
-test/                 # app_test.dart (зеркалит lib/)
-integration_test/     # app_test.dart (smoke, linux desktop)
-```
-
-Импорты виджетного слоя — из `package:material_ui/material_ui.dart`
-(миграция Flutter 3.50; `package:flutter/material.dart` deprecated, `--fatal-infos`
-его ловит). Делегаты локализации — `GlobalMaterialLocalizations.delegates` из
-material_ui + `AppLocalizations.delegate`.
-
-## Схема БД
-
-(заполняется при проектировании drift-таблиц — Этап 1.)
-
-## Принятые решения
-
-(журнал ADR-подобных решений по мере работы; см. также скилл
-`architecture-decision-records`.)
+- Эмулятор AVD `Pixel_10_Pro` (x86_64, Android 16), SDK `~/Android/Sdk`.
+- JDK 21 (Temurin); детали окружения — `docs/AGENTS_DETAILS.md`.
+- Integration: `flutter test integration_test -d linux`, только после вопроса владельцу
+  перед PR; в CI не запускаются.
