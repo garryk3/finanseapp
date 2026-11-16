@@ -87,12 +87,14 @@ jobs:
       - name: Run tests
         run: flutter test
 
-      - name: Build debug APK
-        run: flutter build apk --debug
+      - name: Build release APK
+        # TEMP_KEY (задача 10.6): release подписывается ключом из git;
+        # гейт так же проверяет, что подпись реально применяется.
+        run: flutter build apk --release
 
-      - name: Upload debug APK
+      - name: Upload release APK
         uses: actions/upload-artifact@v4
         with:
-          name: debug-apk
-          path: build/app/outputs/flutter-apk/app-debug.apk
+          name: release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
