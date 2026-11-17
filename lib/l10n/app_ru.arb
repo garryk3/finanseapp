@@ -4,18 +4,6 @@
   "@appTitle": {
     "description": "Заголовок приложения."
   },
-  "homeDemoSection": "Демо состояния",
-  "@homeDemoSection": {
-    "description": "Заголовок секции демо-счётчика на домашнем экране."
-  },
-  "counterLabel": "Счётчик",
-  "@counterLabel": {
-    "description": "Подпись значения демо-счётчика."
-  },
-  "increment": "Увеличить",
-  "@increment": {
-    "description": "Кнопка увеличения демо-счётчика."
-  },
   "appLockTitle": "Защита приложения",
   "@appLockTitle": {
     "description": "Заголовок экрана управления защитой (PIN-код, биометрия)."
@@ -129,5 +117,117 @@
         "type": "int"
       }
     }
+  },
+  "navDashboard": "Главная",
+  "@navDashboard": {
+    "description": "Пункт навигации: главная."
+  },
+  "navOperations": "Операции",
+  "@navOperations": {
+    "description": "Пункт навигации: журнал операций."
+  },
+  "navAssets": "Активы",
+  "@navAssets": {
+    "description": "Пункт навигации: активы."
+  },
+  "navGoals": "Цели",
+  "@navGoals": {
+    "description": "Пункт навигации: финансовые цели."
+  },
+  "navMore": "Ещё",
+  "@navMore": {
+    "description": "Пункт навигации: дополнительные разделы."
+  },
+  "commonLoading": "Загрузка…",
+  "@commonLoading": {
+    "description": "Нейтральный текст первичной загрузки."
+  },
+  "errorStateTitle": "Не удалось загрузить",
+  "@errorStateTitle": {
+    "description": "Заголовок состояния ошибки."
+  },
+  "errorStateMessage": "Не удалось загрузить данные. Попробуйте позже.",
+  "@errorStateMessage": {
+    "description": "Пояснение состояния ошибки."
+  },
+  "retry": "Повторить",
+  "@retry": {
+    "description": "Кнопка повтора после ошибки."
+  },
+  "errorLabel": "Ошибка",
+  "@errorLabel": {
+    "description": "Семантический ярлык ошибки."
+  },
+  "dashboardEmptyTitle": "Пока пусто",
+  "@dashboardEmptyTitle": {
+    "description": "Заголовок пустой главной."
+  },
+  "dashboardEmptyMessage": "Добавьте счёт или операцию, чтобы увидеть итоги.",
+  "@dashboardEmptyMessage": {
+    "description": "Пояснение пустой главной."
+  },
+  "cashflowEmptyTitle": "Нет операций",
+  "@cashflowEmptyTitle": {
+    "description": "Заголовок пустого денежного потока."
+  },
+  "cashflowEmptyMessage": "Доходы и расходы появятся здесь.",
+  "@cashflowEmptyMessage": {
+    "description": "Пояснение пустого денежного потока."
+  },
+  "transactionsEmptyTitle": "Нет операций по активам",
+  "@transactionsEmptyTitle": {
+    "description": "Заголовок пустых операций по активам."
+  },
+  "transactionsEmptyMessage": "Пополнения, снятия и переводы появятся здесь.",
+  "@transactionsEmptyMessage": {
+    "description": "Пояснение пустых операций по активам."
+  },
+  "assetsEmptyTitle": "Нет активов",
+  "@assetsEmptyTitle": {
+    "description": "Заголовок пустого списка активов."
+  },
+  "assetsEmptyMessage": "Добавьте счёт, инвестицию или квартиру.",
+  "@assetsEmptyMessage": {
+    "description": "Пояснение пустого списка активов."
+  },
+  "goalsEmptyTitle": "Нет целей",
+  "@goalsEmptyTitle": {
+    "description": "Заголовок пустого списка целей."
+  },
+  "goalsEmptyMessage": "Создайте цель и привяжите активы.",
+  "@goalsEmptyMessage": {
+    "description": "Пояснение пустого списка целей."
+  },
+  "operationsCashflowTab": "Доходы и расходы",
+  "@operationsCashflowTab": {
+    "description": "Вкладка денежного потока."
+  },
+  "operationsTransactionsTab": "Операции по активам",
+  "@operationsTransactionsTab": {
+    "description": "Вкладка операций по активам."
+  },
+  "moreSecuritySection": "Безопасность",
+  "@moreSecuritySection": {
+    "description": "Секция экрана «Ещё»."
+  },
+  "notFoundTitle": "Страница не найдена",
+  "@notFoundTitle": {
+    "description": "Заголовок Not Found."
+  },
+  "notFoundMessage": "Такой страницы нет. Вернитесь на главную.",
+  "@notFoundMessage": {
+    "description": "Пояснение Not Found."
+  },
+  "notFoundHome": "На главную",
+  "@notFoundHome": {
+    "description": "Кнопка возврата на главную."
+  },
+  "comingSoonTitle": "Раздел в разработке",
+  "@comingSoonTitle": {
+    "description": "Заголовок заглушки раздела."
+  },
+  "comingSoonMessage": "Раздел появится в одном из обновлений.",
+  "@comingSoonMessage": {
+    "description": "Пояснение заглушки раздела."
   }
 }

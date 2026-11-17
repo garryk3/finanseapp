@@ -6,25 +6,33 @@ import 'package:finanseapp/core/features/applock/logic/applock_view_model.dart';
 import 'package:finanseapp/core/features/applock/ui/applock_back_dispatcher.dart';
 import 'package:finanseapp/core/features/applock/ui/applock_gate.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
+import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// Корневой виджет приложения: темы, локализация (ru), маршрутизация.
-class FinanseApp extends StatelessWidget {
+class FinanseApp extends StatefulWidget {
   const FinanseApp({super.key, required this.locator});
 
   final ServiceLocator locator;
 
   @override
+  State<FinanseApp> createState() => _FinanseAppState();
+}
+
+class _FinanseAppState extends State<FinanseApp> {
+  late final GoRouter _router = buildRouter(locator: widget.locator);
+
+  @override
   Widget build(BuildContext context) {
-    final router = buildRouter(locator: locator);
+    final ServiceLocator locator = widget.locator;
     return MaterialApp.router(
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       themeMode: ThemeMode.system,
-      routeInformationProvider: router.routeInformationProvider,
-      routeInformationParser: router.routeInformationParser,
-      routerDelegate: router.routerDelegate,
+      routeInformationProvider: _router.routeInformationProvider,
+      routeInformationParser: _router.routeInformationParser,
+      routerDelegate: _router.routerDelegate,
       // BACK под локом поглощается до pop маршрута (BR-Sec-6).
       backButtonDispatcher: ApplockBackDispatcher(
         locator.get<ApplockController>(),

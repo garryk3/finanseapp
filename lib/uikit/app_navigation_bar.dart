@@ -35,18 +35,36 @@ class AppNavigationBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     assert(selectedIndex < destinations.length);
-    return NavigationBar(
-      selectedIndex: selectedIndex,
-      onDestinationSelected: onDestinationSelected,
-      destinations: <Widget>[
-        for (final destination in destinations)
-          NavigationDestination(
-            icon: Icon(destination.icon),
-            selectedIcon: Icon(destination.selectedIcon ?? destination.icon),
-            label: destination.label,
-            tooltip: destination.label,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final textScale = MediaQuery.textScalerOf(context).scale(12) / 12;
+        // Высота M3-бара фиксирована: при увеличенном шрифте подпись есть
+        // только у выбранного раздела, а на 320dp дополнительно ограничиваем
+        // масштаб до 1.0, чтобы даже «Операции» оставались в одну строку.
+        final compact = textScale > 1.15;
+        final maxScale = constraints.maxWidth < 340 ? 1.0 : 1.1;
+        return MediaQuery.withClampedTextScaling(
+          maxScaleFactor: maxScale,
+          child: NavigationBar(
+            selectedIndex: selectedIndex,
+            onDestinationSelected: onDestinationSelected,
+            labelBehavior: compact
+                ? NavigationDestinationLabelBehavior.onlyShowSelected
+                : NavigationDestinationLabelBehavior.alwaysShow,
+            destinations: <Widget>[
+              for (final destination in destinations)
+                NavigationDestination(
+                  icon: Icon(destination.icon),
+                  selectedIcon: Icon(
+                    destination.selectedIcon ?? destination.icon,
+                  ),
+                  label: destination.label,
+                  tooltip: destination.label,
+                ),
+            ],
           ),
-      ],
+        );
+      },
     );
   }
 }
