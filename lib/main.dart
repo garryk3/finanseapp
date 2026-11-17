@@ -7,7 +7,13 @@ import 'package:finanseapp/core/features/applock/domain/applock_service.dart';
 import 'package:finanseapp/core/features/applock/logic/applock_controller.dart';
 import 'package:finanseapp/core/features/applock/logic/applock_settings_view_model.dart';
 import 'package:finanseapp/core/features/applock/logic/applock_view_model.dart';
-import 'package:finanseapp/core/features/home/ui/home_view_model.dart';
+import 'package:finanseapp/core/features/app_info/ui/not_found_view_model.dart';
+import 'package:finanseapp/core/features/assets/ui/assets_view_model.dart';
+import 'package:finanseapp/core/features/cashflow/ui/cashflow_view_model.dart';
+import 'package:finanseapp/core/features/dashboard/ui/dashboard_view_model.dart';
+import 'package:finanseapp/core/features/goals/ui/goals_view_model.dart';
+import 'package:finanseapp/core/features/settings/ui/more_view_model.dart';
+import 'package:finanseapp/core/features/transactions/ui/transactions_view_model.dart';
 import 'package:flutter/widgets.dart';
 
 Future<void> main() async {
@@ -24,7 +30,13 @@ Future<void> main() async {
   await controller.init();
 
   locator
-    ..register<HomeViewModel>(HomeViewModel())
+    ..registerFactory<DashboardViewModel>(DashboardViewModel.new)
+    ..registerFactory<CashflowViewModel>(CashflowViewModel.new)
+    ..registerFactory<TransactionsViewModel>(TransactionsViewModel.new)
+    ..registerFactory<AssetsViewModel>(AssetsViewModel.new)
+    ..registerFactory<GoalsViewModel>(GoalsViewModel.new)
+    ..registerFactory<MoreViewModel>(MoreViewModel.new)
+    ..registerFactory<NotFoundViewModel>(NotFoundViewModel.new)
     ..register<ApplockService>(service)
     ..register<ApplockController>(controller)
     ..register<ApplockViewModel>(

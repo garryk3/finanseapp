@@ -346,7 +346,7 @@
   tests pass; design-reviewer обязателен; общий DoD. Перед PR спросить о e2e.
 - **Предлагаемый commit:** `task/03.4: реализовать дизайн-систему UIKit`.
 
-### 3.5 Adaptive shell, go_router и Not Found — [ ]
+### 3.5 Adaptive shell, go_router и Not Found — [x] 2026-11-18
 
 - **Приоритет/зависимости:** P1; после 3.3 и 3.4. **BR:** navigation contract, VAL-7.
 - **Files:** Create `lib/app/{routes,shell_screen}.dart`, root `dashboard_screen/view_model`,
@@ -364,6 +364,31 @@
 - **Перенесено из 3.3:** экранные ViewModel регистрируются через `registerFactory` и
   диспозятся Stateful-владельцем; текущие синглтон-регистрации в `main`/`router` заменить,
   чтобы подписки не жили вечно.
+- **Рабочий план (2026-11-17):** `AppRoutes` — полный набор path/name из §2 + safe-парсеры
+  (`int.tryParse`, allowlist kind/tab); `StatefulShellRoute.indexedStack` с пятью primary
+  ветками и сохранением стека; повторный tap → `goBranch(initialLocation: true)`;
+  shell — `AppNavigationBar` <600dp / `AppNavigationRail` >=600dp. Primary-экраны получают
+  VM через factory из router (composition root), Stateful-экран диспозит VM; реальные
+  empty/loading состояния через `ViewState` и uikit (`AppEmptyState`). Secondary-маршруты
+  из §2 регистрируются безопасными заглушками (`/assets/new/*` статически до `/:id`,
+  невалидный id → NotFound) и подключаются экранами своих задач; `/applock` остаётся
+  top-level, вход переносится с демо-Home на More. NotFound — отдельный экран с
+  безопасной кнопкой «На главную»; `errorBuilder` без stack trace. Удаляется `home/`
+  и demo-счётчик; l10n получает nav/empty/not-found строки; `app.dart` кэширует router
+  (Stateful), чтобы shell не пересоздавался.
+- **Итог:** `AppRoutes` содержит полную карту §2 и safe-парсеры; router кэшируется в
+  Stateful `FinanseApp`; `ShellScreen` — bar/rail с сохранением branch-стека и повторным
+  tap в root; пять primary-экранов с ViewState (loading/empty/error) и VM-factory,
+  диспозятся Stateful-владельцем; secondary-маршруты безопасно заглушены, invalid id и
+  unknown route → NotFound; demo Home/счётчик удалены, вход в защиту перенесён на «Ещё».
+  Тесты: `test/app/router_test.dart`, `shell_screen_test.dart`, обновлены `app_test.dart`
+  и integration smoke.
+- **Отложено:** реальные secondary-экраны и prefill подключаются задачами 5.x–10.x;
+  экраны, открываемые из shell, сохраняют общий rail/bar (реализация secondary вне shell —
+  вместе с экранами). CTA пустых состояний ведут в ещё не готовые формы, поэтому
+  добавляются вместе с формами (5.1/8.1); VM начинают с ViewData, а не ViewLoading, до
+  подключения stream'ов (5.1/7.1). Lifecycle VM по фабрике из router (создание в initState)
+  и реакция `app.dart` на новый locator — 5.1/10.4.
 - **Генерация:** `flutter gen-l10n`; Drift schema не меняется.
 - **DoD:** пять primary routes работают, route names соответствуют matrix, demo counter удалён,
   unit/widget+debug APK

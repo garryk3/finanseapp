@@ -100,24 +100,6 @@ abstract class AppLocalizations {
   /// **'FinanseApp'**
   String get appTitle;
 
-  /// Заголовок секции демо-счётчика на домашнем экране.
-  ///
-  /// In ru, this message translates to:
-  /// **'Демо состояния'**
-  String get homeDemoSection;
-
-  /// Подпись значения демо-счётчика.
-  ///
-  /// In ru, this message translates to:
-  /// **'Счётчик'**
-  String get counterLabel;
-
-  /// Кнопка увеличения демо-счётчика.
-  ///
-  /// In ru, this message translates to:
-  /// **'Увеличить'**
-  String get increment;
-
   /// Заголовок экрана управления защитой (PIN-код, биометрия).
   ///
   /// In ru, this message translates to:
@@ -261,6 +243,174 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Введено {filled} из {length}'**
   String appLockDotsSemantics(int filled, int length);
+
+  /// Пункт навигации: главная.
+  ///
+  /// In ru, this message translates to:
+  /// **'Главная'**
+  String get navDashboard;
+
+  /// Пункт навигации: журнал операций.
+  ///
+  /// In ru, this message translates to:
+  /// **'Операции'**
+  String get navOperations;
+
+  /// Пункт навигации: активы.
+  ///
+  /// In ru, this message translates to:
+  /// **'Активы'**
+  String get navAssets;
+
+  /// Пункт навигации: финансовые цели.
+  ///
+  /// In ru, this message translates to:
+  /// **'Цели'**
+  String get navGoals;
+
+  /// Пункт навигации: дополнительные разделы.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ещё'**
+  String get navMore;
+
+  /// Нейтральный текст первичной загрузки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Загрузка…'**
+  String get commonLoading;
+
+  /// Заголовок состояния ошибки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось загрузить'**
+  String get errorStateTitle;
+
+  /// Пояснение состояния ошибки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось загрузить данные. Попробуйте позже.'**
+  String get errorStateMessage;
+
+  /// Кнопка повтора после ошибки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Повторить'**
+  String get retry;
+
+  /// Семантический ярлык ошибки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ошибка'**
+  String get errorLabel;
+
+  /// Заголовок пустой главной.
+  ///
+  /// In ru, this message translates to:
+  /// **'Пока пусто'**
+  String get dashboardEmptyTitle;
+
+  /// Пояснение пустой главной.
+  ///
+  /// In ru, this message translates to:
+  /// **'Добавьте счёт или операцию, чтобы увидеть итоги.'**
+  String get dashboardEmptyMessage;
+
+  /// Заголовок пустого денежного потока.
+  ///
+  /// In ru, this message translates to:
+  /// **'Нет операций'**
+  String get cashflowEmptyTitle;
+
+  /// Пояснение пустого денежного потока.
+  ///
+  /// In ru, this message translates to:
+  /// **'Доходы и расходы появятся здесь.'**
+  String get cashflowEmptyMessage;
+
+  /// Заголовок пустых операций по активам.
+  ///
+  /// In ru, this message translates to:
+  /// **'Нет операций по активам'**
+  String get transactionsEmptyTitle;
+
+  /// Пояснение пустых операций по активам.
+  ///
+  /// In ru, this message translates to:
+  /// **'Пополнения, снятия и переводы появятся здесь.'**
+  String get transactionsEmptyMessage;
+
+  /// Заголовок пустого списка активов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Нет активов'**
+  String get assetsEmptyTitle;
+
+  /// Пояснение пустого списка активов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Добавьте счёт, инвестицию или квартиру.'**
+  String get assetsEmptyMessage;
+
+  /// Заголовок пустого списка целей.
+  ///
+  /// In ru, this message translates to:
+  /// **'Нет целей'**
+  String get goalsEmptyTitle;
+
+  /// Пояснение пустого списка целей.
+  ///
+  /// In ru, this message translates to:
+  /// **'Создайте цель и привяжите активы.'**
+  String get goalsEmptyMessage;
+
+  /// Вкладка денежного потока.
+  ///
+  /// In ru, this message translates to:
+  /// **'Доходы и расходы'**
+  String get operationsCashflowTab;
+
+  /// Вкладка операций по активам.
+  ///
+  /// In ru, this message translates to:
+  /// **'Операции по активам'**
+  String get operationsTransactionsTab;
+
+  /// Секция экрана «Ещё».
+  ///
+  /// In ru, this message translates to:
+  /// **'Безопасность'**
+  String get moreSecuritySection;
+
+  /// Заголовок Not Found.
+  ///
+  /// In ru, this message translates to:
+  /// **'Страница не найдена'**
+  String get notFoundTitle;
+
+  /// Пояснение Not Found.
+  ///
+  /// In ru, this message translates to:
+  /// **'Такой страницы нет. Вернитесь на главную.'**
+  String get notFoundMessage;
+
+  /// Кнопка возврата на главную.
+  ///
+  /// In ru, this message translates to:
+  /// **'На главную'**
+  String get notFoundHome;
+
+  /// Заголовок заглушки раздела.
+  ///
+  /// In ru, this message translates to:
+  /// **'Раздел в разработке'**
+  String get comingSoonTitle;
+
+  /// Пояснение заглушки раздела.
+  ///
+  /// In ru, this message translates to:
+  /// **'Раздел появится в одном из обновлений.'**
+  String get comingSoonMessage;
 }
 
 class _AppLocalizationsDelegate

@@ -13,15 +13,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get appTitle => 'FinanseApp';
 
   @override
-  String get homeDemoSection => 'Демо состояния';
-
-  @override
-  String get counterLabel => 'Счётчик';
-
-  @override
-  String get increment => 'Увеличить';
-
-  @override
   String get appLockTitle => 'Защита приложения';
 
   @override
@@ -100,4 +91,91 @@ class AppLocalizationsRu extends AppLocalizations {
   String appLockDotsSemantics(int filled, int length) {
     return 'Введено $filled из $length';
   }
+
+  @override
+  String get navDashboard => 'Главная';
+
+  @override
+  String get navOperations => 'Операции';
+
+  @override
+  String get navAssets => 'Активы';
+
+  @override
+  String get navGoals => 'Цели';
+
+  @override
+  String get navMore => 'Ещё';
+
+  @override
+  String get commonLoading => 'Загрузка…';
+
+  @override
+  String get errorStateTitle => 'Не удалось загрузить';
+
+  @override
+  String get errorStateMessage =>
+      'Не удалось загрузить данные. Попробуйте позже.';
+
+  @override
+  String get retry => 'Повторить';
+
+  @override
+  String get errorLabel => 'Ошибка';
+
+  @override
+  String get dashboardEmptyTitle => 'Пока пусто';
+
+  @override
+  String get dashboardEmptyMessage =>
+      'Добавьте счёт или операцию, чтобы увидеть итоги.';
+
+  @override
+  String get cashflowEmptyTitle => 'Нет операций';
+
+  @override
+  String get cashflowEmptyMessage => 'Доходы и расходы появятся здесь.';
+
+  @override
+  String get transactionsEmptyTitle => 'Нет операций по активам';
+
+  @override
+  String get transactionsEmptyMessage =>
+      'Пополнения, снятия и переводы появятся здесь.';
+
+  @override
+  String get assetsEmptyTitle => 'Нет активов';
+
+  @override
+  String get assetsEmptyMessage => 'Добавьте счёт, инвестицию или квартиру.';
+
+  @override
+  String get goalsEmptyTitle => 'Нет целей';
+
+  @override
+  String get goalsEmptyMessage => 'Создайте цель и привяжите активы.';
+
+  @override
+  String get operationsCashflowTab => 'Доходы и расходы';
+
+  @override
+  String get operationsTransactionsTab => 'Операции по активам';
+
+  @override
+  String get moreSecuritySection => 'Безопасность';
+
+  @override
+  String get notFoundTitle => 'Страница не найдена';
+
+  @override
+  String get notFoundMessage => 'Такой страницы нет. Вернитесь на главную.';
+
+  @override
+  String get notFoundHome => 'На главную';
+
+  @override
+  String get comingSoonTitle => 'Раздел в разработке';
+
+  @override
+  String get comingSoonMessage => 'Раздел появится в одном из обновлений.';
 }

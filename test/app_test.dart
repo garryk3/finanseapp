@@ -1,91 +1,117 @@
 import 'package:finanseapp/app/app.dart';
-import 'package:finanseapp/core/di/service_locator.dart';
-import 'package:finanseapp/core/features/applock/domain/applock_service.dart';
-import 'package:finanseapp/core/features/applock/logic/applock_controller.dart';
-import 'package:finanseapp/core/features/applock/logic/applock_settings_view_model.dart';
-import 'package:finanseapp/core/features/applock/logic/applock_view_model.dart';
-import 'package:finanseapp/core/features/home/ui/home_view_model.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
-import 'core/features/applock/fakes.dart';
-
-/// Собирает locator как в `main.dart`, но на fake-хранилище защиты:
-/// fresh install (BR-Sec-7) → защита выключена, гейт прозрачен.
-Future<ServiceLocator> buildTestLocator() async {
-  final storage = FakeApplockStorage();
-  final biometrics = FakeBiometricGateway();
-  final service = ApplockService(storage: storage);
-  final controller = ApplockController(service: service);
-  await controller.init();
-  return ServiceLocator()
-    ..register<HomeViewModel>(HomeViewModel())
-    ..register<ApplockService>(service)
-    ..register<ApplockController>(controller)
-    ..register<ApplockViewModel>(
-      ApplockViewModel(
-        service: service,
-        biometrics: biometrics,
-        controller: controller,
-      ),
-    )
-    ..register<ApplockSettingsViewModel>(
-      ApplockSettingsViewModel(service: service, biometrics: biometrics),
-    );
-}
+import 'app/test_app_locator.dart';
 
 void main() {
-  testWidgets('Приложение поднимается, домашний экран показывает заголовок', (
+  late AppLocalizations l10n;
+
+  setUp(() async {
+    l10n = await AppLocalizations.delegate.load(const Locale('ru'));
+  });
+
+  testWidgets('стартует на главной, все пять разделов в навигации', (
     tester,
   ) async {
-    final ServiceLocator locator = await buildTestLocator();
-    final AppLocalizations l10n = await AppLocalizations.delegate.load(
-      const Locale('ru'),
-    );
-
+    final locator = await buildTestLocator();
     await tester.pumpWidget(FinanseApp(locator: locator));
     await tester.pumpAndSettle();
 
-    expect(find.text(l10n.appTitle), findsOneWidget);
-    expect(find.text(l10n.homeDemoSection), findsOneWidget);
-    expect(find.text(l10n.increment), findsOneWidget);
-    expect(find.text(l10n.appLockTitle), findsOneWidget);
+    expect(find.text(l10n.navDashboard), findsWidgets);
+    expect(find.text(l10n.navOperations), findsOneWidget);
+    expect(find.text(l10n.navAssets), findsOneWidget);
+    expect(find.text(l10n.navGoals), findsOneWidget);
+    expect(find.text(l10n.navMore), findsOneWidget);
+    expect(find.text(l10n.dashboardEmptyTitle), findsOneWidget);
   });
 
-  testWidgets('Демо-счётчик увеличивается по нажатию', (tester) async {
-    final ServiceLocator locator = await buildTestLocator();
-    final AppLocalizations l10n = await AppLocalizations.delegate.load(
-      const Locale('ru'),
-    );
-
+  testWidgets('переключение разделов сохраняет выбранный tab', (tester) async {
+    final locator = await buildTestLocator();
     await tester.pumpWidget(FinanseApp(locator: locator));
     await tester.pumpAndSettle();
 
-    expect(find.text('${l10n.counterLabel}: 0'), findsOneWidget);
-    await tester.tap(find.text(l10n.increment));
+    await tester.tap(find.text(l10n.navAssets));
     await tester.pumpAndSettle();
-    expect(find.text('${l10n.counterLabel}: 1'), findsOneWidget);
+    expect(find.text(l10n.assetsEmptyTitle), findsOneWidget);
+
+    await tester.tap(find.text(l10n.navMore));
+    await tester.pumpAndSettle();
+    expect(find.text(l10n.moreSecuritySection), findsOneWidget);
+
+    await tester.tap(find.text(l10n.navAssets));
+    await tester.pumpAndSettle();
+    expect(find.text(l10n.assetsEmptyTitle), findsOneWidget);
   });
 
-  testWidgets('Переход в управление защитой и обратно', (tester) async {
-    final ServiceLocator locator = await buildTestLocator();
-    final AppLocalizations l10n = await AppLocalizations.delegate.load(
-      const Locale('ru'),
-    );
-
+  testWidgets('smoke: все пять разделов открываются', (tester) async {
+    final locator = await buildTestLocator();
     await tester.pumpWidget(FinanseApp(locator: locator));
     await tester.pumpAndSettle();
 
+    await tester.tap(find.text(l10n.navOperations));
+    await tester.pumpAndSettle();
+    expect(find.text(l10n.cashflowEmptyTitle), findsOneWidget);
+
+    await tester.tap(find.text(l10n.navGoals));
+    await tester.pumpAndSettle();
+    expect(find.text(l10n.goalsEmptyTitle), findsOneWidget);
+  });
+
+  testWidgets('вкладки журнала операций переключаются и сохраняются', (
+    tester,
+  ) async {
+    final locator = await buildTestLocator();
+    await tester.pumpWidget(FinanseApp(locator: locator));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text(l10n.navOperations));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l10n.operationsTransactionsTab));
+    await tester.pumpAndSettle();
+    expect(find.text(l10n.transactionsEmptyTitle), findsOneWidget);
+
+    // Уход и возврат сохраняют выбранную вкладку (StatefulShellRoute).
+    await tester.tap(find.text(l10n.navGoals));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l10n.navOperations));
+    await tester.pumpAndSettle();
+    expect(find.text(l10n.transactionsEmptyTitle), findsOneWidget);
+  });
+
+  testWidgets('back со secondary возвращает на root раздела', (tester) async {
+    final locator = await buildTestLocator();
+    await tester.pumpWidget(FinanseApp(locator: locator));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text(l10n.navAssets));
+    await tester.pumpAndSettle();
+    final context = tester.element(find.text(l10n.assetsEmptyTitle));
+    GoRouter.of(context).push('/assets/new/account');
+    await tester.pumpAndSettle();
+    expect(find.text(l10n.comingSoonTitle), findsOneWidget);
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(find.text(l10n.assetsEmptyTitle), findsOneWidget);
+  });
+
+  testWidgets('вход в защиту приложения и возврат на главную', (tester) async {
+    final locator = await buildTestLocator();
+    await tester.pumpWidget(FinanseApp(locator: locator));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text(l10n.navMore));
+    await tester.pumpAndSettle();
     await tester.tap(find.text(l10n.appLockTitle));
     await tester.pumpAndSettle();
     expect(find.text(l10n.appLockStatusOff), findsOneWidget);
 
-    // context.go не оставляет back-stack — возврат явный.
     final context = tester.element(find.text(l10n.appLockStatusOff));
     GoRouter.of(context).go('/');
     await tester.pumpAndSettle();
-    expect(find.text(l10n.homeDemoSection), findsOneWidget);
+    expect(find.text(l10n.dashboardEmptyTitle), findsOneWidget);
   });
 }
