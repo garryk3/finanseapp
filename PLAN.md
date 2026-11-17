@@ -135,7 +135,7 @@
 
 ## Этап 3 — Ядро, БД, UIKit и навигация
 
-### 3.1 LocalDate, Money и точные конвертеры — [ ]
+### 3.1 LocalDate, Money и точные конвертеры — [x] 2026-11-17
 
 - **Приоритет/зависимости:** P1; после 2.5. **BR:** VAL-1…4, C-5, T-2.
 - **Files:** Create `lib/core/domain/common/{local_date,money,currency,exchange_rate,date_range,result,validation,money_math,currency_converter}.dart`;
@@ -148,8 +148,41 @@
   USD 10 при USD=90 и EUR=100 даёт EUR 9.00; разные currency add бросают validation.
   Реализовать Decimal/minor units без double и прогнать все golden values буквально.
 - **Генерация:** `flutter pub get`; l10n/Drift не меняются.
-- **DoD:** CALC-001…015 pass, -0 нормализован, overflow обрабатывается DomainException;
-  общий DoD. Перед PR спросить о e2e.
+- **Рабочий план (2026-11-17):**
+  - Зависимости: `decimal ^3.2.6` и `rational ^2.2.3` напрямую (`Decimal / Decimal`
+    возвращает `Rational`; точное округление без промежуточной потери считается по
+    `numerator/denominator`, поэтому тип объявляется явно, а не живёт транзитивно).
+    `docs/PROJECT.md` получает строку про денежную арифметику.
+  - `LocalDate`: конструктор **не** `const` — полный календарный валидатор
+    (`2024-02-29` ok; `2023-02-29`, `2024-04-31` — нет) невозможен в const-assert, где
+    нельзя вызвать функцию. То же отклонение у `DateRange` (валидирует `start <= end`).
+    Отклонения от const-сигнатур контракта зафиксированы здесь.
+    Ошибка — `DomainException(validation)`; `parse` строго `yyyy-MM-dd` без trim/пробелов;
+    `fromDateTime` берёт локальные поля; `toUtcDateTime` — полночь UTC; `==`/`hashCode`/
+    `compareTo` по (year, month, day).
+  - `Money`/`MoneyMath`: единственное округление half away from zero в
+    `MoneyMath.fromRational` — общая точка для `fromDecimal` и `CurrencyConverter`
+    (правило не может разойтись между входами); `add/subtract` проверяют 64-bit
+    диапазон; переполнение → `DomainException(validation)`; `toDecimal` точный.
+  - `CurrencyConverter`: точная `Rational`-арифметика `amount×sourceRate/targetRate`, одно
+    округление на итоге через `MoneyMath.fromRational`; RUB = 1 (переданный курс
+    игнорируется, CALC-003), конверсия в ту же валюту — identity; `null` target-курс →
+    `rateUnavailable`, `<=0` → `validation`.
+  - `Currency` (asserts `0..8` fraction digits, непустой код), `ExchangeRate`, `DateRange`
+    (включительный, `start <= end` иначе `validation`), `Result/Success/Failure`,
+    `DomainException`, `validation.dart` (`requirePositiveRate`, `requirePositiveMoney` —
+    проверка суммы после округления, BR-T-5/BR-IE-10).
+  - **Перенесено в 3.2:** `CHECK fractionDigits 0..8` в схеме + валидация в repository —
+    assert в `Currency` в release no-op.
+  - Тесты: `local_date_test`, `money_math_test`, `currency_converter_test`,
+    `golden_calculations_test` (CALC-001…007 буквально). CALC-009…015 — расчёты активов
+    этапа 5 и проверяются задачами 5.1–5.2; сводный прогон всех эталонов — 11.1.
+  - Порядок: `local_date` → `currency`/`money` → `money_math` → `currency_converter` →
+    golden-таблица. UI нет → design-review не требуется; `task-reviewer` перед PR;
+    про e2e спросить владельца.
+- **DoD:** CALC-001…007 pass (CALC-009…015 — 5.1–5.2, сводный прогон — 11.1),
+  -0 нормализован, overflow обрабатывается DomainException; общий DoD. Перед PR спросить
+  о e2e.
 - **Предлагаемый commit:** `task/03.1: добавить точные денежные типы`.
 
 ### 3.2 Drift schema v1, DAO и ревизионные транзакции — [ ]

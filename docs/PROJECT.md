@@ -8,6 +8,8 @@
 - Flutter / Dart stable без пина; Android 12+ (minSdk 31), Linux desktop для integration.
 - `signals` + `signals_flutter`, MVVM; Riverpod/Bloc/GetX запрещены.
 - SQLite через Drift; generated Drift/l10n и schema dumps коммитятся.
+- Деньги — `decimal` + `rational` (exact-арифметика без `double`), на границе —
+  int64 `minorUnits`; округление half away from zero один раз на итоге.
 - `go_router`, `fl_chart`, `flutter_localizations` + `intl`, русская локаль.
 - Manual DI через конструкторы, feature-first внутри `lib/core/features/`.
 - Material 3 через `package:material_ui/material_ui.dart`; светлая и тёмная темы.
