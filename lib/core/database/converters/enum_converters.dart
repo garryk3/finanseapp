@@ -4,7 +4,7 @@ import 'package:finanseapp/core/domain/common/revision.dart';
 import 'package:finanseapp/core/features/assets/domain/asset.dart';
 import 'package:finanseapp/core/features/categories/domain/category.dart';
 import 'package:finanseapp/core/features/goals/domain/financial_goal.dart';
-import 'package:finanseapp/core/features/references/domain/subgroup.dart';
+import 'package:finanseapp/core/features/assets/domain/subgroup.dart';
 import 'package:finanseapp/core/features/transactions/domain/asset_transaction.dart';
 
 /// Стабильные TEXT-значения enum (data_schema §2).

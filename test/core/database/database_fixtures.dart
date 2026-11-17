@@ -5,7 +5,7 @@ import 'package:finanseapp/core/database/app_database.dart';
 import 'package:finanseapp/core/domain/common/local_date.dart';
 import 'package:finanseapp/core/features/assets/domain/asset.dart';
 import 'package:finanseapp/core/features/categories/domain/category.dart';
-import 'package:finanseapp/core/features/references/domain/subgroup.dart';
+import 'package:finanseapp/core/features/assets/domain/subgroup.dart';
 
 /// Фиксированный UTC-clock для детерминированных timestamps в тестах.
 DateTime testNow() => DateTime.utc(2026, 11, 17, 12, 0, 0);

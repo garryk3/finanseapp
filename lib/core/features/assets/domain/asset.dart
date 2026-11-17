@@ -1,2 +1,97 @@
+import 'package:finanseapp/core/domain/common/local_date.dart';
+import 'package:finanseapp/core/domain/common/money.dart';
+import 'package:decimal/decimal.dart';
+
 /// Вид актива (domain_model §4); стабильное TEXT-значение в БД.
 enum AssetKind { account, investment, property }
+
+/// Общие поля актива; вид задаёт concrete-подкласс.
+sealed class Asset {
+  const Asset({
+    required this.id,
+    required this.name,
+    required this.currencyCode,
+    required this.openingValue,
+    required this.createdAt,
+    this.archivedAt,
+  });
+
+  final int id;
+  final String name;
+  final String currencyCode;
+  final Money openingValue;
+  final DateTime createdAt;
+  final DateTime? archivedAt;
+
+  AssetKind get kind;
+}
+
+/// Счёт: банк, ставка и срок вклада.
+final class AccountAsset extends Asset {
+  const AccountAsset({
+    required super.id,
+    required super.name,
+    required super.currencyCode,
+    required super.openingValue,
+    required super.createdAt,
+    required this.bankId,
+    required this.annualRate,
+    required this.startDate,
+    super.archivedAt,
+    this.endDate,
+  });
+
+  final int bankId;
+  final Decimal annualRate;
+  final LocalDate startDate;
+  final LocalDate? endDate;
+
+  @override
+  AssetKind get kind => AssetKind.account;
+}
+
+/// Инвестиция: брокер.
+final class InvestmentAsset extends Asset {
+  const InvestmentAsset({
+    required super.id,
+    required super.name,
+    required super.currencyCode,
+    required super.openingValue,
+    required super.createdAt,
+    required this.brokerId,
+    super.archivedAt,
+  });
+
+  final int brokerId;
+
+  @override
+  AssetKind get kind => AssetKind.investment;
+}
+
+/// Квартира: адрес и цена покупки в валюте актива.
+final class PropertyAsset extends Asset {
+  const PropertyAsset({
+    required super.id,
+    required super.name,
+    required super.currencyCode,
+    required super.openingValue,
+    required super.createdAt,
+    super.archivedAt,
+    this.address,
+    this.purchasePrice,
+  });
+
+  final String? address;
+  final Money? purchasePrice;
+
+  @override
+  AssetKind get kind => AssetKind.property;
+}
+
+/// Актив вместе с вычисленной текущей стоимостью (domain_model §4).
+final class AssetSnapshot {
+  const AssetSnapshot({required this.asset, required this.currentValue});
+
+  final Asset asset;
+  final Money currentValue;
+}

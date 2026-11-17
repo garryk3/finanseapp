@@ -1,4 +1,5 @@
 import 'package:finanseapp/app/app.dart';
+import 'package:finanseapp/core/di/register_core_services.dart';
 import 'package:finanseapp/core/di/service_locator.dart';
 import 'package:finanseapp/core/features/applock/data/local_auth_biometric_gateway.dart';
 import 'package:finanseapp/core/features/applock/data/secure_storage_applock_storage.dart';
@@ -12,6 +13,9 @@ import 'package:flutter/widgets.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  final ServiceLocator locator = ServiceLocator();
+  await registerCoreServices(locator);
+
   final storage = SecureStorageApplockStorage();
   final biometrics = LocalAuthBiometricGateway();
   final service = ApplockService(storage: storage);
@@ -19,7 +23,7 @@ Future<void> main() async {
   // Cold start (BR-Sec-6): до runApp известно, показан ли лок-скрин.
   await controller.init();
 
-  final ServiceLocator locator = ServiceLocator()
+  locator
     ..register<HomeViewModel>(HomeViewModel())
     ..register<ApplockService>(service)
     ..register<ApplockController>(controller)
@@ -33,5 +37,6 @@ Future<void> main() async {
     ..register<ApplockSettingsViewModel>(
       ApplockSettingsViewModel(service: service, biometrics: biometrics),
     );
+
   runApp(FinanseApp(locator: locator));
 }

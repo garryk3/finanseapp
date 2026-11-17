@@ -56,6 +56,7 @@ lib/
 │   │   │   └── local_date_converter.dart
 │   │   └── seed/seed_data.dart
 │   ├── di/service_locator.dart
+│   ├── di/register_core_services.dart
 │   ├── domain/common/
 │   │   ├── local_date.dart
 │   │   ├── money.dart

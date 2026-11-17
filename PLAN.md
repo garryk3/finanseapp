@@ -260,7 +260,7 @@
   PRAGMA; generated в diff; общий DoD. Перед PR спросить о e2e.
 - **Предлагаемый commit:** `task/03.2: реализовать Drift-схему v1`.
 
-### 3.3 DI, repository wiring и общие presentation contracts — [ ]
+### 3.3 DI, repository wiring и общие presentation contracts — [x] 2026-11-17
 
 - **Приоритет/зависимости:** P1; после 3.2. **BR:** VAL-7, архитектурные dependency rules.
 - **Files:** Create все domain files assets/transactions/cashflow/categories/currencies/goals/
@@ -276,6 +276,42 @@
   и не возвращает disposed singleton; formatting 123456.7 RUB → `123 456,70 ₽`, дата
   03.02.2026 однозначна; VM factory возвращает разные instances, repository singleton один.
 - **Генерация:** `flutter gen-l10n`; build_runner только если изменился Drift source.
+- **Рабочий план (2026-11-17):**
+  - **Границы:** создаются доменные *контракты* (сущности, draft'ы, фильтры, summary-модели,
+    repository-интерфейсы) + `ViewState` + RU-форматтеры + DI. Реализации repositories,
+    use cases и калькуляторы (`AssetValueCalculator`, `AccountForecastCalculator`,
+    `GoalCalculator`, `CashflowCalculator`, `AnalyticsQueries` impl) создаются задачами
+    своих этапов (4.x–9.x) вместе с их TDD — пустых заглушек не добавляем.
+  - **Доменные файлы:** расширяются существующие enum-файлы (`asset.dart`,
+    `asset_transaction.dart`, `subgroup.dart`, `category.dart`, `financial_goal.dart`),
+    новые файлы по file_structure: `asset_draft`, `asset_valuation`, `asset_repository`,
+    `subgroup_repository`, `asset_transaction_revision`, `transaction_filter`,
+    `asset_transaction_repository`, `cashflow_entry`, `cashflow_entry_revision`,
+    `cashflow_filter`, `cashflow_summary`, `cashflow_repository`, `cashflow_category`,
+    `category_repository`, `currency_repository`, `exchange_rate_repository`,
+    `goal_progress`, `goal_repository`, `analytics_queries`, `net_worth_summary`,
+    `cashflow_period_point`, `settings_repository`, `audit_repository`.
+  - **DI:** `ServiceLocator` — `StateError` (не `assert`) с именем типа для duplicate/register
+    после reset; `registerFactory<T>`; `reset()` последовательно закрывает disposable
+    (AppDatabase) и очищает реестр; после reset старые инстансы не возвращаются.
+    `registerCoreServices` регистрирует DB + все DAO + форматтеры; feature-repositories
+    появятся вместе с implementations. `main` открывает `openAppDatabase()` и регистрирует
+    core-services до applock-контроллеров.
+  - **Presentation:** `ViewState`/`ViewLoading`/`ViewData`/`ViewError` по domain_model §11;
+    `MoneyFormatter` (Money → `1 234,56 ₽`, группировка ru_RU; Decimal-вариант; fallback
+    на код валюты), `DateFormatter` (`03.02.2026`, ISO для отладки).
+  - **Тесты:** `service_locator_test` (duplicate/missing, factory → разные инстансы,
+    singleton один, reset ждёт `database.close` и после reset get бросает),
+    `formatters_test` (NBSP-группировка, negative, fraction digits, дата без двусмысленности).
+  - **Уточнения реализации:** `SubgroupKind`/`Subgroup` перенесены в
+    `assets/domain/subgroup.dart` по file_structure (импорты DAO/конвертеров обновлены,
+    старый `references/domain` удалён). `MoneyFormatter` строит строку из minor units
+    целочисленно (без `double`), поэтому крупные суммы не теряют точность; группировка —
+    NBSP, как у ru_RU. `ServiceLocator` использует `StateError`, а не `assert`.
+  - **Перенесено:** регистрация ~42 ключей `validation*` из DAO в `app_ru.arb` — обязательный
+    пункт задач 5.x–7.x (эти DAO начнут использоваться в UI только там).
+  - l10n не меняется: новых пользовательских строк нет. UI нет → design-review не нужен;
+    `task-reviewer` перед PR; про e2e спросить владельца.
 - **DoD:** UI не получает ServiceLocator, репозитории доступны через interfaces, dispose/
   reset протестированы; общий DoD. Перед PR спросить о e2e.
 - **Предлагаемый commit:** `task/03.3: связать доменные контракты и DI`.
@@ -325,11 +361,32 @@
 - **TDD:** в test router `/assets/new/account` не захватывается `:id`, `/assets/abc` и unknown
   id → NotFound, back с details возвращает root, selected tab сохраняется; compact bar/
   expanded rail; malformed query не бросает. Реализовать router и smoke пяти primary tabs.
+- **Перенесено из 3.3:** экранные ViewModel регистрируются через `registerFactory` и
+  диспозятся Stateful-владельцем; текущие синглтон-регистрации в `main`/`router` заменить,
+  чтобы подписки не жили вечно.
 - **Генерация:** `flutter gen-l10n`; Drift schema не меняется.
 - **DoD:** пять primary routes работают, route names соответствуют matrix, demo counter удалён,
   unit/widget+debug APK
   pass; e2e запуск только после вопроса владельцу; общий DoD/design review.
 - **Предлагаемый commit:** `task/03.5: добавить адаптивную навигацию`.
+
+### 3.6 Пост-ревью фиксы баланса и дат (3.2) — [ ]
+
+- **Приоритет/зависимости:** P1; сразу после 3.3. **BR:** VAL-5, T-6, CALC-010.
+- **Причина:** повторное ревью 3.2 подтвердило прогоном две дыры инварианта
+  «отрицательный баланс запрещён»: `revise` кредита и правка `transferIn` не пересчитывают
+  баланс; плюс `occurredOn` в будущем принимается.
+- **Files:** Modify `daos/transactions_dao.dart` (проверка итогового баланса всех затронутых
+  счетов независимо от знака и для старого счёта при смене `assetId`; проверка
+  `occurredOn <= LocalDate.fromDateTime(clock().toLocal())`), `revision_snapshots.dart`
+  (таймстемпы через `UtcTimestampConverter`), `tables/asset_valuations.dart`
+  (индекс `effectiveOn DESC, id DESC` + schema dump); Test regression-кейсы:
+  уменьшение/перенос deposit, уменьшение/перенос transferIn, будущая дата, snapshot-формат.
+- **Produces:** целостность баланса на всех путях правки; одинаковый формат timestamp в
+  колонках и snapshot; индекс оценки соответствует data_schema §3.
+- **DoD:** новые тесты падают на старом коде и проходят после фикса; общий DoD; перед PR —
+  `task-reviewer`, вопрос про e2e.
+- **Предлагаемый commit:** `task/03.6: закрыть дыры баланса и будущих дат`.
 
 ## Этап 4 — Справочники и курсы валют
 
