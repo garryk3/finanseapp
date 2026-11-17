@@ -185,7 +185,7 @@
   о e2e.
 - **Предлагаемый commit:** `task/03.1: добавить точные денежные типы`.
 
-### 3.2 Drift schema v1, DAO и ревизионные транзакции — [ ]
+### 3.2 Drift schema v1, DAO и ревизионные транзакции — [x] 2026-11-17
 
 - **Приоритет/зависимости:** P1; после 3.1. **BR:** VAL/T-3…9/C-3,7/CAT-4…6/BU-2…4.
 - **Files:** Create `lib/core/database/app_database.dart`, `app_database_path.dart`, все
@@ -201,6 +201,61 @@
   отклонена. Затем реализовать TX-ASSET-TX/TRANSFER и seed idempotency.
 - **Генерация:** pub get; `dart run build_runner build --delete-conflicting-outputs`;
   `dart run drift_dev schema dump lib/core/database/app_database.dart drift_schemas/`.
+- **Рабочий план (2026-11-17):**
+  - **Границы задачи:** схема v1 + конвертеры + seed + DAO-примитивы и обязательные
+    DB-транзакции записи (TX-ASSET-SAVE, TX-ASSET-TX-CREATE, TX-TRANSFER-SAVE).
+    TX-LINKED-SAVE (связанный cashflow) — 7.2; TX-REFERENCE-MOVE-DELETE и экранные
+    move-диалоги — 4.1/4.3; read/watch-запросы фильтров и агрегаты — задачами экранов
+    (5.x–9.x) поверх готовых таблиц. DAO создаются все 9 файлов, но только с методами,
+    которые нужны сейчас и ближайшим repository-задачам; пустых заглушек нет.
+  - **Dart-модель:** generated-классы получают `@DataClassName('…Row')`, чтобы не
+    конфликтовать с будущими domain-entities 3.3. Ранние domain-enum'ы (AssetKind,
+    AssetTransactionKind, RevisionAction, SubgroupKind, CashflowKind, GoalCategory,
+    GoalStatus) создаются в своих domain-путях, 3.3 дополнит те же файлы сущностями.
+  - **Стабильные enum:** TEXT-значения через явные `TypeConverter` в
+    `converters/enum_converters.dart` (не `EnumIndexConverter`, не `textEnum`):
+    неизвестное значение → `FormatException`. `DecimalConverter` и
+    `LocalDateConverter` — по data_schema §2; добавлен `UtcTimestampConverter`
+    (ISO-8601 TEXT с микросекундами, UTC) — Drift `dateTime()` хранит unix-время и
+    нарушает контракт.
+  - **Схема:** FK `RESTRICT` (кроме явных исключений), CHECK на суммы/курсы/
+    fractionDigits/endDate, обычные индексы — декларативно; частичные unique-индексы
+    (`asset_transactions_active_transfer_leg`, `cashflow_active_asset_link`,
+    categories active name) и триггеры (immutable revisions, RUB protected,
+    endDate >= startDate) — `customStatement` в `onCreate` и набор констант.
+    `schema dump` не видит runtime-DDL: тесты проверяют объекты через `sqlite_master`.
+  - **application_id:** `0x464E4150` (1179533648) ставится в `onCreate`;
+    `beforeOpen` включает `PRAGMA foreign_keys = ON`.
+  - **Seed:** 5 валют, 6 доходных и 10 расходных категорий (`isPreset`), базовая валюта
+    RUB только если ключа ещё нет. Валюты — `insertOrIgnore` по PK; категории — только
+    при пустой таблице (повторный seed не воскрешает rename/archive).
+  - **Транзакции:** `TransactionsDao` — create/revise/softDelete с одной append-only
+    ревизией и snapshot JSON (`snapshotSchemaVersion = 1`); transfer create/revise/
+    softDelete только парами, с запретом прямых операций над ногой (conflict);
+    projected-balance проверка счёта с учётом всех активных операций и исключением
+    редактируемой; отрицательный баланс → `negativeBalance` до записи. Ревизии
+    защищены триггерами от UPDATE/DELETE.
+  - **Тесты:** `app_database_test` (integrity/FK/индексы/триггеры/application_id),
+    `seed_data_test` (идемпотентность/rename), `revision_transaction_test`
+    (ревизии, откат после сбоя на шаге ревизии, transfer atomicity, conflict на ногу).
+  - **Доп. файлы сверх списка:** `converters/enum_converters.dart`,
+    `converters/utc_timestamp_converter.dart` (ISO TEXT вместо unix-времени),
+    `revision_snapshots.dart` (общий JSON-снапшот), ранние domain-enum'ы в
+    `features/*/domain/` (3.3 дополнит файлы сущностями). Generated:
+    `app_database.g.dart`, `daos/*.g.dart`, `drift_schemas/drift_schema_v1.json`.
+  - **Дополнительные файлы (не в исходном списке, обоснованы схемой):**
+    `converters/enum_converters.dart` (стабильные TEXT-enum),
+    `converters/utc_timestamp_converter.dart` (ISO TEXT с микросекундами),
+    `revision_snapshots.dart` (единый формат snapshot JSON),
+    `test/core/database/database_fixtures.dart` (фикстуры тестов).
+  - **Отложено по итогам ревью:** negative-balance при удалении/переносе
+    кредитующих операций (удаление пополнения/transferIn может оставить счёт
+    отрицательным) — буквально соответствует TX-спекам, требует решения владельца и
+    реализуется в 6.2/6.3. Остальные замечания ревью (базовая валюта в
+    `countReferences`, kind-guard оценок, единый canonicalDecimal, фиксированная
+    ширина timestamp, notFound в rename, тесты отката и exclude-id) исправлены здесь.
+  - **Генерация:** build_runner + `drift_dev schema dump`; l10n не меняется. UI нет →
+    design-review не нужен; `task-reviewer` перед PR; про e2e спросить владельца.
 - **DoD:** `integrity_check=ok`, `foreign_key_check` пуст, индексы и application_id проверены
   PRAGMA; generated в diff; общий DoD. Перед PR спросить о e2e.
 - **Предлагаемый commit:** `task/03.2: реализовать Drift-схему v1`.
