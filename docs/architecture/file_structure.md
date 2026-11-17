@@ -307,6 +307,7 @@ lib/
 │   ├── app_list_tile.dart
 │   ├── app_list_view.dart
 │   ├── app_grid_view.dart
+│   ├── app_adaptive_grid.dart
 │   ├── app_button.dart
 │   ├── app_icon_button.dart
 │   ├── app_floating_action_button.dart

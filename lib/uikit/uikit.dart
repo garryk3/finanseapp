@@ -1,0 +1,72 @@
+/// Barrel-экспорты UIKit FinanseApp.
+///
+/// Feature-код импортирует только этот файл (и theme-файлы из
+/// `lib/app/theme/`); сырые Material-виджеты запрещены вне uikit
+/// (см. AGENTS.md «Сырые Material-виджеты», CI-гейты).
+library;
+
+export 'package:finanseapp/uikit/app_adaptive_grid.dart';
+export 'package:finanseapp/uikit/app_amount_field.dart';
+export 'package:finanseapp/uikit/app_asset_list_tile.dart';
+export 'package:finanseapp/uikit/app_asset_select.dart';
+export 'package:finanseapp/uikit/app_bottom_sheet.dart';
+export 'package:finanseapp/uikit/app_box.dart';
+export 'package:finanseapp/uikit/app_button.dart';
+export 'package:finanseapp/uikit/app_card.dart';
+export 'package:finanseapp/uikit/app_category_chip.dart';
+export 'package:finanseapp/uikit/app_category_select.dart';
+export 'package:finanseapp/uikit/app_cashflow_chart.dart';
+export 'package:finanseapp/uikit/app_cashflow_summary.dart';
+export 'package:finanseapp/uikit/app_chart_data.dart';
+export 'package:finanseapp/uikit/app_chart_frame.dart';
+export 'package:finanseapp/uikit/app_chart_legend.dart';
+export 'package:finanseapp/uikit/app_chart_tooltip.dart';
+export 'package:finanseapp/uikit/app_chip.dart';
+export 'package:finanseapp/uikit/app_checkbox.dart';
+export 'package:finanseapp/uikit/app_confirm_dialog.dart';
+export 'package:finanseapp/uikit/app_currency_select.dart';
+export 'package:finanseapp/uikit/app_date_header.dart';
+export 'package:finanseapp/uikit/app_date_picker_field.dart';
+export 'package:finanseapp/uikit/app_dialog.dart';
+export 'package:finanseapp/uikit/app_divider.dart';
+export 'package:finanseapp/uikit/app_empty_state.dart';
+export 'package:finanseapp/uikit/app_error_state.dart';
+export 'package:finanseapp/uikit/app_exchange_rate_text.dart';
+export 'package:finanseapp/uikit/app_filter_bar.dart';
+export 'package:finanseapp/uikit/app_filter_chip.dart';
+export 'package:finanseapp/uikit/app_floating_action_button.dart';
+export 'package:finanseapp/uikit/app_form_section.dart';
+export 'package:finanseapp/uikit/app_goal_card.dart';
+export 'package:finanseapp/uikit/app_icon.dart';
+export 'package:finanseapp/uikit/app_icon_button.dart';
+export 'package:finanseapp/uikit/app_image.dart';
+export 'package:finanseapp/uikit/app_ink_well.dart';
+export 'package:finanseapp/uikit/app_line_chart.dart';
+export 'package:finanseapp/uikit/app_list_tile.dart';
+export 'package:finanseapp/uikit/app_list_view.dart';
+export 'package:finanseapp/uikit/app_metric.dart';
+export 'package:finanseapp/uikit/app_money_delta.dart';
+export 'package:finanseapp/uikit/app_money_text.dart';
+export 'package:finanseapp/uikit/app_navigation_bar.dart';
+export 'package:finanseapp/uikit/app_navigation_rail.dart';
+export 'package:finanseapp/uikit/app_operation_list_tile.dart';
+export 'package:finanseapp/uikit/app_popup_menu.dart';
+export 'package:finanseapp/uikit/app_progress.dart';
+export 'package:finanseapp/uikit/app_radio_list_tile.dart';
+export 'package:finanseapp/uikit/app_refresh_indicator.dart';
+export 'package:finanseapp/uikit/app_scaffold.dart';
+export 'package:finanseapp/uikit/app_search_field.dart';
+export 'package:finanseapp/uikit/app_section.dart';
+export 'package:finanseapp/uikit/app_segmented_control.dart';
+export 'package:finanseapp/uikit/app_select.dart';
+export 'package:finanseapp/uikit/app_skeleton.dart';
+export 'package:finanseapp/uikit/app_snack_bar.dart';
+export 'package:finanseapp/uikit/app_spinner.dart';
+export 'package:finanseapp/uikit/app_summary_card.dart';
+export 'package:finanseapp/uikit/app_switch.dart';
+export 'package:finanseapp/uikit/app_tap_region.dart';
+export 'package:finanseapp/uikit/app_text.dart';
+export 'package:finanseapp/uikit/app_text_field.dart';
+export 'package:finanseapp/uikit/app_tooltip.dart';
+export 'package:finanseapp/uikit/app_top_app_bar.dart';
+export 'package:finanseapp/uikit/app_grid_view.dart';
