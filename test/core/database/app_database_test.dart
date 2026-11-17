@@ -2,6 +2,8 @@ import 'package:decimal/decimal.dart';
 import 'package:drift/drift.dart';
 import 'package:finanseapp/core/database/app_database.dart';
 import 'package:finanseapp/core/database/converters/utc_timestamp_converter.dart';
+import 'package:finanseapp/core/database/daos/cashflow_dao.dart';
+import 'package:finanseapp/core/database/daos/transactions_dao.dart';
 import 'package:finanseapp/core/domain/common/exchange_rate.dart';
 import 'package:finanseapp/core/domain/common/local_date.dart';
 import 'package:finanseapp/core/domain/common/revision.dart';
@@ -84,6 +86,18 @@ void main() {
           'app_settings',
         ]),
       );
+    });
+
+    test('индекс последней оценки включает id', () async {
+      final rows = await db
+          .customSelect("PRAGMA index_info('asset_valuations_asset_effective')")
+          .get();
+
+      expect(rows.map((row) => row.read<String>('name')), [
+        'asset_id',
+        'effective_on',
+        'id',
+      ]);
     });
 
     test('индексы и триггеры созданы', () async {
@@ -237,6 +251,93 @@ void main() {
         throwsA(isA<Exception>()),
       );
     });
+
+    test(
+      'будущие даты дохода/расхода и оценки отклоняются (BR-VAL-5)',
+      () async {
+        final future = LocalDate(2030, 1, 1);
+        final accountId = await createAccount(db);
+        final toAccountId = await createAccount(db, name: 'B');
+        final investmentId = await createInvestment(db);
+        final category = await categoryId(db, CashflowKind.expense);
+
+        await expectLater(
+          db.cashflowDao.create(
+            CashflowEntryInput(
+              kind: CashflowKind.expense,
+              categoryId: category,
+              amountMinor: 100,
+              currencyCode: 'RUB',
+              occurredOn: future,
+              rateToRub: Decimal.one,
+              amountRubMinor: 100,
+              affectsBalance: false,
+            ),
+          ),
+          throwsA(
+            isA<DomainException>()
+                .having(
+                  (error) => error.code,
+                  'code',
+                  DomainErrorCode.validation,
+                )
+                .having(
+                  (error) => error.fieldErrors,
+                  'fieldErrors',
+                  containsPair('occurredOn', 'validationDateInFuture'),
+                ),
+          ),
+        );
+
+        await expectLater(
+          db.valuationsDao.create(
+            assetId: investmentId,
+            effectiveOn: future,
+            valueMinor: 100,
+            rateToRub: Decimal.one,
+            valueRubMinor: 100,
+          ),
+          throwsA(
+            isA<DomainException>()
+                .having(
+                  (error) => error.code,
+                  'code',
+                  DomainErrorCode.validation,
+                )
+                .having(
+                  (error) => error.fieldErrors,
+                  'fieldErrors',
+                  containsPair('effectiveOn', 'validationDateInFuture'),
+                ),
+          ),
+        );
+
+        // Перевод с будущей датой не должен создавать группу.
+        await expectLater(
+          db.transactionsDao.createTransfer(
+            TransferInput(
+              fromAccountId: accountId,
+              toAccountId: toAccountId,
+              fromAmountMinor: 100,
+              toAmountMinor: 100,
+              occurredOn: future,
+              fromRateToRub: Decimal.one,
+              toRateToRub: Decimal.one,
+              fromAmountRubMinor: 100,
+              toAmountRubMinor: 100,
+            ),
+          ),
+          throwsA(
+            isA<DomainException>().having(
+              (error) => error.code,
+              'code',
+              DomainErrorCode.validation,
+            ),
+          ),
+        );
+        expect(await db.select(db.assetTransfers).get(), isEmpty);
+      },
+    );
 
     test('оценка допустима только для инвестиции и квартиры', () async {
       final accountId = await createAccount(db);

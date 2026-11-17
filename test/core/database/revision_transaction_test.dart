@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:decimal/decimal.dart';
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:finanseapp/core/database/app_database.dart';
+import 'package:finanseapp/core/database/converters/utc_timestamp_converter.dart';
 import 'package:finanseapp/core/database/daos/transactions_dao.dart';
 import 'package:finanseapp/core/domain/common/local_date.dart';
 import 'package:finanseapp/core/domain/common/revision.dart';
@@ -85,6 +86,10 @@ void main() {
       expect(snapshot['occurredOn'], '2026-01-10');
       expect(snapshot['rateToRub'], '1');
       expect(snapshot['deletedAt'], isNull);
+      expect(
+        snapshot['createdAt'],
+        const UtcTimestampConverter().toSql(row.createdAt),
+      );
       expect(await balanceOf(accountId), 125050);
     });
 
@@ -155,6 +160,107 @@ void main() {
       );
       await db.customStatement('DROP TRIGGER test_boom');
 
+      expect(await db.select(db.assetTransactions).get(), isEmpty);
+    });
+
+    test('правка кредита не уводит счёт в минус', () async {
+      final accountId = await createAccount(db);
+      final otherId = await createAccount(db, name: 'B');
+      final depositId = await db.transactionsDao.create(
+        await deposit(accountId, 100000),
+      );
+      await db.transactionsDao.create(
+        AssetTransactionInput(
+          assetId: accountId,
+          kind: AssetTransactionKind.withdrawal,
+          amountMinor: 90000,
+          occurredOn: LocalDate(2026, 1, 12),
+          rateToRub: Decimal.one,
+          amountRubMinor: 90000,
+        ),
+      );
+
+      // Уменьшение пополнения ниже уже снятой суммы запрещено.
+      await expectLater(
+        db.transactionsDao.revise(
+          depositId,
+          AssetTransactionInput(
+            assetId: accountId,
+            kind: AssetTransactionKind.deposit,
+            amountMinor: 10000,
+            occurredOn: LocalDate(2026, 1, 10),
+            rateToRub: Decimal.one,
+            amountRubMinor: 10000,
+          ),
+        ),
+        throwsDomain(DomainErrorCode.negativeBalance),
+      );
+
+      // Перенос пополнения на другой счёт оставляет первый в минусе.
+      await expectLater(
+        db.transactionsDao.revise(
+          depositId,
+          AssetTransactionInput(
+            assetId: otherId,
+            kind: AssetTransactionKind.deposit,
+            amountMinor: 100000,
+            occurredOn: LocalDate(2026, 1, 10),
+            rateToRub: Decimal.one,
+            amountRubMinor: 100000,
+          ),
+        ),
+        throwsDomain(DomainErrorCode.negativeBalance),
+      );
+
+      // Удаление пополнения тоже запрещено при отрицательном итоге.
+      await expectLater(
+        db.transactionsDao.softDelete(depositId),
+        throwsDomain(DomainErrorCode.negativeBalance),
+      );
+
+      final row = await db.transactionsDao.getById(depositId);
+      expect(row.amountMinor, 100000);
+      expect(row.deletedAt, isNull);
+    });
+
+    test('удаление кредита проверяет всю историю, а не только итог', () async {
+      final accountId = await createAccount(db);
+      final firstDepositId = await db.transactionsDao.create(
+        await deposit(accountId, 10000),
+      );
+      await db.transactionsDao.create(
+        AssetTransactionInput(
+          assetId: accountId,
+          kind: AssetTransactionKind.withdrawal,
+          amountMinor: 10000,
+          occurredOn: LocalDate(2026, 1, 12),
+          rateToRub: Decimal.one,
+          amountRubMinor: 10000,
+        ),
+      );
+      // Позднее пополнение маскирует отрицательный итог, но провал в истории
+      // на 12.01 остаётся.
+      await db.transactionsDao.create(
+        await deposit(accountId, 10000, occurredOn: LocalDate(2026, 1, 14)),
+      );
+
+      await expectLater(
+        db.transactionsDao.softDelete(firstDepositId),
+        throwsDomain(DomainErrorCode.negativeBalance),
+      );
+      final row = await db.transactionsDao.getById(firstDepositId);
+      expect(row.deletedAt, isNull);
+    });
+
+    test('будущая дата операции отклоняется (BR-VAL-5)', () async {
+      final accountId = await createAccount(db);
+
+      await expectLater(
+        db.transactionsDao.create(
+          await deposit(accountId, 100, occurredOn: LocalDate(2030, 1, 1)),
+        ),
+        throwsDomain(DomainErrorCode.validation),
+      );
       expect(await db.select(db.assetTransactions).get(), isEmpty);
     });
 
@@ -303,6 +409,106 @@ void main() {
       await expectLater(
         db.transactionsDao.createTransfer(transferInput(to: investmentId)),
         throwsDomain(DomainErrorCode.validation),
+      );
+    });
+
+    test(
+      'уменьшение/удаление transferIn не уводит получателя в минус',
+      () async {
+        final transferId = await db.transactionsDao.createTransfer(
+          transferInput(),
+        );
+        await db.transactionsDao.create(
+          AssetTransactionInput(
+            assetId: toId,
+            kind: AssetTransactionKind.withdrawal,
+            amountMinor: 49000,
+            occurredOn: LocalDate(2026, 1, 16),
+            rateToRub: Decimal.one,
+            amountRubMinor: 49000,
+          ),
+        );
+
+        await expectLater(
+          db.transactionsDao.reviseTransfer(
+            transferId,
+            transferInput(fromAmountMinor: 50000, toAmountMinor: 10000),
+          ),
+          throwsDomain(DomainErrorCode.negativeBalance),
+        );
+        await expectLater(
+          db.transactionsDao.softDeleteTransfer(transferId),
+          throwsDomain(DomainErrorCode.negativeBalance),
+        );
+
+        final legs = await (db.select(
+          db.assetTransactions,
+        )..where((t) => t.transferId.equals(transferId))).get();
+        expect(legs.every((leg) => leg.deletedAt == null), isTrue);
+        expect(legs.every((leg) => leg.amountMinor == 50000), isTrue);
+      },
+    );
+
+    test(
+      'reviseTransfer проверяет историю получателя, а не только итог',
+      () async {
+        final transferId = await db.transactionsDao.createTransfer(
+          transferInput(),
+        );
+        await db.transactionsDao.create(
+          AssetTransactionInput(
+            assetId: toId,
+            kind: AssetTransactionKind.withdrawal,
+            amountMinor: 49000,
+            occurredOn: LocalDate(2026, 1, 16),
+            rateToRub: Decimal.one,
+            amountRubMinor: 49000,
+          ),
+        );
+        // Позднее пополнение делает итог положительным.
+        await db.transactionsDao.create(
+          await deposit(toId, 50000, occurredOn: LocalDate(2026, 1, 17)),
+        );
+
+        await expectLater(
+          db.transactionsDao.reviseTransfer(
+            transferId,
+            transferInput(fromAmountMinor: 50000, toAmountMinor: 10000),
+          ),
+          throwsDomain(DomainErrorCode.negativeBalance),
+        );
+      },
+    );
+
+    test('будущая дата в reviseTransfer отклоняется', () async {
+      final transferId = await db.transactionsDao.createTransfer(
+        transferInput(),
+      );
+
+      await expectLater(
+        db.transactionsDao.reviseTransfer(
+          transferId,
+          TransferInput(
+            fromAccountId: fromId,
+            toAccountId: toId,
+            fromAmountMinor: 50000,
+            toAmountMinor: 50000,
+            occurredOn: LocalDate(2030, 1, 1),
+            fromRateToRub: Decimal.one,
+            toRateToRub: Decimal.one,
+            fromAmountRubMinor: 50000,
+            toAmountRubMinor: 50000,
+          ),
+        ),
+        throwsDomain(DomainErrorCode.validation),
+      );
+
+      final legs = await (db.select(
+        db.assetTransactions,
+      )..where((t) => t.transferId.equals(transferId))).get();
+      expect(
+        legs.every((leg) => leg.occurredOn == LocalDate(2026, 1, 15)),
+        isTrue,
       );
     });
 

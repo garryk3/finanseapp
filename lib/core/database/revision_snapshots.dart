@@ -5,6 +5,7 @@ import 'package:finanseapp/core/domain/common/local_date.dart';
 import 'package:finanseapp/core/domain/common/revision.dart';
 import 'package:finanseapp/core/database/converters/decimal_converter.dart';
 import 'package:finanseapp/core/database/converters/enum_converters.dart';
+import 'package:finanseapp/core/database/converters/utc_timestamp_converter.dart';
 import 'package:finanseapp/core/features/categories/domain/category.dart';
 import 'package:finanseapp/core/features/transactions/domain/asset_transaction.dart';
 
@@ -59,9 +60,9 @@ Map<String, Object?> assetTransactionSnapshotFields({
   'comment': comment,
   'transferId': transferId,
   'revisionNo': revisionNo,
-  'createdAt': createdAt.toUtc().toIso8601String(),
-  'updatedAt': updatedAt.toUtc().toIso8601String(),
-  'deletedAt': deletedAt?.toUtc().toIso8601String(),
+  'createdAt': _snapshotTimestamp(createdAt),
+  'updatedAt': _snapshotTimestamp(updatedAt),
+  'deletedAt': deletedAt == null ? null : _snapshotTimestamp(deletedAt),
 };
 
 /// Поля записи денежного потока для журнала.
@@ -98,7 +99,11 @@ Map<String, Object?> cashflowSnapshotFields({
   'accountId': accountId,
   'assetTransactionId': assetTransactionId,
   'revisionNo': revisionNo,
-  'createdAt': createdAt.toUtc().toIso8601String(),
-  'updatedAt': updatedAt.toUtc().toIso8601String(),
-  'deletedAt': deletedAt?.toUtc().toIso8601String(),
+  'createdAt': _snapshotTimestamp(createdAt),
+  'updatedAt': _snapshotTimestamp(updatedAt),
+  'deletedAt': deletedAt == null ? null : _snapshotTimestamp(deletedAt),
 };
+
+/// Тот же формат, что у колонок: ISO TEXT фиксированной ширины (микросекунды).
+String _snapshotTimestamp(DateTime value) =>
+    const UtcTimestampConverter().toSql(value);
