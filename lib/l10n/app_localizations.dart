@@ -117,6 +117,150 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Увеличить'**
   String get increment;
+
+  /// Заголовок экрана управления защитой (PIN-код, биометрия).
+  ///
+  /// In ru, this message translates to:
+  /// **'Защита приложения'**
+  String get appLockTitle;
+
+  /// Статус: защита приложения включена.
+  ///
+  /// In ru, this message translates to:
+  /// **'Защита включена'**
+  String get appLockStatusOn;
+
+  /// Статус: защита приложения выключена.
+  ///
+  /// In ru, this message translates to:
+  /// **'Защита выключена'**
+  String get appLockStatusOff;
+
+  /// Кнопка включения защиты PIN-кодом.
+  ///
+  /// In ru, this message translates to:
+  /// **'Включить защиту'**
+  String get appLockEnable;
+
+  /// Кнопка смены PIN-кода.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сменить PIN-код'**
+  String get appLockChange;
+
+  /// Кнопка отключения защиты PIN-кодом.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отключить защиту'**
+  String get appLockDisable;
+
+  /// Заголовок экрана блокировки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Введите PIN-код'**
+  String get appLockLockTitle;
+
+  /// Подсказка ввода текущего PIN при смене или отключении.
+  ///
+  /// In ru, this message translates to:
+  /// **'Введите текущий PIN-код'**
+  String get appLockEnterCurrent;
+
+  /// Подсказка придумывания нового PIN-кода.
+  ///
+  /// In ru, this message translates to:
+  /// **'Придумайте PIN-код: 4–6 цифр'**
+  String get appLockEnterNew;
+
+  /// Подсказка повторного ввода нового PIN-кода.
+  ///
+  /// In ru, this message translates to:
+  /// **'Повторите PIN-код'**
+  String get appLockConfirmNew;
+
+  /// Кнопка перехода к повторному вводу PIN-кода.
+  ///
+  /// In ru, this message translates to:
+  /// **'Продолжить'**
+  String get appLockContinue;
+
+  /// Кнопка отмены ввода PIN-кода.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отмена'**
+  String get appLockCancel;
+
+  /// Ошибка при неверном PIN-коде.
+  ///
+  /// In ru, this message translates to:
+  /// **'Неверный PIN-код'**
+  String get appLockWrongPin;
+
+  /// Ошибка при расхождении повторного ввода нового PIN.
+  ///
+  /// In ru, this message translates to:
+  /// **'PIN-коды не совпадают'**
+  String get appLockPinsMismatch;
+
+  /// Сообщение о блокировке ввода после неудачных попыток.
+  ///
+  /// In ru, this message translates to:
+  /// **'Слишком много попыток. Повторите через {seconds} с'**
+  String appLockLockedOut(int seconds);
+
+  /// Кнопка разблокировки биометрией на экране блокировки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Разблокировать по отпечатку или лицу'**
+  String get appLockBiometricUnlock;
+
+  /// Причина, показываемая системной биометрией.
+  ///
+  /// In ru, this message translates to:
+  /// **'Подтвердите личность для входа в FinanseApp'**
+  String get appLockBiometricReason;
+
+  /// Подпись переключателя биометрии в управлении защитой.
+  ///
+  /// In ru, this message translates to:
+  /// **'Разблокировка по отпечатку или лицу'**
+  String get appLockBiometricSwitch;
+
+  /// Ошибка при попытке включить недоступную биометрию.
+  ///
+  /// In ru, this message translates to:
+  /// **'Биометрия недоступна на этом устройстве'**
+  String get appLockBiometricUnavailable;
+
+  /// Подпись настройки auto-lock.
+  ///
+  /// In ru, this message translates to:
+  /// **'Блокировка при сворачивании'**
+  String get appLockAutoLock;
+
+  /// Вариант auto-lock: блокировать сразу при сворачивании.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сразу'**
+  String get appLockAutoLockImmediate;
+
+  /// Вариант auto-lock: блокировать через N минут в фоне.
+  ///
+  /// In ru, this message translates to:
+  /// **'Через {minutes} мин'**
+  String appLockAutoLockAfterMinutes(int minutes);
+
+  /// Семантическая подпись кнопки стирания цифры PIN.
+  ///
+  /// In ru, this message translates to:
+  /// **'Стереть'**
+  String get appLockBackspace;
+
+  /// Семантическая подпись индикатора ввода PIN.
+  ///
+  /// In ru, this message translates to:
+  /// **'Введено {filled} из {length}'**
+  String appLockDotsSemantics(int filled, int length);
 }
 
 class _AppLocalizationsDelegate

@@ -70,11 +70,17 @@
 | audit-cashflow | `/more/audit/cashflow/:id` | AuditEntryDetailsScreen(cashflow) |
 | about | `/more/about` | AboutScreen |
 | not-found | `/not-found` | NotFoundScreen |
+| applock-manage | `/applock` | ApplockManageScreen (управление защитой; переедет в `/more/settings` в 10.3) |
 
 `errorBuilder` ведёт в NotFoundScreen с безопасной кнопкой «На главную». Unknown route,
 invalid int, wrong kind для typed edit и удалённый/отсутствующий id показывают Not Found;
 stack trace и сырое исключение пользователю не выводятся. Для details архивный актив
 доступен в read-only режиме; soft-deleted операция доступна только из audit route.
+
+Экран блокировки приложения (ApplockScreen) route'ом не является: это overlay
+(`AppLockGate` в `builder` у `MaterialApp.router`), который перекрывает любой текущий
+маршрут при локе на cold start или возврате из фона (BR-Sec-6). Кнопка «назад»
+лок-скрин не закрывает.
 
 ## 3. Query parameters и prefill
 

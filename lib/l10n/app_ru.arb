@@ -15,5 +15,119 @@
   "increment": "Увеличить",
   "@increment": {
     "description": "Кнопка увеличения демо-счётчика."
+  },
+  "appLockTitle": "Защита приложения",
+  "@appLockTitle": {
+    "description": "Заголовок экрана управления защитой (PIN-код, биометрия)."
+  },
+  "appLockStatusOn": "Защита включена",
+  "@appLockStatusOn": {
+    "description": "Статус: защита приложения включена."
+  },
+  "appLockStatusOff": "Защита выключена",
+  "@appLockStatusOff": {
+    "description": "Статус: защита приложения выключена."
+  },
+  "appLockEnable": "Включить защиту",
+  "@appLockEnable": {
+    "description": "Кнопка включения защиты PIN-кодом."
+  },
+  "appLockChange": "Сменить PIN-код",
+  "@appLockChange": {
+    "description": "Кнопка смены PIN-кода."
+  },
+  "appLockDisable": "Отключить защиту",
+  "@appLockDisable": {
+    "description": "Кнопка отключения защиты PIN-кодом."
+  },
+  "appLockLockTitle": "Введите PIN-код",
+  "@appLockLockTitle": {
+    "description": "Заголовок экрана блокировки."
+  },
+  "appLockEnterCurrent": "Введите текущий PIN-код",
+  "@appLockEnterCurrent": {
+    "description": "Подсказка ввода текущего PIN при смене или отключении."
+  },
+  "appLockEnterNew": "Придумайте PIN-код: 4–6 цифр",
+  "@appLockEnterNew": {
+    "description": "Подсказка придумывания нового PIN-кода."
+  },
+  "appLockConfirmNew": "Повторите PIN-код",
+  "@appLockConfirmNew": {
+    "description": "Подсказка повторного ввода нового PIN-кода."
+  },
+  "appLockContinue": "Продолжить",
+  "@appLockContinue": {
+    "description": "Кнопка перехода к повторному вводу PIN-кода."
+  },
+  "appLockCancel": "Отмена",
+  "@appLockCancel": {
+    "description": "Кнопка отмены ввода PIN-кода."
+  },
+  "appLockWrongPin": "Неверный PIN-код",
+  "@appLockWrongPin": {
+    "description": "Ошибка при неверном PIN-коде."
+  },
+  "appLockPinsMismatch": "PIN-коды не совпадают",
+  "@appLockPinsMismatch": {
+    "description": "Ошибка при расхождении повторного ввода нового PIN."
+  },
+  "appLockLockedOut": "Слишком много попыток. Повторите через {seconds} с",
+  "@appLockLockedOut": {
+    "description": "Сообщение о блокировке ввода после неудачных попыток.",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "appLockBiometricUnlock": "Разблокировать по отпечатку или лицу",
+  "@appLockBiometricUnlock": {
+    "description": "Кнопка разблокировки биометрией на экране блокировки."
+  },
+  "appLockBiometricReason": "Подтвердите личность для входа в FinanseApp",
+  "@appLockBiometricReason": {
+    "description": "Причина, показываемая системной биометрией."
+  },
+  "appLockBiometricSwitch": "Разблокировка по отпечатку или лицу",
+  "@appLockBiometricSwitch": {
+    "description": "Подпись переключателя биометрии в управлении защитой."
+  },
+  "appLockBiometricUnavailable": "Биометрия недоступна на этом устройстве",
+  "@appLockBiometricUnavailable": {
+    "description": "Ошибка при попытке включить недоступную биометрию."
+  },
+  "appLockAutoLock": "Блокировка при сворачивании",
+  "@appLockAutoLock": {
+    "description": "Подпись настройки auto-lock."
+  },
+  "appLockAutoLockImmediate": "Сразу",
+  "@appLockAutoLockImmediate": {
+    "description": "Вариант auto-lock: блокировать сразу при сворачивании."
+  },
+  "appLockAutoLockAfterMinutes": "Через {minutes} мин",
+  "@appLockAutoLockAfterMinutes": {
+    "description": "Вариант auto-lock: блокировать через N минут в фоне.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "appLockBackspace": "Стереть",
+  "@appLockBackspace": {
+    "description": "Семантическая подпись кнопки стирания цифры PIN."
+  },
+  "appLockDotsSemantics": "Введено {filled} из {length}",
+  "@appLockDotsSemantics": {
+    "description": "Семантическая подпись индикатора ввода PIN.",
+    "placeholders": {
+      "filled": {
+        "type": "int"
+      },
+      "length": {
+        "type": "int"
+      }
+    }
   }
 }

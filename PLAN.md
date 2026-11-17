@@ -894,19 +894,32 @@
   Перед PR спросить о e2e.
 - **Предлагаемый commit:** `task/12.4: добавить первичный онбординг`.
 
-### 12.5 App lock: PIN-код и биометрия — [ ]
+### 12.5 App lock: PIN-код и биометрия — [x] 2026-11-17
 
-- **Приоритет/зависимости:** P2 (можно поднять — финансовые данные); после 10.3
-  (настройки/хранение флагов). **BR:** новые privacy-правила — описать в BR docs до кода.
-- **Files:** Create `lib/core/features/applock/{domain,data,logic,ui}/…` (сервис PIN,
-  политика попыток, экран блокировки, setup/toggles в настройках из 10.3);
-  Modify pubspec + lock (`local_auth`, `flutter_secure_storage`), DI, router (guard
-  маршрутов / overlay блокировки), `lib/l10n/app_ru.arb`, BR docs, навигационные docs;
-  Test `test/core/features/applock/{domain,data,logic,ui}/…` unit + widget.
+- **Приоритет/зависимости:** P2 (можно поднять — финансовые данные); реализуется сразу
+  после 3.4 (в main). Зависимость от 10.3 снята решением ниже. **BR:** BR-Sec — описаны
+  в `business_rules.md` §14 до кода.
+- **Решения (зафиксированы до кода):**
+  - `app_settings` (10.3) в коде ещё нет → флаги защиты (biometric, auto-lock, счётчик
+    попыток, lockoutUntil) хранятся рядом с хэшем в secure storage. При появлении 10.3
+    миграция настроек — отдельная задача.
+  - Overlay-блокировка (не guard go_router): `AppLockGate` в `builder` у
+    `MaterialApp.router` — работает над любым текущим маршрутом и не требует 3.5.
+  - Точка входа управления защитой — демо-секция Home (экран настроек появится в 10.3,
+    entry перенесётся туда).
+  - Пакет хэширования — `crypto` (PBKDF2-HMAC-SHA256, per-PIN salt); зафиксировано
+    в `docs/PROJECT.md`.
+- **Files:** Create `lib/core/features/applock/{domain,data,logic,ui}/…` (pin value,
+  hasher, сервис попыток, secure storage gateway, biometric gateway, контроллер и VM,
+  экран блокировки, manage-экран, keypad/dots, `AppLockGate`), `lib/app/routes.dart`;
+  Modify pubspec + lock (`local_auth`, `flutter_secure_storage`, `crypto`), DI, router,
+  `app.dart`, Home (entry), `AndroidManifest.xml` + `MainActivity.kt`
+  (`FlutterFragmentActivity`, `USE_BIOMETRIC`), `lib/l10n/app_ru.arb`, BR docs,
+  навигационные docs, `docs/PROJECT.md`; Test `test/core/features/applock/…` unit + widget.
 - **Consumes:** `local_auth` (биометрия; на Linux/desktop — graceful fallback на PIN),
-  `flutter_secure_storage` (hardware-backed хранилище хэша PIN, вне БД — backup/import
-  его не переносят), `app_settings` из 10.3 (enabled-флаги, auto-lock таймаут),
-  AppLifecycle (блокировка на cold start и при возврате из фона).
+  `flutter_secure_storage` (хранилище хэша PIN и флагов, вне БД — backup/import их не
+  переносит), `crypto` (PBKDF2-хэш), AppLifecycle (блокировка на cold start и при
+  возврате из фона), uikit-компоненты 3.4.
 - **Produces:** PIN 4–6 цифр с подтверждением при включении; отключение только по PIN;
   опциональная биометрия с fallback на PIN при недоступности/отмене; политика попыток
   (5 неудачных → блокировка с экспоненциальной задержкой); настройка auto-lock
@@ -915,8 +928,7 @@
   biometric unavailable/cancelled → fallback на PIN; fresh install → lock выключен;
   backup import не восстанавливает хэш (secure storage вне БД); back из экрана блокировки
   не обходит защиту; затем service+VM+UI.
-- **Генерация:** pub get; Drift не меняется (хэш — в secure storage, флаги — в
-  существующем app_settings); gen-l10n.
+- **Генерация:** pub get; Drift не меняется (хэш и флаги — в secure storage); gen-l10n.
 - **DoD:** хэш PIN никогда не в Drift/логах; биометрия за интерфейсом (fake в тестах,
   Linux/CI не падает); общий DoD/design review (UI-задача). Перед PR спросить о e2e.
 - **Предлагаемый commit:** `task/12.5: добавить защиту входа PIN-кодом и биометрией`.
