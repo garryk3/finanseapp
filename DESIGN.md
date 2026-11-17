@@ -58,7 +58,11 @@ bodySmall. Главная сумма headlineSmall с tabular figures, сумм�
 - Card radius 16, default padding 16, border outlineVariant, elevation 0. Sections
   разделяются 24dp, связанные элементы 8/12dp.
 - Compact NavigationBar, >=600 NavigationRail; пять destinations в фиксированном порядке.
-  Dashboard на expanded использует две колонки, forms остаются одной колонкой.
+- Dashboard на expanded использует две колонки, forms остаются одной колонкой. Единая
+  точка входа сетки — `AppAdaptiveGrid` (uikit): `<600dp` одна колонка, `>=600dp` две
+  (fold/планшет), центрирование contentMaxWidth/formMaxWidth. Приложение зафиксировано
+  в вертикальной ориентации (`screenOrientation="portrait"`); адаптивность — по ширине,
+  не по повороту.
 - Touch targets ≥48×48dp и gaps ≥8dp. Основные list tiles обычно ≥56dp; иконка в trailing
   имеет собственный target и tooltip.
 

@@ -15,6 +15,13 @@
 
 ## Обязательные правила
 
+- Chrome-строки компонентов (дефолтные подписи поиска/сброса, семантические
+  статусы «Выполняется»/«Загрузка»/«Ошибка», подписи серий графиков) имеют
+  русские значения по умолчанию и **всегда переопределяемы** optional-параметрами
+  (`searchLabel`, `resetLabel`, `pendingLabel`, `clearTooltip`, `errorLabel`,
+  `archivedLabel`, `incomeLabel/expenseLabel/netLabel` и т.п.). Feature View
+  передаёт итоговые строки; UIKit не является словарём.
+
 - Public API принимает только immutable presentation values (`String`, `bool`, `num`,
   `DateTime`, UIKit options/models) и callbacks. `Asset`, `Money`, `Decimal`,
   `CashflowEntry`, repositories, DAO, `AppLocalizations` и `ServiceLocator` запрещены.
@@ -35,6 +42,45 @@
 - В сигнатурах ниже тела намеренно опущены. Дополнительные optional параметры можно
   добавлять только обратно совместимо; обязательные параметры нельзя удалять без обновления
   контракта, `DESIGN.md`, PLAN и тестов.
+
+## Маппинг «компонент → экраны»
+
+Сводная таблица, где какой компонент использовать при реализации экранов
+(та же подпись продублирована doc-комментарием «Экраны: …» у каждого
+public API). Экраны — из матрицы `docs/architecture/navigation_and_screens.md` §5.
+
+| Компонент | Экраны |
+|---|---|
+| AppScaffold, AppTopAppBar | Все экраны (каркас); `large` — Dashboard, Аналитика |
+| AppAdaptiveGrid | Все master-экраны на fold/планшете: Dashboard, Активы, Цели, Аналитика, Настройки, Ещё; формы — `maxColumns: 1` |
+| AppSection/AppSectionHeader | Dashboard, Настройки, детали активов/операций, Аналитика, Ещё |
+| AppCard, AppInkWell | Dashboard, Активы, Цели, Аналитика, Настройки, Ещё |
+| AppListTile, AppListView | Ещё, Настройки, Валюты, Справочники, Аудит, детали |
+| AppNavigationBar/Rail | Адаптивный shell (задача 3.5) — 5 root-разделов |
+| AppButton, AppIconButton, AppFAB | Все экраны: Save/Create, backup, delete, trailing-действия, добавление операции |
+| AppDialog, AppBottomSheet, showAppSnackBar | Все подтверждения/выборы/commit-toast — формы, Настройки, Операции |
+| AppSpinner, AppSkeleton, AppProgress | Loading-состояния всех экранов; progress — Цели, GoalDetails, импорт |
+| AppChip, AppTooltip, AppDivider | Фильтры/бейджи, icon-only действия, Аудит/детали |
+| AppSwitch, AppCheckbox, AppRadioListTile | Настройки, CashflowForm, GoalForm, BaseCurrencyScreen, фильтры |
+| AppPopupMenu | Trailing-меню списков: Операции, Активы, Цели, Справочники |
+| AppRefreshIndicator | Журналы: Операции, Активы, Цели, Валюты |
+| AppTextField, AppSearchField, AppAmountField, AppDatePickerField | Все формы и фильтры журналов/аудита |
+| AppSelect + showAppSelectSheet | BaseCurrencyScreen, справочники, общие выборы |
+| AppCurrencySelect | AccountForm, InvestmentForm, PropertyForm, ValuationForm, CurrencyForm |
+| AppCategorySelect | CashflowForm, фильтры Операций/Аналитики |
+| AppAssetSelect | TransactionForm, TransferForm, CashflowForm, GoalForm |
+| AppSegmentedControl | Хост Операции, Categories, Audit, Subgroups, Аналитика |
+| AppFilterChip, AppFilterBar | Операции, Активы, Аналитика, Аудит |
+| AppFormSection | Все формы |
+| AppMoneyText, AppMoneyDelta, AppExchangeRateText | Dashboard, детали, TransactionDetails, CashflowDetails, Аналитика |
+| AppMetric, AppSummaryCard, AppCashflowSummary | Dashboard, Аналитика, GoalDetails, Операции |
+| AppAssetListTile | AssetsScreen, Dashboard, GoalForm |
+| AppOperationListTile, AppDateHeader | Журналы Операции, Dashboard, Аудит |
+| AppCategoryChip | CashflowForm, фильтры Аналитики/Операций, Categories |
+| AppGoalCard | GoalsScreen, Dashboard |
+| AppEmptyState, AppErrorState | Все списки/экраны; compact — offline курсы/обновления |
+| AppConfirmDialog | Все delete, импорт backup, unsaved back |
+| AppChartFrame/Legend/Tooltip, AppLineChart, AppCashflowChart | Аналитика, Dashboard |
 
 ## Общие тестовые фикстуры
 

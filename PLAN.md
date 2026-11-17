@@ -192,18 +192,31 @@
   reset протестированы; общий DoD. Перед PR спросить о e2e.
 - **Предлагаемый commit:** `task/03.3: связать доменные контракты и DI`.
 
-### 3.4 UIKit и theme foundations — [ ]
+### 3.4 UIKit и theme foundations — [x] 2026-11-17
 
 - **Приоритет/зависимости:** P1; после 2.5, независимо от 3.2/3.3. **BR:** VAL-7, DESIGN/a11y.
-- **Files:** Create все UIKit `.dart` из file_structure и theme `{app_semantic_colors,app_spacing,app_shapes,chart_series_colors}.dart`;
-  Modify существующие `app_{scaffold,text,button,section,theme}.dart`, `lib/uikit/uikit.dart`;
-  Test `test/uikit/{primitives_test,inputs_test,finance_test,charts_test,states_test,accessibility_test}.dart`.
+- **Рабочий план (2026-11-16):** полный UIKit по контрактам 2.5 одной задачей + три
+  изменения контракта: (1) новый layout-компонент `AppAdaptiveGrid` — LayoutBuilder,
+  `<600dp` одна колонка / `>=600dp` две, центрирование `contentMaxWidth=1200` /
+  `formMaxWidth=640` через `maxColumns: 1`, для fold/планшета; (2) фиксация вертикальной
+  ориентации `android:screenOrientation="portrait"` у MainActivity; (3) doc-подпись
+  «Экраны: …» у каждого public компонента (маппинг из navigation_and_screens §5) +
+  сводная таблица «компонент → экраны» в `lib/uikit/design/README.md`. Изменения
+  фиксируются в DESIGN.md §4, file_structure.md, `uikit/design/primitives.md` в этой задаче.
+  Порядок: theme → primitives (вкл. AppAdaptiveGrid) → inputs → finance → states →
+  charts → barrel `uikit.dart` → portrait → docs → тесты → гейты.
+- **Files:** Create все UIKit `.dart` из file_structure (включая `app_adaptive_grid.dart`)
+  и theme `{app_semantic_colors,app_spacing,app_shapes,chart_series_colors}.dart`;
+  Modify существующие `app_{scaffold,text,button,section,theme}.dart`, `lib/uikit/uikit.dart`,
+  `android/app/src/main/AndroidManifest.xml`, `DESIGN.md`, `docs/architecture/file_structure.md`,
+  `lib/uikit/design/{primitives,README}.md`;
+  Test `test/uikit/{primitives_test,inputs_test,finance_test,charts_test,states_test,layout_test,accessibility_test}.dart`.
 - **Consumes:** семь контрактов `lib/uikit/design/`. **Produces:** все wrappers и presentation
   models, semantic light/dark themes, charts, feedback, inputs без domain dependencies.
 - **TDD:** сначала raw-wrapper replacement test и callbacks pending/disabled; amount comma/
   fraction tests; expense semantics без error; empty/error/confirm; charts empty/single/zero/
-  NaN rejection; 320dp+1.3+long RU в light/dark. Затем реализовать компоненты группами
-  primitives→inputs→finance→charts, сохраняя public signatures.
+  NaN rejection; layout-тесты сетки 599/600/1100dp; 320dp+1.3+long RU в light/dark.
+  Реализовать компоненты группами primitives→inputs→finance→charts, сохраняя public signatures.
 - **Генерация:** новых зависимостей нет; l10n в UIKit не генерируется.
 - **DoD:** `dart analyze lib --fatal-infos` не находит обходов; contrast/targets/semantics
   tests pass; design-reviewer обязателен; общий DoD. Перед PR спросить о e2e.

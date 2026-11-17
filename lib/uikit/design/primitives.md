@@ -135,6 +135,16 @@ class AppInkWell extends StatelessWidget {
   final bool enabled;
 }
 
+class AppAdaptiveGrid extends StatelessWidget {
+  const AppAdaptiveGrid({
+    super.key, required this.children, this.maxColumns = 2,
+    this.maxWidth = AppSpacing.contentMaxWidth,
+  }) : assert(maxColumns >= 1);
+  final List<Widget> children;
+  final int maxColumns;
+  final double maxWidth;
+}
+
 class AppTapRegion extends StatelessWidget {
   const AppTapRegion({
     super.key, required this.child, this.onTap, this.semanticLabel,
@@ -165,6 +175,14 @@ class AppImage extends StatelessWidget {
 initialization без `late` crash. AppCard/AppInkWell disabled не дают splash/callback.
 Decorative AppImage имеет `semanticLabel = null` и `excludeFromSemantics`; content image
 обязана получить label. Вместо raw Container/InkWell/GestureDetector/Image используются эти wrappers.
+
+`AppAdaptiveGrid` — единая точка входа адаптивной сетки (DESIGN.md §4): `<600dp`
+одна колонка (padding 16, gap 16), `>=600dp` — `maxColumns` равных колонок
+(padding 24, gap 24); контент центрируется с ограничением `maxWidth` (по умолчанию
+`AppSpacing.contentMaxWidth`). Формы на широких экранах остаются одной колонкой:
+`maxColumns: 1, maxWidth: AppSpacing.formMaxWidth`. Реализация на LayoutBuilder
+по constraints, не по platform/orientation; приложение зафиксировано в portrait,
+адаптивность — по ширине (fold/планшет).
 
 ## 2. Buttons и навигация
 

@@ -2,6 +2,7 @@
 // Зона дизайн-токенов: seed-цвет и прямые Color(...) разрешены только здесь
 // (см. DESIGN.md, AGENTS.md «Сырые Material-виджеты»).
 import 'package:material_ui/material_ui.dart';
+import 'package:finanseapp/app/theme/app_semantic_colors.dart';
 
 /// Централизованные темы приложения (Material 3, светлая + тёмная).
 abstract final class AppTheme {
@@ -13,11 +14,29 @@ abstract final class AppTheme {
   static ThemeData dark() => _base(Brightness.dark);
 
   static ThemeData _base(Brightness brightness) {
+    final ColorScheme scheme = ColorScheme.fromSeed(
+      seedColor: seedColor,
+      brightness: brightness,
+    );
     return ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: seedColor,
-        brightness: brightness,
+      colorScheme: scheme,
+      // Единственный источник семантических ролей (income/expense/transfer/...).
+      extensions: <ThemeExtension<dynamic>>[
+        AppSemanticColors.fromScheme(scheme),
+      ],
+      // Спокойный инструмент: иерархия через surface-роли, не через тени.
+      dividerTheme: DividerThemeData(
+        color: scheme.outlineVariant,
+        thickness: 1,
+        space: 1,
+      ),
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      dialogTheme: DialogThemeData(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       ),
     );
   }
