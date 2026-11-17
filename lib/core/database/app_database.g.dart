@@ -7572,7 +7572,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   );
   late final Index assetValuationsAssetEffective = Index(
     'asset_valuations_asset_effective',
-    'CREATE INDEX asset_valuations_asset_effective ON asset_valuations (asset_id, effective_on)',
+    'CREATE INDEX asset_valuations_asset_effective ON asset_valuations (asset_id, effective_on DESC, id DESC)',
   );
   late final Index assetValuationsEffective = Index(
     'asset_valuations_effective',

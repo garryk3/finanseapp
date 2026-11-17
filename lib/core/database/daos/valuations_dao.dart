@@ -33,6 +33,12 @@ class ValuationsDao extends DatabaseAccessor<AppDatabase>
     required Decimal rateToRub,
     required int valueRubMinor,
   }) => transaction(() async {
+    if (effectiveOn.compareTo(attachedDatabase.today()) > 0) {
+      throw const DomainException(
+        DomainErrorCode.validation,
+        fieldErrors: {'effectiveOn': 'validationDateInFuture'},
+      );
+    }
     if (valueMinor < 0 || valueRubMinor < 0) {
       throw const DomainException(
         DomainErrorCode.validation,

@@ -8,7 +8,11 @@ import 'package:finanseapp/core/database/tables/assets.dart';
 @DataClassName('AssetValuationRow')
 @TableIndex(
   name: 'asset_valuations_asset_effective',
-  columns: {#assetId, #effectiveOn},
+  columns: {
+    #assetId,
+    IndexedColumn(#effectiveOn, orderBy: OrderingMode.desc),
+    IndexedColumn(#id, orderBy: OrderingMode.desc),
+  },
 )
 @TableIndex(name: 'asset_valuations_effective', columns: {#effectiveOn})
 @TableIndex(

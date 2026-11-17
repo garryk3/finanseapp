@@ -145,6 +145,12 @@ class CashflowDao extends DatabaseAccessor<AppDatabase>
   });
 
   Future<void> _validate(CashflowEntryInput input) async {
+    if (input.occurredOn.compareTo(attachedDatabase.today()) > 0) {
+      throw const DomainException(
+        DomainErrorCode.validation,
+        fieldErrors: {'occurredOn': 'validationDateInFuture'},
+      );
+    }
     if (input.amountMinor <= 0 || input.amountRubMinor <= 0) {
       throw const DomainException(
         DomainErrorCode.validation,

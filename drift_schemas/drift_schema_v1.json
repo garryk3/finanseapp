@@ -2106,7 +2106,11 @@
           },
           {
             "column": "effective_on",
-            "order_by": null
+            "order_by": "descending"
+          },
+          {
+            "column": "id",
+            "order_by": "descending"
           }
         ]
       }
@@ -2875,7 +2879,7 @@
       "sql": [
         {
           "dialect": "sqlite",
-          "sql": "CREATE INDEX asset_valuations_asset_effective ON asset_valuations (asset_id, effective_on)"
+          "sql": "CREATE INDEX asset_valuations_asset_effective ON asset_valuations (asset_id, effective_on DESC, id DESC)"
         }
       ]
     },

@@ -89,6 +89,9 @@ class AppDatabase extends _$AppDatabase {
   /// Текущий UTC-момент для timestamps записи.
   DateTime clock() => _now().toUtc();
 
+  /// Локальная календарная «сегодня» для BR-VAL-5.
+  LocalDate today() => LocalDate.fromDateTime(clock().toLocal());
+
   @override
   int get schemaVersion => 1;
 

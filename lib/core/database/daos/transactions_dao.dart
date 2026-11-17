@@ -103,6 +103,7 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase>
   /// Создаёт операцию и ревизию `create` с идентичным snapshot.
   Future<int> create(AssetTransactionInput input) => transaction(() async {
     _validateOperation(input);
+    _requireNotFuture(input.occurredOn);
     if (_isTransferKind(input.kind)) {
       throw _validation('kind', 'validationTransferThroughTransferCommand');
     }
@@ -143,6 +144,7 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase>
   Future<void> revise(int id, AssetTransactionInput input) =>
       transaction(() async {
         _validateOperation(input);
+        _requireNotFuture(input.occurredOn);
         if (_isTransferKind(input.kind)) {
           throw _validation('kind', 'validationTransferThroughTransferCommand');
         }
@@ -163,6 +165,14 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase>
           amountMinor: input.amountMinor,
           excludeTransactionId: id,
         );
+        if (current.assetId != input.assetId) {
+          // Удаление операции со старого счёта не должно ломать его историю.
+          await _assertHistoryBalance(
+            assetId: current.assetId,
+            exclude: {id},
+            pending: const [],
+          );
+        }
 
         final now = attachedDatabase.clock();
         await (update(assetTransactions)..where((t) => t.id.equals(id))).write(
@@ -194,6 +204,13 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase>
     if (current.deletedAt != null) {
       throw _conflict('validationTransactionDeleted');
     }
+    await _assertHistoryBalance(
+      assetId: current.assetId,
+      exclude: {id},
+      // Удаление = история без этой строки: отсутствие кредита сразу
+      // отражается в последующих точках баланса.
+      pending: const [],
+    );
     final now = attachedDatabase.clock();
     await (update(assetTransactions)..where((t) => t.id.equals(id))).write(
       AssetTransactionsCompanion(
@@ -265,6 +282,34 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase>
         if (outLeg.deletedAt != null || inLeg.deletedAt != null) {
           throw _conflict('validationTransferDeleted');
         }
+        for (final assetId in {
+          outLeg.assetId,
+          inLeg.assetId,
+          input.fromAccountId,
+          input.toAccountId,
+        }) {
+          final pending = <_PendingOperation>[
+            if (assetId == input.fromAccountId)
+              _PendingOperation(
+                kind: AssetTransactionKind.transferOut,
+                amountMinor: input.fromAmountMinor,
+                occurredOn: input.occurredOn,
+                id: outLeg.id,
+              ),
+            if (assetId == input.toAccountId)
+              _PendingOperation(
+                kind: AssetTransactionKind.transferIn,
+                amountMinor: input.toAmountMinor,
+                occurredOn: input.occurredOn,
+                id: inLeg.id,
+              ),
+          ];
+          await _assertHistoryBalance(
+            assetId: assetId,
+            exclude: {outLeg.id, inLeg.id},
+            pending: pending,
+          );
+        }
 
         final now = attachedDatabase.clock();
         await (update(assetTransfers)..where((t) => t.id.equals(transferId)))
@@ -305,6 +350,13 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase>
       // Полностью или частично удалённый перевод повторно не удаляется.
       throw _conflict('validationTransferDeleted');
     }
+    for (final leg in legs) {
+      await _assertHistoryBalance(
+        assetId: leg.assetId,
+        exclude: legs.map((leg) => leg.id).toSet(),
+        pending: const [],
+      );
+    }
     final now = attachedDatabase.clock();
     for (final leg in legs) {
       await (update(
@@ -326,7 +378,72 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase>
     }
   });
 
+  /// BR-VAL-5: дата операции не может быть в будущем (локальная «сегодня»).
+  void _requireNotFuture(LocalDate date) {
+    if (date.compareTo(attachedDatabase.today()) > 0) {
+      throw _validation('occurredOn', 'validationDateInFuture');
+    }
+  }
+
+  /// Проверяет, что баланс счёта не станет отрицательным ни в одной точке
+  /// истории после применения [pending] и исключения [exclude].
+  ///
+  /// Операции упорядочиваются по `(occurredOn, id)`, как в CALC-010; удаление
+  /// моделируется операцией противоположного знака на месте удаляемой строки.
+  Future<void> _assertHistoryBalance({
+    required int assetId,
+    required Set<int> exclude,
+    required List<_PendingOperation> pending,
+  }) async {
+    final asset = await _requireAsset(assetId);
+    if (asset.kind != AssetKind.account) return;
+
+    final query = select(assetTransactions)
+      ..where((t) => t.assetId.equals(asset.id) & t.deletedAt.isNull())
+      ..orderBy([
+        (t) => OrderingTerm.asc(t.occurredOn),
+        (t) => OrderingTerm.asc(t.id),
+      ]);
+    if (exclude.isNotEmpty) {
+      query.where((t) => t.id.isNotIn(exclude));
+    }
+    final rows = await query.get();
+
+    final operations =
+        <_PendingOperation>[
+          ...pending,
+          for (final row in rows)
+            _PendingOperation(
+              kind: row.kind,
+              amountMinor: row.amountMinor,
+              occurredOn: row.occurredOn,
+              id: row.id,
+            ),
+        ]..sort((left, right) {
+          final byDate = left.occurredOn.compareTo(right.occurredOn);
+          return byDate != 0 ? byDate : left.id.compareTo(right.id);
+        });
+
+    var balance = asset.openingValueMinor;
+    for (final operation in operations) {
+      balance += _signedDelta(operation.kind, operation.amountMinor);
+      if (balance < 0) {
+        throw const DomainException(
+          DomainErrorCode.negativeBalance,
+          fieldErrors: {'amount': 'validationNegativeBalance'},
+        );
+      }
+    }
+  }
+
+  static int _signedDelta(AssetTransactionKind kind, int amountMinor) =>
+      kind == AssetTransactionKind.deposit ||
+          kind == AssetTransactionKind.transferIn
+      ? amountMinor
+      : -amountMinor;
+
   Future<void> _validateTransfer(TransferInput input) async {
+    _requireNotFuture(input.occurredOn);
     if (input.fromAccountId == input.toAccountId) {
       throw _validation('toAccountId', 'validationTransferAccountsEqual');
     }
@@ -364,16 +481,6 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase>
     required String? comment,
     required DateTime now,
   }) async {
-    if (leg.kind == AssetTransactionKind.transferOut) {
-      final asset = await _requireAsset(assetId);
-      await _assertProjectedBalance(
-        asset: asset,
-        occurredOn: occurredOn,
-        kind: AssetTransactionKind.transferOut,
-        amountMinor: amountMinor,
-        excludeTransactionId: leg.id,
-      );
-    }
     await (update(assetTransactions)..where((t) => t.id.equals(leg.id))).write(
       AssetTransactionsCompanion(
         assetId: Value(assetId),
@@ -411,74 +518,27 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase>
     comment: Value(input.comment),
   );
 
-  /// Проверяет баланс счёта с учётом всей истории и даты операции.
-  ///
-  /// Новая операция вставляется в порядок `(occurredOn, id)` и баланс не может
-  /// стать отрицательным ни в одной точке (CALC-010). Для инвестиций и
-  /// переводов на инвестицию проверка не выполняется.
+  /// Вставляет одну версию операции в историю `(occurredOn, id)` и проверяет
+  /// отсутствие отрицательного баланса в любой точке (CALC-010).
   Future<void> _assertProjectedBalance({
     required AssetRow asset,
     required LocalDate occurredOn,
     required AssetTransactionKind kind,
     required int amountMinor,
     int? excludeTransactionId,
-  }) async {
-    if (asset.kind != AssetKind.account) return;
-    final isDebit =
-        kind == AssetTransactionKind.withdrawal ||
-        kind == AssetTransactionKind.transferOut;
-    if (!isDebit) return;
-
-    final query = select(assetTransactions)
-      ..where((t) => t.assetId.equals(asset.id) & t.deletedAt.isNull())
-      ..orderBy([
-        (t) => OrderingTerm.asc(t.occurredOn),
-        (t) => OrderingTerm.asc(t.id),
-      ]);
-    if (excludeTransactionId != null) {
-      query.where((t) => t.id.equals(excludeTransactionId).not());
-    }
-    final rows = await query.get();
-
-    var balance = asset.openingValueMinor;
-    var pendingApplied = false;
-    // Новая строка получает максимальный id, поэтому при равной дате она
-    // вставляется после существующих; при edit сохраняет свой id.
-    final pendingId = excludeTransactionId ?? 0x7FFFFFFFFFFFFFFF;
-
-    void applyPending() {
-      if (pendingApplied) return;
-      pendingApplied = true;
-      balance -= amountMinor;
-      if (balance < 0) {
-        throw const DomainException(
-          DomainErrorCode.negativeBalance,
-          fieldErrors: {'amount': 'validationNegativeBalance'},
-        );
-      }
-    }
-
-    for (final row in rows) {
-      final rowAfterPending =
-          row.occurredOn.compareTo(occurredOn) > 0 ||
-          (row.occurredOn == occurredOn && row.id > pendingId);
-      if (rowAfterPending) applyPending();
-      balance += _signedAmount(row);
-      if (balance < 0) {
-        throw const DomainException(
-          DomainErrorCode.negativeBalance,
-          fieldErrors: {'amount': 'validationNegativeBalance'},
-        );
-      }
-    }
-    applyPending();
-  }
-
-  static int _signedAmount(AssetTransactionRow row) =>
-      row.kind == AssetTransactionKind.deposit ||
-          row.kind == AssetTransactionKind.transferIn
-      ? row.amountMinor
-      : -row.amountMinor;
+  }) => _assertHistoryBalance(
+    assetId: asset.id,
+    exclude: excludeTransactionId == null ? const {} : {excludeTransactionId},
+    pending: [
+      _PendingOperation(
+        kind: kind,
+        amountMinor: amountMinor,
+        occurredOn: occurredOn,
+        // Новая строка получает максимальный id; при edit — свой.
+        id: excludeTransactionId ?? 0x7FFFFFFFFFFFFFFF,
+      ),
+    ],
+  );
 
   Future<AssetRow> _requireAsset(int id) async {
     final row = await (select(
@@ -580,4 +640,19 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase>
     DomainErrorCode.conflict,
     fieldErrors: {'operation': key},
   );
+}
+
+/// Операция для симуляции истории баланса (существующая или ожидаемая).
+final class _PendingOperation {
+  const _PendingOperation({
+    required this.kind,
+    required this.amountMinor,
+    required this.occurredOn,
+    required this.id,
+  });
+
+  final AssetTransactionKind kind;
+  final int amountMinor;
+  final LocalDate occurredOn;
+  final int id;
 }
