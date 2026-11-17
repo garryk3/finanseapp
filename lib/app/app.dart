@@ -1,6 +1,10 @@
 import 'package:finanseapp/app/router.dart';
 import 'package:finanseapp/app/theme/app_theme.dart';
 import 'package:finanseapp/core/di/service_locator.dart';
+import 'package:finanseapp/core/features/applock/logic/applock_controller.dart';
+import 'package:finanseapp/core/features/applock/logic/applock_view_model.dart';
+import 'package:finanseapp/core/features/applock/ui/applock_back_dispatcher.dart';
+import 'package:finanseapp/core/features/applock/ui/applock_gate.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -12,12 +16,26 @@ class FinanseApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final router = buildRouter(locator: locator);
     return MaterialApp.router(
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       themeMode: ThemeMode.system,
-      routerConfig: buildRouter(locator: locator),
+      routeInformationProvider: router.routeInformationProvider,
+      routeInformationParser: router.routeInformationParser,
+      routerDelegate: router.routerDelegate,
+      // BACK под локом поглощается до pop маршрута (BR-Sec-6).
+      backButtonDispatcher: ApplockBackDispatcher(
+        locator.get<ApplockController>(),
+      ),
+      // Гейт защиты поверх навигатора: лок-скрин перекрывает любой маршрут
+      // и при этом имеет тему и локализацию (BR-Sec-6).
+      builder: (context, child) => AppLockGate(
+        controller: locator.get<ApplockController>(),
+        lockViewModel: locator.get<ApplockViewModel>(),
+        child: child ?? const SizedBox.shrink(),
+      ),
       // Локали Material/Cupertino/Widgets — из material_ui (Flutter 3.50):
       // делегаты flutter_localizations дают framework-типы, которые виджеты
       // material_ui в контексте не находят.

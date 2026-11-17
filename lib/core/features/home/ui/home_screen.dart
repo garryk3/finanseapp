@@ -1,3 +1,4 @@
+import 'package:finanseapp/app/routes.dart';
 import 'package:finanseapp/core/features/home/ui/home_view_model.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
 import 'package:finanseapp/uikit/app_button.dart';
@@ -5,6 +6,7 @@ import 'package:finanseapp/uikit/app_scaffold.dart';
 import 'package:finanseapp/uikit/app_section.dart';
 import 'package:finanseapp/uikit/app_text.dart';
 import 'package:flutter/widgets.dart';
+import 'package:go_router/go_router.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
 /// Домашний экран-заглушка каркаса: демонстрирует uikit, l10n и signals.
@@ -28,6 +30,14 @@ class HomeScreen extends StatelessWidget {
               AppText('${l10n.counterLabel}: ${viewModel.counter.value}'),
               const SizedBox(height: 16),
               AppButton(label: l10n.increment, onPressed: viewModel.increment),
+              const SizedBox(height: 16),
+              // Временная точка входа управления защитой; переедет
+              // в настройки в задаче 10.3.
+              AppButton(
+                label: l10n.appLockTitle,
+                variant: AppButtonVariant.tonal,
+                onPressed: () => context.go(AppRoutes.applockManage),
+              ),
             ],
           ),
         ),

@@ -13,6 +13,9 @@
 - Material 3 через `package:material_ui/material_ui.dart`; светлая и тёмная темы.
 - UI только через `lib/uikit/`; analyzer guard `restrict_raw_flutter` обязателен.
 - Offline-first; сеть нужна для точных курсов ЦБ РФ и ручной проверки GitHub Updates.
+- Защита доступа (12.5): `local_auth` (биометрия, graceful fallback на PIN),
+  `flutter_secure_storage` (хэш PIN и флаги вне БД — backup их не переносит),
+  `crypto` (PBKDF2-HMAC-SHA256 для salted hash PIN).
 - CI: format, оба analyze-гейта, unit/widget tests и debug APK; releases по тегам `v*`.
 
 ## Архитектурные контракты
