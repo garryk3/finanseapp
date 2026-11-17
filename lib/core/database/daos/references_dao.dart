@@ -7,7 +7,7 @@ import 'package:finanseapp/core/database/tables/cashflow_entries.dart';
 import 'package:finanseapp/core/domain/common/result.dart';
 import 'package:finanseapp/core/domain/common/validation.dart';
 import 'package:finanseapp/core/features/categories/domain/category.dart';
-import 'package:finanseapp/core/features/references/domain/subgroup.dart';
+import 'package:finanseapp/core/features/assets/domain/subgroup.dart';
 
 part 'references_dao.g.dart';
 
