@@ -1403,5 +1403,81 @@
   "transactionAuditAction": "Открыть аудит",
   "@transactionAuditAction": {
     "description": "Переход к истории ревизий операции."
+  },
+  "cashflowIncome": "Доход",
+  "@cashflowIncome": {
+    "description": "Тип записи: доход."
+  },
+  "cashflowExpense": "Расход",
+  "@cashflowExpense": {
+    "description": "Тип записи: расход."
+  },
+  "cashflowAdd": "Добавить доход или расход",
+  "@cashflowAdd": {
+    "description": "Создание записи денежного потока."
+  },
+  "cashflowFormNew": "Новая запись",
+  "@cashflowFormNew": {
+    "description": "Заголовок новой записи денежного потока."
+  },
+  "cashflowFormEdit": "Изменить запись",
+  "@cashflowFormEdit": {
+    "description": "Заголовок редактирования записи."
+  },
+  "cashflowCategoryLabel": "Категория",
+  "@cashflowCategoryLabel": {
+    "description": "Поле категории."
+  },
+  "cashflowAmountLabel": "Сумма",
+  "@cashflowAmountLabel": {
+    "description": "Поле суммы дохода/расхода."
+  },
+  "cashflowSaved": "Запись сохранена.",
+  "@cashflowSaved": {
+    "description": "Подтверждение сохранения."
+  },
+  "cashflowDeleted": "Запись удалена.",
+  "@cashflowDeleted": {
+    "description": "Подтверждение удаления."
+  },
+  "cashflowDeleteTitle": "Удалить запись?",
+  "@cashflowDeleteTitle": {
+    "description": "Подтверждение удаления записи."
+  },
+  "cashflowDeleteMessage": "Запись будет скрыта из журнала; история останется в аудите.",
+  "@cashflowDeleteMessage": {
+    "description": "Пояснение удаления записи."
+  },
+  "cashflowDetailsTitle": "Доход или расход",
+  "@cashflowDetailsTitle": {
+    "description": "Заголовок деталей записи."
+  },
+  "cashflowErrorAmount": "Введите положительную сумму.",
+  "@cashflowErrorAmount": {
+    "description": "Ошибка суммы."
+  },
+  "cashflowErrorCategory": "Выберите категорию.",
+  "@cashflowErrorCategory": {
+    "description": "Ошибка категории."
+  },
+  "cashflowErrorKindMismatch": "Категория не соответствует типу записи.",
+  "@cashflowErrorKindMismatch": {
+    "description": "Ошибка несовпадения типа."
+  },
+  "cashflowNoCategories": "Нет категорий для этого типа.",
+  "@cashflowNoCategories": {
+    "description": "Пустой список категорий."
+  },
+  "cashflowTotalsIncome": "Доходы",
+  "@cashflowTotalsIncome": {
+    "description": "Итог доходов."
+  },
+  "cashflowTotalsExpense": "Расходы",
+  "@cashflowTotalsExpense": {
+    "description": "Итог расходов."
+  },
+  "cashflowTotalsNet": "Итого",
+  "@cashflowTotalsNet": {
+    "description": "Итог денежного потока."
   }
 }

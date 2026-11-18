@@ -45,6 +45,11 @@ import 'package:finanseapp/core/features/currencies/ui/currencies_view_model.dar
 import 'package:finanseapp/core/features/currencies/ui/currency_form_screen.dart';
 import 'package:finanseapp/core/features/currencies/ui/currency_form_view_model.dart';
 import 'package:finanseapp/core/features/assets/ui/assets_view_model.dart';
+import 'package:finanseapp/core/features/cashflow/domain/cashflow_repository.dart';
+import 'package:finanseapp/core/features/cashflow/logic/cashflow_commands.dart';
+import 'package:finanseapp/core/features/cashflow/ui/cashflow_details_screen.dart';
+import 'package:finanseapp/core/features/cashflow/ui/cashflow_details_view_model.dart';
+import 'package:finanseapp/core/features/cashflow/ui/cashflow_form_screen.dart';
 import 'package:finanseapp/core/features/cashflow/ui/cashflow_screen.dart';
 import 'package:finanseapp/core/features/cashflow/ui/cashflow_view_model.dart';
 import 'package:finanseapp/core/features/dashboard/ui/dashboard_screen.dart';
@@ -465,8 +470,14 @@ GoRouter buildRouter({required ServiceLocator locator}) {
       GoRoute(
         path: AppRoutes.cashflowNew,
         name: 'cashflow-new',
-        builder: (context, state) =>
-            ComingSoonScreen(title: l10nOf(context).operationsCashflowTab),
+        builder: (context, state) => CashflowFormScreen(
+          viewModel: CashflowFormViewModel(
+            repository: locator.get<CashflowRepository>(),
+            categoryRepository: locator.get<CategoryRepository>(),
+            currencyRepository: locator.get<CurrencyRepository>(),
+            commands: _cashflowCommands(locator),
+          ),
+        ),
       ),
       GoRoute(
         path: AppRoutes.cashflowDetails,
@@ -475,7 +486,15 @@ GoRouter buildRouter({required ServiceLocator locator}) {
           final id = AppRoutes.parseId(state.pathParameters['id']);
           return id == null
               ? _notFound(locator)
-              : ComingSoonScreen(title: l10nOf(context).operationsCashflowTab);
+              : CashflowDetailsScreen(
+                  viewModel: CashflowDetailsViewModel(
+                    repository: locator.get<CashflowRepository>(),
+                    categoryRepository: locator.get<CategoryRepository>(),
+                    auditRepository: locator.get<AuditRepository>(),
+                    commands: _cashflowCommands(locator),
+                    entryId: id,
+                  ),
+                );
         },
       ),
       GoRoute(
@@ -517,13 +536,28 @@ GoRouter buildRouter({required ServiceLocator locator}) {
           final id = AppRoutes.parseId(state.pathParameters['id']);
           return id == null
               ? _notFound(locator)
-              : ComingSoonScreen(title: l10nOf(context).operationsCashflowTab);
+              : CashflowFormScreen(
+                  viewModel: CashflowFormViewModel(
+                    repository: locator.get<CashflowRepository>(),
+                    categoryRepository: locator.get<CategoryRepository>(),
+                    currencyRepository: locator.get<CurrencyRepository>(),
+                    commands: _cashflowCommands(locator),
+                    editingId: id,
+                  ),
+                );
         },
       ),
     ],
     errorBuilder: (context, state) => _notFound(locator),
   );
 }
+
+CashflowCommands _cashflowCommands(ServiceLocator locator) => CashflowCommands(
+  repository: locator.get<CashflowRepository>(),
+  currencyRepository: locator.get<CurrencyRepository>(),
+  rateRepository: locator.get<ExchangeRateRepository>(),
+  today: LocalDate.fromDateTime(DateTime.now()),
+);
 
 /// Вкладки журнала операций с сохранением выбора в query.
 Widget _operationsScreen(

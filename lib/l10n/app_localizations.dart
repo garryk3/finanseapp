@@ -2000,6 +2000,120 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Открыть аудит'**
   String get transactionAuditAction;
+
+  /// Тип записи: доход.
+  ///
+  /// In ru, this message translates to:
+  /// **'Доход'**
+  String get cashflowIncome;
+
+  /// Тип записи: расход.
+  ///
+  /// In ru, this message translates to:
+  /// **'Расход'**
+  String get cashflowExpense;
+
+  /// Создание записи денежного потока.
+  ///
+  /// In ru, this message translates to:
+  /// **'Добавить доход или расход'**
+  String get cashflowAdd;
+
+  /// Заголовок новой записи денежного потока.
+  ///
+  /// In ru, this message translates to:
+  /// **'Новая запись'**
+  String get cashflowFormNew;
+
+  /// Заголовок редактирования записи.
+  ///
+  /// In ru, this message translates to:
+  /// **'Изменить запись'**
+  String get cashflowFormEdit;
+
+  /// Поле категории.
+  ///
+  /// In ru, this message translates to:
+  /// **'Категория'**
+  String get cashflowCategoryLabel;
+
+  /// Поле суммы дохода/расхода.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сумма'**
+  String get cashflowAmountLabel;
+
+  /// Подтверждение сохранения.
+  ///
+  /// In ru, this message translates to:
+  /// **'Запись сохранена.'**
+  String get cashflowSaved;
+
+  /// Подтверждение удаления.
+  ///
+  /// In ru, this message translates to:
+  /// **'Запись удалена.'**
+  String get cashflowDeleted;
+
+  /// Подтверждение удаления записи.
+  ///
+  /// In ru, this message translates to:
+  /// **'Удалить запись?'**
+  String get cashflowDeleteTitle;
+
+  /// Пояснение удаления записи.
+  ///
+  /// In ru, this message translates to:
+  /// **'Запись будет скрыта из журнала; история останется в аудите.'**
+  String get cashflowDeleteMessage;
+
+  /// Заголовок деталей записи.
+  ///
+  /// In ru, this message translates to:
+  /// **'Доход или расход'**
+  String get cashflowDetailsTitle;
+
+  /// Ошибка суммы.
+  ///
+  /// In ru, this message translates to:
+  /// **'Введите положительную сумму.'**
+  String get cashflowErrorAmount;
+
+  /// Ошибка категории.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выберите категорию.'**
+  String get cashflowErrorCategory;
+
+  /// Ошибка несовпадения типа.
+  ///
+  /// In ru, this message translates to:
+  /// **'Категория не соответствует типу записи.'**
+  String get cashflowErrorKindMismatch;
+
+  /// Пустой список категорий.
+  ///
+  /// In ru, this message translates to:
+  /// **'Нет категорий для этого типа.'**
+  String get cashflowNoCategories;
+
+  /// Итог доходов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Доходы'**
+  String get cashflowTotalsIncome;
+
+  /// Итог расходов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Расходы'**
+  String get cashflowTotalsExpense;
+
+  /// Итог денежного потока.
+  ///
+  /// In ru, this message translates to:
+  /// **'Итого'**
+  String get cashflowTotalsNet;
 }
 
 class _AppLocalizationsDelegate

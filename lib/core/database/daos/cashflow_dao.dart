@@ -10,6 +10,7 @@ import 'package:finanseapp/core/domain/common/local_date.dart';
 import 'package:finanseapp/core/domain/common/revision.dart';
 import 'package:finanseapp/core/domain/common/result.dart';
 import 'package:finanseapp/core/features/assets/domain/asset.dart';
+import 'package:finanseapp/core/features/cashflow/domain/cashflow_filter.dart';
 import 'package:finanseapp/core/features/categories/domain/category.dart';
 
 part 'cashflow_dao.g.dart';
@@ -52,6 +53,43 @@ final class CashflowEntryInput {
 class CashflowDao extends DatabaseAccessor<AppDatabase>
     with _$CashflowDaoMixin {
   CashflowDao(super.db);
+
+  /// Журнал с фильтрами (7.1/7.3); поиск по комментарию — в repository.
+  Stream<List<CashflowEntryRow>> watchFiltered(CashflowFilter filter) {
+    final query = select(cashflowEntries)
+      ..where((e) => e.deletedAt.isNull())
+      ..orderBy([
+        (e) => OrderingTerm.desc(e.occurredOn),
+        (e) => OrderingTerm.desc(e.id),
+      ]);
+    if (filter.period != null) {
+      query.where(
+        (e) =>
+            e.occurredOn.isBiggerOrEqualValue(
+              filter.period!.start.toIsoString(),
+            ) &
+            e.occurredOn.isSmallerOrEqualValue(
+              filter.period!.end.toIsoString(),
+            ),
+      );
+    }
+    if (filter.kind != null) {
+      query.where((e) => e.kind.equalsValue(filter.kind!));
+    }
+    if (filter.categoryId != null) {
+      query.where((e) => e.categoryId.equals(filter.categoryId!));
+    }
+    if (filter.currencyCode != null) {
+      query.where((e) => e.currencyCode.equals(filter.currencyCode!));
+    }
+    if (filter.propertyId != null) {
+      query.where((e) => e.propertyId.equals(filter.propertyId!));
+    }
+    if (filter.accountId != null) {
+      query.where((e) => e.accountId.equals(filter.accountId!));
+    }
+    return query.watch();
+  }
 
   Stream<List<CashflowEntryRow>> watchAll({CashflowKind? kind}) {
     final query = select(cashflowEntries)
