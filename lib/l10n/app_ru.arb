@@ -1052,9 +1052,9 @@
   "@assetsFilterAll": {
     "description": "Фильтр всех видов активов."
   },
-  "assetsFilterArchived": "Архивные",
+  "assetsFilterArchived": "Показывать архивные",
   "@assetsFilterArchived": {
-    "description": "Показывать архивные активы."
+    "description": "Тумблер показа архивных активов."
   },
   "assetsFilteredEmptyTitle": "Ничего не найдено",
   "@assetsFilteredEmptyTitle": {
@@ -1067,5 +1067,13 @@
   "assetsResetFilters": "Сбросить фильтры",
   "@assetsResetFilters": {
     "description": "Сброс фильтров списка активов."
+  },
+  "assetsAllArchivedTitle": "Все активы в архиве",
+  "@assetsAllArchivedTitle": {
+    "description": "Заголовок каталога, где все активы архивные."
+  },
+  "assetsAllArchivedMessage": "Показываются только активные. Откройте архив, чтобы увидеть остальные.",
+  "@assetsAllArchivedMessage": {
+    "description": "Пояснение каталога только из архивных активов."
   }
 }

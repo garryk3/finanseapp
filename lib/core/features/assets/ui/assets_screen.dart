@@ -18,6 +18,7 @@ import 'package:finanseapp/uikit/app_list_view.dart';
 import 'package:finanseapp/uikit/app_scaffold.dart';
 import 'package:finanseapp/uikit/app_search_field.dart';
 import 'package:finanseapp/uikit/app_skeleton.dart';
+import 'package:finanseapp/uikit/app_switch.dart';
 import 'package:finanseapp/uikit/app_text.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
@@ -48,6 +49,7 @@ class _AssetsScreenState extends State<AssetsScreen> {
     super.didUpdateWidget(oldWidget);
     if (!identical(oldWidget.viewModel, widget.viewModel)) {
       unawaited(oldWidget.viewModel.dispose());
+      _search.clear();
       _viewModel = widget.viewModel..init();
     }
   }
@@ -73,6 +75,11 @@ class _AssetsScreenState extends State<AssetsScreen> {
         builder: (context) {
           final vm = _viewModel;
           final showFilters = vm.total.value > 0 || vm.filtersActive;
+          final data = vm.state.value;
+          final listEmpty =
+              data is ViewData<List<AssetSnapshot>> && data.value.isEmpty;
+          final archivedOnly =
+              listEmpty && vm.total.value > 0 && !vm.filtersActive;
           return Column(
             children: [
               if (showFilters)
@@ -100,7 +107,9 @@ class _AssetsScreenState extends State<AssetsScreen> {
                             (vm.query.value.trim().isEmpty ? 0 : 1) +
                             (vm.kind.value == null ? 0 : 1) +
                             (vm.showArchived.value ? 1 : 0),
-                        onReset: vm.filtersActive ? vm.resetFilters : null,
+                        onReset: vm.filtersActive && !listEmpty
+                            ? _resetFilters
+                            : null,
                         resetLabel: l10n.assetsResetFilters,
                         children: [
                           AppFilterChip(
@@ -112,27 +121,29 @@ class _AssetsScreenState extends State<AssetsScreen> {
                             label: l10n.assetKindAccount,
                             selected: vm.kind.value == AssetKind.account,
                             icon: Icons.account_balance_wallet_outlined,
+                            count: vm.kindCounts.value[AssetKind.account],
                             onSelected: (_) => vm.setKind(AssetKind.account),
                           ),
                           AppFilterChip(
                             label: l10n.assetKindInvestment,
                             selected: vm.kind.value == AssetKind.investment,
                             icon: Icons.trending_up,
+                            count: vm.kindCounts.value[AssetKind.investment],
                             onSelected: (_) => vm.setKind(AssetKind.investment),
                           ),
                           AppFilterChip(
                             label: l10n.assetKindProperty,
                             selected: vm.kind.value == AssetKind.property,
                             icon: Icons.home_outlined,
+                            count: vm.kindCounts.value[AssetKind.property],
                             onSelected: (_) => vm.setKind(AssetKind.property),
                           ),
-                          AppFilterChip(
-                            label: l10n.assetsFilterArchived,
-                            selected: vm.showArchived.value,
-                            icon: Icons.archive_outlined,
-                            onSelected: vm.setShowArchived,
-                          ),
                         ],
+                      ),
+                      AppSwitch(
+                        value: vm.showArchived.value,
+                        label: l10n.assetsFilterArchived,
+                        onChanged: vm.setShowArchived,
                       ),
                     ],
                   ),
@@ -165,7 +176,15 @@ class _AssetsScreenState extends State<AssetsScreen> {
                                   title: l10n.assetsFilteredEmptyTitle,
                                   message: l10n.assetsFilteredEmptyMessage,
                                   actionLabel: l10n.assetsResetFilters,
-                                  onAction: vm.resetFilters,
+                                  onAction: _resetFilters,
+                                )
+                              : archivedOnly
+                              ? AppEmptyState(
+                                  icon: Icons.archive_outlined,
+                                  title: l10n.assetsAllArchivedTitle,
+                                  message: l10n.assetsAllArchivedMessage,
+                                  actionLabel: l10n.assetsFilterArchived,
+                                  onAction: () => vm.setShowArchived(true),
                                 )
                               : AppEmptyState(
                                   icon: Icons.account_balance_wallet_outlined,
@@ -180,6 +199,7 @@ class _AssetsScreenState extends State<AssetsScreen> {
                             itemBuilder: (context, index) {
                               final snapshot = value[index];
                               final asset = snapshot.asset;
+                              final base = vm.baseEquivalent(snapshot);
                               return AppAssetListTile(
                                 key: ValueKey(asset.id),
                                 name: asset.name,
@@ -187,7 +207,11 @@ class _AssetsScreenState extends State<AssetsScreen> {
                                 amountText: vm.formatAmount(
                                   snapshot.currentValue,
                                 ),
-                                baseAmountText: vm.baseAmount(snapshot),
+                                baseAmountText:
+                                    base.text ??
+                                    (base.unavailable
+                                        ? l10n.assetBaseUnavailable
+                                        : null),
                                 icon: _kindIcon(asset.kind),
                                 archived: asset.archivedAt != null,
                                 archivedLabel: l10n.accountArchivedBadge,
@@ -204,6 +228,12 @@ class _AssetsScreenState extends State<AssetsScreen> {
         },
       ),
     );
+  }
+
+  void _resetFilters() {
+    _search.clear();
+    FocusScope.of(context).unfocus();
+    _viewModel.resetFilters();
   }
 
   Future<void> _addAsset() async {

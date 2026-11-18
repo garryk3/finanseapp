@@ -39,12 +39,14 @@ class AssetsViewModel {
   final Signal<bool> showArchived = signal(false);
   final Signal<Currency?> baseCurrency = signal(null);
   final Signal<Map<String, Currency>> currencies = signal(const {});
-  final Signal<Map<String, Decimal>> rates = signal(const {});
   final Signal<int> total = signal(0);
+  final Signal<Map<AssetKind, int>> kindCounts = signal(const {});
 
   final Map<String, Decimal> _rateCache = {};
   List<AssetSnapshot> _all = const [];
   StreamSubscription<List<AssetSnapshot>>? _subscription;
+  StreamSubscription<Currency>? _baseSubscription;
+  StreamSubscription<List<Currency>>? _currencySubscription;
   bool _disposed = false;
   bool _referencesReady = false;
   bool _hasData = false;
@@ -55,6 +57,14 @@ class AssetsViewModel {
   void init() {
     state.value = const ViewLoading();
     _loadReferences();
+    _baseSubscription = settingsRepository.watchBaseCurrency().listen((base) {
+      baseCurrency.value = base;
+      _ensureRates().then((_) => _emit());
+    }, onError: (Object _) {});
+    _currencySubscription = currencyRepository.watchAll().listen((list) {
+      currencies.value = {for (final currency in list) currency.code: currency};
+      _emit();
+    }, onError: (Object _) {});
     _subscription = repository
         .watchAll(includeArchived: true)
         .listen(
@@ -108,7 +118,6 @@ class AssetsViewModel {
         // Нет кэша курса — base equivalent не показывается.
       }
     }
-    rates.value = {..._rateCache};
   }
 
   void _emit() {
@@ -116,6 +125,14 @@ class AssetsViewModel {
     final search = query.value.trim().toLowerCase();
     final selectedKind = kind.value;
     final archived = showArchived.value;
+    final counts = <AssetKind, int>{
+      for (final value in AssetKind.values) value: 0,
+    };
+    for (final snapshot in _all) {
+      if (!archived && snapshot.asset.archivedAt != null) continue;
+      counts[snapshot.asset.kind] = counts[snapshot.asset.kind]! + 1;
+    }
+    kindCounts.value = counts;
     state.value = ViewData([
       for (final snapshot in _all)
         if ((archived || snapshot.asset.archivedAt == null) &&
@@ -152,15 +169,19 @@ class AssetsViewModel {
   String formatAmount(Money money) =>
       const MoneyFormatter().format(money, currencyOf(money.currencyCode));
 
-  /// Эквивалент в базовой валюте; `null` — совпадает с базовой или нет курса.
-  String? baseAmount(AssetSnapshot snapshot) {
+  /// Эквивалент в базовой валюте: текст, «нет курса» или совпадение валют.
+  ({String? text, bool unavailable}) baseEquivalent(AssetSnapshot snapshot) {
     final base = baseCurrency.value;
-    if (base == null || base.code == snapshot.asset.currencyCode) return null;
+    if (base == null || base.code == snapshot.asset.currencyCode) {
+      return (text: null, unavailable: false);
+    }
     final sourceRate = snapshot.asset.currencyCode == 'RUB'
         ? Decimal.one
         : _rateCache[snapshot.asset.currencyCode];
     final baseRate = base.code == 'RUB' ? Decimal.one : _rateCache[base.code];
-    if (sourceRate == null || baseRate == null) return null;
+    if (sourceRate == null || baseRate == null) {
+      return (text: null, unavailable: true);
+    }
     try {
       final converted = CurrencyConverter.convertWithRates(
         value: snapshot.currentValue,
@@ -169,9 +190,12 @@ class AssetsViewModel {
         sourceRateToRub: sourceRate,
         targetRateToRub: baseRate,
       );
-      return const MoneyFormatter().format(converted, base);
+      return (
+        text: const MoneyFormatter().format(converted, base),
+        unavailable: false,
+      );
     } on DomainException {
-      return null;
+      return (text: null, unavailable: true);
     }
   }
 
@@ -193,5 +217,7 @@ class AssetsViewModel {
   Future<void> dispose() async {
     _disposed = true;
     await _subscription?.cancel();
+    await _baseSubscription?.cancel();
+    await _currencySubscription?.cancel();
   }
 }

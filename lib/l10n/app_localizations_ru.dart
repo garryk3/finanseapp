@@ -782,7 +782,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get assetsFilterAll => 'Все';
 
   @override
-  String get assetsFilterArchived => 'Архивные';
+  String get assetsFilterArchived => 'Показывать архивные';
 
   @override
   String get assetsFilteredEmptyTitle => 'Ничего не найдено';
@@ -793,4 +793,11 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get assetsResetFilters => 'Сбросить фильтры';
+
+  @override
+  String get assetsAllArchivedTitle => 'Все активы в архиве';
+
+  @override
+  String get assetsAllArchivedMessage =>
+      'Показываются только активные. Откройте архив, чтобы увидеть остальные.';
 }

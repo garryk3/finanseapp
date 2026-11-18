@@ -19,6 +19,11 @@ void main() {
     final locator = await buildTestLocator();
     await tester.pumpWidget(FinanseApp(locator: locator));
     await tester.pumpAndSettle();
+    addTearDown(() async {
+      // Закрываем drift-стримы до проверки pending timers.
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump(const Duration(milliseconds: 10));
+    });
     return GoRouter.of(tester.element(find.byType(ShellScreen)));
   }
 

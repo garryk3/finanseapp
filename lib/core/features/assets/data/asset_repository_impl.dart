@@ -185,6 +185,7 @@ final class AssetRepositoryImpl implements AssetRepository {
     final currencyByAsset = {for (final row in rows) row.id: row.currencyCode};
     final transactionsByAsset = <int, List<AssetTransaction>>{};
     for (final row in transactions) {
+      if (row.deletedAt != null) continue;
       final code = currencyByAsset[row.assetId];
       if (code == null) continue;
       transactionsByAsset

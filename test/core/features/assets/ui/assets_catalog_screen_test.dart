@@ -15,6 +15,7 @@ import 'package:finanseapp/core/features/currencies/domain/currency_repository.d
 import 'package:finanseapp/core/features/currencies/domain/exchange_rate_repository.dart';
 import 'package:finanseapp/core/features/settings/domain/settings_repository.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
+import 'package:finanseapp/uikit/app_filter_chip.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -121,9 +122,13 @@ final class FakeSettings implements SettingsRepository {
 }
 
 final class FakeRates implements ExchangeRateRepository {
+  FakeRates({this.usdRate = true});
+
+  final bool usdRate;
+
   @override
   Future<ExchangeRate?> find(String currencyCode, LocalDate date) async {
-    if (currencyCode != 'USD') return null;
+    if (currencyCode != 'USD' || !usdRate) return null;
     return ExchangeRate(
       id: 1,
       currencyCode: 'USD',
@@ -196,13 +201,14 @@ AssetSnapshot _property() => AssetSnapshot(
   currentValue: const Money(minorUnits: 500000000, currencyCode: 'RUB'),
 );
 
-AssetsViewModel _viewModel(List<AssetSnapshot> snapshots) => AssetsViewModel(
-  repository: FakeAssets(snapshots),
-  currencyRepository: FakeCurrencies(),
-  settingsRepository: FakeSettings(),
-  rateRepository: FakeRates(),
-  today: LocalDate(2026, 1, 3),
-);
+AssetsViewModel _viewModel(List<AssetSnapshot> snapshots, {FakeRates? rates}) =>
+    AssetsViewModel(
+      repository: FakeAssets(snapshots),
+      currencyRepository: FakeCurrencies(),
+      settingsRepository: FakeSettings(),
+      rateRepository: rates ?? FakeRates(),
+      today: LocalDate(2026, 1, 3),
+    );
 
 Future<void> _pump(WidgetTester tester, AssetsViewModel viewModel) async {
   tester.view.physicalSize = const Size(1000, 1800);
@@ -246,7 +252,9 @@ void main() {
   testWidgets('фильтр по виду и поиск сужают список', (tester) async {
     await _pump(tester, _viewModel([_account(), _investment(), _property()]));
 
-    await tester.tap(find.text(l10n.assetKindAccount).first);
+    await tester.tap(
+      find.widgetWithText(AppFilterChip, '${l10n.assetKindAccount} (1)'),
+    );
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('Вклад'), findsOneWidget);
     expect(find.text('Брокерский портфель'), findsNothing);
@@ -284,6 +292,32 @@ void main() {
     await tester.tap(find.text(l10n.assetsResetFilters).last);
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('Вклад'), findsOneWidget);
+    expect(
+      tester.widget<TextField>(find.byType(TextField)).controller!.text,
+      isEmpty,
+    );
+  });
+
+  testWidgets('каталог только из архивных не выглядит пустым', (tester) async {
+    await _pump(tester, _viewModel([_archivedInvestment()]));
+
+    expect(find.text(l10n.assetsAllArchivedTitle), findsOneWidget);
+    expect(find.text(l10n.assetsEmptyTitle), findsNothing);
+
+    await tester.tap(find.text(l10n.assetsFilterArchived).last);
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('Старая инвестиция'), findsOneWidget);
+  });
+
+  testWidgets('без курса эквивалент показывает «Курс недоступен»', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      _viewModel([_investment()], rates: FakeRates(usdRate: false)),
+    );
+
+    expect(find.text(l10n.assetBaseUnavailable), findsOneWidget);
   });
 
   testWidgets('пустой каталог предлагает создать актив', (tester) async {

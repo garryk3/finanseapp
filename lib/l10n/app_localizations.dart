@@ -1509,10 +1509,10 @@ abstract class AppLocalizations {
   /// **'Все'**
   String get assetsFilterAll;
 
-  /// Показывать архивные активы.
+  /// Тумблер показа архивных активов.
   ///
   /// In ru, this message translates to:
-  /// **'Архивные'**
+  /// **'Показывать архивные'**
   String get assetsFilterArchived;
 
   /// Заголовок пустого результата фильтра.
@@ -1532,6 +1532,18 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Сбросить фильтры'**
   String get assetsResetFilters;
+
+  /// Заголовок каталога, где все активы архивные.
+  ///
+  /// In ru, this message translates to:
+  /// **'Все активы в архиве'**
+  String get assetsAllArchivedTitle;
+
+  /// Пояснение каталога только из архивных активов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Показываются только активные. Откройте архив, чтобы увидеть остальные.'**
+  String get assetsAllArchivedMessage;
 }
 
 class _AppLocalizationsDelegate
