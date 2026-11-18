@@ -595,9 +595,8 @@
   (BR-A-5), реактивность/N+1 снапшотов, `fractionDigits` вместо 2, read-only архивного
   счёта, проверка баланса при правке opening. UI-тесты form/details — вместе с этими
   правками.
-- **E2E:** `flutter test integration_test -d linux` не запустился: Linux-сборке нужен
-  `libsecret-1-dev` (flutter_secure_storage), пакета нет, sudo недоступен интерактивно;
-  Android-эмулятор не запущен. Владельцу: установить пакет и повторить e2e.
+- **E2E:** после установки `libsecret-1-dev` и `flutter clean` прогон
+  `flutter test integration_test -d linux` зелёный (smoke стартует и показывает главную).
 - **Генерация:** gen-l10n; Drift generation только при DAO/source changes.
 - **DoD:** CALC forecast values буквально pass, negative balance не обходится edit opening;
   archive read-only, delete dialog показывает counts; общий DoD. Перед PR спросить о e2e.
