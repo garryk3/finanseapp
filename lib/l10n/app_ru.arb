@@ -1159,5 +1159,81 @@
   "transactionNoCategories": "Нет категорий для этого вида.",
   "@transactionNoCategories": {
     "description": "Пустой список категорий."
+  },
+  "transferFormTitle": "Перевод между счетами",
+  "@transferFormTitle": {
+    "description": "Заголовок формы перевода."
+  },
+  "transferFromLabel": "Со счёта",
+  "@transferFromLabel": {
+    "description": "Счёт-источник перевода."
+  },
+  "transferToLabel": "На счёт",
+  "@transferToLabel": {
+    "description": "Счёт назначения перевода."
+  },
+  "transferAmountLabel": "Сумма списания",
+  "@transferAmountLabel": {
+    "description": "Сумма перевода со счёта-источника."
+  },
+  "transferDestinationAmountLabel": "Сумма зачисления",
+  "@transferDestinationAmountLabel": {
+    "description": "Сумма перевода на счёт назначения."
+  },
+  "transferCommentLabel": "Комментарий",
+  "@transferCommentLabel": {
+    "description": "Комментарий к переводу."
+  },
+  "transferSaved": "Перевод сохранён.",
+  "@transferSaved": {
+    "description": "Подтверждение перевода."
+  },
+  "transferAction": "Перевести",
+  "@transferAction": {
+    "description": "Действие перевода между счетами."
+  },
+  "transferErrorFrom": "Выберите счёт списания.",
+  "@transferErrorFrom": {
+    "description": "Ошибка счёта-источника."
+  },
+  "transferErrorTo": "Выберите счёт зачисления.",
+  "@transferErrorTo": {
+    "description": "Ошибка счёта назначения."
+  },
+  "transferErrorSameAccount": "Счета должны различаться.",
+  "@transferErrorSameAccount": {
+    "description": "Ошибка одинаковых счетов."
+  },
+  "transferErrorAmount": "Введите положительную сумму перевода.",
+  "@transferErrorAmount": {
+    "description": "Ошибка суммы перевода."
+  },
+  "transferErrorNegativeBalance": "Недостаточно средств на счёте списания.",
+  "@transferErrorNegativeBalance": {
+    "description": "Ошибка баланса перевода."
+  },
+  "transferNoAccounts": "Нужно минимум два счёта.",
+  "@transferNoAccounts": {
+    "description": "Пустое состояние выбора счетов."
+  },
+  "transferRateHint": "{fromUnit} ≈ {toAmount}",
+  "@transferRateHint": {
+    "description": "Курс по введённым суммам перевода.",
+    "placeholders": {
+      "fromUnit": {
+        "type": "String"
+      },
+      "toAmount": {
+        "type": "String"
+      }
+    }
+  },
+  "transferNeedAccountsMessage": "Добавьте второй счёт, чтобы переводить между счетами.",
+  "@transferNeedAccountsMessage": {
+    "description": "Пояснение состояния с одним счётом."
+  },
+  "transferErrorDestination": "Введите положительную сумму зачисления.",
+  "@transferErrorDestination": {
+    "description": "Ошибка суммы зачисления."
   }
 }

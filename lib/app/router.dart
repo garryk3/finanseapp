@@ -22,6 +22,8 @@ import 'package:finanseapp/core/features/transactions/domain/asset_transaction.d
 import 'package:finanseapp/core/features/transactions/domain/asset_transaction_repository.dart';
 import 'package:finanseapp/core/features/transactions/ui/transaction_form_screen.dart';
 import 'package:finanseapp/core/features/transactions/ui/transaction_form_view_model.dart';
+import 'package:finanseapp/core/features/transactions/ui/transfer_form_screen.dart';
+import 'package:finanseapp/core/features/transactions/ui/transfer_form_view_model.dart';
 import 'package:finanseapp/core/features/currencies/domain/currency_repository.dart';
 import 'package:finanseapp/core/features/currencies/domain/exchange_rate_repository.dart';
 import 'package:finanseapp/core/features/settings/domain/settings_repository.dart';
@@ -397,8 +399,18 @@ GoRouter buildRouter({required ServiceLocator locator}) {
       GoRoute(
         path: AppRoutes.transferNew,
         name: 'transfer-new',
-        builder: (context, state) =>
-            ComingSoonScreen(title: l10nOf(context).operationsTransactionsTab),
+        builder: (context, state) => TransferFormScreen(
+          viewModel: TransferFormViewModel(
+            assetRepository: locator.get<AssetRepository>(),
+            transactionRepository: locator.get<AssetTransactionRepository>(),
+            currencyRepository: locator.get<CurrencyRepository>(),
+            rateRepository: locator.get<ExchangeRateRepository>(),
+            today: LocalDate.fromDateTime(DateTime.now()),
+            initialFromId: int.tryParse(
+              state.uri.queryParameters['fromId'] ?? '',
+            ),
+          ),
+        ),
       ),
       GoRoute(
         path: AppRoutes.transactionDetails,

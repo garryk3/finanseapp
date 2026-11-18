@@ -866,4 +866,60 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get transactionNoCategories => 'Нет категорий для этого вида.';
+
+  @override
+  String get transferFormTitle => 'Перевод между счетами';
+
+  @override
+  String get transferFromLabel => 'Со счёта';
+
+  @override
+  String get transferToLabel => 'На счёт';
+
+  @override
+  String get transferAmountLabel => 'Сумма списания';
+
+  @override
+  String get transferDestinationAmountLabel => 'Сумма зачисления';
+
+  @override
+  String get transferCommentLabel => 'Комментарий';
+
+  @override
+  String get transferSaved => 'Перевод сохранён.';
+
+  @override
+  String get transferAction => 'Перевести';
+
+  @override
+  String get transferErrorFrom => 'Выберите счёт списания.';
+
+  @override
+  String get transferErrorTo => 'Выберите счёт зачисления.';
+
+  @override
+  String get transferErrorSameAccount => 'Счета должны различаться.';
+
+  @override
+  String get transferErrorAmount => 'Введите положительную сумму перевода.';
+
+  @override
+  String get transferErrorNegativeBalance =>
+      'Недостаточно средств на счёте списания.';
+
+  @override
+  String get transferNoAccounts => 'Нужно минимум два счёта.';
+
+  @override
+  String transferRateHint(String fromUnit, String toAmount) {
+    return '$fromUnit ≈ $toAmount';
+  }
+
+  @override
+  String get transferNeedAccountsMessage =>
+      'Добавьте второй счёт, чтобы переводить между счетами.';
+
+  @override
+  String get transferErrorDestination =>
+      'Введите положительную сумму зачисления.';
 }
