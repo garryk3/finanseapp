@@ -20,6 +20,11 @@ import 'package:finanseapp/core/features/assets/ui/valuation_form_screen.dart';
 import 'package:finanseapp/core/features/assets/ui/valuation_form_view_model.dart';
 import 'package:finanseapp/core/features/transactions/domain/asset_transaction.dart';
 import 'package:finanseapp/core/features/transactions/domain/asset_transaction_repository.dart';
+import 'package:finanseapp/core/features/audit/domain/audit_repository.dart';
+import 'package:finanseapp/core/features/audit/ui/audit_asset_transaction_screen.dart';
+import 'package:finanseapp/core/features/audit/ui/audit_asset_transaction_view_model.dart';
+import 'package:finanseapp/core/features/transactions/ui/transaction_details_screen.dart';
+import 'package:finanseapp/core/features/transactions/ui/transaction_details_view_model.dart';
 import 'package:finanseapp/core/features/transactions/ui/transaction_form_screen.dart';
 import 'package:finanseapp/core/features/transactions/ui/transaction_form_view_model.dart';
 import 'package:finanseapp/core/features/transactions/ui/transfer_form_screen.dart';
@@ -419,8 +424,17 @@ GoRouter buildRouter({required ServiceLocator locator}) {
           final id = AppRoutes.parseId(state.pathParameters['id']);
           return id == null
               ? _notFound(locator)
-              : ComingSoonScreen(
-                  title: l10nOf(context).operationsTransactionsTab,
+              : TransactionDetailsScreen(
+                  viewModel: TransactionDetailsViewModel(
+                    repository: locator.get<AssetTransactionRepository>(),
+                    assetRepository: locator.get<AssetRepository>(),
+                    auditRepository: locator.get<AuditRepository>(),
+                    settingsRepository: locator.get<SettingsRepository>(),
+                    currencyRepository: locator.get<CurrencyRepository>(),
+                    rateRepository: locator.get<ExchangeRateRepository>(),
+                    today: LocalDate.fromDateTime(DateTime.now()),
+                    transactionId: id,
+                  ),
                 );
         },
       ),
@@ -475,10 +489,20 @@ GoRouter buildRouter({required ServiceLocator locator}) {
       GoRoute(
         path: AppRoutes.auditAssetTransaction,
         name: 'audit-asset-transaction',
-        builder: (context, state) =>
-            AppRoutes.parseId(state.pathParameters['id']) == null
-            ? _notFound(locator)
-            : ComingSoonScreen(title: l10nOf(context).navMore),
+        builder: (context, state) {
+          final id = AppRoutes.parseId(state.pathParameters['id']);
+          return id == null
+              ? _notFound(locator)
+              : AuditAssetTransactionScreen(
+                  viewModel: AuditAssetTransactionViewModel(
+                    auditRepository: locator.get<AuditRepository>(),
+                    transactionRepository: locator
+                        .get<AssetTransactionRepository>(),
+                    assetRepository: locator.get<AssetRepository>(),
+                    transactionId: id,
+                  ),
+                );
+        },
       ),
       GoRoute(
         path: AppRoutes.auditCashflow,

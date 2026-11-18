@@ -1772,6 +1772,234 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Введите положительную сумму зачисления.'**
   String get transferErrorDestination;
+
+  /// Поле поиска по комментарию.
+  ///
+  /// In ru, this message translates to:
+  /// **'Поиск операций'**
+  String get transactionsSearchLabel;
+
+  /// Подсказка поиска операций.
+  ///
+  /// In ru, this message translates to:
+  /// **'Комментарий'**
+  String get transactionsSearchHint;
+
+  /// Очистка поиска операций.
+  ///
+  /// In ru, this message translates to:
+  /// **'Очистить поиск'**
+  String get transactionsSearchClear;
+
+  /// Все виды операций.
+  ///
+  /// In ru, this message translates to:
+  /// **'Все'**
+  String get transactionsFilterAll;
+
+  /// Фильтр пополнений.
+  ///
+  /// In ru, this message translates to:
+  /// **'Пополнения'**
+  String get transactionsFilterDeposit;
+
+  /// Фильтр снятий.
+  ///
+  /// In ru, this message translates to:
+  /// **'Снятия'**
+  String get transactionsFilterWithdrawal;
+
+  /// Фильтр исходящих переводов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Исходящие'**
+  String get transactionsFilterTransferOut;
+
+  /// Фильтр входящих переводов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Входящие'**
+  String get transactionsFilterTransferIn;
+
+  /// Фильтр текущего месяца.
+  ///
+  /// In ru, this message translates to:
+  /// **'Этот месяц'**
+  String get transactionsFilterMonth;
+
+  /// Заголовок пустого фильтра журнала.
+  ///
+  /// In ru, this message translates to:
+  /// **'Операций не найдено'**
+  String get transactionsFilteredEmptyTitle;
+
+  /// Пояснение пустого фильтра журнала.
+  ///
+  /// In ru, this message translates to:
+  /// **'Измените фильтры или сбросьте их.'**
+  String get transactionsFilteredEmptyMessage;
+
+  /// Сброс фильтров журнала.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сбросить фильтры'**
+  String get transactionsResetFilters;
+
+  /// Создание операции из журнала.
+  ///
+  /// In ru, this message translates to:
+  /// **'Новая операция'**
+  String get transactionsAdd;
+
+  /// Семантика загрузки журнала.
+  ///
+  /// In ru, this message translates to:
+  /// **'Загрузка операций'**
+  String get transactionsLoading;
+
+  /// Вид операции: исходящий перевод.
+  ///
+  /// In ru, this message translates to:
+  /// **'Перевод (исходящий)'**
+  String get transactionKindTransferOut;
+
+  /// Вид операции: входящий перевод.
+  ///
+  /// In ru, this message translates to:
+  /// **'Перевод (входящий)'**
+  String get transactionKindTransferIn;
+
+  /// Заголовок деталей операции.
+  ///
+  /// In ru, this message translates to:
+  /// **'Операция'**
+  String get transactionDetailsTitle;
+
+  /// Заголовок ревизий операции.
+  ///
+  /// In ru, this message translates to:
+  /// **'История изменений'**
+  String get transactionRevisionsTitle;
+
+  /// Подтверждение удаления операции.
+  ///
+  /// In ru, this message translates to:
+  /// **'Удалить операцию?'**
+  String get transactionDeleteTitle;
+
+  /// Пояснение удаления операции.
+  ///
+  /// In ru, this message translates to:
+  /// **'Операция будет скрыта из журнала; история останется в аудите.'**
+  String get transactionDeleteMessage;
+
+  /// Подтверждение удаления операции.
+  ///
+  /// In ru, this message translates to:
+  /// **'Операция удалена.'**
+  String get transactionDeleted;
+
+  /// Ошибка удаления ноги перевода.
+  ///
+  /// In ru, this message translates to:
+  /// **'Связанную операцию перевода нельзя удалить отдельно.'**
+  String get transactionDeleteBlocked;
+
+  /// Рублёвый snapshot операции.
+  ///
+  /// In ru, this message translates to:
+  /// **'В рублях'**
+  String get transactionAmountRub;
+
+  /// Метка связанной классификации.
+  ///
+  /// In ru, this message translates to:
+  /// **'Связана с денежным потоком'**
+  String get transactionLinkedCashflow;
+
+  /// Пустой комментарий операции.
+  ///
+  /// In ru, this message translates to:
+  /// **'Без комментария'**
+  String get transactionCommentEmpty;
+
+  /// Заголовок ревизии.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ревизия {number}'**
+  String revisionLabel(int number);
+
+  /// Действие ревизии: создание.
+  ///
+  /// In ru, this message translates to:
+  /// **'Создана'**
+  String get revisionActionCreate;
+
+  /// Действие ревизии: изменение.
+  ///
+  /// In ru, this message translates to:
+  /// **'Изменена'**
+  String get revisionActionEdit;
+
+  /// Действие ревизии: удаление.
+  ///
+  /// In ru, this message translates to:
+  /// **'Удалена'**
+  String get revisionActionDelete;
+
+  /// Старое значение в diff.
+  ///
+  /// In ru, this message translates to:
+  /// **'Было: {value}'**
+  String revisionOldValue(String value);
+
+  /// Новое значение в diff.
+  ///
+  /// In ru, this message translates to:
+  /// **'Стало: {value}'**
+  String revisionNewValue(String value);
+
+  /// Поле diff: сумма.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сумма'**
+  String get revisionFieldAmount;
+
+  /// Поле diff: дата.
+  ///
+  /// In ru, this message translates to:
+  /// **'Дата'**
+  String get revisionFieldDate;
+
+  /// Поле diff: вид.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вид операции'**
+  String get revisionFieldKind;
+
+  /// Поле diff: курс.
+  ///
+  /// In ru, this message translates to:
+  /// **'Курс'**
+  String get revisionFieldRate;
+
+  /// Поле diff: комментарий.
+  ///
+  /// In ru, this message translates to:
+  /// **'Комментарий'**
+  String get revisionFieldComment;
+
+  /// Заголовок аудита операции.
+  ///
+  /// In ru, this message translates to:
+  /// **'Аудит операции'**
+  String get auditAssetTransactionTitle;
+
+  /// Строка diff ревизии.
+  ///
+  /// In ru, this message translates to:
+  /// **'{field}: было {oldValue}, стало {newValue}'**
+  String revisionDiffLine(String field, String oldValue, String newValue);
 }
 
 class _AppLocalizationsDelegate

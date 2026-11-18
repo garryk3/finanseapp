@@ -111,6 +111,9 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase>
     if (filter.assetId != null) {
       query.where(assetTransactions.assetId.equals(filter.assetId!));
     }
+    if (filter.kind != null) {
+      query.where(assetTransactions.kind.equalsValue(filter.kind!));
+    }
     if (filter.assetKind != null) {
       query.where(assets.kind.equalsValue(filter.assetKind!));
     }

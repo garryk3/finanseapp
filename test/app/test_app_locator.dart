@@ -11,6 +11,9 @@ import 'package:finanseapp/core/features/cashflow/ui/cashflow_view_model.dart';
 import 'package:finanseapp/core/features/dashboard/ui/dashboard_view_model.dart';
 import 'package:finanseapp/core/features/goals/ui/goals_view_model.dart';
 import 'package:finanseapp/core/features/settings/ui/more_view_model.dart';
+import 'package:finanseapp/core/domain/common/local_date.dart';
+import 'package:finanseapp/core/features/assets/domain/asset_repository.dart';
+import 'package:finanseapp/core/features/transactions/domain/asset_transaction_repository.dart';
 import 'package:finanseapp/core/features/transactions/ui/transactions_view_model.dart';
 
 import '../core/database/database_fixtures.dart';
@@ -30,7 +33,13 @@ Future<ServiceLocator> buildTestLocator({AppDatabase? database}) async {
   locator
     ..registerFactory<DashboardViewModel>(DashboardViewModel.new)
     ..registerFactory<CashflowViewModel>(CashflowViewModel.new)
-    ..registerFactory<TransactionsViewModel>(TransactionsViewModel.new)
+    ..registerFactory<TransactionsViewModel>(
+      () => TransactionsViewModel(
+        repository: locator.get<AssetTransactionRepository>(),
+        assetRepository: locator.get<AssetRepository>(),
+        today: LocalDate.fromDateTime(DateTime.now()),
+      ),
+    )
     ..registerFactory<GoalsViewModel>(GoalsViewModel.new)
     ..registerFactory<MoreViewModel>(MoreViewModel.new)
     ..registerFactory<NotFoundViewModel>(NotFoundViewModel.new)
