@@ -202,7 +202,7 @@ class _TransferFormScreenState extends State<TransferFormScreen> {
     if (!mounted) return;
     setState(() {
       final accounts = widget.viewModel.accounts.value;
-      _fromId = accounts.firstOrNull?.id;
+      _fromId = _preferredFrom(accounts, widget.viewModel.initialFromId);
       _toId = accounts
           .where((account) => account.id != _fromId)
           .firstOrNull

@@ -328,9 +328,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(tester.takeException(), isNull);
-    expect(find.textContaining('≈'), findsOneWidget);
-    expect(find.textContaining('1,00'), findsOneWidget);
-    expect(find.textContaining('90,00'), findsOneWidget);
+    expect(find.text('1,00 \$ ≈ 90,00 ₽'), findsOneWidget);
   });
 
   testWidgets('кросс-курс USD→RUB показывает прямой курс', (tester) async {
@@ -345,8 +343,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(tester.takeException(), isNull);
-    expect(find.textContaining('1,00'), findsOneWidget);
-    expect(find.textContaining('90,00'), findsOneWidget);
+    expect(find.text('1,00 \$ ≈ 90,00 ₽'), findsOneWidget);
   });
 
   testWidgets('устаревший fromId заменяется первым счётом', (tester) async {
