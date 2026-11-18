@@ -77,6 +77,13 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                     AppText(l10n.accountForecastLabel),
                     AppText(_money(vm.forecast.value)),
                     AppText(l10n.accountForecastHint),
+                    const SizedBox(height: AppSpacing.md),
+                    AppText(l10n.assetBaseEquivalent),
+                    AppText(
+                      vm.baseRateUnavailable.value
+                          ? l10n.assetBaseUnavailable
+                          : _money(vm.baseEquivalent.value),
+                    ),
                     if (account.archivedAt != null) ...[
                       const SizedBox(height: AppSpacing.sm),
                       AppText(l10n.accountArchivedBadge),
@@ -144,6 +151,31 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
     final l10n = AppLocalizations.of(context);
     final account = widget.viewModel.account.value;
     if (account == null) return;
+    final counts = widget.viewModel.referenceCounts.value;
+    if (counts != null && counts.isUsed) {
+      await showAppDialog<void>(
+        context: context,
+        builder: (context) => AppDialog(
+          title: AppText(l10n.assetInUseTitle),
+          content: AppText(
+            l10n.assetInUseMessage(
+              counts.transactions,
+              counts.valuations,
+              counts.goals,
+              counts.cashflow,
+            ),
+          ),
+          actions: [
+            AppButton(
+              label: l10n.commonCancel,
+              variant: AppButtonVariant.text,
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
     final confirmed = await showAppDialog<bool>(
       context: context,
       builder: (context) => AppConfirmDialog(

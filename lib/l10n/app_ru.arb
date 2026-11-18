@@ -819,5 +819,35 @@
   "accountEdit": "Изменить",
   "@accountEdit": {
     "description": "Действие редактирования счёта."
+  },
+  "assetBaseEquivalent": "В базовой валюте",
+  "@assetBaseEquivalent": {
+    "description": "Подпись эквивалента в базовой валюте."
+  },
+  "assetBaseUnavailable": "Курс недоступен",
+  "@assetBaseUnavailable": {
+    "description": "Нет курса для пересчёта в базовую валюту."
+  },
+  "assetInUseTitle": "Актив используется",
+  "@assetInUseTitle": {
+    "description": "Заголовок диалога занятого актива."
+  },
+  "assetInUseMessage": "Операций: {transactions}, оценок: {valuations}, целей: {goals}, записей: {cashflow}. Удаление недоступно — архивируйте актив.",
+  "@assetInUseMessage": {
+    "description": "Разбивка ссылок на актив.",
+    "placeholders": {
+      "transactions": {
+        "type": "int"
+      },
+      "valuations": {
+        "type": "int"
+      },
+      "goals": {
+        "type": "int"
+      },
+      "cashflow": {
+        "type": "int"
+      }
+    }
   }
 }

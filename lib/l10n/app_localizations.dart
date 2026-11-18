@@ -1191,6 +1191,35 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Изменить'**
   String get accountEdit;
+
+  /// Подпись эквивалента в базовой валюте.
+  ///
+  /// In ru, this message translates to:
+  /// **'В базовой валюте'**
+  String get assetBaseEquivalent;
+
+  /// Нет курса для пересчёта в базовую валюту.
+  ///
+  /// In ru, this message translates to:
+  /// **'Курс недоступен'**
+  String get assetBaseUnavailable;
+
+  /// Заголовок диалога занятого актива.
+  ///
+  /// In ru, this message translates to:
+  /// **'Актив используется'**
+  String get assetInUseTitle;
+
+  /// Разбивка ссылок на актив.
+  ///
+  /// In ru, this message translates to:
+  /// **'Операций: {transactions}, оценок: {valuations}, целей: {goals}, записей: {cashflow}. Удаление недоступно — архивируйте актив.'**
+  String assetInUseMessage(
+    int transactions,
+    int valuations,
+    int goals,
+    int cashflow,
+  );
 }
 
 class _AppLocalizationsDelegate

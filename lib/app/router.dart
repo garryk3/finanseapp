@@ -15,6 +15,8 @@ import 'package:finanseapp/core/features/assets/ui/account_form_screen.dart';
 import 'package:finanseapp/core/features/assets/ui/account_form_view_model.dart';
 import 'package:finanseapp/core/features/assets/ui/assets_screen.dart';
 import 'package:finanseapp/core/features/currencies/domain/currency_repository.dart';
+import 'package:finanseapp/core/features/currencies/domain/exchange_rate_repository.dart';
+import 'package:finanseapp/core/features/settings/domain/settings_repository.dart';
 import 'package:finanseapp/core/features/categories/domain/category.dart';
 import 'package:finanseapp/core/features/categories/domain/category_repository.dart';
 import 'package:finanseapp/core/features/categories/ui/categories_screen.dart';
@@ -121,6 +123,12 @@ GoRouter buildRouter({required ServiceLocator locator}) {
                                 repository: locator.get<AssetRepository>(),
                                 assetId: id,
                                 today: LocalDate.fromDateTime(DateTime.now()),
+                                settingsRepository: locator
+                                    .get<SettingsRepository>(),
+                                currencyRepository: locator
+                                    .get<CurrencyRepository>(),
+                                rateRepository: locator
+                                    .get<ExchangeRateRepository>(),
                               ),
                             );
                     },

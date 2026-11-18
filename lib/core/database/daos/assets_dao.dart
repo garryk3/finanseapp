@@ -145,6 +145,25 @@ class AssetsDao extends DatabaseAccessor<AppDatabase> with _$AssetsDaoMixin {
     );
   });
 
+  Future<({int transactions, int valuations, int goals, int cashflow})>
+  referenceCounts(int assetId) async {
+    final row = await customSelect(
+      'SELECT '
+      '(SELECT COUNT(*) FROM asset_transactions WHERE asset_id = ?1) AS tx, '
+      '(SELECT COUNT(*) FROM asset_valuations WHERE asset_id = ?1) AS val, '
+      '(SELECT COUNT(*) FROM goal_assets WHERE asset_id = ?1) AS goals, '
+      '(SELECT COUNT(*) FROM cashflow_entries '
+      'WHERE property_id = ?1 OR account_id = ?1) AS cashflow',
+      variables: [Variable<int>(assetId)],
+    ).getSingle();
+    return (
+      transactions: row.read<int>('tx'),
+      valuations: row.read<int>('val'),
+      goals: row.read<int>('goals'),
+      cashflow: row.read<int>('cashflow'),
+    );
+  }
+
   Future<int> countReferences(int assetId) async {
     final row = await customSelect(
       'SELECT '

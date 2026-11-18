@@ -609,4 +609,23 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get accountEdit => 'Изменить';
+
+  @override
+  String get assetBaseEquivalent => 'В базовой валюте';
+
+  @override
+  String get assetBaseUnavailable => 'Курс недоступен';
+
+  @override
+  String get assetInUseTitle => 'Актив используется';
+
+  @override
+  String assetInUseMessage(
+    int transactions,
+    int valuations,
+    int goals,
+    int cashflow,
+  ) {
+    return 'Операций: $transactions, оценок: $valuations, целей: $goals, записей: $cashflow. Удаление недоступно — архивируйте актив.';
+  }
 }

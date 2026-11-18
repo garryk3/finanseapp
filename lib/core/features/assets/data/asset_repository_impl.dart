@@ -95,6 +95,17 @@ final class AssetRepositoryImpl implements AssetRepository {
   Future<void> archive(int id) => _assetsDao.archive(id);
 
   @override
+  Future<AssetReferenceCounts> referenceCounts(int id) async {
+    final counts = await _assetsDao.referenceCounts(id);
+    return AssetReferenceCounts(
+      transactions: counts.transactions,
+      valuations: counts.valuations,
+      goals: counts.goals,
+      cashflow: counts.cashflow,
+    );
+  }
+
+  @override
   Future<void> recordValuation(AssetValuationDraft draft) async {
     final decimalValue = MoneyMath.toDecimal(
       draft.value,
