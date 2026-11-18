@@ -20,6 +20,7 @@ import 'package:finanseapp/core/features/currencies/domain/exchange_rate_reposit
 import 'package:finanseapp/core/features/settings/domain/settings_repository.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:finanseapp/uikit/app_button.dart';
 import 'package:material_ui/material_ui.dart';
 
 const _rub = Currency(
@@ -54,8 +55,13 @@ final class FakeAssets implements AssetRepository {
   @override
   Future<AssetSnapshot> getById(int id) async => snapshot;
 
+  AssetDraft? createdDraft;
+
   @override
-  Future<int> create(AssetDraft draft) async => 1;
+  Future<int> create(AssetDraft draft) async {
+    createdDraft = draft;
+    return 1;
+  }
 
   @override
   Future<void> update(int id, AssetDraft draft) async {}
@@ -242,7 +248,79 @@ void main() {
     expect(find.text(l10n.accountBalanceLabel), findsOneWidget);
     expect(find.text(l10n.accountForecastLabel), findsOneWidget);
     expect(find.text(l10n.accountArchivedBadge), findsOneWidget);
-    expect(find.textContaining('100'), findsWidgets);
+    expect(find.textContaining('100\u00A0000'), findsWidgets);
+  });
+
+  testWidgets('дата окончания включается и снимается', (tester) async {
+    tester.view.physicalSize = const Size(800, 1400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final snapshot = AssetSnapshot(
+      asset: _account(),
+      currentValue: const Money(minorUnits: 0, currencyCode: 'RUB'),
+    );
+    final vm = AccountFormViewModel(
+      repository: FakeAssets(snapshot),
+      subgroupRepository: FakeSubgroups(),
+      currencyRepository: FakeCurrencies(),
+    );
+    await _pump(tester, AccountFormScreen(viewModel: vm));
+    await tester.pump(const Duration(milliseconds: 500));
+
+    await tester.ensureVisible(find.text(l10n.accountAddEndDate));
+    await tester.tap(find.widgetWithText(AppButton, l10n.accountAddEndDate));
+    await tester.pump();
+    expect(find.text(l10n.accountRemoveEndDate), findsOneWidget);
+
+    await tester.ensureVisible(find.text(l10n.accountRemoveEndDate));
+    await tester.tap(find.widgetWithText(AppButton, l10n.accountRemoveEndDate));
+    await tester.pump();
+    expect(find.text(l10n.accountAddEndDate), findsOneWidget);
+  });
+
+  testWidgets('детали перезагружаются при новом VM', (tester) async {
+    final first = AssetSnapshot(
+      asset: _account(opening: 10000000),
+      currentValue: const Money(minorUnits: 10000000, currencyCode: 'RUB'),
+    );
+    final second = AssetSnapshot(
+      asset: _account(opening: 5000000),
+      currentValue: const Money(minorUnits: 5000000, currencyCode: 'RUB'),
+    );
+    final vm1 = AccountDetailsViewModel(
+      repository: FakeAssets(first),
+      assetId: 1,
+      today: LocalDate(2026, 1, 1),
+      settingsRepository: FakeSettings(),
+      currencyRepository: FakeCurrencies(),
+      rateRepository: FakeRates(),
+    );
+    final vm2 = AccountDetailsViewModel(
+      repository: FakeAssets(second),
+      assetId: 1,
+      today: LocalDate(2026, 1, 1),
+      settingsRepository: FakeSettings(),
+      currencyRepository: FakeCurrencies(),
+      rateRepository: FakeRates(),
+    );
+    await _pump(tester, AccountDetailsScreen(viewModel: vm1));
+    expect(find.textContaining('100\u00A0000'), findsWidgets);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light(),
+        localizationsDelegates: const [
+          ...GlobalMaterialLocalizations.delegates,
+          AppLocalizations.delegate,
+        ],
+        supportedLocales: const [Locale('ru')],
+        home: AccountDetailsScreen(viewModel: vm2),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 600));
+
+    expect(find.textContaining('50\u00A0000'), findsWidgets);
   });
 
   testWidgets('занятый счёт не предлагает удаление, а объясняет', (

@@ -808,7 +808,7 @@
   "@assetsEmptyCta": {
     "description": "CTA пустого списка активов."
   },
-  "accountErrorAmount": "Введите положительную сумму в основных единицах.",
+  "accountErrorAmount": "Введите неотрицательную сумму в основных единицах.",
   "@accountErrorAmount": {
     "description": "Ошибка суммы счёта."
   },
@@ -849,5 +849,21 @@
         "type": "int"
       }
     }
+  },
+  "accountCurrencyLabel": "Валюта счёта",
+  "@accountCurrencyLabel": {
+    "description": "Поле выбора валюты счёта."
+  },
+  "accountCurrencyLocked": "Валюту нельзя менять после операций.",
+  "@accountCurrencyLocked": {
+    "description": "Причина блокировки валюты счёта."
+  },
+  "accountAddEndDate": "Добавить дату окончания",
+  "@accountAddEndDate": {
+    "description": "Включить дату окончания вклада."
+  },
+  "accountRemoveEndDate": "Убрать дату окончания",
+  "@accountRemoveEndDate": {
+    "description": "Снять дату окончания вклада."
   }
 }

@@ -30,15 +30,26 @@ class AccountDetailsScreen extends StatefulWidget {
 }
 
 class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
+  late AccountDetailsViewModel _viewModel = widget.viewModel;
+
   @override
   void initState() {
     super.initState();
-    widget.viewModel.load();
+    _viewModel.load();
+  }
+
+  @override
+  void didUpdateWidget(covariant AccountDetailsScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(oldWidget.viewModel, widget.viewModel)) {
+      oldWidget.viewModel.dispose();
+      _viewModel = widget.viewModel..load();
+    }
   }
 
   @override
   void dispose() {
-    widget.viewModel.dispose();
+    _viewModel.dispose();
     super.dispose();
   }
 
@@ -49,7 +60,7 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
       title: l10n.accountDetailsTitle,
       body: SignalBuilder(
         builder: (context) {
-          final vm = widget.viewModel;
+          final vm = _viewModel;
           final account = vm.account.value;
           if (vm.error.value != null) {
             return AppErrorState(
@@ -95,9 +106,7 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                         variant: AppButtonVariant.outlined,
                         onPressed: vm.busy.value
                             ? null
-                            : () => context.push(
-                                AppRoutes.accountEditPath(account.id),
-                              ),
+                            : () => _edit(account.id),
                       ),
                     const SizedBox(height: AppSpacing.sm),
                     if (account.archivedAt == null)
@@ -136,9 +145,15 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
     );
   }
 
+  Future<void> _edit(int id) async {
+    await context.push(AppRoutes.accountEditPath(id));
+    if (!mounted) return;
+    await _viewModel.load();
+  }
+
   Future<void> _archive() async {
     final l10n = AppLocalizations.of(context);
-    final result = await widget.viewModel.archive();
+    final result = await _viewModel.archive();
     if (!mounted) return;
     if (result is Failure<void>) {
       showAppSnackBar(context, message: l10n.accountErrorInUse, isError: true);
@@ -149,9 +164,9 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
 
   Future<void> _delete() async {
     final l10n = AppLocalizations.of(context);
-    final account = widget.viewModel.account.value;
+    final account = _viewModel.account.value;
     if (account == null) return;
-    final counts = widget.viewModel.referenceCounts.value;
+    final counts = _viewModel.referenceCounts.value;
     if (counts != null && counts.isUsed) {
       await showAppDialog<void>(
         context: context,
@@ -189,7 +204,7 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
       ),
     );
     if (confirmed != true) return;
-    final result = await widget.viewModel.delete();
+    final result = await _viewModel.delete();
     if (!mounted) return;
     if (result is Failure<void>) {
       showAppSnackBar(context, message: l10n.accountErrorInUse, isError: true);

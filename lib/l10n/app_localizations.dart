@@ -1177,7 +1177,7 @@ abstract class AppLocalizations {
   /// Ошибка суммы счёта.
   ///
   /// In ru, this message translates to:
-  /// **'Введите положительную сумму в основных единицах.'**
+  /// **'Введите неотрицательную сумму в основных единицах.'**
   String get accountErrorAmount;
 
   /// Ошибка выбора банка.
@@ -1220,6 +1220,30 @@ abstract class AppLocalizations {
     int goals,
     int cashflow,
   );
+
+  /// Поле выбора валюты счёта.
+  ///
+  /// In ru, this message translates to:
+  /// **'Валюта счёта'**
+  String get accountCurrencyLabel;
+
+  /// Причина блокировки валюты счёта.
+  ///
+  /// In ru, this message translates to:
+  /// **'Валюту нельзя менять после операций.'**
+  String get accountCurrencyLocked;
+
+  /// Включить дату окончания вклада.
+  ///
+  /// In ru, this message translates to:
+  /// **'Добавить дату окончания'**
+  String get accountAddEndDate;
+
+  /// Снять дату окончания вклада.
+  ///
+  /// In ru, this message translates to:
+  /// **'Убрать дату окончания'**
+  String get accountRemoveEndDate;
 }
 
 class _AppLocalizationsDelegate

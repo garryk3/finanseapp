@@ -602,7 +602,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get accountErrorAmount =>
-      'Введите положительную сумму в основных единицах.';
+      'Введите неотрицательную сумму в основных единицах.';
 
   @override
   String get accountErrorBank => 'Выберите банк.';
@@ -628,4 +628,16 @@ class AppLocalizationsRu extends AppLocalizations {
   ) {
     return 'Операций: $transactions, оценок: $valuations, целей: $goals, записей: $cashflow. Удаление недоступно — архивируйте актив.';
   }
+
+  @override
+  String get accountCurrencyLabel => 'Валюта счёта';
+
+  @override
+  String get accountCurrencyLocked => 'Валюту нельзя менять после операций.';
+
+  @override
+  String get accountAddEndDate => 'Добавить дату окончания';
+
+  @override
+  String get accountRemoveEndDate => 'Убрать дату окончания';
 }

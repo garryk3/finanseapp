@@ -165,16 +165,11 @@ class AssetsDao extends DatabaseAccessor<AppDatabase> with _$AssetsDaoMixin {
   }
 
   Future<int> countReferences(int assetId) async {
-    final row = await customSelect(
-      'SELECT '
-      '(SELECT COUNT(*) FROM asset_transactions WHERE asset_id = ?1) + '
-      '(SELECT COUNT(*) FROM asset_valuations WHERE asset_id = ?1) + '
-      '(SELECT COUNT(*) FROM goal_assets WHERE asset_id = ?1) + '
-      '(SELECT COUNT(*) FROM cashflow_entries '
-      'WHERE property_id = ?1 OR account_id = ?1) AS total',
-      variables: [Variable<int>(assetId)],
-    ).getSingle();
-    return row.read<int>('total');
+    final counts = await referenceCounts(assetId);
+    return counts.transactions +
+        counts.valuations +
+        counts.goals +
+        counts.cashflow;
   }
 
   Future<void> deleteIfUnused(int assetId) => transaction(() async {

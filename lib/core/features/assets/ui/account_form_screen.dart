@@ -48,6 +48,9 @@ class _AccountFormScreenState extends State<AccountFormScreen> {
     widget.viewModel.load().then((_) {
       if (!mounted) return;
       final account = widget.viewModel.account.value;
+      _bankId ??= widget.viewModel.banks.value.isEmpty
+          ? null
+          : widget.viewModel.banks.value.first.id;
       if (account != null) {
         _name.text = account.name;
         _opening.text = MoneyMath.toDecimal(
@@ -121,7 +124,7 @@ class _AccountFormScreenState extends State<AccountFormScreen> {
       openingValue: opening,
       annualRate: rate,
       startDate: _startDate,
-      endDate: _hasEndDate ? _endDate : null,
+      endDate: _hasEndDate ? (_endDate ?? _startDate) : null,
     );
     if (!mounted) return;
     if (result is Failure<int>) {
@@ -169,6 +172,7 @@ class _AccountFormScreenState extends State<AccountFormScreen> {
                     controller: _opening,
                     label: l10n.accountOpeningLabel,
                     currencySuffix: _currencyCode,
+                    allowZero: true,
                   ),
                   const SizedBox(height: AppSpacing.md),
                   AppTextField(
@@ -193,8 +197,12 @@ class _AccountFormScreenState extends State<AccountFormScreen> {
                   ),
                   const SizedBox(height: AppSpacing.md),
                   AppCurrencySelect(
-                    label: l10n.accountFormNew,
+                    label: l10n.accountCurrencyLabel,
                     valueCode: _currencyCode,
+                    enabled:
+                        !(vm.isEditing &&
+                            (vm.referenceCounts.value?.isUsed ?? false)),
+                    disabledReason: l10n.accountCurrencyLocked,
                     items: [
                       for (final currency in vm.currencies.value)
                         AppCurrencyOption(
@@ -216,16 +224,6 @@ class _AccountFormScreenState extends State<AccountFormScreen> {
                     ),
                   ),
                   const SizedBox(height: AppSpacing.md),
-                  AppText(l10n.accountEndDate),
-                  AppButton(
-                    label: _hasEndDate
-                        ? (_endDate?.toIsoString() ?? l10n.accountEndDate)
-                        : l10n.accountEndDate,
-                    variant: AppButtonVariant.text,
-                    onPressed: _hasEndDate
-                        ? null
-                        : () => setState(() => _hasEndDate = true),
-                  ),
                   if (_hasEndDate)
                     AppDatePickerField(
                       label: l10n.accountEndDate,
@@ -236,6 +234,21 @@ class _AccountFormScreenState extends State<AccountFormScreen> {
                         () => _endDate = LocalDate.fromDateTime(value),
                       ),
                     ),
+                  AppButton(
+                    label: _hasEndDate
+                        ? l10n.accountRemoveEndDate
+                        : l10n.accountAddEndDate,
+                    variant: AppButtonVariant.text,
+                    onPressed: () => setState(() {
+                      if (_hasEndDate) {
+                        _hasEndDate = false;
+                        _endDate = null;
+                      } else {
+                        _hasEndDate = true;
+                        _endDate = _startDate;
+                      }
+                    }),
+                  ),
                   if (_error != null) ...[
                     const SizedBox(height: AppSpacing.sm),
                     AppText(_error!),

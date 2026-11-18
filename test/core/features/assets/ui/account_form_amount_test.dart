@@ -18,7 +18,7 @@ void main() {
   });
 
   test('нулевой и невалидный ввод отклоняются', () {
-    expect(parseOpeningAmount('0', _rub), isNull);
+    expect(parseOpeningAmount('0', _rub)!.minorUnits, 0);
     expect(parseOpeningAmount('-1', _rub), isNull);
     expect(parseOpeningAmount('abc', _rub), isNull);
     expect(parseOpeningAmount('', _rub), isNull);

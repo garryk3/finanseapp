@@ -33,6 +33,7 @@ class AccountFormViewModel {
   final Signal<List<Subgroup>> banks = signal(const []);
   final Signal<List<Currency>> currencies = signal(const []);
   final Signal<AccountAsset?> account = signal(null);
+  final Signal<AssetReferenceCounts?> referenceCounts = signal(null);
   final Signal<bool> busy = signal(false);
 
   bool get isEditing => editingId != null;
@@ -49,6 +50,7 @@ class AccountFormViewModel {
         final snapshot = await repository.getById(editingId!);
         final asset = snapshot.asset;
         if (asset is AccountAsset) account.value = asset;
+        referenceCounts.value = await repository.referenceCounts(editingId!);
       }
       state.value = const ViewData(null);
     } on DomainException catch (error) {
@@ -96,7 +98,12 @@ class AccountFormViewModel {
 /// Ввод начального баланса — в основных единицах (BR-VAL-1).
 Money? parseOpeningAmount(String raw, Currency currency) {
   final normalized = raw.trim().replaceAll(' ', '').replaceAll(',', '.');
+  if (normalized.isEmpty) return null;
   final decimal = Decimal.tryParse(normalized);
-  if (decimal == null || decimal <= Decimal.zero) return null;
-  return MoneyMath.fromDecimal(decimal, currency);
+  if (decimal == null || decimal < Decimal.zero) return null;
+  try {
+    return MoneyMath.fromDecimal(decimal, currency);
+  } on DomainException {
+    return null;
+  }
 }
