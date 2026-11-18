@@ -68,8 +68,8 @@ List<RevisionDiff> diffAssetTransactions(
     changes.add(
       RevisionDiff(
         field: 'rate',
-        oldValue: previous.rateToRub.toString(),
-        newValue: next.rateToRub.toString(),
+        oldValue: previous.rateToRub.toString().replaceAll('.', ','),
+        newValue: next.rateToRub.toString().replaceAll('.', ','),
       ),
     );
   }

@@ -3,7 +3,6 @@ import 'package:finanseapp/core/features/assets/domain/asset.dart';
 import 'package:finanseapp/core/features/assets/domain/asset_repository.dart';
 import 'package:finanseapp/core/features/audit/domain/audit_repository.dart';
 import 'package:finanseapp/core/features/transactions/domain/asset_transaction_revision.dart';
-import 'package:finanseapp/core/features/transactions/domain/asset_transaction_repository.dart';
 import 'package:finanseapp/core/presentation/view_state.dart';
 import 'package:signals/signals.dart';
 
@@ -11,13 +10,11 @@ import 'package:signals/signals.dart';
 class AuditAssetTransactionViewModel {
   AuditAssetTransactionViewModel({
     required this.auditRepository,
-    required this.transactionRepository,
     required this.assetRepository,
     required this.transactionId,
   });
 
   final AuditRepository auditRepository;
-  final AssetTransactionRepository transactionRepository;
   final AssetRepository assetRepository;
   final int transactionId;
 

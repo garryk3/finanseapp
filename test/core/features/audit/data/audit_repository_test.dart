@@ -93,7 +93,7 @@ void main() {
             assetId: assetId,
             kind: AssetTransactionKind.deposit,
             currencyCode: 'RUB',
-            query: 'Арен',
+            query: 'арен',
           ),
         )
         .first;

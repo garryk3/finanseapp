@@ -22,16 +22,30 @@ final class AssetTransactionRepositoryImpl
   final AppDatabase _db;
 
   @override
-  Stream<List<AssetTransaction>> watch(TransactionFilter filter) =>
-      _db.transactionsDao.watchFiltered(filter).asyncMap((rows) async {
-        final assets = {
-          for (final row in await _db.select(_db.assets).get()) row.id: row,
-        };
-        return [
-          for (final row in rows)
-            mapAssetTransaction(row, assets[row.assetId]!.currencyCode),
-        ];
-      });
+  Stream<List<AssetTransaction>> watch(TransactionFilter filter) {
+    final search = filter.query.trim().toLowerCase();
+    return _db.transactionsDao
+        .watchFiltered(
+          TransactionFilter(
+            period: filter.period,
+            assetId: filter.assetId,
+            kind: filter.kind,
+            assetKind: filter.assetKind,
+            currencyCode: filter.currencyCode,
+          ),
+        )
+        .asyncMap((rows) async {
+          final assets = {
+            for (final row in await _db.select(_db.assets).get()) row.id: row,
+          };
+          return [
+            for (final row in rows)
+              if (search.isEmpty ||
+                  (row.comment ?? '').toLowerCase().contains(search))
+                mapAssetTransaction(row, assets[row.assetId]!.currencyCode),
+          ];
+        });
+  }
 
   @override
   Future<AssetTransaction> getById(int id) async {

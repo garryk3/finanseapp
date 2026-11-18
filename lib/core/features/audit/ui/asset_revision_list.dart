@@ -8,6 +8,7 @@ import 'package:finanseapp/l10n/app_localizations.dart';
 import 'package:finanseapp/uikit/app_divider.dart';
 import 'package:finanseapp/uikit/app_text.dart';
 import 'package:flutter/widgets.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Append-only список ревизий операции с diff к предыдущей (6.3).
 class AssetRevisionList extends StatelessWidget {

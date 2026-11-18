@@ -321,6 +321,7 @@ void main() {
 
     expect(find.text(l10n.notFoundTitle), findsOneWidget);
     expect(find.text(l10n.transactionDetailsTitle), findsOneWidget);
+    expect(find.text(l10n.transactionAuditAction), findsOneWidget);
   });
 
   testWidgets('аудит показывает ревизии удалённой операции', (tester) async {
@@ -336,7 +337,6 @@ void main() {
           changedAt: DateTime.utc(2026, 1, 3),
         ),
       ]),
-      transactionRepository: FakeTransactions([deleted]),
       assetRepository: FakeAssets([_account(1, 'Счёт')]),
       transactionId: 1,
     );
@@ -344,6 +344,36 @@ void main() {
 
     expect(find.text(l10n.auditAssetTransactionTitle), findsOneWidget);
     expect(find.textContaining(l10n.revisionActionDelete), findsOneWidget);
+  });
+
+  testWidgets('нога перевода не предлагает удаление', (tester) async {
+    final transaction = AssetTransaction(
+      id: 1,
+      assetId: 1,
+      kind: AssetTransactionKind.transferOut,
+      amount: const Money(minorUnits: 10000, currencyCode: 'RUB'),
+      occurredOn: LocalDate(2026, 1, 2),
+      rateToRub: Decimal.one,
+      amountRub: const Money(minorUnits: 10000, currencyCode: 'RUB'),
+      revisionNo: 1,
+      createdAt: DateTime.utc(2026),
+      updatedAt: DateTime.utc(2026),
+      transferId: 5,
+    );
+    final vm = TransactionDetailsViewModel(
+      repository: FakeTransactions([transaction]),
+      assetRepository: FakeAssets([_account(1, 'Счёт')]),
+      auditRepository: FakeAudit([]),
+      settingsRepository: FakeSettings(),
+      currencyRepository: FakeCurrencies(),
+      rateRepository: FakeRates(),
+      today: LocalDate(2026, 1, 3),
+      transactionId: 1,
+    );
+    await _pump(tester, TransactionDetailsScreen(viewModel: vm));
+
+    expect(find.text(l10n.accountDelete), findsNothing);
+    expect(find.text(l10n.transactionKindTransferOut), findsWidgets);
   });
 
   testWidgets('детали показывают ревизии и удаляют операцию', (tester) async {

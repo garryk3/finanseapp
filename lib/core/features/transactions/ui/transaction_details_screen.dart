@@ -73,12 +73,28 @@ class _TransactionDetailsScreenState extends State<TransactionDetailsScreen> {
             if (vm.state.value case ViewError(
               errorCode: DomainErrorCode.notFound,
             )) {
-              return AppEmptyState(
-                icon: Icons.search_off,
-                title: l10n.notFoundTitle,
-                message: l10n.notFoundMessage,
-                actionLabel: l10n.notFoundHome,
-                onAction: () => context.go(AppRoutes.dashboard),
+              return AppListView(
+                children: [
+                  AppEmptyState(
+                    icon: Icons.search_off,
+                    title: l10n.notFoundTitle,
+                    message: l10n.notFoundMessage,
+                    actionLabel: l10n.notFoundHome,
+                    onAction: () => context.go(AppRoutes.dashboard),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md,
+                    ),
+                    child: AppButton(
+                      label: l10n.transactionAuditAction,
+                      variant: AppButtonVariant.text,
+                      onPressed: () => context.push(
+                        AppRoutes.auditAssetTransactionPath(vm.transactionId),
+                      ),
+                    ),
+                  ),
+                ],
               );
             }
             return AppErrorState(
@@ -95,13 +111,16 @@ class _TransactionDetailsScreenState extends State<TransactionDetailsScreen> {
           final asset = vm.asset.value;
           return AppListView(
             children: [
-              AppSummaryCard(
-                title: _kindLabel(l10n, transaction.kind),
-                value: _money(transaction.amount),
-                subtitle: transaction.amount.currencyCode == 'RUB'
-                    ? null
-                    : '${l10n.transactionAmountRub}: '
-                          '${_money(transaction.amountRub)}',
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                child: AppSummaryCard(
+                  title: _kindLabel(l10n, transaction.kind),
+                  value: _money(transaction.amount),
+                  subtitle: transaction.amount.currencyCode == 'RUB'
+                      ? null
+                      : '${l10n.transactionAmountRub}: '
+                            '${_money(transaction.amountRub)}',
+                ),
               ),
               const SizedBox(height: AppSpacing.md),
               AppSection(

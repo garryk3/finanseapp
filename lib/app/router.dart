@@ -496,8 +496,6 @@ GoRouter buildRouter({required ServiceLocator locator}) {
               : AuditAssetTransactionScreen(
                   viewModel: AuditAssetTransactionViewModel(
                     auditRepository: locator.get<AuditRepository>(),
-                    transactionRepository: locator
-                        .get<AssetTransactionRepository>(),
                     assetRepository: locator.get<AssetRepository>(),
                     transactionId: id,
                   ),
