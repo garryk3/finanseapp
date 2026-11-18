@@ -8,14 +8,16 @@ import 'package:finanseapp/core/features/assets/ui/assets_view_model.dart';
 import 'package:finanseapp/core/presentation/view_state.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
 import 'package:finanseapp/core/presentation/money_formatter.dart';
+import 'package:finanseapp/uikit/app_button.dart';
+import 'package:finanseapp/uikit/app_dialog.dart';
+import 'package:finanseapp/uikit/app_asset_list_tile.dart';
 import 'package:finanseapp/uikit/app_empty_state.dart';
 import 'package:finanseapp/uikit/app_error_state.dart';
 import 'package:finanseapp/uikit/app_floating_action_button.dart';
-import 'package:finanseapp/uikit/app_icon.dart';
-import 'package:finanseapp/uikit/app_list_tile.dart';
 import 'package:finanseapp/uikit/app_list_view.dart';
 import 'package:finanseapp/uikit/app_scaffold.dart';
 import 'package:finanseapp/uikit/app_skeleton.dart';
+import 'package:finanseapp/uikit/app_text.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:signals_flutter/signals_flutter.dart';
@@ -61,8 +63,8 @@ class _AssetsScreenState extends State<AssetsScreen> {
       title: l10n.navAssets,
       floatingActionButton: AppFloatingActionButton(
         icon: Icons.add,
-        tooltip: l10n.assetsAddAccount,
-        onPressed: () => context.push(AppRoutes.accountNew),
+        tooltip: l10n.assetsAddAsset,
+        onPressed: _addAsset,
       ),
       body: SignalBuilder(
         builder: (context) => switch (_viewModel.state.value) {
@@ -90,8 +92,8 @@ class _AssetsScreenState extends State<AssetsScreen> {
                     icon: Icons.account_balance_wallet_outlined,
                     title: l10n.assetsEmptyTitle,
                     message: l10n.assetsEmptyMessage,
-                    actionLabel: l10n.assetsAddAccount,
-                    onAction: () => context.push(AppRoutes.accountNew),
+                    actionLabel: l10n.assetsAddAsset,
+                    onAction: _addAsset,
                   )
                 : AppListView.builder(
                     padding: const EdgeInsets.only(bottom: 88),
@@ -99,13 +101,12 @@ class _AssetsScreenState extends State<AssetsScreen> {
                     itemBuilder: (context, index) {
                       final snapshot = value[index];
                       final asset = snapshot.asset;
-                      return AppListTile(
+                      return AppAssetListTile(
                         key: ValueKey(asset.id),
-                        title: asset.name,
-                        subtitle: _formatted(snapshot),
-                        leading: const AppIcon(
-                          Icons.account_balance_wallet_outlined,
-                        ),
+                        name: asset.name,
+                        kindLabel: _kindLabel(l10n, asset.kind),
+                        amountText: _formatted(snapshot),
+                        icon: _kindIcon(asset.kind),
                         onTap: () =>
                             context.push(AppRoutes.assetDetailsPath(asset.id)),
                       );
@@ -115,6 +116,48 @@ class _AssetsScreenState extends State<AssetsScreen> {
       ),
     );
   }
+
+  Future<void> _addAsset() async {
+    final l10n = AppLocalizations.of(context);
+    final kind = await showAppDialog<String>(
+      context: context,
+      builder: (context) => AppDialog(
+        title: AppText(l10n.assetsAddTitle),
+        actions: [
+          AppButton(
+            label: l10n.commonCancel,
+            variant: AppButtonVariant.text,
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          AppButton(
+            label: l10n.assetsAddAccount,
+            onPressed: () => Navigator.of(context).pop('account'),
+          ),
+          AppButton(
+            label: l10n.assetsAddInvestment,
+            onPressed: () => Navigator.of(context).pop('investment'),
+          ),
+        ],
+      ),
+    );
+    if (!mounted || kind == null) return;
+    context.push(
+      kind == 'account' ? AppRoutes.accountNew : AppRoutes.investmentNew,
+    );
+  }
+
+  static String _kindLabel(AppLocalizations l10n, AssetKind kind) =>
+      switch (kind) {
+        AssetKind.account => l10n.assetKindAccount,
+        AssetKind.investment => l10n.assetKindInvestment,
+        AssetKind.property => l10n.assetKindProperty,
+      };
+
+  static IconData _kindIcon(AssetKind kind) => switch (kind) {
+    AssetKind.account => Icons.account_balance_wallet_outlined,
+    AssetKind.investment => Icons.trending_up,
+    AssetKind.property => Icons.home_outlined,
+  };
 
   static String _formatted(AssetSnapshot snapshot) =>
       const MoneyFormatter().format(

@@ -79,6 +79,10 @@ class AssetsDao extends DatabaseAccessor<AppDatabase> with _$AssetsDaoMixin {
     return assetId;
   });
 
+  Future<InvestmentDetailRow?> investmentDetailsFor(int assetId) => (select(
+    investmentDetails,
+  )..where((d) => d.assetId.equals(assetId))).getSingleOrNull();
+
   Future<AccountDetailRow?> accountDetailsFor(int assetId) => (select(
     accountDetails,
   )..where((d) => d.assetId.equals(assetId))).getSingleOrNull();
@@ -163,6 +167,45 @@ class AssetsDao extends DatabaseAccessor<AppDatabase> with _$AssetsDaoMixin {
       cashflow: row.read<int>('cashflow'),
     );
   }
+
+  /// Обновляет инвестицию; смена валюты запрещена при связях (BR-VAL-8).
+  Future<void> updateInvestment({
+    required int assetId,
+    required String name,
+    required String currencyCode,
+    required int openingValueMinor,
+    required int brokerId,
+  }) => transaction(() async {
+    final asset = await getById(assetId);
+    if (asset.kind != AssetKind.investment) {
+      throw const DomainException(
+        DomainErrorCode.validation,
+        fieldErrors: {'kind': 'validationAssetKindImmutable'},
+      );
+    }
+    if (openingValueMinor < 0) {
+      throw const DomainException(
+        DomainErrorCode.validation,
+        fieldErrors: {'openingValue': 'validationAmountNegative'},
+      );
+    }
+    if (currencyCode != asset.currencyCode &&
+        await countReferences(assetId) > 0) {
+      throw const DomainException(
+        DomainErrorCode.validation,
+        fieldErrors: {'currencyCode': 'validationCurrencyLocked'},
+      );
+    }
+    await (update(assets)..where((a) => a.id.equals(assetId))).write(
+      AssetsCompanion(
+        name: Value(name.trim()),
+        currencyCode: Value(currencyCode),
+        openingValueMinor: Value(openingValueMinor),
+      ),
+    );
+    await (update(investmentDetails)..where((d) => d.assetId.equals(assetId)))
+        .write(InvestmentDetailsCompanion(brokerId: Value(brokerId)));
+  });
 
   Future<int> countReferences(int assetId) async {
     final counts = await referenceCounts(assetId);

@@ -186,7 +186,7 @@
   "@assetsEmptyTitle": {
     "description": "Заголовок пустого списка активов."
   },
-  "assetsEmptyMessage": "Добавьте счёт, инвестицию или квартиру.",
+  "assetsEmptyMessage": "Добавьте счёт или инвестицию.",
   "@assetsEmptyMessage": {
     "description": "Пояснение пустого списка активов."
   },
@@ -792,10 +792,6 @@
   "@accountErrorCurrencyLocked": {
     "description": "Ошибка смены валюты."
   },
-  "accountErrorInUse": "Счёт используется и не может быть удалён.",
-  "@accountErrorInUse": {
-    "description": "Ошибка удаления используемого счёта."
-  },
   "accountNoBanks": "Сначала добавьте банк в справочнике.",
   "@accountNoBanks": {
     "description": "Пустое состояние выбора банка."
@@ -865,5 +861,179 @@
   "accountRemoveEndDate": "Убрать дату окончания",
   "@accountRemoveEndDate": {
     "description": "Снять дату окончания вклада."
+  },
+  "assetsAddAsset": "Добавить актив",
+  "@assetsAddAsset": {
+    "description": "Действие создания любого актива."
+  },
+  "assetsAddInvestment": "Добавить инвестицию",
+  "@assetsAddInvestment": {
+    "description": "Действие создания инвестиции."
+  },
+  "assetsAddTitle": "Новый актив",
+  "@assetsAddTitle": {
+    "description": "Заголовок выбора вида актива."
+  },
+  "investmentFormNew": "Новая инвестиция",
+  "@investmentFormNew": {
+    "description": "Заголовок формы новой инвестиции."
+  },
+  "investmentFormEdit": "Изменить инвестицию",
+  "@investmentFormEdit": {
+    "description": "Заголовок формы редактирования инвестиции."
+  },
+  "investmentNameLabel": "Название инвестиции",
+  "@investmentNameLabel": {
+    "description": "Поле названия инвестиции."
+  },
+  "investmentBrokerLabel": "Брокер",
+  "@investmentBrokerLabel": {
+    "description": "Поле выбора брокера."
+  },
+  "investmentNoBrokers": "Сначала добавьте брокера в справочнике.",
+  "@investmentNoBrokers": {
+    "description": "Пустой список брокеров."
+  },
+  "investmentCurrencyLabel": "Валюта инвестиции",
+  "@investmentCurrencyLabel": {
+    "description": "Поле валюты инвестиции."
+  },
+  "investmentDetailsTitle": "Инвестиция",
+  "@investmentDetailsTitle": {
+    "description": "Заголовок деталей инвестиции."
+  },
+  "investmentCurrentValue": "Текущая стоимость",
+  "@investmentCurrentValue": {
+    "description": "Подпись текущей стоимости инвестиции."
+  },
+  "investmentValuationHint": "Оценка задаётся на конец дня: операции этой даты применяются после неё.",
+  "@investmentValuationHint": {
+    "description": "Пояснение к абсолютной оценке."
+  },
+  "investmentErrorName": "Введите название инвестиции.",
+  "@investmentErrorName": {
+    "description": "Ошибка названия инвестиции."
+  },
+  "investmentErrorBroker": "Выберите брокера.",
+  "@investmentErrorBroker": {
+    "description": "Ошибка выбора брокера."
+  },
+  "investmentAddValuation": "Добавить оценку",
+  "@investmentAddValuation": {
+    "description": "Действие добавления оценки."
+  },
+  "valuationTitle": "Новая оценка",
+  "@valuationTitle": {
+    "description": "Заголовок формы оценки."
+  },
+  "valuationValueLabel": "Стоимость",
+  "@valuationValueLabel": {
+    "description": "Поле абсолютной стоимости."
+  },
+  "valuationDateLabel": "Дата оценки",
+  "@valuationDateLabel": {
+    "description": "Поле даты оценки."
+  },
+  "valuationRateLabel": "Курс к рублю",
+  "@valuationRateLabel": {
+    "description": "Поле ручного курса для оценки."
+  },
+  "valuationRateOptional": "Пусто — возьмём курс ЦБ на дату.",
+  "@valuationRateOptional": {
+    "description": "Пояснение к необязательному курсу."
+  },
+  "valuationErrorValue": "Введите стоимость. Стоимость не может быть отрицательной.",
+  "@valuationErrorValue": {
+    "description": "Ошибка стоимости оценки."
+  },
+  "valuationErrorRate": "Не удалось получить курс. Введите курс вручную.",
+  "@valuationErrorRate": {
+    "description": "Ошибка получения курса."
+  },
+  "valuationHistory": "История оценок",
+  "@valuationHistory": {
+    "description": "Заголовок истории оценок."
+  },
+  "valuationHistoryEmpty": "Оценок пока нет. Стоимость считается по операциям от начального баланса.",
+  "@valuationHistoryEmpty": {
+    "description": "Пустая история оценок."
+  },
+  "valuationSaved": "Оценка сохранена.",
+  "@valuationSaved": {
+    "description": "Подтверждение сохранения оценки."
+  },
+  "assetDetailsTitle": "Актив",
+  "@assetDetailsTitle": {
+    "description": "Заголовок деталей неизвестного вида актива."
+  },
+  "assetArchived": "Актив архивирован.",
+  "@assetArchived": {
+    "description": "Подтверждение архивации актива."
+  },
+  "assetDeleted": "Актив удалён.",
+  "@assetDeleted": {
+    "description": "Подтверждение удаления актива."
+  },
+  "assetDeleteTitle": "Удалить «{name}»?",
+  "@assetDeleteTitle": {
+    "description": "Подтверждение удаления актива.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "assetDeleteMessage": "Актив не используется и будет удалён.",
+  "@assetDeleteMessage": {
+    "description": "Пояснение удаления актива."
+  },
+  "assetErrorInUse": "Актив используется и не может быть удалён.",
+  "@assetErrorInUse": {
+    "description": "Ошибка удаления используемого актива."
+  },
+  "valuationErrorDate": "Дата оценки не может быть в будущем.",
+  "@valuationErrorDate": {
+    "description": "Ошибка будущей даты оценки."
+  },
+  "assetKindAccount": "Счёт",
+  "@assetKindAccount": {
+    "description": "Вид актива: счёт."
+  },
+  "assetKindInvestment": "Инвестиция",
+  "@assetKindInvestment": {
+    "description": "Вид актива: инвестиция."
+  },
+  "assetKindProperty": "Квартира",
+  "@assetKindProperty": {
+    "description": "Вид актива: квартира."
+  },
+  "assetActions": "Действия с активом",
+  "@assetActions": {
+    "description": "Меню редких действий на деталях актива."
+  },
+  "assetArchiveFailed": "Не удалось архивировать актив.",
+  "@assetArchiveFailed": {
+    "description": "Ошибка архивации актива."
+  },
+  "valuationCurrent": "Текущая",
+  "@valuationCurrent": {
+    "description": "Метка актуальной оценки."
+  },
+  "valuationRubLine": "В рублях: {value}",
+  "@valuationRubLine": {
+    "description": "Рублёвый эквивалент оценки.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "investmentSectionTitle": "Инвестиция",
+  "@investmentSectionTitle": {
+    "description": "Заголовок секции формы инвестиции."
+  },
+  "brokerAddAction": "Добавить брокера",
+  "@brokerAddAction": {
+    "description": "Действие перехода к справочнику брокеров."
   }
 }

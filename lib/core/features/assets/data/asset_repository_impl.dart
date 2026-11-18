@@ -44,48 +44,70 @@ final class AssetRepositoryImpl implements AssetRepository {
 
   @override
   Future<int> create(AssetDraft draft) async {
-    final account = draft is AccountDraft ? draft : null;
-    if (account == null) {
-      throw const DomainException(
-        DomainErrorCode.validation,
-        fieldErrors: {'kind': 'validationAssetKindUnsupported'},
-      );
+    switch (draft) {
+      case AccountDraft account:
+        _validateAccountDraft(account);
+        return _assetsDao.create(
+          name: account.name.trim(),
+          kind: AssetKind.account,
+          currencyCode: account.currencyCode,
+          openingValueMinor: account.openingValue.minorUnits,
+          account: AccountDetailsCompanion.insert(
+            bankId: account.bankId,
+            annualRate: account.annualRate,
+            startDate: account.startDate,
+            endDate: Value(account.endDate),
+          ),
+        );
+      case InvestmentDraft investment:
+        _validateInvestmentDraft(investment);
+        return _assetsDao.create(
+          name: investment.name.trim(),
+          kind: AssetKind.investment,
+          currencyCode: investment.currencyCode,
+          openingValueMinor: investment.openingValue.minorUnits,
+          investment: InvestmentDetailsCompanion.insert(
+            brokerId: investment.brokerId,
+          ),
+        );
+      case PropertyDraft():
+        throw const DomainException(
+          DomainErrorCode.validation,
+          fieldErrors: {'kind': 'validationAssetKindUnsupported'},
+        );
     }
-    _validateAccountDraft(account);
-    return _assetsDao.create(
-      name: account.name.trim(),
-      kind: AssetKind.account,
-      currencyCode: account.currencyCode,
-      openingValueMinor: account.openingValue.minorUnits,
-      account: AccountDetailsCompanion.insert(
-        bankId: account.bankId,
-        annualRate: account.annualRate,
-        startDate: account.startDate,
-        endDate: Value(account.endDate),
-      ),
-    );
   }
 
   @override
   Future<void> update(int id, AssetDraft draft) async {
-    final account = draft is AccountDraft ? draft : null;
-    if (account == null) {
-      throw const DomainException(
-        DomainErrorCode.validation,
-        fieldErrors: {'kind': 'validationAssetKindUnsupported'},
-      );
+    switch (draft) {
+      case AccountDraft account:
+        _validateAccountDraft(account);
+        await _assetsDao.updateAccount(
+          assetId: id,
+          name: account.name.trim(),
+          currencyCode: account.currencyCode,
+          openingValueMinor: account.openingValue.minorUnits,
+          bankId: account.bankId,
+          annualRate: account.annualRate,
+          startDate: account.startDate,
+          endDate: account.endDate,
+        );
+      case InvestmentDraft investment:
+        _validateInvestmentDraft(investment);
+        await _assetsDao.updateInvestment(
+          assetId: id,
+          name: investment.name.trim(),
+          currencyCode: investment.currencyCode,
+          openingValueMinor: investment.openingValue.minorUnits,
+          brokerId: investment.brokerId,
+        );
+      case PropertyDraft():
+        throw const DomainException(
+          DomainErrorCode.validation,
+          fieldErrors: {'kind': 'validationAssetKindUnsupported'},
+        );
     }
-    _validateAccountDraft(account);
-    await _assetsDao.updateAccount(
-      assetId: id,
-      name: account.name.trim(),
-      currencyCode: account.currencyCode,
-      openingValueMinor: account.openingValue.minorUnits,
-      bankId: account.bankId,
-      annualRate: account.annualRate,
-      startDate: account.startDate,
-      endDate: account.endDate,
-    );
   }
 
   @override
@@ -109,7 +131,13 @@ final class AssetRepositoryImpl implements AssetRepository {
   Future<void> recordValuation(AssetValuationDraft draft) async {
     final decimalValue = MoneyMath.toDecimal(
       draft.value,
-      _currencyOf(draft.value.currencyCode),
+      Currency(
+        code: draft.value.currencyCode,
+        name: draft.value.currencyCode,
+        fractionDigits: draft.fractionDigits,
+        isPreset: true,
+        isEnabled: true,
+      ),
     );
     final valueRub = MoneyMath.fromDecimal(
       decimalValue * draft.rateToRub,
@@ -125,39 +153,102 @@ final class AssetRepositoryImpl implements AssetRepository {
   }
 
   Future<AssetSnapshot> _snapshotOf(AssetRow row) async {
-    if (row.kind != AssetKind.account) {
-      throw const DomainException(
-        DomainErrorCode.validation,
-        fieldErrors: {'kind': 'validationAssetKindUnsupported'},
-      );
-    }
-    final details = await _assetsDao.accountDetailsFor(row.id);
-    if (details == null) {
-      throw const DomainException(
-        DomainErrorCode.notFound,
-        fieldErrors: {'assetId': 'validationAssetNotFound'},
-      );
-    }
     final transactions = await _transactionsFor(row.id, row.currencyCode);
-    final asset = AccountAsset(
-      id: row.id,
-      name: row.name,
+    final valuations = await _valuationsFor(row.id, row.currencyCode);
+    final opening = Money(
+      minorUnits: row.openingValueMinor,
       currencyCode: row.currencyCode,
-      openingValue: Money(
-        minorUnits: row.openingValueMinor,
-        currencyCode: row.currencyCode,
-      ),
-      createdAt: row.createdAt,
-      archivedAt: row.archivedAt,
-      bankId: details.bankId,
-      annualRate: details.annualRate,
-      startDate: details.startDate,
-      endDate: details.endDate,
     );
-    return AssetSnapshot(
-      asset: asset,
-      currentValue: AssetValueCalculator.account(asset, transactions),
-    );
+
+    switch (row.kind) {
+      case AssetKind.account:
+        final details = await _assetsDao.accountDetailsFor(row.id);
+        if (details == null) {
+          throw const DomainException(
+            DomainErrorCode.notFound,
+            fieldErrors: {'assetId': 'validationAssetNotFound'},
+          );
+        }
+        final asset = AccountAsset(
+          id: row.id,
+          name: row.name,
+          currencyCode: row.currencyCode,
+          openingValue: opening,
+          createdAt: row.createdAt,
+          archivedAt: row.archivedAt,
+          bankId: details.bankId,
+          annualRate: details.annualRate,
+          startDate: details.startDate,
+          endDate: details.endDate,
+        );
+        return AssetSnapshot(
+          asset: asset,
+          currentValue: AssetValueCalculator.account(asset, transactions),
+        );
+      case AssetKind.investment:
+        final details = await _assetsDao.investmentDetailsFor(row.id);
+        if (details == null) {
+          throw const DomainException(
+            DomainErrorCode.notFound,
+            fieldErrors: {'assetId': 'validationAssetNotFound'},
+          );
+        }
+        final asset = InvestmentAsset(
+          id: row.id,
+          name: row.name,
+          currencyCode: row.currencyCode,
+          openingValue: opening,
+          createdAt: row.createdAt,
+          archivedAt: row.archivedAt,
+          brokerId: details.brokerId,
+        );
+        return AssetSnapshot(
+          asset: asset,
+          currentValue: AssetValueCalculator.investment(
+            asset,
+            valuations,
+            transactions,
+          ),
+        );
+      case AssetKind.property:
+        final asset = PropertyAsset(
+          id: row.id,
+          name: row.name,
+          currencyCode: row.currencyCode,
+          openingValue: opening,
+          createdAt: row.createdAt,
+          archivedAt: row.archivedAt,
+        );
+        return AssetSnapshot(
+          asset: asset,
+          currentValue: AssetValueCalculator.property(asset, valuations),
+        );
+    }
+  }
+
+  Future<List<AssetValuation>> _valuationsFor(
+    int assetId,
+    String currencyCode,
+  ) async {
+    final rows = await _valuationsDao.watchByAsset(assetId).first;
+    return [
+      for (final row in rows)
+        AssetValuation(
+          id: row.id,
+          assetId: row.assetId,
+          effectiveOn: row.effectiveOn,
+          value: Money(minorUnits: row.valueMinor, currencyCode: currencyCode),
+          rateToRub: row.rateToRub,
+          valueRub: Money(minorUnits: row.valueRubMinor, currencyCode: 'RUB'),
+          createdAt: row.createdAt,
+        ),
+    ];
+  }
+
+  @override
+  Future<List<AssetValuation>> valuations(int id) async {
+    final row = await _assetsDao.getById(id);
+    return _valuationsFor(id, row.currencyCode);
   }
 
   Future<List<AssetTransaction>> _transactionsFor(
@@ -213,6 +304,21 @@ final class AssetRepositoryImpl implements AssetRepository {
       throw const DomainException(
         DomainErrorCode.validation,
         fieldErrors: {'endDate': 'validationDateRangeInvalid'},
+      );
+    }
+  }
+
+  static void _validateInvestmentDraft(InvestmentDraft draft) {
+    if (draft.name.trim().isEmpty) {
+      throw const DomainException(
+        DomainErrorCode.validation,
+        fieldErrors: {'name': 'validationNameRequired'},
+      );
+    }
+    if (draft.openingValue.isNegative) {
+      throw const DomainException(
+        DomainErrorCode.validation,
+        fieldErrors: {'openingValue': 'validationAmountNegative'},
       );
     }
   }

@@ -147,7 +147,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get assetsEmptyTitle => 'Нет активов';
 
   @override
-  String get assetsEmptyMessage => 'Добавьте счёт, инвестицию или квартиру.';
+  String get assetsEmptyMessage => 'Добавьте счёт или инвестицию.';
 
   @override
   String get goalsEmptyTitle => 'Нет целей';
@@ -589,9 +589,6 @@ class AppLocalizationsRu extends AppLocalizations {
       'Валюту нельзя менять после операций.';
 
   @override
-  String get accountErrorInUse => 'Счёт используется и не может быть удалён.';
-
-  @override
   String get accountNoBanks => 'Сначала добавьте банк в справочнике.';
 
   @override
@@ -640,4 +637,135 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get accountRemoveEndDate => 'Убрать дату окончания';
+
+  @override
+  String get assetsAddAsset => 'Добавить актив';
+
+  @override
+  String get assetsAddInvestment => 'Добавить инвестицию';
+
+  @override
+  String get assetsAddTitle => 'Новый актив';
+
+  @override
+  String get investmentFormNew => 'Новая инвестиция';
+
+  @override
+  String get investmentFormEdit => 'Изменить инвестицию';
+
+  @override
+  String get investmentNameLabel => 'Название инвестиции';
+
+  @override
+  String get investmentBrokerLabel => 'Брокер';
+
+  @override
+  String get investmentNoBrokers => 'Сначала добавьте брокера в справочнике.';
+
+  @override
+  String get investmentCurrencyLabel => 'Валюта инвестиции';
+
+  @override
+  String get investmentDetailsTitle => 'Инвестиция';
+
+  @override
+  String get investmentCurrentValue => 'Текущая стоимость';
+
+  @override
+  String get investmentValuationHint =>
+      'Оценка задаётся на конец дня: операции этой даты применяются после неё.';
+
+  @override
+  String get investmentErrorName => 'Введите название инвестиции.';
+
+  @override
+  String get investmentErrorBroker => 'Выберите брокера.';
+
+  @override
+  String get investmentAddValuation => 'Добавить оценку';
+
+  @override
+  String get valuationTitle => 'Новая оценка';
+
+  @override
+  String get valuationValueLabel => 'Стоимость';
+
+  @override
+  String get valuationDateLabel => 'Дата оценки';
+
+  @override
+  String get valuationRateLabel => 'Курс к рублю';
+
+  @override
+  String get valuationRateOptional => 'Пусто — возьмём курс ЦБ на дату.';
+
+  @override
+  String get valuationErrorValue =>
+      'Введите стоимость. Стоимость не может быть отрицательной.';
+
+  @override
+  String get valuationErrorRate =>
+      'Не удалось получить курс. Введите курс вручную.';
+
+  @override
+  String get valuationHistory => 'История оценок';
+
+  @override
+  String get valuationHistoryEmpty =>
+      'Оценок пока нет. Стоимость считается по операциям от начального баланса.';
+
+  @override
+  String get valuationSaved => 'Оценка сохранена.';
+
+  @override
+  String get assetDetailsTitle => 'Актив';
+
+  @override
+  String get assetArchived => 'Актив архивирован.';
+
+  @override
+  String get assetDeleted => 'Актив удалён.';
+
+  @override
+  String assetDeleteTitle(String name) {
+    return 'Удалить «$name»?';
+  }
+
+  @override
+  String get assetDeleteMessage => 'Актив не используется и будет удалён.';
+
+  @override
+  String get assetErrorInUse => 'Актив используется и не может быть удалён.';
+
+  @override
+  String get valuationErrorDate => 'Дата оценки не может быть в будущем.';
+
+  @override
+  String get assetKindAccount => 'Счёт';
+
+  @override
+  String get assetKindInvestment => 'Инвестиция';
+
+  @override
+  String get assetKindProperty => 'Квартира';
+
+  @override
+  String get assetActions => 'Действия с активом';
+
+  @override
+  String get assetArchiveFailed => 'Не удалось архивировать актив.';
+
+  @override
+  String get valuationCurrent => 'Текущая';
+
+  @override
+  String valuationRubLine(String value) {
+    return 'В рублях: $value';
+  }
+
+  @override
+  String get investmentSectionTitle => 'Инвестиция';
+
+  @override
+  String get brokerAddAction => 'Добавить брокера';
 }

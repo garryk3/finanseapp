@@ -41,4 +41,7 @@ abstract interface class AssetRepository {
 
   /// Разбивка ссылок для диалога удаления/архивации (BR-A-5).
   Future<AssetReferenceCounts> referenceCounts(int id);
+
+  /// История абсолютных оценок по `(effectiveOn, id)`.
+  Future<List<AssetValuation>> valuations(int id);
 }

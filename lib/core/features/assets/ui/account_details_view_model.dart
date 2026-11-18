@@ -6,6 +6,7 @@ import 'package:finanseapp/core/domain/common/money.dart';
 import 'package:finanseapp/core/domain/common/result.dart';
 import 'package:finanseapp/core/features/assets/domain/asset.dart';
 import 'package:finanseapp/core/features/assets/domain/asset_repository.dart';
+import 'package:finanseapp/core/features/assets/domain/asset_valuation.dart';
 import 'package:finanseapp/core/features/assets/logic/account_forecast_calculator.dart';
 import 'package:finanseapp/core/features/currencies/domain/currency_repository.dart';
 import 'package:finanseapp/core/features/currencies/domain/exchange_rate_repository.dart';
@@ -31,6 +32,9 @@ class AccountDetailsViewModel {
   final ExchangeRateRepository rateRepository;
 
   final Signal<AccountAsset?> account = signal(null);
+  final Signal<Asset?> asset = signal(null);
+  final Signal<Currency?> currency = signal(null);
+  final Signal<List<AssetValuation>> valuationHistory = signal(const []);
   final Signal<Money?> balance = signal(null);
   final Signal<Money?> forecast = signal(null);
   final Signal<bool> busy = signal(false);
@@ -43,21 +47,25 @@ class AccountDetailsViewModel {
   Future<void> load() async {
     try {
       final snapshot = await repository.getById(assetId);
-      final asset = snapshot.asset;
-      if (asset is! AccountAsset) {
-        error.value = 'validationAssetKindUnsupported';
-        return;
-      }
-      account.value = asset;
+      final loaded = snapshot.asset;
+      asset.value = loaded;
+      currency.value = await _currencyOf(loaded.currencyCode);
       balance.value = snapshot.currentValue;
-      forecast.value = AccountForecastCalculator.call(
-        account: asset,
-        currentBalance: snapshot.currentValue,
-        asOf: today,
-        currency: await _currencyOf(asset.currencyCode),
-      );
+      if (loaded is AccountAsset) {
+        account.value = loaded;
+        forecast.value = AccountForecastCalculator.call(
+          account: loaded,
+          currentBalance: snapshot.currentValue,
+          asOf: today,
+          currency: await _currencyOf(loaded.currencyCode),
+        );
+      } else {
+        account.value = null;
+        forecast.value = null;
+        valuationHistory.value = await repository.valuations(assetId);
+      }
       referenceCounts.value = await repository.referenceCounts(assetId);
-      await _loadBaseEquivalent(snapshot.currentValue, asset.currencyCode);
+      await _loadBaseEquivalent(snapshot.currentValue, loaded.currencyCode);
     } on DomainException catch (exception) {
       error.value = exception.code.name;
     } on Exception {
