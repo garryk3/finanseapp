@@ -62,11 +62,15 @@ final class AssetTransactionRepositoryImpl
         await _reviseTransaction(id, draft);
         final classification = draft.classification;
         if (classification != null) {
-          final input = await _linkedInput(draft, classification);
           if (linked == null) {
-            await _db.cashflowDao.create(input);
+            await _db.cashflowDao.create(
+              await _linkedInput(draft, classification, assetTransactionId: id),
+            );
           } else {
-            await _db.cashflowDao.reviseFromAsset(linked.id, input);
+            await _db.cashflowDao.reviseFromAsset(
+              linked.id,
+              await _linkedInput(draft, classification),
+            );
           }
         } else if (linked != null) {
           await _db.cashflowDao.softDeleteFromAsset(linked.id);

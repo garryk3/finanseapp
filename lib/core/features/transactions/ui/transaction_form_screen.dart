@@ -112,6 +112,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
     final currency = asset == null
         ? null
         : widget.viewModel.currencyOf(asset.currencyCode);
+    final isRub = currency == null || currency.code == 'RUB';
     final amount = (asset == null || currency == null)
         ? null
         : parseOpeningAmount(_amount.text, currency);
@@ -122,7 +123,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
     final categoryError = _classify && _categoryId == null
         ? l10n.transactionErrorCategory
         : null;
-    final rawRate = _rate.text.trim().replaceAll(',', '.');
+    final rawRate = isRub ? '' : _rate.text.trim().replaceAll(',', '.');
     Decimal? manualRate;
     if (rawRate.isNotEmpty) {
       manualRate = Decimal.tryParse(rawRate);
@@ -237,7 +238,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
             padding: const EdgeInsets.all(AppSpacing.md),
             children: [
               AppFormSection(
-                title: l10n.transactionFormNew,
+                title: asset?.name ?? l10n.transactionFormNew,
                 errorText: _formError,
                 children: [
                   AppSelect<int>(
@@ -254,6 +255,14 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                     onChanged: (value) => setState(() {
                       _assetId = value;
                       _assetError = null;
+                      _rate.clear();
+                      _rateError = null;
+                      final selected = vm.assetById(value);
+                      if (selected?.kind != AssetKind.account) {
+                        _classify = false;
+                        _categoryId = null;
+                        _categoryError = null;
+                      }
                     }),
                     errorText: _assetError,
                   ),

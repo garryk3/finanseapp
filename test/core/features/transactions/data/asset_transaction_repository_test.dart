@@ -177,6 +177,27 @@ void main() {
     expect(await db.transactionsDao.allRows(), isEmpty);
   });
 
+  test('revise добавляет классификацию и сохраняет связь', () async {
+    final assetId = await createAccount(db, currencyCode: 'USD');
+    final id = await repository.create(draft(assetId));
+
+    await repository.revise(
+      id,
+      draft(
+        assetId,
+        classification: TransactionClassification(
+          kind: CashflowKind.income,
+          categoryId: incomeCategoryId,
+        ),
+      ),
+    );
+
+    final linked = await db.cashflowDao.findLinked(id);
+    expect(linked, isNotNull);
+    expect((await repository.getById(id)).cashflowEntryId, linked!.id);
+    expect(await db.cashflowDao.findLinked(id), isNotNull);
+  });
+
   test('снятие классификации мягко удаляет связанный доход', () async {
     final assetId = await createAccount(db, currencyCode: 'USD');
     final id = await repository.create(

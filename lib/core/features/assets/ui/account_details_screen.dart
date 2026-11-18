@@ -155,7 +155,9 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                   variant: AppButtonVariant.outlined,
                   onPressed: vm.busy.value ? null : () => _edit(asset),
                 ),
-              if (!isArchived)
+              if (!isArchived && (isAccount || isInvestment))
+                const SizedBox(height: AppSpacing.sm),
+              if (!isArchived && (isAccount || isInvestment))
                 Row(
                   children: [
                     Expanded(
@@ -179,6 +181,8 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                     ),
                   ],
                 ),
+              if (!isArchived && !isAccount)
+                const SizedBox(height: AppSpacing.sm),
               if (!isArchived && !isAccount)
                 AppButton(
                   label: l10n.investmentAddValuation,
@@ -257,7 +261,9 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
   }
 
   Future<void> _addTransaction(int id, {required bool deposit}) async {
-    final saved = await context.push<bool>(AppRoutes.transactionNewFor(id));
+    final saved = await context.push<bool>(
+      AppRoutes.transactionNewFor(id, deposit: deposit),
+    );
     if (!mounted || saved != true) return;
     await _viewModel.load();
     if (!mounted) return;
