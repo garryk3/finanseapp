@@ -90,6 +90,7 @@ class ValuationFormViewModel {
           effectiveOn: effectiveOn,
           value: value,
           rateToRub: rate.rateToRub,
+          fractionDigits: currency.value?.fractionDigits ?? 2,
         ),
       );
       return const Success(null);

@@ -1150,12 +1150,6 @@ abstract class AppLocalizations {
   /// **'Валюту нельзя менять после операций.'**
   String get accountErrorCurrencyLocked;
 
-  /// Ошибка удаления используемого счёта.
-  ///
-  /// In ru, this message translates to:
-  /// **'Счёт используется и не может быть удалён.'**
-  String get accountErrorInUse;
-
   /// Пустое состояние выбора банка.
   ///
   /// In ru, this message translates to:
@@ -1430,12 +1424,6 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Актив используется и не может быть удалён.'**
   String get assetErrorInUse;
-
-  /// Рублёвый эквивалент оценки.
-  ///
-  /// In ru, this message translates to:
-  /// **'В рублях'**
-  String get valuationRubValue;
 
   /// Ошибка будущей даты оценки.
   ///

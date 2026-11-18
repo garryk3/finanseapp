@@ -589,9 +589,6 @@ class AppLocalizationsRu extends AppLocalizations {
       'Валюту нельзя менять после операций.';
 
   @override
-  String get accountErrorInUse => 'Счёт используется и не может быть удалён.';
-
-  @override
   String get accountNoBanks => 'Сначала добавьте банк в справочнике.';
 
   @override
@@ -739,9 +736,6 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get assetErrorInUse => 'Актив используется и не может быть удалён.';
-
-  @override
-  String get valuationRubValue => 'В рублях';
 
   @override
   String get valuationErrorDate => 'Дата оценки не может быть в будущем.';

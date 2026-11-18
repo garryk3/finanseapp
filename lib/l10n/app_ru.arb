@@ -792,10 +792,6 @@
   "@accountErrorCurrencyLocked": {
     "description": "Ошибка смены валюты."
   },
-  "accountErrorInUse": "Счёт используется и не может быть удалён.",
-  "@accountErrorInUse": {
-    "description": "Ошибка удаления используемого счёта."
-  },
   "accountNoBanks": "Сначала добавьте банк в справочнике.",
   "@accountNoBanks": {
     "description": "Пустое состояние выбора банка."
@@ -994,10 +990,6 @@
   "assetErrorInUse": "Актив используется и не может быть удалён.",
   "@assetErrorInUse": {
     "description": "Ошибка удаления используемого актива."
-  },
-  "valuationRubValue": "В рублях",
-  "@valuationRubValue": {
-    "description": "Рублёвый эквивалент оценки."
   },
   "valuationErrorDate": "Дата оценки не может быть в будущем.",
   "@valuationErrorDate": {

@@ -138,7 +138,10 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                 AppMoneyText(
                   vm.baseRateUnavailable.value
                       ? l10n.assetBaseUnavailable
-                      : _money(vm.baseEquivalent.value),
+                      : _money(
+                          vm.baseEquivalent.value,
+                          currency: vm.baseCurrency.value,
+                        ),
                 ),
               ],
               if (isArchived) ...[
@@ -313,19 +316,21 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
     if (context.mounted) context.pop();
   }
 
-  String _money(Money? money) {
+  String _money(Money? money, {Currency? currency}) {
     if (money == null) return '—';
-    return const MoneyFormatter().format(
-      money,
-      _viewModel.currency.value ??
-          Currency(
-            code: money.currencyCode,
-            name: money.currencyCode,
-            fractionDigits: 2,
-            isPreset: true,
-            isEnabled: true,
-          ),
-    );
+    final effective =
+        currency ??
+        (money.currencyCode == _viewModel.currency.value?.code
+            ? _viewModel.currency.value
+            : null) ??
+        Currency(
+          code: money.currencyCode,
+          name: money.currencyCode,
+          fractionDigits: 2,
+          isPreset: true,
+          isEnabled: true,
+        );
+    return const MoneyFormatter().format(money, effective);
   }
 }
 

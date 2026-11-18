@@ -70,6 +70,10 @@ void main() {
     expect((snapshot.asset as InvestmentAsset).brokerId, brokerId);
     expect(snapshot.currentValue.minorUnits, 155000);
     expect(await repository.valuations(id), hasLength(1));
+    final counts = await repository.referenceCounts(id);
+    expect(counts.transactions, 1);
+    expect(counts.valuations, 1);
+    expect(counts.cashflow, 0);
   });
 
   test('две оценки одной даты: последняя по id', () async {
@@ -87,6 +91,49 @@ void main() {
 
     final snapshot = await repository.getById(id);
     expect(snapshot.currentValue.minorUnits, 160000);
+  });
+
+  test('оценка не создаёт транзакций и денежного потока', () async {
+    final id = await repository.create(draft());
+    await repository.recordValuation(
+      AssetValuationDraft(
+        assetId: id,
+        effectiveOn: LocalDate(2026, 1, 2),
+        value: const Money(minorUnits: 150000, currencyCode: 'RUB'),
+        rateToRub: Decimal.one,
+      ),
+    );
+
+    final transactions = await db.transactionsDao.watchByAsset(id).first;
+    final counts = await repository.referenceCounts(id);
+    expect(transactions, isEmpty);
+    expect(counts.transactions, 0);
+    expect(counts.cashflow, 0);
+    expect(counts.valuations, 1);
+  });
+
+  test('рублёвый snapshot учитывает fractionDigits валюты', () async {
+    await db.currenciesDao.createCustom('JPY', 'Иена', 0);
+    final id = await repository.create(
+      InvestmentDraft(
+        name: 'Иена',
+        currencyCode: 'JPY',
+        openingValue: const Money(minorUnits: 0, currencyCode: 'JPY'),
+        brokerId: brokerId,
+      ),
+    );
+    await repository.recordValuation(
+      AssetValuationDraft(
+        assetId: id,
+        effectiveOn: LocalDate(2026, 1, 2),
+        value: const Money(minorUnits: 1000, currencyCode: 'JPY'),
+        rateToRub: Decimal.parse('0.5'),
+        fractionDigits: 0,
+      ),
+    );
+
+    final valuations = await repository.valuations(id);
+    expect(valuations.single.valueRub.minorUnits, 50000);
   });
 
   test('отрицательная и будущая оценка отклоняются', () async {

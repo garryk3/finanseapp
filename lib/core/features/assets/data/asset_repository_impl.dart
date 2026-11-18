@@ -131,7 +131,13 @@ final class AssetRepositoryImpl implements AssetRepository {
   Future<void> recordValuation(AssetValuationDraft draft) async {
     final decimalValue = MoneyMath.toDecimal(
       draft.value,
-      _currencyOf(draft.value.currencyCode),
+      Currency(
+        code: draft.value.currencyCode,
+        name: draft.value.currencyCode,
+        fractionDigits: draft.fractionDigits,
+        isPreset: true,
+        isEnabled: true,
+      ),
     );
     final valueRub = MoneyMath.fromDecimal(
       decimalValue * draft.rateToRub,
