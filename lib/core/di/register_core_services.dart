@@ -11,6 +11,8 @@ import 'package:finanseapp/core/database/daos/settings_dao.dart';
 import 'package:finanseapp/core/database/daos/transactions_dao.dart';
 import 'package:finanseapp/core/database/daos/valuations_dao.dart';
 import 'package:finanseapp/core/features/assets/data/asset_repository_impl.dart';
+import 'package:finanseapp/core/features/transactions/data/asset_transaction_repository_impl.dart';
+import 'package:finanseapp/core/features/transactions/domain/asset_transaction_repository.dart';
 import 'package:finanseapp/core/features/assets/data/subgroup_repository_impl.dart';
 import 'package:finanseapp/core/features/assets/domain/asset_repository.dart';
 import 'package:finanseapp/core/features/assets/ui/assets_view_model.dart';
@@ -64,6 +66,9 @@ Future<ServiceLocator> registerCoreServices(
   locator.register<CbrExchangeRateClient>(CbrExchangeRateClient());
   locator.register<AssetRepository>(
     AssetRepositoryImpl(db.assetsDao, db.transactionsDao, db.valuationsDao),
+  );
+  locator.register<AssetTransactionRepository>(
+    AssetTransactionRepositoryImpl(db),
   );
   locator.registerFactory<AssetsViewModel>(
     () => AssetsViewModel(

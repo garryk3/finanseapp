@@ -1079,5 +1079,85 @@
   "assetsShowArchivedAction": "Показать архивные",
   "@assetsShowArchivedAction": {
     "description": "Действие показа архивных из пустого состояния."
+  },
+  "transactionFormNew": "Новая операция",
+  "@transactionFormNew": {
+    "description": "Заголовок формы операции по активу."
+  },
+  "transactionAssetLabel": "Актив",
+  "@transactionAssetLabel": {
+    "description": "Поле выбора актива."
+  },
+  "transactionKindDeposit": "Пополнение",
+  "@transactionKindDeposit": {
+    "description": "Вид операции: пополнение."
+  },
+  "transactionKindWithdrawal": "Снятие",
+  "@transactionKindWithdrawal": {
+    "description": "Вид операции: снятие."
+  },
+  "transactionAmountLabel": "Сумма",
+  "@transactionAmountLabel": {
+    "description": "Сумма операции."
+  },
+  "transactionDateLabel": "Дата операции",
+  "@transactionDateLabel": {
+    "description": "Дата операции."
+  },
+  "transactionCommentLabel": "Комментарий",
+  "@transactionCommentLabel": {
+    "description": "Комментарий к операции."
+  },
+  "transactionClassifyLabel": "Учесть как доход или расход",
+  "@transactionClassifyLabel": {
+    "description": "Связать операцию с денежным потоком."
+  },
+  "transactionCategoryLabel": "Категория",
+  "@transactionCategoryLabel": {
+    "description": "Категория дохода или расхода."
+  },
+  "transactionAddDeposit": "Пополнить",
+  "@transactionAddDeposit": {
+    "description": "Действие пополнения актива."
+  },
+  "transactionAddWithdrawal": "Снять",
+  "@transactionAddWithdrawal": {
+    "description": "Действие снятия с актива."
+  },
+  "transactionSaved": "Операция сохранена.",
+  "@transactionSaved": {
+    "description": "Подтверждение сохранения операции."
+  },
+  "transactionErrorAsset": "Выберите актив.",
+  "@transactionErrorAsset": {
+    "description": "Ошибка выбора актива."
+  },
+  "transactionErrorAmount": "Введите положительную сумму в основных единицах.",
+  "@transactionErrorAmount": {
+    "description": "Ошибка суммы операции."
+  },
+  "transactionErrorCategory": "Выберите категорию.",
+  "@transactionErrorCategory": {
+    "description": "Ошибка выбора категории."
+  },
+  "transactionErrorDate": "Дата операции не может быть в будущем.",
+  "@transactionErrorDate": {
+    "description": "Ошибка будущей даты операции."
+  },
+  "transactionErrorNegativeBalance": "Недостаточно средств на активе.",
+  "@transactionErrorNegativeBalance": {
+    "description": "Ошибка отрицательного баланса."
+  },
+  "transactionErrorKindMismatch": "Категория не соответствует виду операции.",
+  "@transactionErrorKindMismatch": {
+    "description": "Ошибка несовпадения вида."
+  },
+  "transactionNoAssets": "Сначала добавьте счёт или инвестицию.",
+  "@transactionNoAssets": {
+    "description": "Пустой список активов для операции."
+  },
+  "transactionNoCategories": "Нет категорий для этого вида.",
+  "@transactionNoCategories": {
+    "description": "Пустой список категорий."
   }
 }

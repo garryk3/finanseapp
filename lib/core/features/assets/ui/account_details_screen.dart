@@ -155,10 +155,34 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                   variant: AppButtonVariant.outlined,
                   onPressed: vm.busy.value ? null : () => _edit(asset),
                 ),
+              if (!isArchived)
+                Row(
+                  children: [
+                    Expanded(
+                      child: AppButton(
+                        label: l10n.transactionAddDeposit,
+                        variant: AppButtonVariant.tonal,
+                        onPressed: vm.busy.value
+                            ? null
+                            : () => _addTransaction(asset.id, deposit: true),
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: AppButton(
+                        label: l10n.transactionAddWithdrawal,
+                        variant: AppButtonVariant.tonal,
+                        onPressed: vm.busy.value
+                            ? null
+                            : () => _addTransaction(asset.id, deposit: false),
+                      ),
+                    ),
+                  ],
+                ),
               if (!isArchived && !isAccount)
                 AppButton(
                   label: l10n.investmentAddValuation,
-                  variant: AppButtonVariant.tonal,
+                  variant: AppButtonVariant.outlined,
                   onPressed: vm.busy.value
                       ? null
                       : () => _addValuation(asset.id),
@@ -230,6 +254,17 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
     await context.push(path);
     if (!mounted) return;
     await _viewModel.load();
+  }
+
+  Future<void> _addTransaction(int id, {required bool deposit}) async {
+    final saved = await context.push<bool>(AppRoutes.transactionNewFor(id));
+    if (!mounted || saved != true) return;
+    await _viewModel.load();
+    if (!mounted) return;
+    showAppSnackBar(
+      context,
+      message: AppLocalizations.of(context).transactionSaved,
+    );
   }
 
   Future<void> _addValuation(int id) async {

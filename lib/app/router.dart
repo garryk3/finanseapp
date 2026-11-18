@@ -18,6 +18,10 @@ import 'package:finanseapp/core/features/assets/ui/investment_form_screen.dart';
 import 'package:finanseapp/core/features/assets/ui/investment_form_view_model.dart';
 import 'package:finanseapp/core/features/assets/ui/valuation_form_screen.dart';
 import 'package:finanseapp/core/features/assets/ui/valuation_form_view_model.dart';
+import 'package:finanseapp/core/features/transactions/domain/asset_transaction.dart';
+import 'package:finanseapp/core/features/transactions/domain/asset_transaction_repository.dart';
+import 'package:finanseapp/core/features/transactions/ui/transaction_form_screen.dart';
+import 'package:finanseapp/core/features/transactions/ui/transaction_form_view_model.dart';
 import 'package:finanseapp/core/features/currencies/domain/currency_repository.dart';
 import 'package:finanseapp/core/features/currencies/domain/exchange_rate_repository.dart';
 import 'package:finanseapp/core/features/settings/domain/settings_repository.dart';
@@ -373,8 +377,22 @@ GoRouter buildRouter({required ServiceLocator locator}) {
       GoRoute(
         path: AppRoutes.transactionNew,
         name: 'transaction-new',
-        builder: (context, state) =>
-            ComingSoonScreen(title: l10nOf(context).operationsTransactionsTab),
+        builder: (context, state) => TransactionFormScreen(
+          viewModel: TransactionFormViewModel(
+            assetRepository: locator.get<AssetRepository>(),
+            transactionRepository: locator.get<AssetTransactionRepository>(),
+            categoryRepository: locator.get<CategoryRepository>(),
+            currencyRepository: locator.get<CurrencyRepository>(),
+            rateRepository: locator.get<ExchangeRateRepository>(),
+            today: LocalDate.fromDateTime(DateTime.now()),
+            initialAssetId: int.tryParse(
+              state.uri.queryParameters['assetId'] ?? '',
+            ),
+            initialKind: state.uri.queryParameters['kind'] == 'withdrawal'
+                ? AssetTransactionKind.withdrawal
+                : AssetTransactionKind.deposit,
+          ),
+        ),
       ),
       GoRoute(
         path: AppRoutes.transferNew,

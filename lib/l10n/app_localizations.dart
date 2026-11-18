@@ -1550,6 +1550,126 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Показать архивные'**
   String get assetsShowArchivedAction;
+
+  /// Заголовок формы операции по активу.
+  ///
+  /// In ru, this message translates to:
+  /// **'Новая операция'**
+  String get transactionFormNew;
+
+  /// Поле выбора актива.
+  ///
+  /// In ru, this message translates to:
+  /// **'Актив'**
+  String get transactionAssetLabel;
+
+  /// Вид операции: пополнение.
+  ///
+  /// In ru, this message translates to:
+  /// **'Пополнение'**
+  String get transactionKindDeposit;
+
+  /// Вид операции: снятие.
+  ///
+  /// In ru, this message translates to:
+  /// **'Снятие'**
+  String get transactionKindWithdrawal;
+
+  /// Сумма операции.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сумма'**
+  String get transactionAmountLabel;
+
+  /// Дата операции.
+  ///
+  /// In ru, this message translates to:
+  /// **'Дата операции'**
+  String get transactionDateLabel;
+
+  /// Комментарий к операции.
+  ///
+  /// In ru, this message translates to:
+  /// **'Комментарий'**
+  String get transactionCommentLabel;
+
+  /// Связать операцию с денежным потоком.
+  ///
+  /// In ru, this message translates to:
+  /// **'Учесть как доход или расход'**
+  String get transactionClassifyLabel;
+
+  /// Категория дохода или расхода.
+  ///
+  /// In ru, this message translates to:
+  /// **'Категория'**
+  String get transactionCategoryLabel;
+
+  /// Действие пополнения актива.
+  ///
+  /// In ru, this message translates to:
+  /// **'Пополнить'**
+  String get transactionAddDeposit;
+
+  /// Действие снятия с актива.
+  ///
+  /// In ru, this message translates to:
+  /// **'Снять'**
+  String get transactionAddWithdrawal;
+
+  /// Подтверждение сохранения операции.
+  ///
+  /// In ru, this message translates to:
+  /// **'Операция сохранена.'**
+  String get transactionSaved;
+
+  /// Ошибка выбора актива.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выберите актив.'**
+  String get transactionErrorAsset;
+
+  /// Ошибка суммы операции.
+  ///
+  /// In ru, this message translates to:
+  /// **'Введите положительную сумму в основных единицах.'**
+  String get transactionErrorAmount;
+
+  /// Ошибка выбора категории.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выберите категорию.'**
+  String get transactionErrorCategory;
+
+  /// Ошибка будущей даты операции.
+  ///
+  /// In ru, this message translates to:
+  /// **'Дата операции не может быть в будущем.'**
+  String get transactionErrorDate;
+
+  /// Ошибка отрицательного баланса.
+  ///
+  /// In ru, this message translates to:
+  /// **'Недостаточно средств на активе.'**
+  String get transactionErrorNegativeBalance;
+
+  /// Ошибка несовпадения вида.
+  ///
+  /// In ru, this message translates to:
+  /// **'Категория не соответствует виду операции.'**
+  String get transactionErrorKindMismatch;
+
+  /// Пустой список активов для операции.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сначала добавьте счёт или инвестицию.'**
+  String get transactionNoAssets;
+
+  /// Пустой список категорий.
+  ///
+  /// In ru, this message translates to:
+  /// **'Нет категорий для этого вида.'**
+  String get transactionNoCategories;
 }
 
 class _AppLocalizationsDelegate

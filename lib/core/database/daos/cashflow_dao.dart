@@ -28,6 +28,7 @@ final class CashflowEntryInput {
     this.comment,
     this.propertyId,
     this.accountId,
+    this.assetTransactionId,
   });
 
   final CashflowKind kind;
@@ -41,6 +42,7 @@ final class CashflowEntryInput {
   final String? comment;
   final int? propertyId;
   final int? accountId;
+  final int? assetTransactionId;
 }
 
 /// Доходы и расходы с ревизиями; связь с операцией актива — 7.2.
@@ -92,6 +94,7 @@ class CashflowDao extends DatabaseAccessor<AppDatabase>
         comment: Value(input.comment),
         propertyId: Value(input.propertyId),
         accountId: Value(input.accountId),
+        assetTransactionId: Value(input.assetTransactionId),
       ),
     );
     await _writeRevision(await _requireEntry(id), RevisionAction.create, now);
@@ -130,6 +133,67 @@ class CashflowDao extends DatabaseAccessor<AppDatabase>
   Future<void> softDelete(int id) => transaction(() async {
     final current = await _requireEntry(id);
     _requireUnlinked(current);
+    if (current.deletedAt != null) {
+      throw _conflict('validationEntryDeleted');
+    }
+    final now = attachedDatabase.clock();
+    await (update(cashflowEntries)..where((e) => e.id.equals(id))).write(
+      CashflowEntriesCompanion(
+        revisionNo: Value(current.revisionNo + 1),
+        updatedAt: Value(now),
+        deletedAt: Value(now),
+      ),
+    );
+    await _writeRevision(await _requireEntry(id), RevisionAction.delete, now);
+  });
+
+  /// Активная запись, связанная с операцией по активу (BR-IE-9).
+  Future<CashflowEntryRow?> findLinked(int assetTransactionId) =>
+      (select(cashflowEntries)..where(
+            (e) =>
+                e.assetTransactionId.equals(assetTransactionId) &
+                e.deletedAt.isNull(),
+          ))
+          .getSingleOrNull();
+
+  /// Ревизия связанной записи из команды операции (BR-IE-15).
+  Future<void> reviseFromAsset(int id, CashflowEntryInput input) =>
+      transaction(() async {
+        final current = await _requireEntry(id);
+        if (current.assetTransactionId == null) {
+          throw _conflict('validationCashflowNotLinked');
+        }
+        if (current.deletedAt != null) {
+          throw _conflict('validationEntryDeleted');
+        }
+        await _validate(input);
+        final now = attachedDatabase.clock();
+        await (update(cashflowEntries)..where((e) => e.id.equals(id))).write(
+          CashflowEntriesCompanion(
+            kind: Value(input.kind),
+            categoryId: Value(input.categoryId),
+            amountMinor: Value(input.amountMinor),
+            currencyCode: Value(input.currencyCode),
+            occurredOn: Value(input.occurredOn),
+            rateToRub: Value(input.rateToRub),
+            amountRubMinor: Value(input.amountRubMinor),
+            affectsBalance: Value(input.affectsBalance),
+            comment: Value(input.comment),
+            propertyId: Value(input.propertyId),
+            accountId: Value(input.accountId),
+            revisionNo: Value(current.revisionNo + 1),
+            updatedAt: Value(now),
+          ),
+        );
+        await _writeRevision(await _requireEntry(id), RevisionAction.edit, now);
+      });
+
+  /// Мягкое удаление связанной записи из команды операции (BR-IE-14).
+  Future<void> softDeleteFromAsset(int id) => transaction(() async {
+    final current = await _requireEntry(id);
+    if (current.assetTransactionId == null) {
+      throw _conflict('validationCashflowNotLinked');
+    }
     if (current.deletedAt != null) {
       throw _conflict('validationEntryDeleted');
     }

@@ -735,7 +735,7 @@
 
 ## Этап 6 — Транзакции, переводы и аудит
 
-### 6.1 Пополнение/снятие и связанная классификация — [ ]
+### 6.1 Пополнение/снятие и связанная классификация — [x] (2026-11-18)
 
 - **Приоритет/зависимости:** P1; после 5.3 и 4.3. **BR:** T-1…7,10, IE-1…6,16…17, VAL-5,7.
 - **Files:** Create transactions data/logic + transaction form screen/VM,
@@ -769,6 +769,17 @@
 - **DoD:** property запрещён, amountRub округлён один раз, crash при cashflow insert откатывает
   asset tx+revision; общий DoD. Перед PR спросить о e2e.
 - **Предлагаемый commit:** `task/06.1: добавить транзакции активов`.
+- **Итог:** `AssetTransactionRepositoryImpl` (create/revise/softDelete в одной DB-транзакции
+  с cashflow, transfer-методы делегируют DAO), `TransactionClassification` в draft,
+  `CashflowDao` — `assetTransactionId`, `findLinked`, `reviseFromAsset`, `softDeleteFromAsset`;
+  `watchFiltered` (период/актив/вид/валюта/поиск) для журнала 6.3; единый маппер операции.
+  UI: форма `/transactions/new?assetId=&kind=` (актив, пополнение/снятие, сумма, дата, курс,
+  комментарий, классификация доход/расход для счёта), кнопки «Пополнить/Снять» на деталях,
+  защита от двойного Save, per-field ошибки. Тесты: USD 100×90 snapshot + linked entry,
+  negative balance без cashflow, kind mismatch, zero/future, edit обеих проекций и ревизий,
+  снятие классификации, property, откат при сбое cashflow, форма/двойной Save.
+- **Отложено:** UI журнала/фильтров/ревизий и transfer-форма — 6.2/6.3; классификация
+  инвестиций (только счёт); живое обновление курсов.
 
 ### 6.2 Внутренние переводы между счетами — [ ]
 
