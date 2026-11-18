@@ -52,6 +52,8 @@ abstract final class AppRoutes {
 
   static String operationsTab({required String tab}) => '$operations?tab=$tab';
 
+  static String subgroupsPath(String kind) => '$subgroups?kind=$kind';
+
   static String assetDetailsPath(int id) => '/assets/$id';
   static String accountEditPath(int id) => '/assets/$id/edit/account';
   static String investmentEditPath(int id) => '/assets/$id/edit/investment';

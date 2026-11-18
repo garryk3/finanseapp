@@ -411,6 +411,204 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Раздел появится в одном из обновлений.'**
   String get comingSoonMessage;
+
+  /// Заголовок справочника банков и брокеров.
+  ///
+  /// In ru, this message translates to:
+  /// **'Банки и брокеры'**
+  String get subgroupsTitle;
+
+  /// Вкладка банков.
+  ///
+  /// In ru, this message translates to:
+  /// **'Банки'**
+  String get subgroupsBankTab;
+
+  /// Вкладка брокеров.
+  ///
+  /// In ru, this message translates to:
+  /// **'Брокеры'**
+  String get subgroupsBrokerTab;
+
+  /// Кнопка добавления справочника.
+  ///
+  /// In ru, this message translates to:
+  /// **'Добавить'**
+  String get subgroupAdd;
+
+  /// Заголовок пустого справочника.
+  ///
+  /// In ru, this message translates to:
+  /// **'Пока нет'**
+  String get subgroupEmptyTitle;
+
+  /// Поле названия справочника.
+  ///
+  /// In ru, this message translates to:
+  /// **'Название'**
+  String get subgroupNameLabel;
+
+  /// Действие переименования.
+  ///
+  /// In ru, this message translates to:
+  /// **'Переименовать'**
+  String get subgroupEditTooltip;
+
+  /// Действие удаления.
+  ///
+  /// In ru, this message translates to:
+  /// **'Удалить'**
+  String get subgroupDeleteTooltip;
+
+  /// Заголовок диалога занятого справочника.
+  ///
+  /// In ru, this message translates to:
+  /// **'Справочник используется'**
+  String get subgroupInUseTitle;
+
+  /// Поле выбора целевой подгруппы.
+  ///
+  /// In ru, this message translates to:
+  /// **'Куда перенести'**
+  String get subgroupMoveTarget;
+
+  /// Подтверждение переноса и удаления.
+  ///
+  /// In ru, this message translates to:
+  /// **'Перенести и удалить'**
+  String get subgroupMoveAction;
+
+  /// Ошибка дубликата названия.
+  ///
+  /// In ru, this message translates to:
+  /// **'Такое название уже есть.'**
+  String get subgroupErrorDuplicate;
+
+  /// Ошибка несовпадения типа.
+  ///
+  /// In ru, this message translates to:
+  /// **'Можно перенести только в справочник того же типа.'**
+  String get subgroupErrorKind;
+
+  /// Ошибка выбора той же подгруппы.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выберите другой справочник.'**
+  String get subgroupErrorSame;
+
+  /// Ошибка удаления занятого справочника.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сначала перенесите активы.'**
+  String get subgroupErrorInUse;
+
+  /// Число привязанных активов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Активов: {count}'**
+  String subgroupAssetsCount(int count);
+
+  /// Кнопка отмены.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отмена'**
+  String get commonCancel;
+
+  /// Кнопка сохранения.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сохранить'**
+  String get commonSave;
+
+  /// Кнопка удаления.
+  ///
+  /// In ru, this message translates to:
+  /// **'Удалить'**
+  String get commonDelete;
+
+  /// Пояснение переноса занятого справочника с числом активов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Активов: {count}. Перенесите их в другой справочник того же типа.'**
+  String subgroupInUseMessageCount(int count);
+
+  /// Подтверждение удаления свободного справочника с именем.
+  ///
+  /// In ru, this message translates to:
+  /// **'Удалить «{name}»?'**
+  String subgroupDeleteConfirmTitleNamed(String name);
+
+  /// Пояснение удаления свободного справочника.
+  ///
+  /// In ru, this message translates to:
+  /// **'Справочник не привязан к активам и будет удалён.'**
+  String get subgroupDeleteConfirmMessageNamed;
+
+  /// Заголовок тупика: нет второго справочника того же типа.
+  ///
+  /// In ru, this message translates to:
+  /// **'Некуда перенести'**
+  String get subgroupNoTargetTitle;
+
+  /// Пояснение тупика переноса.
+  ///
+  /// In ru, this message translates to:
+  /// **'Активы привязаны к «{name}», а других справочников этого типа нет. Создайте ещё один и повторите перенос.'**
+  String subgroupNoTargetMessage(String name);
+
+  /// Заголовок диалога создания банка.
+  ///
+  /// In ru, this message translates to:
+  /// **'Новый банк'**
+  String get subgroupNewBank;
+
+  /// Заголовок диалога создания брокера.
+  ///
+  /// In ru, this message translates to:
+  /// **'Новый брокер'**
+  String get subgroupNewBroker;
+
+  /// Заголовок переименования с именем.
+  ///
+  /// In ru, this message translates to:
+  /// **'Переименовать «{name}»'**
+  String subgroupRenameTitleNamed(String name);
+
+  /// Пояснение пустого списка банков.
+  ///
+  /// In ru, this message translates to:
+  /// **'Добавьте банк, чтобы привязать к нему счёт.'**
+  String get subgroupEmptyMessageBank;
+
+  /// Пояснение пустого списка брокеров.
+  ///
+  /// In ru, this message translates to:
+  /// **'Добавьте брокера, чтобы привязать к нему инвестицию.'**
+  String get subgroupEmptyMessageBroker;
+
+  /// Подсказка overflow-меню строки справочника.
+  ///
+  /// In ru, this message translates to:
+  /// **'Действия со справочником'**
+  String get subgroupActionsTooltip;
+
+  /// Подтверждение успешного сохранения.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сохранено'**
+  String get commonSaved;
+
+  /// Подтверждение удаления справочника.
+  ///
+  /// In ru, this message translates to:
+  /// **'Справочник удалён.'**
+  String get subgroupDeleted;
+
+  /// Подтверждение переноса активов и удаления справочника.
+  ///
+  /// In ru, this message translates to:
+  /// **'Активы перенесены в «{target}», справочник удалён.'**
+  String subgroupMovedAndDeleted(String target);
 }
 
 class _AppLocalizationsDelegate

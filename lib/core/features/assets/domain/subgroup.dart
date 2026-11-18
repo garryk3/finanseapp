@@ -5,6 +5,17 @@ final class Subgroup {
   final int id;
   final SubgroupKind kind;
   final String name;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Subgroup &&
+          other.id == id &&
+          other.kind == kind &&
+          other.name == name;
+
+  @override
+  int get hashCode => Object.hash(id, kind, name);
 }
 
 /// Вид справочника банков/брокеров.

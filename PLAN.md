@@ -426,7 +426,7 @@
 
 ## Этап 4 — Справочники и курсы валют
 
-### 4.1 Банки и брокеры: CRUD и перенос активов — [ ]
+### 4.1 Банки и брокеры: CRUD и перенос активов — [x] 2026-11-18
 
 - **Приоритет/зависимости:** P1; после 3.5. **BR:** P-1…5, VAL-3.
 - **Files:** Create `core/features/references/ui/{subgroups_screen,subgroups_view_model}.dart`;
@@ -440,6 +440,28 @@
 - **TDD:** failing « Банк  Раз » и «банк раз» duplicate; rename сохраняет id; source с двумя
   assets не deleteIfUnused; move в target того же kind переносит обе строки или откатывает все;
   target другого kind отклонён. Затем реализовать repository и screen states.
+- **Рабочий план (2026-11-18):**
+  - **Data:** `ReferencesDao.moveAssetsAndDelete` — одна транзакция: проверить оба справочника
+    и совпадение `kind`, обновить `account_details.bankId`/`investment_details.brokerId`,
+    убедиться в `countAssets == 0`, удалить source; любая ошибка откатывает всё.
+    Реализация `SubgroupRepositoryImpl` в `features/assets/data/` (в file_structure data-слоя
+    assets не было subgroup-файла — доп. файл, зафиксирован здесь).
+  - **DI:** repository singleton + VM factory в `registerCoreServices`/main.
+  - **UI:** `/more/subgroups?kind=` — сегменты bank/broker, список с количеством активов,
+    add/rename диалоги, delete: свободный — confirm, занятый — диалог переноса с выбором
+    target того же kind; ошибки — SnackBar по l10n-ключу. VM на signals, Screen stateful
+    диспозит VM; safe-парсер kind через allowlist.
+  - **Тесты:** DAO/repository (trim/duplicate, rename id, count/deleteIfUnused, move атомарно,
+    cross-kind reject) + widget (tabs, duplicate, delete с переносом, font 1.3/dark).
+- **Итог:** `ReferencesDao.moveAssetsAndDelete` (одна транзакция, проверка kind, откат),
+  `SubgroupRepositoryImpl`, DI (repository + VM factory), экран `/more/subgroups?kind=`
+  с сегментами bank/broker, списком и количеством активов, add/rename/delete-диалогами
+  (занятый — перенос в target того же kind), ошибками из l10n; `Subgroup` получил value-equality.
+  Тесты: repository (trim/duplicate, rename id, count/deleteIfUnused, atomic move, cross-kind,
+  rollback) + widget (пустое/создание/дубликат/занятый диалог, font 1.3 dark, broker tab).
+- **Отложено (зафиксировано ревью):** групповой запрос счётчиков вместо N+1;
+  использование `AppRoutes.parseAllowlisted` уже включено; чтение `busy` в UI;
+  app-level тест `/more/subgroups?kind=` и UI-исполнение переноса — вместе с 4.2/4.3.
 - **Генерация:** `flutter gen-l10n`; build_runner только при фактическом изменении DAO.
 - **DoD:** assets сохраняют subgroup name после rename, move transaction count=0 до delete;
   widget font 1.3/dark/error states и общий DoD. Перед PR спросить о e2e.

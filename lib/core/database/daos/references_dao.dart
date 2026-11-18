@@ -105,6 +105,54 @@ class ReferencesDao extends DatabaseAccessor<AppDatabase>
     }
   });
 
+  /// Переносит все активы исходного справочника в target того же вида и
+  /// удаляет source одной транзакцией (TX-REFERENCE-MOVE-DELETE).
+  Future<void> moveAssetsAndDelete(int sourceId, int targetId) =>
+      transaction(() async {
+        if (sourceId == targetId) {
+          throw const DomainException(
+            DomainErrorCode.validation,
+            fieldErrors: {'targetId': 'validationSubgroupSameTarget'},
+          );
+        }
+        final source = await (select(
+          subgroups,
+        )..where((s) => s.id.equals(sourceId))).getSingleOrNull();
+        final target = await (select(
+          subgroups,
+        )..where((s) => s.id.equals(targetId))).getSingleOrNull();
+        if (source == null || target == null) {
+          throw const DomainException(
+            DomainErrorCode.notFound,
+            fieldErrors: {'subgroupId': 'validationSubgroupNotFound'},
+          );
+        }
+        if (source.kind != target.kind) {
+          throw const DomainException(
+            DomainErrorCode.validation,
+            fieldErrors: {'targetId': 'validationSubgroupKindMismatch'},
+          );
+        }
+
+        if (source.kind == SubgroupKind.bank) {
+          await (update(accountDetails)
+                ..where((d) => d.bankId.equals(sourceId)))
+              .write(AccountDetailsCompanion(bankId: Value(targetId)));
+        } else {
+          await (update(investmentDetails)
+                ..where((d) => d.brokerId.equals(sourceId)))
+              .write(InvestmentDetailsCompanion(brokerId: Value(targetId)));
+        }
+
+        if (await countAssets(sourceId) != 0) {
+          throw const DomainException(
+            DomainErrorCode.conflict,
+            fieldErrors: {'subgroupId': 'validationSubgroupInUse'},
+          );
+        }
+        await (delete(subgroups)..where((s) => s.id.equals(sourceId))).go();
+      });
+
   Stream<List<CategoryRow>> watchCategories(
     CashflowKind kind, {
     bool includeArchived = false,
