@@ -1,6 +1,7 @@
 import 'package:decimal/decimal.dart';
 import 'package:finanseapp/core/domain/common/local_date.dart';
 import 'package:finanseapp/core/domain/common/money.dart';
+import 'package:finanseapp/core/features/transactions/domain/transaction_classification.dart';
 
 /// Вид операции по активу (domain_model §5); стабильное TEXT-значение в БД.
 enum AssetTransactionKind { deposit, withdrawal, transferOut, transferIn }
@@ -51,6 +52,7 @@ final class AssetTransactionDraft {
     required this.occurredOn,
     required this.rateToRub,
     this.comment,
+    this.classification,
   });
 
   final int assetId;
@@ -59,6 +61,9 @@ final class AssetTransactionDraft {
   final LocalDate occurredOn;
   final Decimal rateToRub;
   final String? comment;
+
+  /// Для счёта: связать операцию с доходом/расходом (BR-IE-9).
+  final TransactionClassification? classification;
 }
 
 /// Draft перевода: суммы каждой ноги в валюте своего счёта.

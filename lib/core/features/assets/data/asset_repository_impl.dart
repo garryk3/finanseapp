@@ -13,6 +13,7 @@ import 'package:finanseapp/core/features/assets/domain/asset_draft.dart';
 import 'package:finanseapp/core/features/assets/domain/asset_repository.dart';
 import 'package:finanseapp/core/features/assets/domain/asset_value_calculator.dart';
 import 'package:finanseapp/core/features/assets/domain/asset_valuation.dart';
+import 'package:finanseapp/core/features/transactions/data/asset_transaction_mapper.dart';
 import 'package:finanseapp/core/features/transactions/domain/asset_transaction.dart';
 
 /// Реализация активов: счета (5.1); инвестиции/квартиры — 5.2/5.4.
@@ -190,7 +191,7 @@ final class AssetRepositoryImpl implements AssetRepository {
       if (code == null) continue;
       transactionsByAsset
           .putIfAbsent(row.assetId, () => [])
-          .add(_transactionFrom(row, code));
+          .add(mapAssetTransaction(row, code));
     }
     final valuationsByAsset = <int, List<AssetValuation>>{};
     for (final row in valuations) {
@@ -306,27 +307,8 @@ final class AssetRepositoryImpl implements AssetRepository {
     String currencyCode,
   ) async {
     final rows = await _transactionsDao.watchByAsset(assetId).first;
-    return [for (final row in rows) _transactionFrom(row, currencyCode)];
+    return [for (final row in rows) mapAssetTransaction(row, currencyCode)];
   }
-
-  static AssetTransaction _transactionFrom(
-    AssetTransactionRow row,
-    String currencyCode,
-  ) => AssetTransaction(
-    id: row.id,
-    assetId: row.assetId,
-    kind: row.kind,
-    amount: Money(minorUnits: row.amountMinor, currencyCode: currencyCode),
-    occurredOn: row.occurredOn,
-    rateToRub: row.rateToRub,
-    amountRub: Money(minorUnits: row.amountRubMinor, currencyCode: 'RUB'),
-    revisionNo: row.revisionNo,
-    createdAt: row.createdAt,
-    updatedAt: row.updatedAt,
-    comment: row.comment,
-    transferId: row.transferId,
-    deletedAt: row.deletedAt,
-  );
 
   static AssetValuation _valuationFrom(
     AssetValuationRow row,

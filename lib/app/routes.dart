@@ -63,6 +63,8 @@ abstract final class AppRoutes {
   static String investmentEditPath(int id) => '/assets/$id/edit/investment';
   static String propertyEditPath(int id) => '/assets/$id/edit/property';
   static String valuationNewPath(int id) => '/assets/$id/valuations/new';
+  static String transactionNewFor(int assetId, {bool deposit = true}) =>
+      '$transactionNew?assetId=$assetId&kind=${deposit ? 'deposit' : 'withdrawal'}';
   static String transactionDetailsPath(int id) => '/transactions/$id';
   static String transactionEditPath(int id) => '/transactions/$id/edit';
   static String transferEditPath(int transferId) =>

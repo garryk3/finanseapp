@@ -803,4 +803,67 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get assetsShowArchivedAction => 'Показать архивные';
+
+  @override
+  String get transactionFormNew => 'Новая операция';
+
+  @override
+  String get transactionAssetLabel => 'Актив';
+
+  @override
+  String get transactionKindDeposit => 'Пополнение';
+
+  @override
+  String get transactionKindWithdrawal => 'Снятие';
+
+  @override
+  String get transactionAmountLabel => 'Сумма';
+
+  @override
+  String get transactionDateLabel => 'Дата операции';
+
+  @override
+  String get transactionCommentLabel => 'Комментарий';
+
+  @override
+  String get transactionClassifyLabel => 'Учесть как доход или расход';
+
+  @override
+  String get transactionCategoryLabel => 'Категория';
+
+  @override
+  String get transactionAddDeposit => 'Пополнить';
+
+  @override
+  String get transactionAddWithdrawal => 'Снять';
+
+  @override
+  String get transactionSaved => 'Операция сохранена.';
+
+  @override
+  String get transactionErrorAsset => 'Выберите актив.';
+
+  @override
+  String get transactionErrorAmount =>
+      'Введите положительную сумму в основных единицах.';
+
+  @override
+  String get transactionErrorCategory => 'Выберите категорию.';
+
+  @override
+  String get transactionErrorDate => 'Дата операции не может быть в будущем.';
+
+  @override
+  String get transactionErrorNegativeBalance =>
+      'Недостаточно средств на активе.';
+
+  @override
+  String get transactionErrorKindMismatch =>
+      'Категория не соответствует виду операции.';
+
+  @override
+  String get transactionNoAssets => 'Сначала добавьте счёт или инвестицию.';
+
+  @override
+  String get transactionNoCategories => 'Нет категорий для этого вида.';
 }

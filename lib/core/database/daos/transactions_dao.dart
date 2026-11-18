@@ -11,6 +11,7 @@ import 'package:finanseapp/core/domain/common/revision.dart';
 import 'package:finanseapp/core/domain/common/result.dart';
 import 'package:finanseapp/core/features/assets/domain/asset.dart';
 import 'package:finanseapp/core/features/transactions/domain/asset_transaction.dart';
+import 'package:finanseapp/core/features/transactions/domain/transaction_filter.dart';
 
 part 'transactions_dao.g.dart';
 
@@ -84,6 +85,46 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase>
   /// Все операции (включая soft-deleted) для батч-сборки снапшотов.
   Future<List<AssetTransactionRow>> allRows() =>
       select(assetTransactions).get();
+
+  /// Журнал операций с фильтрами (6.1: базовые; UI — 6.3).
+  Stream<List<AssetTransactionRow>> watchFiltered(TransactionFilter filter) {
+    final query =
+        select(assetTransactions).join([
+            innerJoin(assets, assets.id.equalsExp(assetTransactions.assetId)),
+          ])
+          ..where(assetTransactions.deletedAt.isNull())
+          ..orderBy([
+            OrderingTerm.desc(assetTransactions.occurredOn),
+            OrderingTerm.desc(assetTransactions.id),
+          ]);
+    final period = filter.period;
+    if (period != null) {
+      query.where(
+        assetTransactions.occurredOn.isBiggerOrEqualValue(
+              period.start.toIsoString(),
+            ) &
+            assetTransactions.occurredOn.isSmallerOrEqualValue(
+              period.end.toIsoString(),
+            ),
+      );
+    }
+    if (filter.assetId != null) {
+      query.where(assetTransactions.assetId.equals(filter.assetId!));
+    }
+    if (filter.assetKind != null) {
+      query.where(assets.kind.equalsValue(filter.assetKind!));
+    }
+    if (filter.currencyCode != null) {
+      query.where(assets.currencyCode.equals(filter.currencyCode!));
+    }
+    final search = filter.query.trim();
+    if (search.isNotEmpty) {
+      query.where(assetTransactions.comment.like('%$search%'));
+    }
+    return query.watch().map(
+      (rows) => [for (final row in rows) row.readTable(assetTransactions)],
+    );
+  }
 
   Stream<List<AssetTransactionRow>> watchByAsset(int assetId) {
     final query = select(assetTransactions)

@@ -735,7 +735,7 @@
 
 ## Этап 6 — Транзакции, переводы и аудит
 
-### 6.1 Пополнение/снятие и связанная классификация — [ ]
+### 6.1 Пополнение/снятие и связанная классификация — [x] (2026-11-18)
 
 - **Приоритет/зависимости:** P1; после 5.3 и 4.3. **BR:** T-1…7,10, IE-1…6,16…17, VAL-5,7.
 - **Files:** Create transactions data/logic + transaction form screen/VM,
@@ -749,10 +749,42 @@
 - **TDD:** deposit 100 USD×90=9000 RUB snapshot; withdrawal >balance выбрасывает
   negativeBalance и linked cashflow отсутствует; category kind mismatch/future date/zero
   reject; edit суммы обновляет обе projections и revisionNo; связь unique; double Save один call.
+- **Рабочий план (2026-11-18):**
+  - **Domain:** `AssetTransactionDraft.classification` (`CashflowKind` + categoryId) —
+    только для счетов; deposit↔income, withdrawal↔expense.
+  - **Data:** `AssetTransactionRepositoryImpl` поверх `AppDatabase`: create/revise/softDelete
+    в одной DB-транзакции с `CashflowDao` (linked entry: `accountId`, `affectsBalance=true`,
+    `assetTransactionId`, original/RUB snapshot из операции); find link по
+    `assetTransactionId`; DAO `watchFiltered`, `reviseLinked`, `findLinked`; transfer-методы
+    делегируют существующие DAO (UI — 6.2).
+  - **Logic:** `save_asset_transaction.dart` — одна команда create/update/delete
+    (классификация опциональна), amountRub через `MoneyMath`, kind/category validation.
+  - **UI:** форма `/transactions/new` (актив счёт/инвестиция, kind deposit/withdrawal,
+    сумма, дата, курс RUB/ЦБ/ручной, комментарий, опция «Доход/Расход» с категорией для
+    счёта), VM с per-field ошибками и защитой от двойного Save; CTA с деталей счёта/инвестиции.
+  - **Тесты:** USD 100×90 snapshot; withdrawal > balance → negativeBalance без cashflow;
+    kind mismatch/zero/future; edit суммы обновляет обе проекции и revisionNo; повторный
+    Save не дублирует; property запрещён; сбой cashflow откатывает tx+revision.
 - **Генерация:** gen-l10n; build_runner/schema dump при DAO changes.
 - **DoD:** property запрещён, amountRub округлён один раз, crash при cashflow insert откатывает
   asset tx+revision; общий DoD. Перед PR спросить о e2e.
 - **Предлагаемый commit:** `task/06.1: добавить транзакции активов`.
+- **Итог:** `AssetTransactionRepositoryImpl` (create/revise/softDelete в одной DB-транзакции
+  с cashflow, transfer-методы делегируют DAO), `TransactionClassification` в draft,
+  `CashflowDao` — `assetTransactionId`, `findLinked`, `reviseFromAsset`, `softDeleteFromAsset`;
+  `watchFiltered` (период/актив/вид/валюта/поиск) для журнала 6.3; единый маппер операции.
+  UI: форма `/transactions/new?assetId=&kind=` (актив, пополнение/снятие, сумма, дата, курс,
+  комментарий, классификация доход/расход для счёта), кнопки «Пополнить/Снять» на деталях,
+  защита от двойного Save, per-field ошибки. Тесты: USD 100×90 snapshot + linked entry,
+  negative balance без cashflow, kind mismatch, zero/future, edit обеих проекций и ревизий,
+  снятие классификации, добавление классификации через revise со связью, property, откат при
+  сбое cashflow, форма/двойной Save, маршрут «Снять» = withdrawal. По ревью: CTA «Снять»
+  передаёт вид операции, revise добавляет `assetTransactionId`, смена актива сбрасывает
+  классификацию/курс, CTA операций только для счёта/инвестиции, блоки действий разведены.
+- **Отложено:** UI журнала/фильтров/ревизий и transfer-форма — 6.2/6.3; итог в ₽ и
+  доступный остаток на форме, CTA при пустых активах/категориях, вид актива в селекте,
+  scroll-to-error после неудачного Save, классификация инвестиций (только счёт),
+  визуальный QA 320dp/textScale 1.3 (эмулятор не подключён).
 
 ### 6.2 Внутренние переводы между счетами — [ ]
 
