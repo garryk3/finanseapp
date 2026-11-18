@@ -1,4 +1,3 @@
-import 'package:finanseapp/app/theme/app_spacing.dart';
 import 'package:finanseapp/core/features/audit/ui/asset_revision_list.dart';
 import 'package:finanseapp/core/features/audit/ui/audit_asset_transaction_view_model.dart';
 import 'package:finanseapp/core/presentation/view_state.dart';
@@ -68,7 +67,6 @@ class _AuditAssetTransactionScreenState
             return Center(child: AppText(l10n.commonLoading));
           }
           return AppListView(
-            padding: const EdgeInsets.all(AppSpacing.md),
             children: [
               AppSection(
                 header: vm.asset.value?.name ?? l10n.auditAssetTransactionTitle,

@@ -1016,16 +1016,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get revisionActionDelete => 'Удалена';
 
   @override
-  String revisionOldValue(String value) {
-    return 'Было: $value';
-  }
-
-  @override
-  String revisionNewValue(String value) {
-    return 'Стало: $value';
-  }
-
-  @override
   String get revisionFieldAmount => 'Сумма';
 
   @override
@@ -1047,4 +1037,10 @@ class AppLocalizationsRu extends AppLocalizations {
   String revisionDiffLine(String field, String oldValue, String newValue) {
     return '$field: было $oldValue, стало $newValue';
   }
+
+  @override
+  String get revisionEmpty => 'Изменений пока нет.';
+
+  @override
+  String get transactionAuditAction => 'Открыть аудит';
 }

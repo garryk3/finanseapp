@@ -8,6 +8,7 @@ import 'package:finanseapp/core/features/transactions/domain/asset_transaction.d
 import 'package:finanseapp/core/features/transactions/ui/transactions_view_model.dart';
 import 'package:finanseapp/core/presentation/date_formatter.dart';
 import 'package:finanseapp/core/presentation/view_state.dart';
+import 'package:finanseapp/app/theme/app_semantic_colors.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
 import 'package:finanseapp/uikit/app_date_header.dart';
 import 'package:finanseapp/uikit/app_empty_state.dart';
@@ -15,7 +16,7 @@ import 'package:finanseapp/uikit/app_error_state.dart';
 import 'package:finanseapp/uikit/app_filter_bar.dart';
 import 'package:finanseapp/uikit/app_filter_chip.dart';
 import 'package:finanseapp/uikit/app_floating_action_button.dart';
-import 'package:finanseapp/uikit/app_list_tile.dart';
+import 'package:finanseapp/uikit/app_operation_list_tile.dart';
 import 'package:finanseapp/uikit/app_list_view.dart';
 import 'package:finanseapp/uikit/app_scaffold.dart';
 import 'package:finanseapp/uikit/app_search_field.dart';
@@ -75,13 +76,13 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   Future<void> _add() async {
     final saved = await context.push<bool>(AppRoutes.transactionNew);
     if (!mounted || saved != true) return;
-    _viewModel.init();
+    _viewModel.reload();
   }
 
   Future<void> _open(int id) async {
     await context.push(AppRoutes.transactionDetailsPath(id));
     if (!mounted) return;
-    _viewModel.init();
+    _viewModel.reload();
   }
 
   @override
@@ -284,23 +285,34 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
           return AppDateHeader(const DateFormatter().format(item));
         }
         final transaction = item as AssetTransaction;
-        return AppListTile(
+        final incoming =
+            transaction.kind == AssetTransactionKind.deposit ||
+            transaction.kind == AssetTransactionKind.transferIn;
+        final isTransfer =
+            transaction.kind == AssetTransactionKind.transferIn ||
+            transaction.kind == AssetTransactionKind.transferOut;
+        return AppOperationListTile(
           key: ValueKey(transaction.id),
-          title:
-              '${_kindLabel(l10n, transaction.kind)} · '
-              '${vm.formatAmount(transaction)}',
-          subtitle:
-              '${vm.assetName(transaction)} · '
-              '${const DateFormatter().format(transaction.occurredOn)}',
-          semanticLabel:
-              '${_kindLabel(l10n, transaction.kind)}, '
-              '${vm.formatAmount(transaction)}, '
-              '${vm.assetName(transaction)}',
+          title: vm.assetName(transaction),
+          typeLabel: _kindLabel(l10n, transaction.kind),
+          icon: _kindIcon(transaction.kind),
+          amountText: '${incoming ? '+' : '−'}${vm.formatAmount(transaction)}',
+          dateText: const DateFormatter().format(transaction.occurredOn),
+          tone: isTransfer
+              ? AppMoneyTone.transfer
+              : (incoming ? AppMoneyTone.income : AppMoneyTone.expense),
           onTap: () => _open(transaction.id),
         );
       },
     );
   }
+
+  static IconData _kindIcon(AssetTransactionKind kind) => switch (kind) {
+    AssetTransactionKind.deposit => Icons.add_circle_outline,
+    AssetTransactionKind.withdrawal => Icons.remove_circle_outline,
+    AssetTransactionKind.transferOut => Icons.north_east,
+    AssetTransactionKind.transferIn => Icons.south_west,
+  };
 
   static String _kindLabel(AppLocalizations l10n, AssetTransactionKind kind) =>
       switch (kind) {

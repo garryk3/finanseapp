@@ -1357,24 +1357,6 @@
   "@revisionActionDelete": {
     "description": "Действие ревизии: удаление."
   },
-  "revisionOldValue": "Было: {value}",
-  "@revisionOldValue": {
-    "description": "Старое значение в diff.",
-    "placeholders": {
-      "value": {
-        "type": "String"
-      }
-    }
-  },
-  "revisionNewValue": "Стало: {value}",
-  "@revisionNewValue": {
-    "description": "Новое значение в diff.",
-    "placeholders": {
-      "value": {
-        "type": "String"
-      }
-    }
-  },
   "revisionFieldAmount": "Сумма",
   "@revisionFieldAmount": {
     "description": "Поле diff: сумма."
@@ -1413,5 +1395,13 @@
         "type": "String"
       }
     }
+  },
+  "revisionEmpty": "Изменений пока нет.",
+  "@revisionEmpty": {
+    "description": "Пустая история ревизий."
+  },
+  "transactionAuditAction": "Открыть аудит",
+  "@transactionAuditAction": {
+    "description": "Переход к истории ревизий операции."
   }
 }

@@ -1947,18 +1947,6 @@ abstract class AppLocalizations {
   /// **'Удалена'**
   String get revisionActionDelete;
 
-  /// Старое значение в diff.
-  ///
-  /// In ru, this message translates to:
-  /// **'Было: {value}'**
-  String revisionOldValue(String value);
-
-  /// Новое значение в diff.
-  ///
-  /// In ru, this message translates to:
-  /// **'Стало: {value}'**
-  String revisionNewValue(String value);
-
   /// Поле diff: сумма.
   ///
   /// In ru, this message translates to:
@@ -2000,6 +1988,18 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'{field}: было {oldValue}, стало {newValue}'**
   String revisionDiffLine(String field, String oldValue, String newValue);
+
+  /// Пустая история ревизий.
+  ///
+  /// In ru, this message translates to:
+  /// **'Изменений пока нет.'**
+  String get revisionEmpty;
+
+  /// Переход к истории ревизий операции.
+  ///
+  /// In ru, this message translates to:
+  /// **'Открыть аудит'**
+  String get transactionAuditAction;
 }
 
 class _AppLocalizationsDelegate

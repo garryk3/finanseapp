@@ -1,3 +1,4 @@
+import 'package:finanseapp/app/theme/app_spacing.dart';
 import 'package:finanseapp/core/domain/common/local_date.dart';
 import 'package:finanseapp/core/domain/common/revision.dart';
 import 'package:finanseapp/core/features/transactions/domain/asset_transaction_revision.dart';
@@ -5,7 +6,7 @@ import 'package:finanseapp/core/features/transactions/logic/revision_diff.dart';
 import 'package:finanseapp/core/presentation/date_formatter.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
 import 'package:finanseapp/uikit/app_divider.dart';
-import 'package:finanseapp/uikit/app_list_tile.dart';
+import 'package:finanseapp/uikit/app_text.dart';
 import 'package:flutter/widgets.dart';
 
 /// Append-only список ревизий операции с diff к предыдущей (6.3).
@@ -17,42 +18,63 @@ class AssetRevisionList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    if (revisions.isEmpty) {
+      return AppText(l10n.revisionEmpty);
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         for (var i = 0; i < revisions.length; i++) ...[
           if (i > 0) const AppDivider(),
-          AppListTile(
-            title:
-                '${l10n.revisionLabel(revisions[i].revisionNo)} · '
-                '${_actionLabel(l10n, revisions[i])}',
-            subtitle: _subtitle(context, l10n, i),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppText(
+                  '${l10n.revisionLabel(revisions[i].revisionNo)} · '
+                  '${_actionLabel(l10n, revisions[i])}',
+                ),
+                AppText(_changedAt(revisions[i])),
+                for (final line in _diffLines(l10n, i)) AppText(line),
+              ],
+            ),
           ),
         ],
       ],
     );
   }
 
-  String _subtitle(BuildContext context, AppLocalizations l10n, int index) {
-    final revision = revisions[index];
-    final changedAt = const DateFormatter().format(
-      LocalDate.fromDateTime(revision.changedAt.toLocal()),
-    );
-    if (index == 0) return changedAt;
+  String _changedAt(AssetTransactionRevision revision) => const DateFormatter()
+      .format(LocalDate.fromDateTime(revision.changedAt.toLocal()));
+
+  List<String> _diffLines(AppLocalizations l10n, int index) {
+    if (index == 0) return const [];
     final diff = diffAssetTransactions(
       revisions[index - 1].snapshot,
-      revision.snapshot,
+      revisions[index].snapshot,
     );
-    if (diff.isEmpty) return changedAt;
-    final lines = [
+    return [
       for (final change in diff)
         l10n.revisionDiffLine(
           _fieldLabel(l10n, change.field),
-          change.oldValue,
-          change.newValue,
+          _value(l10n, change.field, change.oldValue),
+          _value(l10n, change.field, change.newValue),
         ),
     ];
-    return '$changedAt\n${lines.join('\n')}';
+  }
+
+  static String _value(AppLocalizations l10n, String field, String raw) {
+    if (field == 'kind') {
+      return switch (raw) {
+        'deposit' => l10n.transactionKindDeposit,
+        'withdrawal' => l10n.transactionKindWithdrawal,
+        'transferOut' => l10n.transactionKindTransferOut,
+        'transferIn' => l10n.transactionKindTransferIn,
+        _ => raw,
+      };
+    }
+    return raw.isEmpty ? '—' : raw;
   }
 
   static String _actionLabel(

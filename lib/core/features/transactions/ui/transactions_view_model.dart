@@ -39,6 +39,7 @@ class TransactionsViewModel {
 
   void init() {
     state.value = const ViewLoading();
+    _assetSubscription?.cancel();
     _assetSubscription = assetRepository.watchAll(includeArchived: true).listen(
       (snapshots) {
         _assets
@@ -53,6 +54,9 @@ class TransactionsViewModel {
     );
     _subscribe();
   }
+
+  /// Обновление после возврата: без мигания skeleton и без новых asset-watch.
+  void reload() => _subscribe();
 
   void _subscribe() {
     _subscription?.cancel();

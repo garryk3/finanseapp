@@ -94,14 +94,14 @@ class _TransactionDetailsScreenState extends State<TransactionDetailsScreen> {
           }
           final asset = vm.asset.value;
           return AppListView(
-            padding: const EdgeInsets.all(AppSpacing.md),
             children: [
               AppSummaryCard(
                 title: _kindLabel(l10n, transaction.kind),
                 value: _money(transaction.amount),
-                subtitle:
-                    '${l10n.transactionAmountRub}: '
-                    '${_money(transaction.amountRub)}',
+                subtitle: transaction.amount.currencyCode == 'RUB'
+                    ? null
+                    : '${l10n.transactionAmountRub}: '
+                          '${_money(transaction.amountRub)}',
               ),
               const SizedBox(height: AppSpacing.md),
               AppSection(
@@ -128,10 +128,19 @@ class _TransactionDetailsScreenState extends State<TransactionDetailsScreen> {
                       AppText(l10n.transactionLinkedCashflow),
                     const SizedBox(height: AppSpacing.lg),
                     AppButton(
-                      label: l10n.accountDelete,
-                      variant: AppButtonVariant.destructive,
-                      onPressed: vm.busy.value ? null : _delete,
+                      label: l10n.transactionAuditAction,
+                      variant: AppButtonVariant.text,
+                      onPressed: () => context.push(
+                        AppRoutes.auditAssetTransactionPath(transaction.id),
+                      ),
                     ),
+                    if (transaction.transferId == null)
+                      AppButton(
+                        label: l10n.accountDelete,
+                        variant: AppButtonVariant.destructive,
+                        pending: vm.busy.value,
+                        onPressed: vm.busy.value ? null : _delete,
+                      ),
                   ],
                 ),
               ),
