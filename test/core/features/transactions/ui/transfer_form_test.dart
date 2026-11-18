@@ -314,6 +314,41 @@ void main() {
     );
   });
 
+  testWidgets('кросс-курс RUB→USD показывает обратное направление', (
+    tester,
+  ) async {
+    final vm = _viewModel(
+      FakeTransactions(),
+      accounts: [_account(1, 'RUB'), _account(2, 'USD')],
+    );
+    await _pump(tester, vm);
+
+    await tester.enterText(find.byType(TextField).at(0), '90000');
+    await tester.enterText(find.byType(TextField).at(1), '1000');
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(tester.takeException(), isNull);
+    expect(find.textContaining('≈'), findsOneWidget);
+    expect(find.textContaining('1,00'), findsOneWidget);
+    expect(find.textContaining('90,00'), findsOneWidget);
+  });
+
+  testWidgets('кросс-курс USD→RUB показывает прямой курс', (tester) async {
+    final vm = _viewModel(
+      FakeTransactions(),
+      accounts: [_account(1, 'USD'), _account(2, 'RUB')],
+    );
+    await _pump(tester, vm);
+
+    await tester.enterText(find.byType(TextField).at(0), '1000');
+    await tester.enterText(find.byType(TextField).at(1), '90000');
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(tester.takeException(), isNull);
+    expect(find.textContaining('1,00'), findsOneWidget);
+    expect(find.textContaining('90,00'), findsOneWidget);
+  });
+
   testWidgets('устаревший fromId заменяется первым счётом', (tester) async {
     final vm = TransferFormViewModel(
       assetRepository: FakeAssets([_account(1, 'RUB'), _account(2, 'RUB')]),

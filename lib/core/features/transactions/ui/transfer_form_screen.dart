@@ -113,7 +113,7 @@ class _TransferFormScreenState extends State<TransferFormScreen> {
         : null;
     final destinationError =
         crossCurrency && (destination == null || destination.minorUnits <= 0)
-        ? l10n.transferErrorAmount
+        ? l10n.transferErrorDestination
         : null;
     if (fromError != null ||
         toError != null ||
@@ -177,6 +177,7 @@ class _TransferFormScreenState extends State<TransferFormScreen> {
             case 'validationAmountPositive':
               _amountError = message;
             case 'validationDestinationAmountPositive':
+            case 'validationDestinationAmountRequired':
               _destinationError = message;
             default:
               _formError = message;
@@ -267,7 +268,10 @@ class _TransferFormScreenState extends State<TransferFormScreen> {
             final one = MoneyMath.fromDecimal(Decimal.one, fromCurrency);
             if (implied < Rational.one) {
               rateHint = l10n.transferRateHint(
-                formatter.format(one, toCurrency),
+                formatter.format(
+                  MoneyMath.fromDecimal(Decimal.one, toCurrency),
+                  toCurrency,
+                ),
                 formatter.format(
                   MoneyMath.fromRational(implied.inverse, fromCurrency),
                   fromCurrency,
