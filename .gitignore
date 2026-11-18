@@ -177,3 +177,6 @@ android/local.properties
 
 # opencode локальное (агенты — симлинки на .agents/agents)
 .opencode/
+
+# Kotlin/Gradle transient state
+android/.kotlin/
