@@ -690,5 +690,180 @@
   "commonNameLabel": "Название",
   "@commonNameLabel": {
     "description": "Общее поле названия сущности."
+  },
+  "assetsAddAccount": "Добавить счёт",
+  "@assetsAddAccount": {
+    "description": "Действие создания счёта."
+  },
+  "accountFormNew": "Новый счёт",
+  "@accountFormNew": {
+    "description": "Заголовок формы нового счёта."
+  },
+  "accountFormEdit": "Изменить счёт",
+  "@accountFormEdit": {
+    "description": "Заголовок формы редактирования счёта."
+  },
+  "accountNameLabel": "Название счёта",
+  "@accountNameLabel": {
+    "description": "Поле названия счёта."
+  },
+  "accountBankLabel": "Банк",
+  "@accountBankLabel": {
+    "description": "Поле выбора банка."
+  },
+  "accountOpeningLabel": "Начальный баланс",
+  "@accountOpeningLabel": {
+    "description": "Поле начального баланса."
+  },
+  "accountRateLabel": "Ставка, % годовых",
+  "@accountRateLabel": {
+    "description": "Поле годовой ставки."
+  },
+  "accountStartDate": "Дата начала",
+  "@accountStartDate": {
+    "description": "Поле даты начала вклада."
+  },
+  "accountEndDate": "Дата окончания",
+  "@accountEndDate": {
+    "description": "Поле даты окончания вклада."
+  },
+  "accountBalanceLabel": "Текущий баланс",
+  "@accountBalanceLabel": {
+    "description": "Подпись текущего баланса."
+  },
+  "accountForecastLabel": "Прогноз",
+  "@accountForecastLabel": {
+    "description": "Подпись прогноза вклада."
+  },
+  "accountForecastHint": "Оценка с ежемесячной капитализацией, не входит в чистый капитал.",
+  "@accountForecastHint": {
+    "description": "Пояснение прогноза."
+  },
+  "accountArchive": "Архивировать",
+  "@accountArchive": {
+    "description": "Действие архивирования счёта."
+  },
+  "accountDelete": "Удалить",
+  "@accountDelete": {
+    "description": "Действие удаления счёта."
+  },
+  "accountDeleteTitle": "Удалить счёт «{name}»?",
+  "@accountDeleteTitle": {
+    "description": "Подтверждение удаления счёта.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "accountDeleteMessage": "Счёт не используется и будет удалён.",
+  "@accountDeleteMessage": {
+    "description": "Пояснение удаления счёта."
+  },
+  "accountArchivedBadge": "Архивный",
+  "@accountArchivedBadge": {
+    "description": "Пометка архивного актива."
+  },
+  "accountSaved": "Счёт сохранён.",
+  "@accountSaved": {
+    "description": "Подтверждение сохранения счёта."
+  },
+  "accountArchived": "Счёт архивирован.",
+  "@accountArchived": {
+    "description": "Подтверждение архивации."
+  },
+  "accountDeleted": "Счёт удалён.",
+  "@accountDeleted": {
+    "description": "Подтверждение удаления."
+  },
+  "accountErrorName": "Введите название счёта.",
+  "@accountErrorName": {
+    "description": "Ошибка названия."
+  },
+  "accountErrorRate": "Ставка должна быть от 0 до 100.",
+  "@accountErrorRate": {
+    "description": "Ошибка ставки."
+  },
+  "accountErrorDates": "Дата окончания не раньше даты начала.",
+  "@accountErrorDates": {
+    "description": "Ошибка дат."
+  },
+  "accountErrorCurrencyLocked": "Валюту нельзя менять после операций.",
+  "@accountErrorCurrencyLocked": {
+    "description": "Ошибка смены валюты."
+  },
+  "accountErrorInUse": "Счёт используется и не может быть удалён.",
+  "@accountErrorInUse": {
+    "description": "Ошибка удаления используемого счёта."
+  },
+  "accountNoBanks": "Сначала добавьте банк в справочнике.",
+  "@accountNoBanks": {
+    "description": "Пустое состояние выбора банка."
+  },
+  "accountDetailsTitle": "Счёт",
+  "@accountDetailsTitle": {
+    "description": "Заголовок деталей счёта."
+  },
+  "assetsEmptyCta": "Добавить счёт",
+  "@assetsEmptyCta": {
+    "description": "CTA пустого списка активов."
+  },
+  "accountErrorAmount": "Введите неотрицательную сумму в основных единицах.",
+  "@accountErrorAmount": {
+    "description": "Ошибка суммы счёта."
+  },
+  "accountErrorBank": "Выберите банк.",
+  "@accountErrorBank": {
+    "description": "Ошибка выбора банка."
+  },
+  "accountEdit": "Изменить",
+  "@accountEdit": {
+    "description": "Действие редактирования счёта."
+  },
+  "assetBaseEquivalent": "В базовой валюте",
+  "@assetBaseEquivalent": {
+    "description": "Подпись эквивалента в базовой валюте."
+  },
+  "assetBaseUnavailable": "Курс недоступен",
+  "@assetBaseUnavailable": {
+    "description": "Нет курса для пересчёта в базовую валюту."
+  },
+  "assetInUseTitle": "Актив используется",
+  "@assetInUseTitle": {
+    "description": "Заголовок диалога занятого актива."
+  },
+  "assetInUseMessage": "Операций: {transactions}, оценок: {valuations}, целей: {goals}, записей: {cashflow}. Удаление недоступно — архивируйте актив.",
+  "@assetInUseMessage": {
+    "description": "Разбивка ссылок на актив.",
+    "placeholders": {
+      "transactions": {
+        "type": "int"
+      },
+      "valuations": {
+        "type": "int"
+      },
+      "goals": {
+        "type": "int"
+      },
+      "cashflow": {
+        "type": "int"
+      }
+    }
+  },
+  "accountCurrencyLabel": "Валюта счёта",
+  "@accountCurrencyLabel": {
+    "description": "Поле выбора валюты счёта."
+  },
+  "accountCurrencyLocked": "Валюту нельзя менять после операций.",
+  "@accountCurrencyLocked": {
+    "description": "Причина блокировки валюты счёта."
+  },
+  "accountAddEndDate": "Добавить дату окончания",
+  "@accountAddEndDate": {
+    "description": "Включить дату окончания вклада."
+  },
+  "accountRemoveEndDate": "Убрать дату окончания",
+  "@accountRemoveEndDate": {
+    "description": "Снять дату окончания вклада."
   }
 }

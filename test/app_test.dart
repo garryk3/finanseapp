@@ -33,17 +33,24 @@ void main() {
     await tester.pumpWidget(FinanseApp(locator: locator));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text(l10n.navAssets));
+    await tester.tap(find.text(l10n.navGoals));
     await tester.pumpAndSettle();
-    expect(find.text(l10n.assetsEmptyTitle), findsOneWidget);
+    expect(find.text(l10n.goalsEmptyTitle), findsOneWidget);
 
     await tester.tap(find.text(l10n.navMore));
     await tester.pumpAndSettle();
     expect(find.text(l10n.moreSecuritySection), findsOneWidget);
 
-    await tester.tap(find.text(l10n.navAssets));
+    await tester.tap(find.text(l10n.navGoals));
     await tester.pumpAndSettle();
-    expect(find.text(l10n.assetsEmptyTitle), findsOneWidget);
+    expect(find.text(l10n.goalsEmptyTitle), findsOneWidget);
+    // Гасим drift-стрим экрана активов до проверки инвариантов.
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump();
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 20)),
+    );
+    await tester.pump();
   });
 
   testWidgets('smoke: все пять разделов открываются', (tester) async {
@@ -86,16 +93,23 @@ void main() {
     await tester.pumpWidget(FinanseApp(locator: locator));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text(l10n.navAssets));
+    await tester.tap(find.text(l10n.navGoals));
     await tester.pumpAndSettle();
-    final context = tester.element(find.text(l10n.assetsEmptyTitle));
-    GoRouter.of(context).push('/assets/new/account');
+    final context = tester.element(find.text(l10n.goalsEmptyTitle));
+    GoRouter.of(context).push('/goals/new');
     await tester.pumpAndSettle();
     expect(find.text(l10n.comingSoonTitle), findsOneWidget);
 
     await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
-    expect(find.text(l10n.assetsEmptyTitle), findsOneWidget);
+    expect(find.text(l10n.goalsEmptyTitle), findsOneWidget);
+    // Гасим drift-стрим экрана активов до проверки инвариантов.
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump();
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 20)),
+    );
+    await tester.pump();
   });
 
   testWidgets('вход в защиту приложения и возврат на главную', (tester) async {

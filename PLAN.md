@@ -556,7 +556,7 @@
 
 ## Этап 5 — Активы и оценки
 
-### 5.1 Счета: CRUD, текущий баланс и прогноз — [ ]
+### 5.1 Счета: CRUD, текущий баланс и прогноз — [x] 2026-11-18
 
 - **Приоритет/зависимости:** P1; после 4.2. **BR:** A-1…2,5…6, VAL-3,5…8, C-6.
 - **Files:** Create assets data/logic + account form/details/list widgets,
@@ -571,6 +571,36 @@
 - **TDD:** opening 100000 RUB + deposit 2500 − withdrawal 1000 =101500; zero rate forecast=
   current; missing endDate=null; expired=current; CALC-016…036 включая 31.01.2028→30.03.2028
   =101977.26; annualRate 100.01/end<start/future operations reject; used currency locked.
+- **Рабочий план (2026-11-18):**
+  - **Domain/logic:** `AssetValueCalculator.account` (opening + знаковые активные операции),
+    `AccountForecastCalculator` (CALC-016…021: anniversary-даты с clamp, m = fullMonths +
+    remaining/monthDays, double только для степени, итог через `MoneyMath`).
+  - **Data:** `AssetRepositoryImpl` (accounts: create/update/archive/deleteIfUnused/watchAll/
+    getById/recordValuation); DAO-методы update/delete-if-unused + joins деталей; запрет
+    смены валюты при операциях/оценках (BR-VAL-8), проверка opening ≥ 0, annualRate 0..100,
+    endDate ≥ startDate, name trim.
+  - **UI:** assets list (счета), account form create/edit (банк/валюта/opening/ставка/даты),
+    account details (баланс, прогноз отдельно от факта, archive/delete с подтверждением),
+    routes `/assets/new/account`, `/assets/:id`, `/assets/:id/edit/account`; DI + l10n.
+  - **Тесты:** golden CALC-016…021, repository CRUD/locks/delete counts, form validation,
+    details balance/forecast, archived read-only.
+- **Итог:** `AssetValueCalculator.account`, `AccountForecastCalculator` (CALC-016…021),
+  `AssetRepositoryImpl` (accounts: create/update/archive/delete-if-unused/watch, BR-VAL-8 lock,
+  валидации), DAO update/delete/count, экраны assets list/account form/details, DI/routes/l10n.
+  Тесты: forecast golden 6, calculator 2, repository 5. UI-тесты ограничены: app-router тест
+  статических маршрутов assets снят (реальный экран активов держит drift-стрим, pending-timer
+  в widget-тесте); статический приоритет остаётся в таблице маршрутов и будет покрыт
+  интеграционным прогоном/экранами 5.2.
+- **Сделано после ревью:** base equivalent (BR-C-6, с «Курс недоступен»), counts
+  в диалоге удаления (BR-A-5), валидация банка без NPE, кнопка «Изменить» на деталях,
+  widget-тесты формы/деталей (prefill major units, пустое имя, баланс/прогноз/архив,
+  занятый счёт); детали перезагружаются после «Изменить» и при новом VM; дата окончания
+  включается/снимается и сохраняется; валюта блокируется при связях; нулевой opening
+  разрешён. **Отложено в 5.3:** дублирование валидаций repo/DAO, widget-тест
+  `AssetsScreen` (список/пустое состояние/баланс), реактивность/N+1 снапшотов, `fractionDigits` вместо 2,
+  read-only архивного счёта, проверка баланса при правке opening.
+- **E2E:** после установки `libsecret-1-dev` и `flutter clean` прогон
+  `flutter test integration_test -d linux` зелёный (smoke стартует и показывает главную).
 - **Генерация:** gen-l10n; Drift generation только при DAO/source changes.
 - **DoD:** CALC forecast values буквально pass, negative balance не обходится edit opening;
   archive read-only, delete dialog показывает counts; общий DoD. Перед PR спросить о e2e.

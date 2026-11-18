@@ -511,4 +511,133 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get commonNameLabel => 'Название';
+
+  @override
+  String get assetsAddAccount => 'Добавить счёт';
+
+  @override
+  String get accountFormNew => 'Новый счёт';
+
+  @override
+  String get accountFormEdit => 'Изменить счёт';
+
+  @override
+  String get accountNameLabel => 'Название счёта';
+
+  @override
+  String get accountBankLabel => 'Банк';
+
+  @override
+  String get accountOpeningLabel => 'Начальный баланс';
+
+  @override
+  String get accountRateLabel => 'Ставка, % годовых';
+
+  @override
+  String get accountStartDate => 'Дата начала';
+
+  @override
+  String get accountEndDate => 'Дата окончания';
+
+  @override
+  String get accountBalanceLabel => 'Текущий баланс';
+
+  @override
+  String get accountForecastLabel => 'Прогноз';
+
+  @override
+  String get accountForecastHint =>
+      'Оценка с ежемесячной капитализацией, не входит в чистый капитал.';
+
+  @override
+  String get accountArchive => 'Архивировать';
+
+  @override
+  String get accountDelete => 'Удалить';
+
+  @override
+  String accountDeleteTitle(String name) {
+    return 'Удалить счёт «$name»?';
+  }
+
+  @override
+  String get accountDeleteMessage => 'Счёт не используется и будет удалён.';
+
+  @override
+  String get accountArchivedBadge => 'Архивный';
+
+  @override
+  String get accountSaved => 'Счёт сохранён.';
+
+  @override
+  String get accountArchived => 'Счёт архивирован.';
+
+  @override
+  String get accountDeleted => 'Счёт удалён.';
+
+  @override
+  String get accountErrorName => 'Введите название счёта.';
+
+  @override
+  String get accountErrorRate => 'Ставка должна быть от 0 до 100.';
+
+  @override
+  String get accountErrorDates => 'Дата окончания не раньше даты начала.';
+
+  @override
+  String get accountErrorCurrencyLocked =>
+      'Валюту нельзя менять после операций.';
+
+  @override
+  String get accountErrorInUse => 'Счёт используется и не может быть удалён.';
+
+  @override
+  String get accountNoBanks => 'Сначала добавьте банк в справочнике.';
+
+  @override
+  String get accountDetailsTitle => 'Счёт';
+
+  @override
+  String get assetsEmptyCta => 'Добавить счёт';
+
+  @override
+  String get accountErrorAmount =>
+      'Введите неотрицательную сумму в основных единицах.';
+
+  @override
+  String get accountErrorBank => 'Выберите банк.';
+
+  @override
+  String get accountEdit => 'Изменить';
+
+  @override
+  String get assetBaseEquivalent => 'В базовой валюте';
+
+  @override
+  String get assetBaseUnavailable => 'Курс недоступен';
+
+  @override
+  String get assetInUseTitle => 'Актив используется';
+
+  @override
+  String assetInUseMessage(
+    int transactions,
+    int valuations,
+    int goals,
+    int cashflow,
+  ) {
+    return 'Операций: $transactions, оценок: $valuations, целей: $goals, записей: $cashflow. Удаление недоступно — архивируйте актив.';
+  }
+
+  @override
+  String get accountCurrencyLabel => 'Валюта счёта';
+
+  @override
+  String get accountCurrencyLocked => 'Валюту нельзя менять после операций.';
+
+  @override
+  String get accountAddEndDate => 'Добавить дату окончания';
+
+  @override
+  String get accountRemoveEndDate => 'Убрать дату окончания';
 }

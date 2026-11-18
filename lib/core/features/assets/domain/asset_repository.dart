@@ -3,6 +3,25 @@ import 'package:finanseapp/core/features/assets/domain/asset_draft.dart';
 import 'package:finanseapp/core/features/assets/domain/asset_valuation.dart';
 
 /// Repository активов и их оценок (domain_model §9).
+/// Сколько записей ссылается на актив (BR-A-5): для диалога удаления.
+final class AssetReferenceCounts {
+  const AssetReferenceCounts({
+    required this.transactions,
+    required this.valuations,
+    required this.goals,
+    required this.cashflow,
+  });
+
+  final int transactions;
+  final int valuations;
+  final int goals;
+  final int cashflow;
+
+  int get total => transactions + valuations + goals + cashflow;
+
+  bool get isUsed => total > 0;
+}
+
 abstract interface class AssetRepository {
   Stream<List<AssetSnapshot>> watchAll({bool includeArchived = false});
 
@@ -19,4 +38,7 @@ abstract interface class AssetRepository {
   Future<void> archive(int id);
 
   Future<void> recordValuation(AssetValuationDraft draft);
+
+  /// Разбивка ссылок для диалога удаления/архивации (BR-A-5).
+  Future<AssetReferenceCounts> referenceCounts(int id);
 }

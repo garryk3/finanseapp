@@ -8,7 +8,6 @@ import 'package:finanseapp/core/features/applock/logic/applock_controller.dart';
 import 'package:finanseapp/core/features/applock/logic/applock_settings_view_model.dart';
 import 'package:finanseapp/core/features/applock/logic/applock_view_model.dart';
 import 'package:finanseapp/core/features/app_info/ui/not_found_view_model.dart';
-import 'package:finanseapp/core/features/assets/ui/assets_view_model.dart';
 import 'package:finanseapp/core/features/cashflow/ui/cashflow_view_model.dart';
 import 'package:finanseapp/core/features/dashboard/ui/dashboard_view_model.dart';
 import 'package:finanseapp/core/features/goals/ui/goals_view_model.dart';
@@ -33,7 +32,6 @@ Future<void> main() async {
     ..registerFactory<DashboardViewModel>(DashboardViewModel.new)
     ..registerFactory<CashflowViewModel>(CashflowViewModel.new)
     ..registerFactory<TransactionsViewModel>(TransactionsViewModel.new)
-    ..registerFactory<AssetsViewModel>(AssetsViewModel.new)
     ..registerFactory<GoalsViewModel>(GoalsViewModel.new)
     ..registerFactory<MoreViewModel>(MoreViewModel.new)
     ..registerFactory<NotFoundViewModel>(NotFoundViewModel.new)
