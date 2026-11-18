@@ -786,7 +786,7 @@
   scroll-to-error после неудачного Save, классификация инвестиций (только счёт),
   визуальный QA 320dp/textScale 1.3 (эмулятор не подключён).
 
-### 6.2 Внутренние переводы между счетами — [ ]
+### 6.2 Внутренние переводы между счетами — [x] (2026-11-18)
 
 - **Приоритет/зависимости:** P1; после 6.1. **BR:** T-2,5…9, C-1…3, IE-1.
 - **Files:** Create `transfer_assets.dart`, `transfer_form_screen.dart`,
@@ -799,10 +799,27 @@
 - **TDD:** RUB 1000→RUB 1000 создаёт out/in и zero cashflow; USD 10→EUR 9 при 90/100;
   same account/zero/negative reject; insufficient source откатывает группу+обе ноги+revisions;
   одиночный revise/softDelete leg conflict; reviseTransfer меняет обе суммы/дату атомарно.
-- **Генерация:** gen-l10n; schema dump при изменении DAO source.
+- **Рабочий план (2026-11-18):**
+  - **Data:** transfer-методы `AssetTransactionRepositoryImpl` уже делегируют DAO (6.1);
+    добавить repository-тесты snapshot/отката.
+  - **UI:** `TransferFormScreen`/VM: счёт-источник и назначение, сумма, сумма зачисления
+    для разных валют, дата, комментарий; курсы через `ResolveExchangeRate` на дату;
+    same-currency — сумма зачисления равна исходной; CTA «Перевести» на деталях счёта.
+  - **Тесты:** same/cross-currency drafts, same account/zero/future reject, negative balance,
+    успешный перевод двигает оба баланса и не создаёт cashflow.
+- **Генерация:** gen-l10n; schema не меняется.
 - **DoD:** active unique `(transferId,kind)`, обе ноги имеют равные occurredOn/comment,
   журнал cashflow пуст; общий DoD. Перед PR спросить о e2e.
 - **Предлагаемый commit:** `task/06.2: реализовать переводы между счетами`.
+- **Итог:** `TransferFormViewModel` (счета, same/cross-currency, курсы через
+  `ResolveExchangeRate`, запрет одинаковых счетов/нуля/будущей даты), `TransferFormScreen`
+  (счёт-источник/назначение, суммы, дата, комментарий), маршрут
+  `/transactions/transfer/new?fromId=`, CTA «Перевести» на деталях счёта. Repository-тесты:
+  перевод двигает оба баланса, не создаёт cashflow, две ноги одной группы с равной датой,
+  одинаковые счета/нехватка средств откатываются; VM/UI-тесты same/cross-currency,
+  отрицательный баланс, сохранение формы.
+- **Отложено:** UI журнала/ревизий перевода и удаление пары — 6.3; ручные курсы для
+  перевода и итог в ₽ на форме; визуальный QA.
 
 ### 6.3 Журнал, details, revisions и мягкое удаление — [ ]
 

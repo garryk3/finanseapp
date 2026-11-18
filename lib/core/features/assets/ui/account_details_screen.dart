@@ -181,6 +181,12 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                     ),
                   ],
                 ),
+              if (!isArchived && isAccount)
+                AppButton(
+                  label: l10n.transferAction,
+                  variant: AppButtonVariant.text,
+                  onPressed: vm.busy.value ? null : () => _transfer(asset.id),
+                ),
               if (!isArchived && !isAccount)
                 const SizedBox(height: AppSpacing.sm),
               if (!isArchived && !isAccount)
@@ -258,6 +264,17 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
     await context.push(path);
     if (!mounted) return;
     await _viewModel.load();
+  }
+
+  Future<void> _transfer(int id) async {
+    final saved = await context.push<bool>(AppRoutes.transferNewFor(id));
+    if (!mounted || saved != true) return;
+    await _viewModel.load();
+    if (!mounted) return;
+    showAppSnackBar(
+      context,
+      message: AppLocalizations.of(context).transferSaved,
+    );
   }
 
   Future<void> _addTransaction(int id, {required bool deposit}) async {

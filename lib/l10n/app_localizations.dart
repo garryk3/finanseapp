@@ -1670,6 +1670,90 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Нет категорий для этого вида.'**
   String get transactionNoCategories;
+
+  /// Заголовок формы перевода.
+  ///
+  /// In ru, this message translates to:
+  /// **'Перевод между счетами'**
+  String get transferFormTitle;
+
+  /// Счёт-источник перевода.
+  ///
+  /// In ru, this message translates to:
+  /// **'Со счёта'**
+  String get transferFromLabel;
+
+  /// Счёт назначения перевода.
+  ///
+  /// In ru, this message translates to:
+  /// **'На счёт'**
+  String get transferToLabel;
+
+  /// Сумма перевода со счёта-источника.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сумма списания'**
+  String get transferAmountLabel;
+
+  /// Сумма перевода на счёт назначения.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сумма зачисления'**
+  String get transferDestinationAmountLabel;
+
+  /// Комментарий к переводу.
+  ///
+  /// In ru, this message translates to:
+  /// **'Комментарий'**
+  String get transferCommentLabel;
+
+  /// Подтверждение перевода.
+  ///
+  /// In ru, this message translates to:
+  /// **'Перевод сохранён.'**
+  String get transferSaved;
+
+  /// Действие перевода между счетами.
+  ///
+  /// In ru, this message translates to:
+  /// **'Перевести'**
+  String get transferAction;
+
+  /// Ошибка счёта-источника.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выберите счёт списания.'**
+  String get transferErrorFrom;
+
+  /// Ошибка счёта назначения.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выберите счёт зачисления.'**
+  String get transferErrorTo;
+
+  /// Ошибка одинаковых счетов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Счета должны различаться.'**
+  String get transferErrorSameAccount;
+
+  /// Ошибка суммы перевода.
+  ///
+  /// In ru, this message translates to:
+  /// **'Введите положительную сумму перевода.'**
+  String get transferErrorAmount;
+
+  /// Ошибка баланса перевода.
+  ///
+  /// In ru, this message translates to:
+  /// **'Недостаточно средств на счёте списания.'**
+  String get transferErrorNegativeBalance;
+
+  /// Пустое состояние выбора счетов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Нужно минимум два счёта.'**
+  String get transferNoAccounts;
 }
 
 class _AppLocalizationsDelegate
