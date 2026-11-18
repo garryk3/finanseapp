@@ -829,7 +829,7 @@
   перевода и доступный остаток на форме; консолидация ключей ошибок перевода;
   визуальный QA.
 
-### 6.3 Журнал, details, revisions и мягкое удаление — [ ]
+### 6.3 Журнал, details, revisions и мягкое удаление — [x] (2026-11-18)
 
 - **Приоритет/зависимости:** P1; после 6.2. **BR:** T-3…4,8…9, S-2…5, IE-11…15.
 - **Files:** Create transactions state/list/filter, transaction details screen/VM,
@@ -846,6 +846,23 @@
 - **DoD:** deleted не входит balances/net worth/cashflow; transfer audit содержит обе ноги;
   общий DoD/design review. Перед PR спросить о e2e.
 - **Предлагаемый commit:** `task/06.3: добавить журнал и аудит транзакций`.
+- **Итог:** `TransactionFilter.kind` + `watchFiltered`; `AuditRepositoryImpl` с декодированием
+  snapshot JSON; `revision_diff.dart`; `TransactionsViewModel` (поиск/вид/текущий месяц,
+  реактивный поток, имена активов) и журнал с группами по дате, фильтрами и FAB;
+  `TransactionDetailsScreen/VM` (original+RUB+base, актив, дата, комментарий, ревизии/diff,
+  confirm-удаление, deleted → NotFound, блокировка удаления ноги перевода);
+  `AuditAssetTransactionScreen/VM` (append-only ревизии даже после удаления) и маршрут
+  `/more/audit/asset-transactions/:id`; AuditRepository в DI; тесты фильтров (в комбинации),
+  ревизий/diff, удаления, NotFound, аудита удалённой операции, журнала/фильтров.
+  По ревью: журнал на `AppOperationListTile` со знаком/тоном/иконкой, месяц внутри
+  `AppFilterBar`, diff с локализованным видом/«—» и без обрезки, ссылка «Открыть аудит»
+  с деталей, скрытие delete для ноги перевода, `reload()` без мигания и отменой подписок,
+  RUB-строка только для не-RUB, регистронезависимый поиск в Dart, pending у удаления,
+  «Открыть аудит» также из NotFound удалённой операции, карточка-итог с боковым отступом.
+- **Отложено:** edit-форма операции и удаление пары перевода (маршруты-заглушки),
+  audit денежного потока и общий экран аудита — 7.1/7.4; время ревизии с часами;
+  skeleton деталей/аудита, debounce поиска, `screenPadding` заголовков; сигнальный кеш
+  имён активов в журнале; inline-ошибка удаления; визуальный QA.
 
 ## Этап 7 — Доходы, расходы и связь со счетами
 

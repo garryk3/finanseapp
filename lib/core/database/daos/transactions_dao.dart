@@ -111,15 +111,14 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase>
     if (filter.assetId != null) {
       query.where(assetTransactions.assetId.equals(filter.assetId!));
     }
+    if (filter.kind != null) {
+      query.where(assetTransactions.kind.equalsValue(filter.kind!));
+    }
     if (filter.assetKind != null) {
       query.where(assets.kind.equalsValue(filter.assetKind!));
     }
     if (filter.currencyCode != null) {
       query.where(assets.currencyCode.equals(filter.currencyCode!));
-    }
-    final search = filter.query.trim();
-    if (search.isNotEmpty) {
-      query.where(assetTransactions.comment.like('%$search%'));
     }
     return query.watch().map(
       (rows) => [for (final row in rows) row.readTable(assetTransactions)],

@@ -86,6 +86,10 @@ void main() {
     await tester.tap(find.text(l10n.navOperations));
     await tester.pumpAndSettle();
     expect(find.text(l10n.transactionsEmptyTitle), findsOneWidget);
+
+    // Гасим drift-стрим журнала операций до проверки инвариантов.
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(milliseconds: 20));
   });
 
   testWidgets('back со secondary возвращает на root раздела', (tester) async {

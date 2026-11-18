@@ -922,4 +922,125 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get transferErrorDestination =>
       'Введите положительную сумму зачисления.';
+
+  @override
+  String get transactionsSearchLabel => 'Поиск операций';
+
+  @override
+  String get transactionsSearchHint => 'Комментарий';
+
+  @override
+  String get transactionsSearchClear => 'Очистить поиск';
+
+  @override
+  String get transactionsFilterAll => 'Все';
+
+  @override
+  String get transactionsFilterDeposit => 'Пополнения';
+
+  @override
+  String get transactionsFilterWithdrawal => 'Снятия';
+
+  @override
+  String get transactionsFilterTransferOut => 'Исходящие';
+
+  @override
+  String get transactionsFilterTransferIn => 'Входящие';
+
+  @override
+  String get transactionsFilterMonth => 'Этот месяц';
+
+  @override
+  String get transactionsFilteredEmptyTitle => 'Операций не найдено';
+
+  @override
+  String get transactionsFilteredEmptyMessage =>
+      'Измените фильтры или сбросьте их.';
+
+  @override
+  String get transactionsResetFilters => 'Сбросить фильтры';
+
+  @override
+  String get transactionsAdd => 'Новая операция';
+
+  @override
+  String get transactionsLoading => 'Загрузка операций';
+
+  @override
+  String get transactionKindTransferOut => 'Перевод (исходящий)';
+
+  @override
+  String get transactionKindTransferIn => 'Перевод (входящий)';
+
+  @override
+  String get transactionDetailsTitle => 'Операция';
+
+  @override
+  String get transactionRevisionsTitle => 'История изменений';
+
+  @override
+  String get transactionDeleteTitle => 'Удалить операцию?';
+
+  @override
+  String get transactionDeleteMessage =>
+      'Операция будет скрыта из журнала; история останется в аудите.';
+
+  @override
+  String get transactionDeleted => 'Операция удалена.';
+
+  @override
+  String get transactionDeleteBlocked =>
+      'Связанную операцию перевода нельзя удалить отдельно.';
+
+  @override
+  String get transactionAmountRub => 'В рублях';
+
+  @override
+  String get transactionLinkedCashflow => 'Связана с денежным потоком';
+
+  @override
+  String get transactionCommentEmpty => 'Без комментария';
+
+  @override
+  String revisionLabel(int number) {
+    return 'Ревизия $number';
+  }
+
+  @override
+  String get revisionActionCreate => 'Создана';
+
+  @override
+  String get revisionActionEdit => 'Изменена';
+
+  @override
+  String get revisionActionDelete => 'Удалена';
+
+  @override
+  String get revisionFieldAmount => 'Сумма';
+
+  @override
+  String get revisionFieldDate => 'Дата';
+
+  @override
+  String get revisionFieldKind => 'Вид операции';
+
+  @override
+  String get revisionFieldRate => 'Курс';
+
+  @override
+  String get revisionFieldComment => 'Комментарий';
+
+  @override
+  String get auditAssetTransactionTitle => 'Аудит операции';
+
+  @override
+  String revisionDiffLine(String field, String oldValue, String newValue) {
+    return '$field: было $oldValue, стало $newValue';
+  }
+
+  @override
+  String get revisionEmpty => 'Изменений пока нет.';
+
+  @override
+  String get transactionAuditAction => 'Открыть аудит';
 }

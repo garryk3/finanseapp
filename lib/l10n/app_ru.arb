@@ -1235,5 +1235,173 @@
   "transferErrorDestination": "Введите положительную сумму зачисления.",
   "@transferErrorDestination": {
     "description": "Ошибка суммы зачисления."
+  },
+  "transactionsSearchLabel": "Поиск операций",
+  "@transactionsSearchLabel": {
+    "description": "Поле поиска по комментарию."
+  },
+  "transactionsSearchHint": "Комментарий",
+  "@transactionsSearchHint": {
+    "description": "Подсказка поиска операций."
+  },
+  "transactionsSearchClear": "Очистить поиск",
+  "@transactionsSearchClear": {
+    "description": "Очистка поиска операций."
+  },
+  "transactionsFilterAll": "Все",
+  "@transactionsFilterAll": {
+    "description": "Все виды операций."
+  },
+  "transactionsFilterDeposit": "Пополнения",
+  "@transactionsFilterDeposit": {
+    "description": "Фильтр пополнений."
+  },
+  "transactionsFilterWithdrawal": "Снятия",
+  "@transactionsFilterWithdrawal": {
+    "description": "Фильтр снятий."
+  },
+  "transactionsFilterTransferOut": "Исходящие",
+  "@transactionsFilterTransferOut": {
+    "description": "Фильтр исходящих переводов."
+  },
+  "transactionsFilterTransferIn": "Входящие",
+  "@transactionsFilterTransferIn": {
+    "description": "Фильтр входящих переводов."
+  },
+  "transactionsFilterMonth": "Этот месяц",
+  "@transactionsFilterMonth": {
+    "description": "Фильтр текущего месяца."
+  },
+  "transactionsFilteredEmptyTitle": "Операций не найдено",
+  "@transactionsFilteredEmptyTitle": {
+    "description": "Заголовок пустого фильтра журнала."
+  },
+  "transactionsFilteredEmptyMessage": "Измените фильтры или сбросьте их.",
+  "@transactionsFilteredEmptyMessage": {
+    "description": "Пояснение пустого фильтра журнала."
+  },
+  "transactionsResetFilters": "Сбросить фильтры",
+  "@transactionsResetFilters": {
+    "description": "Сброс фильтров журнала."
+  },
+  "transactionsAdd": "Новая операция",
+  "@transactionsAdd": {
+    "description": "Создание операции из журнала."
+  },
+  "transactionsLoading": "Загрузка операций",
+  "@transactionsLoading": {
+    "description": "Семантика загрузки журнала."
+  },
+  "transactionKindTransferOut": "Перевод (исходящий)",
+  "@transactionKindTransferOut": {
+    "description": "Вид операции: исходящий перевод."
+  },
+  "transactionKindTransferIn": "Перевод (входящий)",
+  "@transactionKindTransferIn": {
+    "description": "Вид операции: входящий перевод."
+  },
+  "transactionDetailsTitle": "Операция",
+  "@transactionDetailsTitle": {
+    "description": "Заголовок деталей операции."
+  },
+  "transactionRevisionsTitle": "История изменений",
+  "@transactionRevisionsTitle": {
+    "description": "Заголовок ревизий операции."
+  },
+  "transactionDeleteTitle": "Удалить операцию?",
+  "@transactionDeleteTitle": {
+    "description": "Подтверждение удаления операции."
+  },
+  "transactionDeleteMessage": "Операция будет скрыта из журнала; история останется в аудите.",
+  "@transactionDeleteMessage": {
+    "description": "Пояснение удаления операции."
+  },
+  "transactionDeleted": "Операция удалена.",
+  "@transactionDeleted": {
+    "description": "Подтверждение удаления операции."
+  },
+  "transactionDeleteBlocked": "Связанную операцию перевода нельзя удалить отдельно.",
+  "@transactionDeleteBlocked": {
+    "description": "Ошибка удаления ноги перевода."
+  },
+  "transactionAmountRub": "В рублях",
+  "@transactionAmountRub": {
+    "description": "Рублёвый snapshot операции."
+  },
+  "transactionLinkedCashflow": "Связана с денежным потоком",
+  "@transactionLinkedCashflow": {
+    "description": "Метка связанной классификации."
+  },
+  "transactionCommentEmpty": "Без комментария",
+  "@transactionCommentEmpty": {
+    "description": "Пустой комментарий операции."
+  },
+  "revisionLabel": "Ревизия {number}",
+  "@revisionLabel": {
+    "description": "Заголовок ревизии.",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "revisionActionCreate": "Создана",
+  "@revisionActionCreate": {
+    "description": "Действие ревизии: создание."
+  },
+  "revisionActionEdit": "Изменена",
+  "@revisionActionEdit": {
+    "description": "Действие ревизии: изменение."
+  },
+  "revisionActionDelete": "Удалена",
+  "@revisionActionDelete": {
+    "description": "Действие ревизии: удаление."
+  },
+  "revisionFieldAmount": "Сумма",
+  "@revisionFieldAmount": {
+    "description": "Поле diff: сумма."
+  },
+  "revisionFieldDate": "Дата",
+  "@revisionFieldDate": {
+    "description": "Поле diff: дата."
+  },
+  "revisionFieldKind": "Вид операции",
+  "@revisionFieldKind": {
+    "description": "Поле diff: вид."
+  },
+  "revisionFieldRate": "Курс",
+  "@revisionFieldRate": {
+    "description": "Поле diff: курс."
+  },
+  "revisionFieldComment": "Комментарий",
+  "@revisionFieldComment": {
+    "description": "Поле diff: комментарий."
+  },
+  "auditAssetTransactionTitle": "Аудит операции",
+  "@auditAssetTransactionTitle": {
+    "description": "Заголовок аудита операции."
+  },
+  "revisionDiffLine": "{field}: было {oldValue}, стало {newValue}",
+  "@revisionDiffLine": {
+    "description": "Строка diff ревизии.",
+    "placeholders": {
+      "field": {
+        "type": "String"
+      },
+      "oldValue": {
+        "type": "String"
+      },
+      "newValue": {
+        "type": "String"
+      }
+    }
+  },
+  "revisionEmpty": "Изменений пока нет.",
+  "@revisionEmpty": {
+    "description": "Пустая история ревизий."
+  },
+  "transactionAuditAction": "Открыть аудит",
+  "@transactionAuditAction": {
+    "description": "Переход к истории ревизий операции."
   }
 }

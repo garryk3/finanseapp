@@ -11,6 +11,8 @@ import 'package:finanseapp/core/database/daos/settings_dao.dart';
 import 'package:finanseapp/core/database/daos/transactions_dao.dart';
 import 'package:finanseapp/core/database/daos/valuations_dao.dart';
 import 'package:finanseapp/core/features/assets/data/asset_repository_impl.dart';
+import 'package:finanseapp/core/features/audit/data/audit_repository_impl.dart';
+import 'package:finanseapp/core/features/audit/domain/audit_repository.dart';
 import 'package:finanseapp/core/features/transactions/data/asset_transaction_repository_impl.dart';
 import 'package:finanseapp/core/features/transactions/domain/asset_transaction_repository.dart';
 import 'package:finanseapp/core/features/assets/data/subgroup_repository_impl.dart';
@@ -69,6 +71,9 @@ Future<ServiceLocator> registerCoreServices(
   );
   locator.register<AssetTransactionRepository>(
     AssetTransactionRepositoryImpl(db),
+  );
+  locator.register<AuditRepository>(
+    AuditRepositoryImpl(db.auditDao, db.assetsDao),
   );
   locator.registerFactory<AssetsViewModel>(
     () => AssetsViewModel(
