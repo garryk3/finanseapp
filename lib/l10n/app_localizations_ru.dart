@@ -293,4 +293,129 @@ class AppLocalizationsRu extends AppLocalizations {
   String subgroupMovedAndDeleted(String target) {
     return 'Активы перенесены в «$target», справочник удалён.';
   }
+
+  @override
+  String get currenciesTitle => 'Валюты';
+
+  @override
+  String get currenciesBaseAction => 'Базовая валюта';
+
+  @override
+  String get currencyAdd => 'Новая валюта';
+
+  @override
+  String get currencyCodeLabel => 'Код (три заглавные буквы)';
+
+  @override
+  String get currencyNameLabel => 'Название';
+
+  @override
+  String get currencyFractionLabel => 'Знаков после запятой';
+
+  @override
+  String currencyFractionValue(int count) {
+    return 'Знаков: $count';
+  }
+
+  @override
+  String get currencyToggleEnable => 'Включить';
+
+  @override
+  String get currencyToggleDisable => 'Отключить';
+
+  @override
+  String get currencyRename => 'Переименовать';
+
+  @override
+  String get currencyDelete => 'Удалить';
+
+  @override
+  String currencyDeleteConfirmTitle(String code) {
+    return 'Удалить валюту «$code»?';
+  }
+
+  @override
+  String get currencyDeleteConfirmMessage =>
+      'Валюта не используется и будет удалена.';
+
+  @override
+  String get currencyErrorDuplicate => 'Валюта с таким названием уже есть.';
+
+  @override
+  String get currencyErrorCode => 'Код должен состоять из трёх заглавных букв.';
+
+  @override
+  String get currencyErrorInUse => 'Валюта используется или выбрана базовой.';
+
+  @override
+  String get currencyErrorRub => 'RUB нельзя отключить или удалить.';
+
+  @override
+  String get baseCurrencyTitle => 'Базовая валюта';
+
+  @override
+  String get baseCurrencySave => 'Сохранить базовую валюту';
+
+  @override
+  String get baseCurrencyCurrent => 'Текущая базовая';
+
+  @override
+  String get manualRateTitle => 'Ручной курс';
+
+  @override
+  String get manualRateLabel => 'Курс к рублю';
+
+  @override
+  String get manualRateHint => 'Например, 93,4567';
+
+  @override
+  String get manualRateInvalid => 'Введите положительный курс.';
+
+  @override
+  String get currencySaved => 'Валюта сохранена.';
+
+  @override
+  String get baseCurrencySaved => 'Базовая валюта изменена.';
+
+  @override
+  String get currencyFractionError => 'Введите число от 0 до 8.';
+
+  @override
+  String get currenciesEmptyTitle => 'Нет валют';
+
+  @override
+  String get currenciesEmptyMessage => 'Добавьте валюту или проверьте фильтры.';
+
+  @override
+  String get currencyActionsTooltip => 'Действия с валютой';
+
+  @override
+  String get currencyNameRequired => 'Введите название валюты.';
+
+  @override
+  String get currencyCodeDuplicate => 'Валюта с таким кодом уже есть.';
+
+  @override
+  String get currencyDisabledLabel => 'Отключена';
+
+  @override
+  String get currencyDeleted => 'Валюта удалена.';
+
+  @override
+  String get currencyToggled => 'Настройки валюты обновлены.';
+
+  @override
+  String get baseCurrencyHint =>
+      'Итоги и дашборд будут пересчитаны в выбранной валюте; сохранённые суммы в RUB не меняются.';
+
+  @override
+  String get baseCurrencyEmpty => 'Нет включённых валют для выбора.';
+
+  @override
+  String currencyRenameNamed(String code) {
+    return 'Переименовать валюту «$code»';
+  }
+
+  @override
+  String get currencyFractionRangeHint => 'От 0 до 8';
 }

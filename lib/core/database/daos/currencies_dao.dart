@@ -33,13 +33,18 @@ class CurrenciesDao extends DatabaseAccessor<AppDatabase>
   Future<CurrencyRow?> find(String code) =>
       (select(currencies)..where((c) => c.code.equals(code))).getSingleOrNull();
 
-  Future<int> countReferences(String code) async {
+  /// Ссылки на валюту; кэш курсов не считается использованием (BR-C-4),
+  /// поэтому для disable/delete передаётся `includeRates: false`.
+  Future<int> countReferences(String code, {bool includeRates = true}) async {
+    final ratesSql = includeRates
+        ? '(SELECT COUNT(*) FROM exchange_rates WHERE currency_code = ?1) + '
+        : '';
     final result = await customSelect(
       'SELECT '
       '(SELECT COUNT(*) FROM assets WHERE currency_code = ?1) + '
       '(SELECT COUNT(*) FROM cashflow_entries WHERE currency_code = ?1) + '
       '(SELECT COUNT(*) FROM goals WHERE currency_code = ?1) + '
-      '(SELECT COUNT(*) FROM exchange_rates WHERE currency_code = ?1) + '
+      '$ratesSql'
       '(SELECT COUNT(*) FROM app_settings '
       "WHERE key = 'baseCurrencyCode' AND value = ?1) "
       'AS total',
@@ -58,6 +63,12 @@ class CurrenciesDao extends DatabaseAccessor<AppDatabase>
           );
         }
         final trimmed = _requireName(name);
+        if (await find(code) != null) {
+          throw const DomainException(
+            DomainErrorCode.conflict,
+            fieldErrors: {'code': 'validationCurrencyDuplicate'},
+          );
+        }
         await _requireCurrencyUnique(trimmed.normalized);
         if (fractionDigits < 0 || fractionDigits > 8) {
           throw const DomainException(
@@ -102,7 +113,7 @@ class CurrenciesDao extends DatabaseAccessor<AppDatabase>
         fieldErrors: {'code': 'validationRubProtected'},
       );
     }
-    if (!value && await countReferences(code) > 0) {
+    if (!value && await countReferences(code, includeRates: false) > 0) {
       throw const DomainException(
         DomainErrorCode.conflict,
         fieldErrors: {'code': 'validationCurrencyInUse'},
@@ -127,12 +138,16 @@ class CurrenciesDao extends DatabaseAccessor<AppDatabase>
         fieldErrors: {'code': 'validationRubProtected'},
       );
     }
-    if (await countReferences(code) > 0) {
+    if (await countReferences(code, includeRates: false) > 0) {
       throw const DomainException(
         DomainErrorCode.conflict,
         fieldErrors: {'code': 'validationCurrencyInUse'},
       );
     }
+    // Кэш курсов не блокирует удаление: чистим его в той же транзакции.
+    await (delete(
+      exchangeRates,
+    )..where((r) => r.currencyCode.equals(code))).go();
     final deleted = await (delete(
       currencies,
     )..where((c) => c.code.equals(code))).go();
@@ -151,12 +166,14 @@ class CurrenciesDao extends DatabaseAccessor<AppDatabase>
           ))
           .getSingleOrNull();
 
-  /// Ручной ввод курса: RUB не кэшируется, курс должен быть положительным.
-  Future<ExchangeRateRow> saveManualRate(
-    String currencyCode,
-    LocalDate date,
-    Decimal rateToRub,
-  ) => transaction(() async {
+  /// Сохранённый/ручной курс, связанный с операцией или оценкой, неизменяем
+  /// (BR-C-3); ручной курс не перезаписывается ответом ЦБ.
+  Future<ExchangeRateRow> saveRate({
+    required String currencyCode,
+    required LocalDate date,
+    required Decimal rateToRub,
+    required ExchangeRateSource source,
+  }) => transaction(() async {
     if (currencyCode == 'RUB') {
       throw const DomainException(
         DomainErrorCode.validation,
@@ -176,30 +193,74 @@ class CurrenciesDao extends DatabaseAccessor<AppDatabase>
       );
     }
     final existing = await findRate(currencyCode, date);
-    final now = attachedDatabase.clock();
-    if (existing == null) {
-      final id = await into(exchangeRates).insert(
-        ExchangeRatesCompanion.insert(
-          currencyCode: currencyCode,
-          date: date,
-          rateToRub: rateToRub,
-          source: ExchangeRateSource.manual,
-          fetchedAt: now,
+    if (existing != null) {
+      if (existing.source == ExchangeRateSource.manual &&
+          source == ExchangeRateSource.cbr) {
+        return existing;
+      }
+      if (await countRateReferences(currencyCode, date) > 0) {
+        throw const DomainException(
+          DomainErrorCode.conflict,
+          fieldErrors: {'rate': 'validationRateImmutable'},
+        );
+      }
+      await (update(
+        exchangeRates,
+      )..where((r) => r.id.equals(existing.id))).write(
+        ExchangeRatesCompanion(
+          rateToRub: Value(rateToRub),
+          source: Value(source),
+          fetchedAt: Value(attachedDatabase.clock()),
         ),
       );
-      return (select(exchangeRates)..where((r) => r.id.equals(id))).getSingle();
+      return (select(
+        exchangeRates,
+      )..where((r) => r.id.equals(existing.id))).getSingle();
     }
-    await (update(exchangeRates)..where((r) => r.id.equals(existing.id))).write(
-      ExchangeRatesCompanion(
-        rateToRub: Value(rateToRub),
-        source: const Value(ExchangeRateSource.manual),
-        fetchedAt: Value(now),
+
+    final id = await into(exchangeRates).insert(
+      ExchangeRatesCompanion.insert(
+        currencyCode: currencyCode,
+        date: date,
+        rateToRub: rateToRub,
+        source: source,
+        fetchedAt: attachedDatabase.clock(),
       ),
     );
-    return (select(
-      exchangeRates,
-    )..where((r) => r.id.equals(existing.id))).getSingle();
+    return (select(exchangeRates)..where((r) => r.id.equals(id))).getSingle();
   });
+
+  /// Сколько операций/оценок используют курс валюты на дату.
+  Future<int> countRateReferences(String currencyCode, LocalDate date) async {
+    final row = await customSelect(
+      'SELECT '
+      '(SELECT COUNT(*) FROM asset_transactions t '
+      'JOIN assets a ON a.id = t.asset_id '
+      'WHERE a.currency_code = ?1 AND t.occurred_on = ?2) + '
+      '(SELECT COUNT(*) FROM cashflow_entries '
+      'WHERE currency_code = ?1 AND occurred_on = ?2) + '
+      '(SELECT COUNT(*) FROM asset_valuations v '
+      'JOIN assets a ON a.id = v.asset_id '
+      'WHERE a.currency_code = ?1 AND v.effective_on = ?2) AS total',
+      variables: [
+        Variable<String>(currencyCode),
+        Variable<String>(date.toIsoString()),
+      ],
+    ).getSingle();
+    return row.read<int>('total');
+  }
+
+  /// Ручной ввод курса: RUB не кэшируется, курс должен быть положительным.
+  Future<ExchangeRateRow> saveManualRate(
+    String currencyCode,
+    LocalDate date,
+    Decimal rateToRub,
+  ) => saveRate(
+    currencyCode: currencyCode,
+    date: date,
+    rateToRub: rateToRub,
+    source: ExchangeRateSource.manual,
+  );
 
   static ({String display, String normalized}) _requireName(String name) {
     final display = name.trim().replaceAll(RegExp(r'\s+'), ' ');

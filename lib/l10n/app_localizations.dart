@@ -609,6 +609,240 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Активы перенесены в «{target}», справочник удалён.'**
   String subgroupMovedAndDeleted(String target);
+
+  /// Заголовок справочника валют.
+  ///
+  /// In ru, this message translates to:
+  /// **'Валюты'**
+  String get currenciesTitle;
+
+  /// Кнопка перехода к выбору базовой валюты.
+  ///
+  /// In ru, this message translates to:
+  /// **'Базовая валюта'**
+  String get currenciesBaseAction;
+
+  /// Действие создания валюты.
+  ///
+  /// In ru, this message translates to:
+  /// **'Новая валюта'**
+  String get currencyAdd;
+
+  /// Поле кода валюты.
+  ///
+  /// In ru, this message translates to:
+  /// **'Код (три заглавные буквы)'**
+  String get currencyCodeLabel;
+
+  /// Поле названия валюты.
+  ///
+  /// In ru, this message translates to:
+  /// **'Название'**
+  String get currencyNameLabel;
+
+  /// Поле числа дробных знаков.
+  ///
+  /// In ru, this message translates to:
+  /// **'Знаков после запятой'**
+  String get currencyFractionLabel;
+
+  /// Подпись числа дробных знаков.
+  ///
+  /// In ru, this message translates to:
+  /// **'Знаков: {count}'**
+  String currencyFractionValue(int count);
+
+  /// Действие включения валюты.
+  ///
+  /// In ru, this message translates to:
+  /// **'Включить'**
+  String get currencyToggleEnable;
+
+  /// Действие отключения валюты.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отключить'**
+  String get currencyToggleDisable;
+
+  /// Действие переименования валюты.
+  ///
+  /// In ru, this message translates to:
+  /// **'Переименовать'**
+  String get currencyRename;
+
+  /// Действие удаления валюты.
+  ///
+  /// In ru, this message translates to:
+  /// **'Удалить'**
+  String get currencyDelete;
+
+  /// Подтверждение удаления валюты.
+  ///
+  /// In ru, this message translates to:
+  /// **'Удалить валюту «{code}»?'**
+  String currencyDeleteConfirmTitle(String code);
+
+  /// Пояснение удаления валюты.
+  ///
+  /// In ru, this message translates to:
+  /// **'Валюта не используется и будет удалена.'**
+  String get currencyDeleteConfirmMessage;
+
+  /// Ошибка дубликата валюты.
+  ///
+  /// In ru, this message translates to:
+  /// **'Валюта с таким названием уже есть.'**
+  String get currencyErrorDuplicate;
+
+  /// Ошибка формата кода.
+  ///
+  /// In ru, this message translates to:
+  /// **'Код должен состоять из трёх заглавных букв.'**
+  String get currencyErrorCode;
+
+  /// Ошибка удаления/отключения используемой валюты.
+  ///
+  /// In ru, this message translates to:
+  /// **'Валюта используется или выбрана базовой.'**
+  String get currencyErrorInUse;
+
+  /// Ошибка защиты RUB.
+  ///
+  /// In ru, this message translates to:
+  /// **'RUB нельзя отключить или удалить.'**
+  String get currencyErrorRub;
+
+  /// Заголовок выбора базовой валюты.
+  ///
+  /// In ru, this message translates to:
+  /// **'Базовая валюта'**
+  String get baseCurrencyTitle;
+
+  /// Кнопка сохранения базовой валюты.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сохранить базовую валюту'**
+  String get baseCurrencySave;
+
+  /// Подпись текущей базовой валюты.
+  ///
+  /// In ru, this message translates to:
+  /// **'Текущая базовая'**
+  String get baseCurrencyCurrent;
+
+  /// Заголовок диалога ручного курса.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ручной курс'**
+  String get manualRateTitle;
+
+  /// Поле ручного курса.
+  ///
+  /// In ru, this message translates to:
+  /// **'Курс к рублю'**
+  String get manualRateLabel;
+
+  /// Подсказка формата курса.
+  ///
+  /// In ru, this message translates to:
+  /// **'Например, 93,4567'**
+  String get manualRateHint;
+
+  /// Ошибка ручного курса.
+  ///
+  /// In ru, this message translates to:
+  /// **'Введите положительный курс.'**
+  String get manualRateInvalid;
+
+  /// Подтверждение сохранения валюты.
+  ///
+  /// In ru, this message translates to:
+  /// **'Валюта сохранена.'**
+  String get currencySaved;
+
+  /// Подтверждение смены базовой валюты.
+  ///
+  /// In ru, this message translates to:
+  /// **'Базовая валюта изменена.'**
+  String get baseCurrencySaved;
+
+  /// Ошибка числа дробных знаков валюты.
+  ///
+  /// In ru, this message translates to:
+  /// **'Введите число от 0 до 8.'**
+  String get currencyFractionError;
+
+  /// Заголовок пустого списка валют.
+  ///
+  /// In ru, this message translates to:
+  /// **'Нет валют'**
+  String get currenciesEmptyTitle;
+
+  /// Пояснение пустого списка валют.
+  ///
+  /// In ru, this message translates to:
+  /// **'Добавьте валюту или проверьте фильтры.'**
+  String get currenciesEmptyMessage;
+
+  /// Подсказка меню строки валюты.
+  ///
+  /// In ru, this message translates to:
+  /// **'Действия с валютой'**
+  String get currencyActionsTooltip;
+
+  /// Ошибка пустого названия валюты.
+  ///
+  /// In ru, this message translates to:
+  /// **'Введите название валюты.'**
+  String get currencyNameRequired;
+
+  /// Ошибка дубликата кода валюты.
+  ///
+  /// In ru, this message translates to:
+  /// **'Валюта с таким кодом уже есть.'**
+  String get currencyCodeDuplicate;
+
+  /// Статус отключённой валюты в списке.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отключена'**
+  String get currencyDisabledLabel;
+
+  /// Подтверждение удаления валюты.
+  ///
+  /// In ru, this message translates to:
+  /// **'Валюта удалена.'**
+  String get currencyDeleted;
+
+  /// Подтверждение включения/отключения валюты.
+  ///
+  /// In ru, this message translates to:
+  /// **'Настройки валюты обновлены.'**
+  String get currencyToggled;
+
+  /// Пояснение смены базовой валюты.
+  ///
+  /// In ru, this message translates to:
+  /// **'Итоги и дашборд будут пересчитаны в выбранной валюте; сохранённые суммы в RUB не меняются.'**
+  String get baseCurrencyHint;
+
+  /// Пустое состояние выбора базовой валюты.
+  ///
+  /// In ru, this message translates to:
+  /// **'Нет включённых валют для выбора.'**
+  String get baseCurrencyEmpty;
+
+  /// Заголовок переименования валюты с кодом.
+  ///
+  /// In ru, this message translates to:
+  /// **'Переименовать валюту «{code}»'**
+  String currencyRenameNamed(String code);
+
+  /// Подсказка диапазона дробных знаков.
+  ///
+  /// In ru, this message translates to:
+  /// **'От 0 до 8'**
+  String get currencyFractionRangeHint;
 }
 
 class _AppLocalizationsDelegate

@@ -467,7 +467,7 @@
   widget font 1.3/dark/error states и общий DoD. Перед PR спросить о e2e.
 - **Предлагаемый commit:** `task/04.1: добавить банки и брокеров`.
 
-### 4.2 Валюты, точные курсы ЦБ и ручной fallback — [ ]
+### 4.2 Валюты, точные курсы ЦБ и ручной fallback — [x] 2026-11-18
 
 - **Приоритет/зависимости:** P1; после 4.1. **BR:** C-1…5,7…8, VAL-3…5.
 - **Files:** Create currencies data/logic/ui files из file_structure, включая
@@ -483,6 +483,31 @@
   response Date другой даты → rateUnavailable и никакой ближайший курс; offline+empty cache
   требует manual; manual не перезаписывается CBR, used rate conflict; RUB не вызывает HTTP;
   `usd`→USD duplicate reject; used/base/RUB disable/delete reject.
+- **Рабочий план (2026-11-18):**
+  - **Data:** `CbrXmlParser` (xml, `Value/Nominal` через Decimal, дата документа), `CbrExchangeRateClient`
+    (http.Client, exact-date URL, wrong date → rateUnavailable), `CurrencyRepositoryImpl`,
+    `ExchangeRateRepositoryImpl` (find/saveManual/fetchFromCbr), `SettingsRepositoryImpl` (base
+    currency для экрана выбора; 10.3 расширит). DAO: `saveRate(source, fetchedAt)` и проверка
+    «курс использован» (операции/оценки на дату+валюту) для BR-C-3; manual не перезаписывается CBR.
+  - **Logic:** `ResolveExchangeRate.call` (RUB — без HTTP, manual приоритетнее кэша/сети),
+    `ManageBaseCurrency` (setBaseCurrency через SettingsRepository).
+  - **UI:** `/more/currencies` (список, enable/disable, базовый маркер, add/rename/delete),
+    `/more/currencies/new` (форма), `/more/currencies/base` (radio enabled), reusable
+    `ManualRateDialog` (для форм 5.x). VM factory + dispose, l10n.
+  - **Тесты:** фикстуры CBR (USD Value 93,4567; HKD Nominal 10; wrong date), parser/client на
+    MockClient, repo protections (RUB/base/used), manual immutable vs CBR, resolver RUB без HTTP,
+    offline+empty → rateUnavailable, UI smoke/font.
+- **Итог:** `CbrXmlParser` (Value/Nominal через Decimal, точная дата), `CbrExchangeRateClient`
+  (HTTP → networkUnavailable, latin1 для windows-1251), `CurrencyRepositoryImpl`,
+  `ExchangeRateRepositoryImpl`, `SettingsRepositoryImpl`, `ResolveExchangeRate`
+  (RUB без сети, manual > кэш > ЦБ), `ManageBaseCurrency`; DAO: `saveRate`, immutable
+  used rate (BR-C-3), manual не перетирается ЦБ; экраны currencies/new/base и
+  `ManualRateDialog`; DI + routes + l10n. Тесты: 7 parser/client, репозитории/protections,
+  resolver, UI (список/база/ручной курс).
+- **Дизайн-ревью (закрыто):** видимый статус «Отключена» и feedback после toggle/delete;
+  защита RUB/используемых валют до destructive-confirm (объясняющий диалог); inline-ошибки
+  переименования и пустого названия; Retry/skeleton/empty на экране базовой валюты;
+  отдельные тексты пустого списка, tooltip и подсказка базовой валюты.
 - **Генерация:** pub get, `flutter gen-l10n`; schema dump не меняется без table changes.
 - **DoD:** network tests используют fake client, base change затрагивает только presentation;
   wrong date/offline/manual widget states pass; общий DoD. Перед PR спросить о e2e.
