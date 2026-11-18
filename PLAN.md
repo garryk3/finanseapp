@@ -749,6 +749,22 @@
 - **TDD:** deposit 100 USD×90=9000 RUB snapshot; withdrawal >balance выбрасывает
   negativeBalance и linked cashflow отсутствует; category kind mismatch/future date/zero
   reject; edit суммы обновляет обе projections и revisionNo; связь unique; double Save один call.
+- **Рабочий план (2026-11-18):**
+  - **Domain:** `AssetTransactionDraft.classification` (`CashflowKind` + categoryId) —
+    только для счетов; deposit↔income, withdrawal↔expense.
+  - **Data:** `AssetTransactionRepositoryImpl` поверх `AppDatabase`: create/revise/softDelete
+    в одной DB-транзакции с `CashflowDao` (linked entry: `accountId`, `affectsBalance=true`,
+    `assetTransactionId`, original/RUB snapshot из операции); find link по
+    `assetTransactionId`; DAO `watchFiltered`, `reviseLinked`, `findLinked`; transfer-методы
+    делегируют существующие DAO (UI — 6.2).
+  - **Logic:** `save_asset_transaction.dart` — одна команда create/update/delete
+    (классификация опциональна), amountRub через `MoneyMath`, kind/category validation.
+  - **UI:** форма `/transactions/new` (актив счёт/инвестиция, kind deposit/withdrawal,
+    сумма, дата, курс RUB/ЦБ/ручной, комментарий, опция «Доход/Расход» с категорией для
+    счёта), VM с per-field ошибками и защитой от двойного Save; CTA с деталей счёта/инвестиции.
+  - **Тесты:** USD 100×90 snapshot; withdrawal > balance → negativeBalance без cashflow;
+    kind mismatch/zero/future; edit суммы обновляет обе проекции и revisionNo; повторный
+    Save не дублирует; property запрещён; сбой cashflow откатывает tx+revision.
 - **Генерация:** gen-l10n; build_runner/schema dump при DAO changes.
 - **DoD:** property запрещён, amountRub округлён один раз, crash при cashflow insert откатывает
   asset tx+revision; общий DoD. Перед PR спросить о e2e.
