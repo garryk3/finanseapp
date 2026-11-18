@@ -259,6 +259,29 @@ void main() {
     expect(draft.destinationAmount.minorUnits, 10000);
   });
 
+  test('нулевая сумма и будущая дата отклоняются', () async {
+    final transactions = FakeTransactions();
+    final vm = _viewModel(transactions);
+    await vm.load();
+
+    final zero = await vm.save(
+      fromId: 1,
+      toId: 2,
+      amount: const Money(minorUnits: 0, currencyCode: 'RUB'),
+      occurredOn: LocalDate(2026, 1, 3),
+    );
+    expect(zero, isA<Failure<int>>());
+
+    final future = await vm.save(
+      fromId: 1,
+      toId: 2,
+      amount: const Money(minorUnits: 1000, currencyCode: 'RUB'),
+      occurredOn: LocalDate(2030, 1, 1),
+    );
+    expect(future, isA<Failure<int>>());
+    expect(transactions.transfers, isEmpty);
+  });
+
   test('одинаковые счета и отрицательный баланс отклоняются', () async {
     final vm = _viewModel(FakeTransactions());
     await vm.load();

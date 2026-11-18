@@ -1754,6 +1754,24 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Нужно минимум два счёта.'**
   String get transferNoAccounts;
+
+  /// Подсказка курса по суммам перевода.
+  ///
+  /// In ru, this message translates to:
+  /// **'Курс по введённым суммам: 1 {from} ≈ {rate} {to}'**
+  String transferRateHint(String from, String rate, String to);
+
+  /// Пояснение состояния с одним счётом.
+  ///
+  /// In ru, this message translates to:
+  /// **'Добавьте второй счёт, чтобы переводить между счетами.'**
+  String get transferNeedAccountsMessage;
+
+  /// Ошибка суммы зачисления.
+  ///
+  /// In ru, this message translates to:
+  /// **'Введите положительную сумму зачисления.'**
+  String get transferErrorDestination;
 }
 
 class _AppLocalizationsDelegate

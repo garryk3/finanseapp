@@ -1215,5 +1215,28 @@
   "transferNoAccounts": "Нужно минимум два счёта.",
   "@transferNoAccounts": {
     "description": "Пустое состояние выбора счетов."
+  },
+  "transferRateHint": "Курс по введённым суммам: 1 {from} ≈ {rate} {to}",
+  "@transferRateHint": {
+    "description": "Подсказка курса по суммам перевода.",
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "rate": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "transferNeedAccountsMessage": "Добавьте второй счёт, чтобы переводить между счетами.",
+  "@transferNeedAccountsMessage": {
+    "description": "Пояснение состояния с одним счётом."
+  },
+  "transferErrorDestination": "Введите положительную сумму зачисления.",
+  "@transferErrorDestination": {
+    "description": "Ошибка суммы зачисления."
   }
 }

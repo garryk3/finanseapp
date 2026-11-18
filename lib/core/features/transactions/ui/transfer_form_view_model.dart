@@ -101,12 +101,31 @@ class TransferFormViewModel {
         ),
       );
     }
-    if (amount.minorUnits <= 0 ||
-        (destinationAmount != null && destinationAmount.minorUnits <= 0)) {
+    if (amount.minorUnits <= 0) {
       return const Failure(
         DomainException(
           DomainErrorCode.validation,
           fieldErrors: {'amount': 'validationAmountPositive'},
+        ),
+      );
+    }
+    if (destinationAmount != null && destinationAmount.minorUnits <= 0) {
+      return const Failure(
+        DomainException(
+          DomainErrorCode.validation,
+          fieldErrors: {
+            'destinationAmount': 'validationDestinationAmountPositive',
+          },
+        ),
+      );
+    }
+    if (from.currencyCode != to.currencyCode && destinationAmount == null) {
+      return const Failure(
+        DomainException(
+          DomainErrorCode.validation,
+          fieldErrors: {
+            'destinationAmount': 'validationDestinationAmountRequired',
+          },
         ),
       );
     }

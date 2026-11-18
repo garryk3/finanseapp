@@ -182,8 +182,11 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                   ],
                 ),
               if (!isArchived && isAccount)
+                const SizedBox(height: AppSpacing.sm),
+              if (!isArchived && isAccount)
                 AppButton(
                   label: l10n.transferAction,
+                  icon: Icons.swap_horiz,
                   variant: AppButtonVariant.text,
                   onPressed: vm.busy.value ? null : () => _transfer(asset.id),
                 ),

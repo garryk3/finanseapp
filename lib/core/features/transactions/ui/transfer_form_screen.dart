@@ -1,5 +1,7 @@
+import 'package:finanseapp/app/routes.dart';
 import 'package:finanseapp/app/theme/app_spacing.dart';
 import 'package:finanseapp/core/domain/common/local_date.dart';
+import 'package:finanseapp/core/domain/common/money_math.dart';
 import 'package:finanseapp/core/domain/common/result.dart';
 import 'package:finanseapp/core/features/assets/ui/account_form_view_model.dart';
 import 'package:finanseapp/core/features/transactions/ui/transfer_form_view_model.dart';
@@ -9,15 +11,16 @@ import 'package:finanseapp/l10n/app_localizations.dart';
 import 'package:finanseapp/uikit/app_amount_field.dart';
 import 'package:finanseapp/uikit/app_button.dart';
 import 'package:finanseapp/uikit/app_date_picker_field.dart';
+import 'package:finanseapp/uikit/app_empty_state.dart';
 import 'package:finanseapp/uikit/app_error_state.dart';
 import 'package:finanseapp/uikit/app_form_section.dart';
 import 'package:finanseapp/uikit/app_list_view.dart';
 import 'package:finanseapp/uikit/app_scaffold.dart';
 import 'package:finanseapp/uikit/app_select.dart';
 import 'package:finanseapp/uikit/app_spinner.dart';
-import 'package:finanseapp/uikit/app_text.dart';
 import 'package:finanseapp/uikit/app_text_field.dart';
-import 'package:flutter/widgets.dart';
+import 'package:go_router/go_router.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
 /// Перевод между счетами (6.2).
@@ -153,19 +156,46 @@ class _TransferFormScreenState extends State<TransferFormScreen> {
         _ => l10n.errorStateMessage,
       };
       setState(() {
-        switch (key) {
-          case 'validationTransferSameAccount':
-            _toError = message;
-          case 'validationAmountPositive':
+        if (result.error.code == DomainErrorCode.negativeBalance) {
+          _amountError = message;
+        } else if (result.error.code == DomainErrorCode.rateUnavailable) {
+          if (crossCurrency) {
+            _destinationError = message;
+          } else {
             _amountError = message;
-          default:
-            _formError = message;
+          }
+        } else {
+          switch (key) {
+            case 'validationTransferSameAccount':
+              _toError = message;
+            case 'validationAmountPositive':
+              _amountError = message;
+            case 'validationDestinationAmountPositive':
+              _destinationError = message;
+            default:
+              _formError = message;
+          }
         }
       });
       return;
     }
     final navigator = Navigator.maybeOf(context);
     if (navigator?.canPop() ?? false) navigator!.pop(true);
+  }
+
+  Future<void> _addAccount() async {
+    await context.push(AppRoutes.accountNew);
+    if (!mounted) return;
+    await widget.viewModel.load();
+    if (!mounted) return;
+    setState(() {
+      final accounts = widget.viewModel.accounts.value;
+      _fromId = accounts.firstOrNull?.id;
+      _toId = accounts
+          .where((account) => account.id != _fromId)
+          .firstOrNull
+          ?.id;
+    });
   }
 
   @override
@@ -188,6 +218,15 @@ class _TransferFormScreenState extends State<TransferFormScreen> {
           if (!_loaded || _date == null) {
             return Center(child: AppSpinner(semanticLabel: l10n.commonLoading));
           }
+          if (vm.accounts.value.length < 2) {
+            return AppEmptyState(
+              icon: Icons.account_balance_wallet_outlined,
+              title: l10n.transferNoAccounts,
+              message: l10n.transferNeedAccountsMessage,
+              actionLabel: l10n.assetsAddAccount,
+              onAction: _addAccount,
+            );
+          }
           final from = _fromId == null ? null : vm.accountById(_fromId!);
           final to = _toId == null ? null : vm.accountById(_toId!);
           final fromCurrency = from == null
@@ -198,11 +237,34 @@ class _TransferFormScreenState extends State<TransferFormScreen> {
               from != null &&
               to != null &&
               from.currencyCode != to.currencyCode;
+          final amount = fromCurrency == null
+              ? null
+              : parseOpeningAmount(_amount.text, fromCurrency);
+          final destination = crossCurrency && toCurrency != null
+              ? parseOpeningAmount(_destination.text, toCurrency)
+              : null;
+          String? rateHint;
+          if (crossCurrency &&
+              amount != null &&
+              destination != null &&
+              amount.minorUnits > 0 &&
+              destination.minorUnits > 0) {
+            final fromDecimal = MoneyMath.toDecimal(amount, fromCurrency!);
+            final toDecimal = MoneyMath.toDecimal(destination, toCurrency!);
+            final rate = toDecimal.toDouble() / fromDecimal.toDouble();
+            rateHint = l10n.transferRateHint(
+              fromCurrency.code,
+              rate.toStringAsFixed(4),
+              toCurrency.code,
+            );
+          }
           return AppListView(
             padding: const EdgeInsets.all(AppSpacing.md),
             children: [
               AppFormSection(
-                title: l10n.transferFormTitle,
+                title: from != null && to != null
+                    ? '${from.name} → ${to.name}'
+                    : l10n.transferFormTitle,
                 errorText: _formError,
                 children: [
                   AppSelect<int>(
@@ -222,6 +284,7 @@ class _TransferFormScreenState extends State<TransferFormScreen> {
                       _toError = null;
                       _amountError = null;
                       _destinationError = null;
+                      _destination.clear();
                       if (value == _toId) {
                         _toId = vm.accounts.value
                             .where((account) => account.id != value)
@@ -236,21 +299,21 @@ class _TransferFormScreenState extends State<TransferFormScreen> {
                     value: _toId,
                     items: [
                       for (final account in vm.accounts.value)
-                        AppSelectItem(
-                          value: account.id,
-                          label: account.name,
-                          subtitle: account.currencyCode,
-                        ),
+                        if (account.id != _fromId)
+                          AppSelectItem(
+                            value: account.id,
+                            label: account.name,
+                            subtitle: account.currencyCode,
+                          ),
                     ],
                     onChanged: (value) => setState(() {
                       _toId = value;
                       _toError = null;
                       _destinationError = null;
+                      _destination.clear();
                     }),
                     errorText: _toError,
                   ),
-                  if (vm.accounts.value.length < 2)
-                    AppText(l10n.transferNoAccounts),
                   AppAmountField(
                     controller: _amount,
                     label: l10n.transferAmountLabel,
@@ -266,6 +329,7 @@ class _TransferFormScreenState extends State<TransferFormScreen> {
                       currencySuffix: toCurrency?.code ?? 'RUB',
                       maxFractionDigits: toCurrency?.fractionDigits ?? 2,
                       errorText: _destinationError,
+                      helperText: rateHint,
                       onChanged: (_) =>
                           setState(() => _destinationError = null),
                     ),

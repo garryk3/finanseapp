@@ -909,4 +909,17 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get transferNoAccounts => 'Нужно минимум два счёта.';
+
+  @override
+  String transferRateHint(String from, String rate, String to) {
+    return 'Курс по введённым суммам: 1 $from ≈ $rate $to';
+  }
+
+  @override
+  String get transferNeedAccountsMessage =>
+      'Добавьте второй счёт, чтобы переводить между счетами.';
+
+  @override
+  String get transferErrorDestination =>
+      'Введите положительную сумму зачисления.';
 }

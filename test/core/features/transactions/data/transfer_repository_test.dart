@@ -61,6 +61,45 @@ void main() {
     );
   });
 
+  test('кросс-валютный перевод пишет независимые RUB snapshot', () async {
+    final usdId = await createAccount(
+      db,
+      name: 'USD',
+      currencyCode: 'USD',
+      openingValueMinor: 100000,
+    );
+    final eurId = await createAccount(
+      db,
+      name: 'EUR',
+      currencyCode: 'EUR',
+      openingValueMinor: 0,
+    );
+
+    await repository.transfer(
+      TransferDraft(
+        fromAccountId: usdId,
+        toAccountId: eurId,
+        amount: const Money(minorUnits: 1000, currencyCode: 'USD'),
+        destinationAmount: const Money(minorUnits: 900, currencyCode: 'EUR'),
+        occurredOn: LocalDate(2026, 1, 2),
+        fromRateToRub: Decimal.fromInt(90),
+        toRateToRub: Decimal.fromInt(100),
+      ),
+    );
+
+    final legs = await db.transactionsDao.allRows();
+    final out = legs.firstWhere(
+      (leg) => leg.kind == AssetTransactionKind.transferOut,
+    );
+    final incoming = legs.firstWhere(
+      (leg) => leg.kind == AssetTransactionKind.transferIn,
+    );
+    expect(out.amountRubMinor, 90000);
+    expect(incoming.amountRubMinor, 90000);
+    expect((await assets.getById(usdId)).currentValue.minorUnits, 99000);
+    expect((await assets.getById(eurId)).currentValue.minorUnits, 900);
+  });
+
   test('одинаковые счета и нехватка средств отклоняются без следов', () async {
     await expectLater(
       repository.transfer(
