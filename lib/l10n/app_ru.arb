@@ -509,5 +509,58 @@
   "currencyFractionError": "Введите число от 0 до 8.",
   "@currencyFractionError": {
     "description": "Ошибка числа дробных знаков валюты."
+  },
+  "currenciesEmptyTitle": "Нет валют",
+  "@currenciesEmptyTitle": {
+    "description": "Заголовок пустого списка валют."
+  },
+  "currenciesEmptyMessage": "Добавьте валюту или проверьте фильтры.",
+  "@currenciesEmptyMessage": {
+    "description": "Пояснение пустого списка валют."
+  },
+  "currencyActionsTooltip": "Действия с валютой",
+  "@currencyActionsTooltip": {
+    "description": "Подсказка меню строки валюты."
+  },
+  "currencyNameRequired": "Введите название валюты.",
+  "@currencyNameRequired": {
+    "description": "Ошибка пустого названия валюты."
+  },
+  "currencyCodeDuplicate": "Валюта с таким кодом уже есть.",
+  "@currencyCodeDuplicate": {
+    "description": "Ошибка дубликата кода валюты."
+  },
+  "currencyDisabledLabel": "Отключена",
+  "@currencyDisabledLabel": {
+    "description": "Статус отключённой валюты в списке."
+  },
+  "currencyDeleted": "Валюта удалена.",
+  "@currencyDeleted": {
+    "description": "Подтверждение удаления валюты."
+  },
+  "currencyToggled": "Настройки валюты обновлены.",
+  "@currencyToggled": {
+    "description": "Подтверждение включения/отключения валюты."
+  },
+  "baseCurrencyHint": "Итоги и дашборд будут пересчитаны в выбранной валюте; сохранённые суммы в RUB не меняются.",
+  "@baseCurrencyHint": {
+    "description": "Пояснение смены базовой валюты."
+  },
+  "baseCurrencyEmpty": "Нет включённых валют для выбора.",
+  "@baseCurrencyEmpty": {
+    "description": "Пустое состояние выбора базовой валюты."
+  },
+  "currencyRenameNamed": "Переименовать валюту «{code}»",
+  "@currencyRenameNamed": {
+    "description": "Заголовок переименования валюты с кодом.",
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "currencyFractionRangeHint": "От 0 до 8",
+  "@currencyFractionRangeHint": {
+    "description": "Подсказка диапазона дробных знаков."
   }
 }

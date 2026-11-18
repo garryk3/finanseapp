@@ -504,6 +504,10 @@
   used rate (BR-C-3), manual не перетирается ЦБ; экраны currencies/new/base и
   `ManualRateDialog`; DI + routes + l10n. Тесты: 7 parser/client, репозитории/protections,
   resolver, UI (список/база/ручной курс).
+- **Дизайн-ревью (закрыто):** видимый статус «Отключена» и feedback после toggle/delete;
+  защита RUB/используемых валют до destructive-confirm (объясняющий диалог); inline-ошибки
+  переименования и пустого названия; Retry/skeleton/empty на экране базовой валюты;
+  отдельные тексты пустого списка, tooltip и подсказка базовой валюты.
 - **Генерация:** pub get, `flutter gen-l10n`; schema dump не меняется без table changes.
 - **DoD:** network tests используют fake client, base change затрагивает только presentation;
   wrong date/offline/manual widget states pass; общий DoD. Перед PR спросить о e2e.

@@ -55,12 +55,14 @@ class _CurrencyFormScreenState extends State<CurrencyFormScreen> {
       setState(() {
         _codeError = switch (errors['code']) {
           'validationCurrencyCodeFormat' => l10n.currencyErrorCode,
+          'validationCurrencyDuplicate' => l10n.currencyCodeDuplicate,
+          _ => null,
+        };
+        _nameError = switch (errors['name']) {
+          'validationNameRequired' => l10n.currencyNameRequired,
           'validationCurrencyDuplicate' => l10n.currencyErrorDuplicate,
           _ => null,
         };
-        _nameError = errors['name'] == 'validationCurrencyDuplicate'
-            ? l10n.currencyErrorDuplicate
-            : null;
         _fractionError =
             errors['fractionDigits'] == 'validationFractionDigitsRange'
             ? l10n.currencyFractionError
@@ -85,7 +87,6 @@ class _CurrencyFormScreenState extends State<CurrencyFormScreen> {
             label: l10n.currencyCodeLabel,
             controller: _code,
             errorText: _codeError,
-            maxLength: 3,
           ),
           const SizedBox(height: 12),
           AppTextField(
@@ -98,6 +99,7 @@ class _CurrencyFormScreenState extends State<CurrencyFormScreen> {
             label: l10n.currencyFractionLabel,
             controller: _fraction,
             keyboardType: TextInputType.number,
+            helperText: l10n.currencyFractionRangeHint,
             errorText: _fractionError,
           ),
           const SizedBox(height: 24),

@@ -379,4 +379,43 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get currencyFractionError => 'Введите число от 0 до 8.';
+
+  @override
+  String get currenciesEmptyTitle => 'Нет валют';
+
+  @override
+  String get currenciesEmptyMessage => 'Добавьте валюту или проверьте фильтры.';
+
+  @override
+  String get currencyActionsTooltip => 'Действия с валютой';
+
+  @override
+  String get currencyNameRequired => 'Введите название валюты.';
+
+  @override
+  String get currencyCodeDuplicate => 'Валюта с таким кодом уже есть.';
+
+  @override
+  String get currencyDisabledLabel => 'Отключена';
+
+  @override
+  String get currencyDeleted => 'Валюта удалена.';
+
+  @override
+  String get currencyToggled => 'Настройки валюты обновлены.';
+
+  @override
+  String get baseCurrencyHint =>
+      'Итоги и дашборд будут пересчитаны в выбранной валюте; сохранённые суммы в RUB не меняются.';
+
+  @override
+  String get baseCurrencyEmpty => 'Нет включённых валют для выбора.';
+
+  @override
+  String currencyRenameNamed(String code) {
+    return 'Переименовать валюту «$code»';
+  }
+
+  @override
+  String get currencyFractionRangeHint => 'От 0 до 8';
 }

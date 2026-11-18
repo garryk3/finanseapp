@@ -771,6 +771,78 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Введите число от 0 до 8.'**
   String get currencyFractionError;
+
+  /// Заголовок пустого списка валют.
+  ///
+  /// In ru, this message translates to:
+  /// **'Нет валют'**
+  String get currenciesEmptyTitle;
+
+  /// Пояснение пустого списка валют.
+  ///
+  /// In ru, this message translates to:
+  /// **'Добавьте валюту или проверьте фильтры.'**
+  String get currenciesEmptyMessage;
+
+  /// Подсказка меню строки валюты.
+  ///
+  /// In ru, this message translates to:
+  /// **'Действия с валютой'**
+  String get currencyActionsTooltip;
+
+  /// Ошибка пустого названия валюты.
+  ///
+  /// In ru, this message translates to:
+  /// **'Введите название валюты.'**
+  String get currencyNameRequired;
+
+  /// Ошибка дубликата кода валюты.
+  ///
+  /// In ru, this message translates to:
+  /// **'Валюта с таким кодом уже есть.'**
+  String get currencyCodeDuplicate;
+
+  /// Статус отключённой валюты в списке.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отключена'**
+  String get currencyDisabledLabel;
+
+  /// Подтверждение удаления валюты.
+  ///
+  /// In ru, this message translates to:
+  /// **'Валюта удалена.'**
+  String get currencyDeleted;
+
+  /// Подтверждение включения/отключения валюты.
+  ///
+  /// In ru, this message translates to:
+  /// **'Настройки валюты обновлены.'**
+  String get currencyToggled;
+
+  /// Пояснение смены базовой валюты.
+  ///
+  /// In ru, this message translates to:
+  /// **'Итоги и дашборд будут пересчитаны в выбранной валюте; сохранённые суммы в RUB не меняются.'**
+  String get baseCurrencyHint;
+
+  /// Пустое состояние выбора базовой валюты.
+  ///
+  /// In ru, this message translates to:
+  /// **'Нет включённых валют для выбора.'**
+  String get baseCurrencyEmpty;
+
+  /// Заголовок переименования валюты с кодом.
+  ///
+  /// In ru, this message translates to:
+  /// **'Переименовать валюту «{code}»'**
+  String currencyRenameNamed(String code);
+
+  /// Подсказка диапазона дробных знаков.
+  ///
+  /// In ru, this message translates to:
+  /// **'От 0 до 8'**
+  String get currencyFractionRangeHint;
 }
 
 class _AppLocalizationsDelegate

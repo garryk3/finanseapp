@@ -45,8 +45,11 @@ class CurrenciesViewModel {
 
   void retry() {
     _subscription?.cancel();
+    _baseSubscription?.cancel();
     init();
   }
+
+  Future<int> countReferences(String code) => repository.countReferences(code);
 
   Future<Result<void>> setEnabled(String code, bool value) =>
       _run(() => repository.setEnabled(code, value));

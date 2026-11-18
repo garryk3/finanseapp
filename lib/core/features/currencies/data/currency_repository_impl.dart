@@ -18,7 +18,8 @@ final class CurrencyRepositoryImpl implements CurrencyRepository {
       (await _dao.getEnabled()).map(_map).toList(growable: false);
 
   @override
-  Future<int> countReferences(String code) => _dao.countReferences(code);
+  Future<int> countReferences(String code) =>
+      _dao.countReferences(code, includeRates: false);
 
   @override
   Future<void> createCustom(String code, String name, int fractionDigits) =>

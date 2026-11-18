@@ -132,16 +132,20 @@ class _CurrenciesScreenState extends State<CurrenciesScreen> {
         itemBuilder: (context, index) {
           final currency = currencies[index];
           final isBase = _viewModel.baseCode.value == currency.code;
+          final meta = [
+            l10n.currencyFractionValue(currency.fractionDigits),
+            if (isBase) l10n.baseCurrencyCurrent,
+            if (!currency.isEnabled) l10n.currencyDisabledLabel,
+          ].join(' · ');
           return AppListTile(
             key: ValueKey(currency.code),
             title: '${currency.code} · ${currency.name}',
-            subtitle: isBase
-                ? '${l10n.currencyFractionValue(currency.fractionDigits)} · '
-                      '${l10n.baseCurrencyCurrent}'
-                : l10n.currencyFractionValue(currency.fractionDigits),
+            subtitle: meta,
+            enabled: currency.isEnabled,
+            semanticLabel: '${currency.code} · ${currency.name}, $meta',
             leading: const AppIcon(Icons.payments_outlined),
             trailing: AppPopupMenu<_CurrencyAction>(
-              tooltip: l10n.subgroupActionsTooltip,
+              tooltip: l10n.currencyActionsTooltip,
               items: [
                 AppPopupMenuItem(
                   value: _CurrencyAction.toggle,
@@ -174,27 +178,52 @@ class _CurrenciesScreenState extends State<CurrenciesScreen> {
       );
 
   Future<void> _toggle(Currency currency) async {
+    if (currency.code == 'RUB') {
+      await _explainProtected();
+      return;
+    }
+    if (currency.isEnabled) {
+      final references = await _viewModel.countReferences(currency.code);
+      if (!mounted) return;
+      if (references > 0) {
+        await _explainProtected();
+        return;
+      }
+    }
     final result = await _viewModel.setEnabled(
       currency.code,
       !currency.isEnabled,
     );
     if (!mounted) return;
-    _report(result);
+    _report(result, success: _l10n.currencyToggled);
   }
 
   Future<void> _rename(Currency currency) async {
-    final name = await showAppDialog<String>(
+    await showAppDialog<void>(
       context: context,
-      builder: (context) => _RenameDialog(currency: currency),
+      builder: (context) => _RenameDialog(
+        currency: currency,
+        submit: (name) async {
+          final result = await _viewModel.rename(currency.code, name);
+          return result is Failure<void> ? result.error : null;
+        },
+        errorText: _errorText,
+      ),
     );
-    if (name == null) return;
-    final result = await _viewModel.rename(currency.code, name);
-    if (!mounted) return;
-    _report(result, success: _l10n.currencySaved);
   }
 
   Future<void> _delete(Currency currency) async {
     final l10n = _l10n;
+    if (currency.code == 'RUB') {
+      await _explainProtected();
+      return;
+    }
+    final references = await _viewModel.countReferences(currency.code);
+    if (!mounted) return;
+    if (references > 0) {
+      await _explainProtected();
+      return;
+    }
     final confirmed = await showAppDialog<bool>(
       context: context,
       builder: (context) => AppConfirmDialog(
@@ -210,8 +239,23 @@ class _CurrenciesScreenState extends State<CurrenciesScreen> {
     if (confirmed != true) return;
     final result = await _viewModel.deleteIfUnused(currency.code);
     if (!mounted) return;
-    _report(result);
+    _report(result, success: l10n.currencyDeleted);
   }
+
+  Future<void> _explainProtected() => showAppDialog<void>(
+    context: context,
+    builder: (context) => AppDialog(
+      title: AppText(_l10n.currencyErrorInUse),
+      content: AppText(_l10n.currencyErrorRub),
+      actions: [
+        AppButton(
+          label: _l10n.commonCancel,
+          variant: AppButtonVariant.text,
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ],
+    ),
+  );
 
   void _report(Result<void> result, {String? success}) {
     if (result is Failure<void>) {
@@ -226,6 +270,7 @@ class _CurrenciesScreenState extends State<CurrenciesScreen> {
     final key = error.fieldErrors.values.firstOrNull;
     return switch (key) {
       'validationCurrencyDuplicate' => l10n.currencyErrorDuplicate,
+      'validationNameRequired' => l10n.currencyNameRequired,
       'validationCurrencyCodeFormat' => l10n.currencyErrorCode,
       'validationCurrencyInUse' => l10n.currencyErrorInUse,
       'validationRubProtected' => l10n.currencyErrorRub,
@@ -238,9 +283,15 @@ class _CurrenciesScreenState extends State<CurrenciesScreen> {
 }
 
 class _RenameDialog extends StatefulWidget {
-  const _RenameDialog({required this.currency});
+  const _RenameDialog({
+    required this.currency,
+    required this.submit,
+    required this.errorText,
+  });
 
   final Currency currency;
+  final Future<DomainException?> Function(String name) submit;
+  final String Function(DomainException error) errorText;
 
   @override
   State<_RenameDialog> createState() => _RenameDialogState();
@@ -250,6 +301,8 @@ class _RenameDialogState extends State<_RenameDialog> {
   late final TextEditingController _controller = TextEditingController(
     text: widget.currency.name,
   );
+  String? _error;
+  bool _saving = false;
 
   @override
   void dispose() {
@@ -257,27 +310,51 @@ class _RenameDialogState extends State<_RenameDialog> {
     super.dispose();
   }
 
+  Future<void> _save() async {
+    final name = _controller.text.trim();
+    if (name.isEmpty || _saving) return;
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
+    final error = await widget.submit(name);
+    if (!mounted) return;
+    if (error == null) {
+      Navigator.of(context).pop();
+      return;
+    }
+    setState(() {
+      _saving = false;
+      _error = widget.errorText(error);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return AppDialog(
-      title: AppText(l10n.currencyRename),
-      content: AppTextField(
-        label: l10n.currencyNameLabel,
-        controller: _controller,
-        autofocus: true,
+    return PopScope(
+      canPop: !_saving,
+      child: AppDialog(
+        title: AppText(l10n.currencyRenameNamed(widget.currency.code)),
+        content: AppTextField(
+          label: l10n.currencyNameLabel,
+          controller: _controller,
+          errorText: _error,
+          autofocus: true,
+        ),
+        actions: [
+          AppButton(
+            label: l10n.commonCancel,
+            variant: AppButtonVariant.text,
+            onPressed: _saving ? null : () => Navigator.of(context).pop(),
+          ),
+          AppButton(
+            label: l10n.commonSave,
+            pending: _saving,
+            onPressed: _saving ? null : _save,
+          ),
+        ],
       ),
-      actions: [
-        AppButton(
-          label: l10n.commonCancel,
-          variant: AppButtonVariant.text,
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        AppButton(
-          label: l10n.commonSave,
-          onPressed: () => Navigator.of(context).pop(_controller.text),
-        ),
-      ],
     );
   }
 }
