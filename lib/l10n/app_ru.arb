@@ -807,5 +807,17 @@
   "assetsEmptyCta": "Добавить счёт",
   "@assetsEmptyCta": {
     "description": "CTA пустого списка активов."
+  },
+  "accountErrorAmount": "Введите положительную сумму в основных единицах.",
+  "@accountErrorAmount": {
+    "description": "Ошибка суммы счёта."
+  },
+  "accountErrorBank": "Выберите банк.",
+  "@accountErrorBank": {
+    "description": "Ошибка выбора банка."
+  },
+  "accountEdit": "Изменить",
+  "@accountEdit": {
+    "description": "Действие редактирования счёта."
   }
 }

@@ -4,6 +4,7 @@ import 'package:decimal/decimal.dart';
 import 'package:finanseapp/core/domain/common/currency.dart';
 import 'package:finanseapp/core/domain/common/local_date.dart';
 import 'package:finanseapp/core/domain/common/money.dart';
+import 'package:finanseapp/core/domain/common/money_math.dart';
 import 'package:finanseapp/core/domain/common/result.dart';
 import 'package:finanseapp/core/features/assets/domain/asset.dart';
 import 'package:finanseapp/core/features/assets/domain/asset_draft.dart';
@@ -90,4 +91,12 @@ class AccountFormViewModel {
   }
 
   void dispose() {}
+}
+
+/// Ввод начального баланса — в основных единицах (BR-VAL-1).
+Money? parseOpeningAmount(String raw, Currency currency) {
+  final normalized = raw.trim().replaceAll(' ', '').replaceAll(',', '.');
+  final decimal = Decimal.tryParse(normalized);
+  if (decimal == null || decimal <= Decimal.zero) return null;
+  return MoneyMath.fromDecimal(decimal, currency);
 }

@@ -599,4 +599,14 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get assetsEmptyCta => 'Добавить счёт';
+
+  @override
+  String get accountErrorAmount =>
+      'Введите положительную сумму в основных единицах.';
+
+  @override
+  String get accountErrorBank => 'Выберите банк.';
+
+  @override
+  String get accountEdit => 'Изменить';
 }

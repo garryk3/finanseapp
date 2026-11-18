@@ -591,6 +591,10 @@
   статических маршрутов assets снят (реальный экран активов держит drift-стрим, pending-timer
   в widget-тесте); статический приоритет остаётся в таблице маршрутов и будет покрыт
   интеграционным прогоном/экранами 5.2.
+- **Отложено в 5.3 (согласовать):** base equivalent (BR-C-6), counts в диалоге удаления
+  (BR-A-5), реактивность/N+1 снапшотов, `fractionDigits` вместо 2, read-only архивного
+  счёта, проверка баланса при правке opening. UI-тесты form/details — вместе с этими
+  правками.
 - **Генерация:** gen-l10n; Drift generation только при DAO/source changes.
 - **DoD:** CALC forecast values буквально pass, negative balance не обходится edit opening;
   archive read-only, delete dialog показывает counts; общий DoD. Перед PR спросить о e2e.

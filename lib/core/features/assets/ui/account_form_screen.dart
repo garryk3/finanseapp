@@ -1,9 +1,10 @@
 import 'package:finanseapp/app/theme/app_spacing.dart';
 import 'package:decimal/decimal.dart';
+import 'package:finanseapp/core/domain/common/currency.dart';
 import 'package:finanseapp/core/domain/common/local_date.dart';
-import 'package:finanseapp/core/domain/common/money.dart';
 import 'package:finanseapp/core/domain/common/result.dart';
 import 'package:finanseapp/core/features/assets/ui/account_form_view_model.dart';
+import 'package:finanseapp/core/domain/common/money_math.dart';
 import 'package:finanseapp/core/presentation/view_state.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
 import 'package:finanseapp/uikit/app_amount_field.dart';
@@ -49,7 +50,19 @@ class _AccountFormScreenState extends State<AccountFormScreen> {
       final account = widget.viewModel.account.value;
       if (account != null) {
         _name.text = account.name;
-        _opening.text = account.openingValue.minorUnits.toString();
+        _opening.text = MoneyMath.toDecimal(
+          account.openingValue,
+          widget.viewModel.currencies.value.firstWhere(
+            (currency) => currency.code == account.currencyCode,
+            orElse: () => Currency(
+              code: account.currencyCode,
+              name: account.currencyCode,
+              fractionDigits: 2,
+              isPreset: true,
+              isEnabled: true,
+            ),
+          ),
+        ).toString();
         _rate.text = account.annualRate.toString();
         _bankId = account.bankId;
         _currencyCode = account.currencyCode;
@@ -73,17 +86,39 @@ class _AccountFormScreenState extends State<AccountFormScreen> {
   Future<void> _save() async {
     if (widget.viewModel.busy.value) return;
     final l10n = AppLocalizations.of(context);
-    final opening = int.tryParse(_opening.text.trim());
+    final currency = widget.viewModel.currencies.value.firstWhere(
+      (item) => item.code == _currencyCode,
+      orElse: () => Currency(
+        code: _currencyCode,
+        name: _currencyCode,
+        fractionDigits: 2,
+        isPreset: true,
+        isEnabled: true,
+      ),
+    );
+    final opening = parseOpeningAmount(_opening.text, currency);
     final rate = Decimal.tryParse(_rate.text.trim().replaceAll(',', '.'));
-    if (_name.text.trim().isEmpty || opening == null || rate == null) {
+    if (_name.text.trim().isEmpty) {
       setState(() => _error = l10n.accountErrorName);
+      return;
+    }
+    if (opening == null) {
+      setState(() => _error = l10n.accountErrorAmount);
+      return;
+    }
+    if (_bankId == null) {
+      setState(() => _error = l10n.accountErrorBank);
+      return;
+    }
+    if (rate == null) {
+      setState(() => _error = l10n.accountErrorRate);
       return;
     }
     final result = await widget.viewModel.save(
       name: _name.text,
       bankId: _bankId!,
       currencyCode: _currencyCode,
-      openingValue: Money(minorUnits: opening, currencyCode: _currencyCode),
+      openingValue: opening,
       annualRate: rate,
       startDate: _startDate,
       endDate: _hasEndDate ? _endDate : null,

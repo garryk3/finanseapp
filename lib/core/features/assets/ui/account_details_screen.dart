@@ -1,3 +1,4 @@
+import 'package:finanseapp/app/routes.dart';
 import 'package:finanseapp/app/theme/app_spacing.dart';
 import 'package:finanseapp/core/domain/common/currency.dart';
 import 'package:finanseapp/core/domain/common/money.dart';
@@ -81,6 +82,17 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                       AppText(l10n.accountArchivedBadge),
                     ],
                     const SizedBox(height: AppSpacing.lg),
+                    if (account.archivedAt == null)
+                      AppButton(
+                        label: l10n.accountEdit,
+                        variant: AppButtonVariant.outlined,
+                        onPressed: vm.busy.value
+                            ? null
+                            : () => context.push(
+                                AppRoutes.accountEditPath(account.id),
+                              ),
+                      ),
+                    const SizedBox(height: AppSpacing.sm),
                     if (account.archivedAt == null)
                       AppButton(
                         label: l10n.accountArchive,

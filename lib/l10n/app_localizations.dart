@@ -1173,6 +1173,24 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Добавить счёт'**
   String get assetsEmptyCta;
+
+  /// Ошибка суммы счёта.
+  ///
+  /// In ru, this message translates to:
+  /// **'Введите положительную сумму в основных единицах.'**
+  String get accountErrorAmount;
+
+  /// Ошибка выбора банка.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выберите банк.'**
+  String get accountErrorBank;
+
+  /// Действие редактирования счёта.
+  ///
+  /// In ru, this message translates to:
+  /// **'Изменить'**
+  String get accountEdit;
 }
 
 class _AppLocalizationsDelegate
