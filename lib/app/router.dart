@@ -7,6 +7,12 @@ import 'package:finanseapp/core/features/applock/logic/applock_settings_view_mod
 import 'package:finanseapp/core/features/applock/ui/applock_manage_screen.dart';
 import 'package:finanseapp/core/features/assets/domain/subgroup.dart';
 import 'package:finanseapp/core/features/assets/ui/assets_screen.dart';
+import 'package:finanseapp/core/features/categories/domain/category.dart';
+import 'package:finanseapp/core/features/categories/domain/category_repository.dart';
+import 'package:finanseapp/core/features/categories/ui/categories_screen.dart';
+import 'package:finanseapp/core/features/categories/ui/categories_view_model.dart';
+import 'package:finanseapp/core/features/categories/ui/category_form_screen.dart';
+import 'package:finanseapp/core/features/categories/ui/category_form_view_model.dart';
 import 'package:finanseapp/core/features/currencies/ui/base_currency_screen.dart';
 import 'package:finanseapp/core/features/currencies/ui/base_currency_view_model.dart';
 import 'package:finanseapp/core/features/currencies/ui/currencies_screen.dart';
@@ -182,6 +188,49 @@ GoRouter buildRouter({required ServiceLocator locator}) {
                           AppRoutes.subgroupsPath(
                             next == SubgroupKind.broker ? 'broker' : 'bank',
                           ),
+                        ),
+                      );
+                    },
+                  ),
+                  GoRoute(
+                    path: 'categories',
+                    name: 'categories',
+                    builder: (context, state) {
+                      final kind =
+                          AppRoutes.parseAllowlisted(
+                                state.uri.queryParameters['kind'],
+                                const {'income', 'expense'},
+                              ) ==
+                              'income'
+                          ? CashflowKind.income
+                          : CashflowKind.expense;
+                      return CategoriesScreen(
+                        viewModel: locator.get<CategoriesViewModel>(),
+                        initialKind: kind,
+                        onKindChanged: (next) => context.go(
+                          AppRoutes.categoriesPath(
+                            next == CashflowKind.income ? 'income' : 'expense',
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  GoRoute(
+                    path: 'categories/new',
+                    name: 'category-new',
+                    builder: (context, state) {
+                      final kind =
+                          AppRoutes.parseAllowlisted(
+                                state.uri.queryParameters['kind'],
+                                const {'income', 'expense'},
+                              ) ==
+                              'income'
+                          ? CashflowKind.income
+                          : CashflowKind.expense;
+                      return CategoryFormScreen(
+                        viewModel: CategoryFormViewModel(
+                          repository: locator.get<CategoryRepository>(),
+                          kind: kind,
                         ),
                       );
                     },
@@ -394,8 +443,6 @@ AppLocalizations l10nOf(BuildContext context) => AppLocalizations.of(context);
 const _morePlaceholders = <({String path, String name})>[
   (path: 'analytics', name: 'analytics'),
   (path: 'settings', name: 'settings'),
-  (path: 'categories', name: 'categories'),
-  (path: 'categories/new', name: 'category-new'),
   (path: 'audit', name: 'audit'),
   (path: 'about', name: 'about'),
 ];

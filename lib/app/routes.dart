@@ -54,6 +54,10 @@ abstract final class AppRoutes {
 
   static String subgroupsPath(String kind) => '$subgroups?kind=$kind';
 
+  static String categoriesPath(String kind) => '$categories?kind=$kind';
+
+  static String categoryNewFor(String kind) => '$categoryNew?kind=$kind';
+
   static String assetDetailsPath(int id) => '/assets/$id';
   static String accountEditPath(int id) => '/assets/$id/edit/account';
   static String investmentEditPath(int id) => '/assets/$id/edit/investment';

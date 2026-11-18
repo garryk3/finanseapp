@@ -513,7 +513,7 @@
   wrong date/offline/manual widget states pass; общий DoD. Перед PR спросить о e2e.
 - **Предлагаемый commit:** `task/04.2: реализовать валюты и курсы ЦБ`.
 
-### 4.3 Категории доходов/расходов и конфликты удаления — [ ]
+### 4.3 Категории доходов/расходов и конфликты удаления — [x] 2026-11-18
 
 - **Приоритет/зависимости:** P1; после 4.2. **BR:** CAT-1…8, VAL-3.
 - **Files:** Create categories data/logic/ui из file_structure, включая
@@ -527,6 +527,28 @@
   used category delete предлагает archive/move; move target другого kind отклонён;
   10 entries переносятся одной транзакцией, failure на последней оставляет source все 10;
   preset редактируется, archived отсутствует в new select, виден в historical.
+- **Рабочий план (2026-11-18):**
+  - **Data:** `ReferencesDao.moveEntriesAndDelete` (одна транзакция: source/target существуют,
+    same kind, target активен; перенос всех записей включая soft-deleted; countEntries=0;
+    удаление source). `CategoryRepositoryImpl`.
+  - **Logic/VM:** `CategoryCommands` (Result-обёртки), `CategoriesViewModel` на signals
+    (kind tabs, stream, duplicate/conflict, archive/move/delete), `CategoryFormViewModel`.
+  - **UI:** `/more/categories` (вкладки income/expense, список, menu rename/archive/delete,
+    conflict-диалог archive/move/delete при использовании), `/more/categories/new` (kind из
+    query), `/more/categories/:id/edit`; l10n, DI factories.
+  - **Тесты:** duplicate внутри kind / одинаковое имя income+expense разрешено; preset
+    rename; archived скрыт в watchByKind и виден с includeArchived; move 10 записей одной
+    транзакцией и откат при сбое; cross-kind move отклонён; used delete → conflict;
+    widget smoke (tabs, duplicate, конфликт-диалог).
+- **Итог:** `moveEntriesAndDelete` (одна транзакция, same kind, активный target, перенос всех
+  записей, откат), `CategoryRepositoryImpl`, `CategoryCommands`, `CategoriesViewModel`
+  (вкладки, архивные labels, конфликты), экраны `/more/categories` и `new` + conflict-диалог
+  archive/move/delete, DI/routes/l10n. Тесты: duplicate внутри kind, одинаковое имя
+  income/expense, preset rename, archived filter, перенос 10 записей и откат, cross-kind,
+  used delete, UI smoke (пометки, duplicate inline, конфликт-диалог).
+- **Отступление:** отдельный экран `/more/categories/:id/edit` не создавался — переименование
+  выполняется диалогом со списка (функционально закрывает edit); константы маршрута остаются
+  для будущих форм.
 - **Генерация:** gen-l10n; build_runner/schema dump при изменении seed/table source.
 - **DoD:** seed 6 income+10 expense, «Аренда»≠«Аренда жилья», conflicts atomic;
   общий DoD/design review. Перед PR спросить о e2e.
