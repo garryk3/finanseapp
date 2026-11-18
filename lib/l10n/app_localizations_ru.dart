@@ -768,4 +768,39 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get brokerAddAction => 'Добавить брокера';
+
+  @override
+  String get assetsSearchLabel => 'Поиск активов';
+
+  @override
+  String get assetsSearchHint => 'Название';
+
+  @override
+  String get assetsSearchClear => 'Очистить поиск';
+
+  @override
+  String get assetsFilterAll => 'Все';
+
+  @override
+  String get assetsFilterArchived => 'Показывать архивные';
+
+  @override
+  String get assetsFilteredEmptyTitle => 'Ничего не найдено';
+
+  @override
+  String get assetsFilteredEmptyMessage =>
+      'Измените условия фильтра или сбросьте его.';
+
+  @override
+  String get assetsResetFilters => 'Сбросить фильтры';
+
+  @override
+  String get assetsAllArchivedTitle => 'Все активы в архиве';
+
+  @override
+  String get assetsAllArchivedMessage =>
+      'Показываются только активные. Откройте архив, чтобы увидеть остальные.';
+
+  @override
+  String get assetsShowArchivedAction => 'Показать архивные';
 }

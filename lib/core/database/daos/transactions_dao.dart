@@ -81,6 +81,10 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase>
     with _$TransactionsDaoMixin {
   TransactionsDao(super.db);
 
+  /// Все операции (включая soft-deleted) для батч-сборки снапшотов.
+  Future<List<AssetTransactionRow>> allRows() =>
+      select(assetTransactions).get();
+
   Stream<List<AssetTransactionRow>> watchByAsset(int assetId) {
     final query = select(assetTransactions)
       ..where((t) => t.assetId.equals(assetId) & t.deletedAt.isNull())

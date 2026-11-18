@@ -1035,5 +1035,49 @@
   "brokerAddAction": "Добавить брокера",
   "@brokerAddAction": {
     "description": "Действие перехода к справочнику брокеров."
+  },
+  "assetsSearchLabel": "Поиск активов",
+  "@assetsSearchLabel": {
+    "description": "Поле поиска по названию актива."
+  },
+  "assetsSearchHint": "Название",
+  "@assetsSearchHint": {
+    "description": "Подсказка поиска активов."
+  },
+  "assetsSearchClear": "Очистить поиск",
+  "@assetsSearchClear": {
+    "description": "Очистка поля поиска."
+  },
+  "assetsFilterAll": "Все",
+  "@assetsFilterAll": {
+    "description": "Фильтр всех видов активов."
+  },
+  "assetsFilterArchived": "Показывать архивные",
+  "@assetsFilterArchived": {
+    "description": "Тумблер показа архивных активов."
+  },
+  "assetsFilteredEmptyTitle": "Ничего не найдено",
+  "@assetsFilteredEmptyTitle": {
+    "description": "Заголовок пустого результата фильтра."
+  },
+  "assetsFilteredEmptyMessage": "Измените условия фильтра или сбросьте его.",
+  "@assetsFilteredEmptyMessage": {
+    "description": "Пояснение пустого результата фильтра."
+  },
+  "assetsResetFilters": "Сбросить фильтры",
+  "@assetsResetFilters": {
+    "description": "Сброс фильтров списка активов."
+  },
+  "assetsAllArchivedTitle": "Все активы в архиве",
+  "@assetsAllArchivedTitle": {
+    "description": "Заголовок каталога, где все активы архивные."
+  },
+  "assetsAllArchivedMessage": "Показываются только активные. Откройте архив, чтобы увидеть остальные.",
+  "@assetsAllArchivedMessage": {
+    "description": "Пояснение каталога только из архивных активов."
+  },
+  "assetsShowArchivedAction": "Показать архивные",
+  "@assetsShowArchivedAction": {
+    "description": "Действие показа архивных из пустого состояния."
   }
 }

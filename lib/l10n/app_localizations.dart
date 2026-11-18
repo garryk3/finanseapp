@@ -1484,6 +1484,72 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Добавить брокера'**
   String get brokerAddAction;
+
+  /// Поле поиска по названию актива.
+  ///
+  /// In ru, this message translates to:
+  /// **'Поиск активов'**
+  String get assetsSearchLabel;
+
+  /// Подсказка поиска активов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Название'**
+  String get assetsSearchHint;
+
+  /// Очистка поля поиска.
+  ///
+  /// In ru, this message translates to:
+  /// **'Очистить поиск'**
+  String get assetsSearchClear;
+
+  /// Фильтр всех видов активов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Все'**
+  String get assetsFilterAll;
+
+  /// Тумблер показа архивных активов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Показывать архивные'**
+  String get assetsFilterArchived;
+
+  /// Заголовок пустого результата фильтра.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ничего не найдено'**
+  String get assetsFilteredEmptyTitle;
+
+  /// Пояснение пустого результата фильтра.
+  ///
+  /// In ru, this message translates to:
+  /// **'Измените условия фильтра или сбросьте его.'**
+  String get assetsFilteredEmptyMessage;
+
+  /// Сброс фильтров списка активов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сбросить фильтры'**
+  String get assetsResetFilters;
+
+  /// Заголовок каталога, где все активы архивные.
+  ///
+  /// In ru, this message translates to:
+  /// **'Все активы в архиве'**
+  String get assetsAllArchivedTitle;
+
+  /// Пояснение каталога только из архивных активов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Показываются только активные. Откройте архив, чтобы увидеть остальные.'**
+  String get assetsAllArchivedMessage;
+
+  /// Действие показа архивных из пустого состояния.
+  ///
+  /// In ru, this message translates to:
+  /// **'Показать архивные'**
+  String get assetsShowArchivedAction;
 }
 
 class _AppLocalizationsDelegate

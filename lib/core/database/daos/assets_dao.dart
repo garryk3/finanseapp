@@ -17,18 +17,36 @@ part 'assets_dao.g.dart';
 class AssetsDao extends DatabaseAccessor<AppDatabase> with _$AssetsDaoMixin {
   AssetsDao(super.db);
 
+  /// Переизлучается при изменении активов, их операций и оценок, чтобы
+  /// список/детали показывали актуальную стоимость без ручной перезагрузки.
   Stream<List<AssetRow>> watchAll({bool includeArchived = false}) {
-    final query = select(assets)..orderBy([(a) => OrderingTerm.asc(a.name)]);
-    if (!includeArchived) {
-      query.where((a) => a.archivedAt.isNull());
-    }
-    return query.watch();
+    final where = includeArchived ? '' : ' WHERE archived_at IS NULL';
+    return customSelect(
+      'SELECT * FROM assets$where ORDER BY name',
+      readsFrom: {
+        assets,
+        attachedDatabase.assetValuations,
+        attachedDatabase.assetTransactions,
+      },
+    ).watch().map((rows) => [for (final row in rows) assets.map(row.data)]);
   }
 
-  Stream<AssetRow?> watchById(int id) {
-    final query = select(assets)..where((a) => a.id.equals(id));
-    return query.watchSingleOrNull();
-  }
+  Stream<AssetRow?> watchById(int id) => customSelect(
+    'SELECT * FROM assets WHERE id = ?',
+    variables: [Variable<int>(id)],
+    readsFrom: {
+      assets,
+      attachedDatabase.assetValuations,
+      attachedDatabase.assetTransactions,
+    },
+  ).watchSingleOrNull().map((row) => row == null ? null : assets.map(row.data));
+
+  /// Все detail-строки для батч-сборки снапшотов без N+1.
+  Future<List<AccountDetailRow>> allAccountDetails() =>
+      select(accountDetails).get();
+
+  Future<List<InvestmentDetailRow>> allInvestmentDetails() =>
+      select(investmentDetails).get();
 
   Future<AssetRow?> findById(int id) =>
       (select(assets)..where((a) => a.id.equals(id))).getSingleOrNull();
