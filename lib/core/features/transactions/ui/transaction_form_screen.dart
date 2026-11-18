@@ -253,8 +253,10 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                         ),
                     ],
                     onChanged: (value) => setState(() {
+                      final changed = value != _assetId;
                       _assetId = value;
                       _assetError = null;
+                      if (!changed) return;
                       _rate.clear();
                       _rateError = null;
                       final selected = vm.assetById(value);
