@@ -212,13 +212,16 @@ class AssetsViewModel {
 
   void retry() => init();
 
-  Future<void> _cancelSubscriptions() async {
-    await _subscription?.cancel();
-    await _baseSubscription?.cancel();
-    await _currencySubscription?.cancel();
+  Future<void> _cancelSubscriptions() {
+    final pending = <Future<void>>[
+      if (_subscription != null) _subscription!.cancel(),
+      if (_baseSubscription != null) _baseSubscription!.cancel(),
+      if (_currencySubscription != null) _currencySubscription!.cancel(),
+    ];
     _subscription = null;
     _baseSubscription = null;
     _currencySubscription = null;
+    return Future.wait(pending);
   }
 
   Future<void> dispose() async {
