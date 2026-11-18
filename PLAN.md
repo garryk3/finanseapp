@@ -709,8 +709,9 @@
   закрывает drift-стримы до проверки таймеров.
 - **Отложено:** живое обновление курсов в списке (сейчас кэш на момент загрузки),
   приоритет ширины суммы и семантика base equivalent в `AppAssetListTile`,
-  `screenPadding` шапки на expanded, визуальная проверка light/dark на 320dp
-  и textScale 1.3 (нет эмулятора).
+  связка label `AppSearchField` с полем для TalkBack, `screenPadding` шапки
+  на expanded, визуальная проверка light/dark на 320dp и textScale 1.3
+  (нет эмулятора).
 
 ### 5.4 Квартиры: стоимость, оценки и денежный поток — [ ]
 

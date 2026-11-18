@@ -84,61 +84,67 @@ class _AssetsScreenState extends State<AssetsScreen> {
             children: [
               if (showFilters)
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.md,
-                    AppSpacing.sm,
-                    AppSpacing.md,
-                    0,
-                  ),
+                  padding: const EdgeInsets.only(top: AppSpacing.sm),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      AppSearchField(
-                        controller: _search,
-                        label: l10n.assetsSearchLabel,
-                        hint: l10n.assetsSearchHint,
-                        onChanged: vm.setQuery,
-                        onClear: () => vm.setQuery(''),
-                        clearTooltip: l10n.assetsSearchClear,
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.md,
+                        ),
+                        child: AppSearchField(
+                          controller: _search,
+                          label: l10n.assetsSearchLabel,
+                          hint: l10n.assetsSearchHint,
+                          onChanged: vm.setQuery,
+                          onClear: () => vm.setQuery(''),
+                          clearTooltip: l10n.assetsSearchClear,
+                        ),
                       ),
                       const SizedBox(height: AppSpacing.sm),
-                      AppFilterBar(
-                        activeCount:
-                            (vm.query.value.trim().isEmpty ? 0 : 1) +
-                            (vm.kind.value == null ? 0 : 1) +
-                            (vm.showArchived.value ? 1 : 0),
-                        onReset: vm.filtersActive && !listEmpty
-                            ? _resetFilters
-                            : null,
-                        resetLabel: l10n.assetsResetFilters,
-                        children: [
-                          AppFilterChip(
-                            label: l10n.assetsFilterAll,
-                            selected: vm.kind.value == null,
-                            onSelected: (_) => vm.setKind(null),
-                          ),
-                          AppFilterChip(
-                            label: l10n.assetKindAccount,
-                            selected: vm.kind.value == AssetKind.account,
-                            icon: Icons.account_balance_wallet_outlined,
-                            count: vm.kindCounts.value[AssetKind.account],
-                            onSelected: (_) => vm.setKind(AssetKind.account),
-                          ),
-                          AppFilterChip(
-                            label: l10n.assetKindInvestment,
-                            selected: vm.kind.value == AssetKind.investment,
-                            icon: Icons.trending_up,
-                            count: vm.kindCounts.value[AssetKind.investment],
-                            onSelected: (_) => vm.setKind(AssetKind.investment),
-                          ),
-                          AppFilterChip(
-                            label: l10n.assetKindProperty,
-                            selected: vm.kind.value == AssetKind.property,
-                            icon: Icons.home_outlined,
-                            count: vm.kindCounts.value[AssetKind.property],
-                            onSelected: (_) => vm.setKind(AssetKind.property),
-                          ),
-                        ],
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.md,
+                        ),
+                        child: AppFilterBar(
+                          activeCount:
+                              (vm.query.value.trim().isEmpty ? 0 : 1) +
+                              (vm.kind.value == null ? 0 : 1) +
+                              (vm.showArchived.value ? 1 : 0),
+                          onReset: vm.filtersActive && !listEmpty
+                              ? _resetFilters
+                              : null,
+                          resetLabel: l10n.assetsResetFilters,
+                          children: [
+                            AppFilterChip(
+                              label: l10n.assetsFilterAll,
+                              selected: vm.kind.value == null,
+                              onSelected: (_) => vm.setKind(null),
+                            ),
+                            AppFilterChip(
+                              label: l10n.assetKindAccount,
+                              selected: vm.kind.value == AssetKind.account,
+                              icon: Icons.account_balance_wallet_outlined,
+                              count: vm.kindCounts.value[AssetKind.account],
+                              onSelected: (_) => vm.setKind(AssetKind.account),
+                            ),
+                            AppFilterChip(
+                              label: l10n.assetKindInvestment,
+                              selected: vm.kind.value == AssetKind.investment,
+                              icon: Icons.trending_up,
+                              count: vm.kindCounts.value[AssetKind.investment],
+                              onSelected: (_) =>
+                                  vm.setKind(AssetKind.investment),
+                            ),
+                            AppFilterChip(
+                              label: l10n.assetKindProperty,
+                              selected: vm.kind.value == AssetKind.property,
+                              icon: Icons.home_outlined,
+                              count: vm.kindCounts.value[AssetKind.property],
+                              onSelected: (_) => vm.setKind(AssetKind.property),
+                            ),
+                          ],
+                        ),
                       ),
                       AppSwitch(
                         value: vm.showArchived.value,
@@ -183,7 +189,7 @@ class _AssetsScreenState extends State<AssetsScreen> {
                                   icon: Icons.archive_outlined,
                                   title: l10n.assetsAllArchivedTitle,
                                   message: l10n.assetsAllArchivedMessage,
-                                  actionLabel: l10n.assetsFilterArchived,
+                                  actionLabel: l10n.assetsShowArchivedAction,
                                   onAction: () => vm.setShowArchived(true),
                                 )
                               : AppEmptyState(

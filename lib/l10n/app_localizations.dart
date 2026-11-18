@@ -1544,6 +1544,12 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Показываются только активные. Откройте архив, чтобы увидеть остальные.'**
   String get assetsAllArchivedMessage;
+
+  /// Действие показа архивных из пустого состояния.
+  ///
+  /// In ru, this message translates to:
+  /// **'Показать архивные'**
+  String get assetsShowArchivedAction;
 }
 
 class _AppLocalizationsDelegate

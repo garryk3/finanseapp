@@ -800,4 +800,7 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get assetsAllArchivedMessage =>
       'Показываются только активные. Откройте архив, чтобы увидеть остальные.';
+
+  @override
+  String get assetsShowArchivedAction => 'Показать архивные';
 }

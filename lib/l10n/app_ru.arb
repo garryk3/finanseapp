@@ -1075,5 +1075,9 @@
   "assetsAllArchivedMessage": "Показываются только активные. Откройте архив, чтобы увидеть остальные.",
   "@assetsAllArchivedMessage": {
     "description": "Пояснение каталога только из архивных активов."
+  },
+  "assetsShowArchivedAction": "Показать архивные",
+  "@assetsShowArchivedAction": {
+    "description": "Действие показа архивных из пустого состояния."
   }
 }

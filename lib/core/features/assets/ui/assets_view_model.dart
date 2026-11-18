@@ -55,6 +55,7 @@ class AssetsViewModel {
       query.value.trim().isNotEmpty || kind.value != null || showArchived.value;
 
   void init() {
+    _cancelSubscriptions();
     state.value = const ViewLoading();
     _loadReferences();
     _baseSubscription = settingsRepository.watchBaseCurrency().listen((base) {
@@ -209,15 +210,19 @@ class AssetsViewModel {
         isEnabled: true,
       );
 
-  void retry() {
-    _subscription?.cancel();
-    init();
+  void retry() => init();
+
+  Future<void> _cancelSubscriptions() async {
+    await _subscription?.cancel();
+    await _baseSubscription?.cancel();
+    await _currencySubscription?.cancel();
+    _subscription = null;
+    _baseSubscription = null;
+    _currencySubscription = null;
   }
 
   Future<void> dispose() async {
     _disposed = true;
-    await _subscription?.cancel();
-    await _baseSubscription?.cancel();
-    await _currencySubscription?.cancel();
+    await _cancelSubscriptions();
   }
 }
