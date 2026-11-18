@@ -178,4 +178,119 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get comingSoonMessage => 'Раздел появится в одном из обновлений.';
+
+  @override
+  String get subgroupsTitle => 'Банки и брокеры';
+
+  @override
+  String get subgroupsBankTab => 'Банки';
+
+  @override
+  String get subgroupsBrokerTab => 'Брокеры';
+
+  @override
+  String get subgroupAdd => 'Добавить';
+
+  @override
+  String get subgroupEmptyTitle => 'Пока нет';
+
+  @override
+  String get subgroupNameLabel => 'Название';
+
+  @override
+  String get subgroupEditTooltip => 'Переименовать';
+
+  @override
+  String get subgroupDeleteTooltip => 'Удалить';
+
+  @override
+  String get subgroupInUseTitle => 'Справочник используется';
+
+  @override
+  String get subgroupMoveTarget => 'Куда перенести';
+
+  @override
+  String get subgroupMoveAction => 'Перенести и удалить';
+
+  @override
+  String get subgroupErrorDuplicate => 'Такое название уже есть.';
+
+  @override
+  String get subgroupErrorKind =>
+      'Можно перенести только в справочник того же типа.';
+
+  @override
+  String get subgroupErrorSame => 'Выберите другой справочник.';
+
+  @override
+  String get subgroupErrorInUse => 'Сначала перенесите активы.';
+
+  @override
+  String subgroupAssetsCount(int count) {
+    return 'Активов: $count';
+  }
+
+  @override
+  String get commonCancel => 'Отмена';
+
+  @override
+  String get commonSave => 'Сохранить';
+
+  @override
+  String get commonDelete => 'Удалить';
+
+  @override
+  String subgroupInUseMessageCount(int count) {
+    return 'Активов: $count. Перенесите их в другой справочник того же типа.';
+  }
+
+  @override
+  String subgroupDeleteConfirmTitleNamed(String name) {
+    return 'Удалить «$name»?';
+  }
+
+  @override
+  String get subgroupDeleteConfirmMessageNamed =>
+      'Справочник не привязан к активам и будет удалён.';
+
+  @override
+  String get subgroupNoTargetTitle => 'Некуда перенести';
+
+  @override
+  String subgroupNoTargetMessage(String name) {
+    return 'Активы привязаны к «$name», а других справочников этого типа нет. Создайте ещё один и повторите перенос.';
+  }
+
+  @override
+  String get subgroupNewBank => 'Новый банк';
+
+  @override
+  String get subgroupNewBroker => 'Новый брокер';
+
+  @override
+  String subgroupRenameTitleNamed(String name) {
+    return 'Переименовать «$name»';
+  }
+
+  @override
+  String get subgroupEmptyMessageBank =>
+      'Добавьте банк, чтобы привязать к нему счёт.';
+
+  @override
+  String get subgroupEmptyMessageBroker =>
+      'Добавьте брокера, чтобы привязать к нему инвестицию.';
+
+  @override
+  String get subgroupActionsTooltip => 'Действия со справочником';
+
+  @override
+  String get commonSaved => 'Сохранено';
+
+  @override
+  String get subgroupDeleted => 'Справочник удалён.';
+
+  @override
+  String subgroupMovedAndDeleted(String target) {
+    return 'Активы перенесены в «$target», справочник удалён.';
+  }
 }

@@ -229,5 +229,167 @@
   "comingSoonMessage": "Раздел появится в одном из обновлений.",
   "@comingSoonMessage": {
     "description": "Пояснение заглушки раздела."
+  },
+  "subgroupsTitle": "Банки и брокеры",
+  "@subgroupsTitle": {
+    "description": "Заголовок справочника банков и брокеров."
+  },
+  "subgroupsBankTab": "Банки",
+  "@subgroupsBankTab": {
+    "description": "Вкладка банков."
+  },
+  "subgroupsBrokerTab": "Брокеры",
+  "@subgroupsBrokerTab": {
+    "description": "Вкладка брокеров."
+  },
+  "subgroupAdd": "Добавить",
+  "@subgroupAdd": {
+    "description": "Кнопка добавления справочника."
+  },
+  "subgroupEmptyTitle": "Пока нет",
+  "@subgroupEmptyTitle": {
+    "description": "Заголовок пустого справочника."
+  },
+  "subgroupNameLabel": "Название",
+  "@subgroupNameLabel": {
+    "description": "Поле названия справочника."
+  },
+  "subgroupEditTooltip": "Переименовать",
+  "@subgroupEditTooltip": {
+    "description": "Действие переименования."
+  },
+  "subgroupDeleteTooltip": "Удалить",
+  "@subgroupDeleteTooltip": {
+    "description": "Действие удаления."
+  },
+  "subgroupInUseTitle": "Справочник используется",
+  "@subgroupInUseTitle": {
+    "description": "Заголовок диалога занятого справочника."
+  },
+  "subgroupMoveTarget": "Куда перенести",
+  "@subgroupMoveTarget": {
+    "description": "Поле выбора целевой подгруппы."
+  },
+  "subgroupMoveAction": "Перенести и удалить",
+  "@subgroupMoveAction": {
+    "description": "Подтверждение переноса и удаления."
+  },
+  "subgroupErrorDuplicate": "Такое название уже есть.",
+  "@subgroupErrorDuplicate": {
+    "description": "Ошибка дубликата названия."
+  },
+  "subgroupErrorKind": "Можно перенести только в справочник того же типа.",
+  "@subgroupErrorKind": {
+    "description": "Ошибка несовпадения типа."
+  },
+  "subgroupErrorSame": "Выберите другой справочник.",
+  "@subgroupErrorSame": {
+    "description": "Ошибка выбора той же подгруппы."
+  },
+  "subgroupErrorInUse": "Сначала перенесите активы.",
+  "@subgroupErrorInUse": {
+    "description": "Ошибка удаления занятого справочника."
+  },
+  "subgroupAssetsCount": "Активов: {count}",
+  "@subgroupAssetsCount": {
+    "description": "Число привязанных активов.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "commonCancel": "Отмена",
+  "@commonCancel": {
+    "description": "Кнопка отмены."
+  },
+  "commonSave": "Сохранить",
+  "@commonSave": {
+    "description": "Кнопка сохранения."
+  },
+  "commonDelete": "Удалить",
+  "@commonDelete": {
+    "description": "Кнопка удаления."
+  },
+  "subgroupInUseMessageCount": "Активов: {count}. Перенесите их в другой справочник того же типа.",
+  "@subgroupInUseMessageCount": {
+    "description": "Пояснение переноса занятого справочника с числом активов.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "subgroupDeleteConfirmTitleNamed": "Удалить «{name}»?",
+  "@subgroupDeleteConfirmTitleNamed": {
+    "description": "Подтверждение удаления свободного справочника с именем.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "subgroupDeleteConfirmMessageNamed": "Справочник не привязан к активам и будет удалён.",
+  "@subgroupDeleteConfirmMessageNamed": {
+    "description": "Пояснение удаления свободного справочника."
+  },
+  "subgroupNoTargetTitle": "Некуда перенести",
+  "@subgroupNoTargetTitle": {
+    "description": "Заголовок тупика: нет второго справочника того же типа."
+  },
+  "subgroupNoTargetMessage": "Активы привязаны к «{name}», а других справочников этого типа нет. Создайте ещё один и повторите перенос.",
+  "@subgroupNoTargetMessage": {
+    "description": "Пояснение тупика переноса.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "subgroupNewBank": "Новый банк",
+  "@subgroupNewBank": {
+    "description": "Заголовок диалога создания банка."
+  },
+  "subgroupNewBroker": "Новый брокер",
+  "@subgroupNewBroker": {
+    "description": "Заголовок диалога создания брокера."
+  },
+  "subgroupRenameTitleNamed": "Переименовать «{name}»",
+  "@subgroupRenameTitleNamed": {
+    "description": "Заголовок переименования с именем.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "subgroupEmptyMessageBank": "Добавьте банк, чтобы привязать к нему счёт.",
+  "@subgroupEmptyMessageBank": {
+    "description": "Пояснение пустого списка банков."
+  },
+  "subgroupEmptyMessageBroker": "Добавьте брокера, чтобы привязать к нему инвестицию.",
+  "@subgroupEmptyMessageBroker": {
+    "description": "Пояснение пустого списка брокеров."
+  },
+  "subgroupActionsTooltip": "Действия со справочником",
+  "@subgroupActionsTooltip": {
+    "description": "Подсказка overflow-меню строки справочника."
+  },
+  "commonSaved": "Сохранено",
+  "@commonSaved": {
+    "description": "Подтверждение успешного сохранения."
+  },
+  "subgroupDeleted": "Справочник удалён.",
+  "@subgroupDeleted": {
+    "description": "Подтверждение удаления справочника."
+  },
+  "subgroupMovedAndDeleted": "Активы перенесены в «{target}», справочник удалён.",
+  "@subgroupMovedAndDeleted": {
+    "description": "Подтверждение переноса активов и удаления справочника.",
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
   }
 }

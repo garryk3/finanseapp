@@ -5,6 +5,7 @@ import 'package:finanseapp/core/features/app_info/ui/not_found_screen.dart';
 import 'package:finanseapp/core/features/app_info/ui/not_found_view_model.dart';
 import 'package:finanseapp/core/features/applock/logic/applock_settings_view_model.dart';
 import 'package:finanseapp/core/features/applock/ui/applock_manage_screen.dart';
+import 'package:finanseapp/core/features/assets/domain/subgroup.dart';
 import 'package:finanseapp/core/features/assets/ui/assets_screen.dart';
 import 'package:finanseapp/core/features/assets/ui/assets_view_model.dart';
 import 'package:finanseapp/core/features/cashflow/ui/cashflow_screen.dart';
@@ -13,6 +14,8 @@ import 'package:finanseapp/core/features/dashboard/ui/dashboard_screen.dart';
 import 'package:finanseapp/core/features/dashboard/ui/dashboard_view_model.dart';
 import 'package:finanseapp/core/features/goals/ui/goals_screen.dart';
 import 'package:finanseapp/core/features/goals/ui/goals_view_model.dart';
+import 'package:finanseapp/core/features/references/ui/subgroups_screen.dart';
+import 'package:finanseapp/core/features/references/ui/subgroups_view_model.dart';
 import 'package:finanseapp/core/features/settings/ui/more_screen.dart';
 import 'package:finanseapp/core/features/settings/ui/more_view_model.dart';
 import 'package:finanseapp/core/features/transactions/ui/transactions_screen.dart';
@@ -154,6 +157,29 @@ GoRouter buildRouter({required ServiceLocator locator}) {
                 builder: (context, state) =>
                     MoreScreen(viewModel: locator.get<MoreViewModel>()),
                 routes: [
+                  GoRoute(
+                    path: 'subgroups',
+                    name: 'subgroups',
+                    builder: (context, state) {
+                      final kind =
+                          AppRoutes.parseAllowlisted(
+                                state.uri.queryParameters['kind'],
+                                const {'bank', 'broker'},
+                              ) ==
+                              'broker'
+                          ? SubgroupKind.broker
+                          : SubgroupKind.bank;
+                      return SubgroupsScreen(
+                        viewModel: locator.get<SubgroupsViewModel>(),
+                        initialKind: kind,
+                        onKindChanged: (next) => context.go(
+                          AppRoutes.subgroupsPath(
+                            next == SubgroupKind.broker ? 'broker' : 'bank',
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                   for (final entry in _morePlaceholders)
                     _placeholderRoute(
                       entry.path,
@@ -343,7 +369,6 @@ const _morePlaceholders = <({String path, String name})>[
   (path: 'settings', name: 'settings'),
   (path: 'categories', name: 'categories'),
   (path: 'categories/new', name: 'category-new'),
-  (path: 'subgroups', name: 'subgroups'),
   (path: 'currencies', name: 'currencies'),
   (path: 'currencies/new', name: 'currency-new'),
   (path: 'currencies/base', name: 'base-currency'),

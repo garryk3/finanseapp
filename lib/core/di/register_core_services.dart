@@ -9,6 +9,9 @@ import 'package:finanseapp/core/database/daos/references_dao.dart';
 import 'package:finanseapp/core/database/daos/settings_dao.dart';
 import 'package:finanseapp/core/database/daos/transactions_dao.dart';
 import 'package:finanseapp/core/database/daos/valuations_dao.dart';
+import 'package:finanseapp/core/features/assets/data/subgroup_repository_impl.dart';
+import 'package:finanseapp/core/features/assets/domain/subgroup_repository.dart';
+import 'package:finanseapp/core/features/references/ui/subgroups_view_model.dart';
 import 'package:finanseapp/core/di/service_locator.dart';
 import 'package:finanseapp/core/presentation/date_formatter.dart';
 import 'package:finanseapp/core/presentation/money_formatter.dart';
@@ -33,6 +36,13 @@ Future<ServiceLocator> registerCoreServices(
   locator.register<GoalsDao>(db.goalsDao);
   locator.register<SettingsDao>(db.settingsDao);
   locator.register<AuditDao>(db.auditDao);
+
+  locator.register<SubgroupRepository>(
+    SubgroupRepositoryImpl(db.referencesDao),
+  );
+  locator.registerFactory<SubgroupsViewModel>(
+    () => SubgroupsViewModel(repository: locator.get<SubgroupRepository>()),
+  );
 
   locator.register<MoneyFormatter>(const MoneyFormatter());
   locator.register<DateFormatter>(const DateFormatter());

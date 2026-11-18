@@ -43,16 +43,23 @@ class AppListTile extends StatelessWidget {
             softWrap: true,
           );
     final callback = (onTap == null || !enabled) ? null : onTap;
+    final titleWidget = AppText(
+      title,
+      style: textTheme.bodyLarge,
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
+      softWrap: true,
+    );
     final tile = ListTile(
-      title: AppText(
-        title,
-        style: textTheme.bodyLarge,
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-        softWrap: true,
-      ),
-      subtitle: effectiveSubtitle,
-      leading: leading,
+      title: semanticLabel == null
+          ? titleWidget
+          : ExcludeSemantics(child: titleWidget),
+      subtitle: semanticLabel == null || effectiveSubtitle == null
+          ? effectiveSubtitle
+          : ExcludeSemantics(child: effectiveSubtitle),
+      leading: semanticLabel == null || leading == null
+          ? leading
+          : ExcludeSemantics(child: leading),
       trailing: trailing,
       onTap: callback,
       enabled: enabled,
@@ -64,6 +71,6 @@ class AppListTile extends StatelessWidget {
     );
     return semanticLabel == null
         ? tile
-        : Semantics(label: semanticLabel, child: tile);
+        : Semantics(container: true, label: semanticLabel, child: tile);
   }
 }
