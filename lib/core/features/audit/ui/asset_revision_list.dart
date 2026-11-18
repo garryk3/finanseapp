@@ -7,7 +7,6 @@ import 'package:finanseapp/core/presentation/date_formatter.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
 import 'package:finanseapp/uikit/app_divider.dart';
 import 'package:finanseapp/uikit/app_text.dart';
-import 'package:flutter/widgets.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// Append-only список ревизий операции с diff к предыдущей (6.3).
@@ -35,9 +34,16 @@ class AssetRevisionList extends StatelessWidget {
                 AppText(
                   '${l10n.revisionLabel(revisions[i].revisionNo)} · '
                   '${_actionLabel(l10n, revisions[i])}',
+                  style: Theme.of(context).textTheme.titleSmall,
                 ),
-                AppText(_changedAt(revisions[i])),
-                for (final line in _diffLines(l10n, i)) AppText(line),
+                AppText(
+                  _changedAt(revisions[i]),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                for (final line in _diffLines(l10n, i))
+                  AppText(line, style: Theme.of(context).textTheme.bodySmall),
               ],
             ),
           ),

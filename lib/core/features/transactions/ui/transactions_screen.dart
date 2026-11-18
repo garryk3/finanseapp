@@ -297,7 +297,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
           typeLabel: _kindLabel(l10n, transaction.kind),
           icon: _kindIcon(transaction.kind),
           amountText: '${incoming ? '+' : '−'}${vm.formatAmount(transaction)}',
-          dateText: const DateFormatter().format(transaction.occurredOn),
+          dateText: '',
           tone: isTransfer
               ? AppMoneyTone.transfer
               : (incoming ? AppMoneyTone.income : AppMoneyTone.expense),
