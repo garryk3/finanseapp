@@ -190,13 +190,15 @@ class _SubgroupsScreenState extends State<SubgroupsScreen> {
         },
       );
 
-  Future<Result<Object?>> _createSubmit(String name) async =>
-      _asObject(await _viewModel.create(name));
+  Future<DomainException?> _createSubmit(String name) async {
+    final result = await _viewModel.create(name);
+    return result is Failure<int> ? result.error : null;
+  }
 
-  Future<Result<Object?>> _renameSubmit(int id, String name) async =>
-      _asObject(await _viewModel.rename(id, name));
-
-  static Result<Object?> _asObject(Result<Object?> result) => result;
+  Future<DomainException?> _renameSubmit(int id, String name) async {
+    final result = await _viewModel.rename(id, name);
+    return result is Failure<void> ? result.error : null;
+  }
 
   Future<void> _create() async {
     await showAppDialog<void>(
@@ -225,14 +227,11 @@ class _SubgroupsScreenState extends State<SubgroupsScreen> {
     final l10n = _l10n;
     final countResult = await _viewModel.countAssets(item.subgroup.id);
     if (!mounted) return;
-    final int actualCount;
-    switch (countResult) {
-      case Success(:final value):
-        actualCount = value;
-      case Failure(:final error):
-        _showError(_errorText(error));
-        return;
+    if (countResult is Failure<int>) {
+      _showError(_errorText(countResult.error));
+      return;
     }
+    final int actualCount = (countResult as Success<int>).value;
 
     if (actualCount == 0) {
       final confirmed = await showAppDialog<bool>(
@@ -300,14 +299,13 @@ class _SubgroupsScreenState extends State<SubgroupsScreen> {
     _report(result, successMessage: l10n.subgroupMovedAndDeleted(targetName));
   }
 
-  void _report(Result<Object?> result, {String? successMessage}) {
-    switch (result) {
-      case Success():
-        if (successMessage != null) {
-          showAppSnackBar(context, message: successMessage);
-        }
-      case Failure(:final error):
-        _showError(_errorText(error));
+  void _report(Result<void> result, {String? successMessage}) {
+    if (result is Failure<void>) {
+      _showError(_errorText(result.error));
+      return;
+    }
+    if (successMessage != null) {
+      showAppSnackBar(context, message: successMessage);
     }
   }
 
@@ -355,7 +353,7 @@ class _NameDialog extends StatefulWidget {
 
   final String title;
   final String? initial;
-  final Future<Result<Object?>> Function(String name) submit;
+  final Future<DomainException?> Function(String name) submit;
   final String Function(DomainException error) errorText;
 
   @override
@@ -400,17 +398,16 @@ class _NameDialogState extends State<_NameDialog> {
       _saving = true;
       _error = null;
     });
-    final result = await widget.submit(name);
+    final error = await widget.submit(name);
     if (!mounted) return;
-    switch (result) {
-      case Success():
-        Navigator.of(context).pop();
-      case Failure(:final error):
-        setState(() {
-          _saving = false;
-          _error = widget.errorText(error);
-        });
+    if (error == null) {
+      Navigator.of(context).pop();
+      return;
     }
+    setState(() {
+      _saving = false;
+      _error = widget.errorText(error);
+    });
   }
 
   @override
