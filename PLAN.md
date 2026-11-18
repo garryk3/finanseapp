@@ -901,6 +901,10 @@
   категория, ревизии, edit/delete), маршруты `/cashflow/new|:id|:id/edit`. Тесты: RUB
   income/expense snapshots, kind mismatch, zero/future/archived, empty comment→null, edit
   revision+amount, delete скрывает и сохраняет ревизии, отсутствие asset tx, итоги.
+  По дизайн-ревью: категории загружаются сразу в create, итоги — `AppCashflowSummary`
+  с периодом, empty state центрирован через scroll-обёртку (без overflow 320dp/1.3),
+  заголовок edit-формы, RUB-строка не дублируется, ревизии с датой/типографикой,
+  отдельный текст ошибки удаления, «Валюта» вместо «Валюта счёта».
 - **Отложено:** фильтры/поиск журнала в UI (7.3), привязка к счёту/affectsBalance (7.2),
   audit денежного потока (7.4), inline-ошибки удаления, визуальный QA.
 

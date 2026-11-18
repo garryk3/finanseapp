@@ -54,7 +54,7 @@ class _CashflowFormScreenState extends State<CashflowFormScreen> {
   @override
   void initState() {
     super.initState();
-    widget.viewModel.load().then((_) {
+    widget.viewModel.load(kind: _kind).then((_) {
       if (!mounted) return;
       final entry = widget.viewModel.entry.value;
       setState(() {
@@ -205,7 +205,9 @@ class _CashflowFormScreenState extends State<CashflowFormScreen> {
             padding: const EdgeInsets.all(AppSpacing.md),
             children: [
               AppFormSection(
-                title: l10n.cashflowFormNew,
+                title: vm.isEditing
+                    ? l10n.cashflowFormEdit
+                    : l10n.cashflowFormNew,
                 errorText: _formError,
                 children: [
                   AppSegmentedControl<CashflowKind>(
@@ -232,7 +234,7 @@ class _CashflowFormScreenState extends State<CashflowFormScreen> {
                     onChanged: (_) => setState(() => _amountError = null),
                   ),
                   AppCurrencySelect(
-                    label: l10n.accountCurrencyLabel,
+                    label: l10n.cashflowCurrencyLabel,
                     valueCode: _currencyCode,
                     items: [
                       for (final item in vm.currencies.value.values)

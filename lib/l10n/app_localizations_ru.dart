@@ -1102,4 +1102,13 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get cashflowTotalsNet => 'Итого';
+
+  @override
+  String get cashflowPeriodAll => 'Все записи';
+
+  @override
+  String get cashflowCurrencyLabel => 'Валюта';
+
+  @override
+  String get cashflowDeleteError => 'Не удалось удалить запись.';
 }

@@ -1,6 +1,7 @@
 import 'package:finanseapp/app/routes.dart';
 import 'package:finanseapp/app/theme/app_spacing.dart';
 import 'package:finanseapp/core/domain/common/currency.dart';
+import 'package:finanseapp/core/domain/common/local_date.dart';
 import 'package:finanseapp/core/domain/common/money.dart';
 import 'package:finanseapp/core/domain/common/revision.dart';
 import 'package:finanseapp/core/domain/common/result.dart';
@@ -100,9 +101,10 @@ class _CashflowDetailsScreenState extends State<CashflowDetailsScreen> {
                 child: AppSummaryCard(
                   title: income ? l10n.cashflowIncome : l10n.cashflowExpense,
                   value: _money(entry.amount),
-                  subtitle:
-                      '${l10n.transactionAmountRub}: '
-                      '${_money(entry.amountRub)}',
+                  subtitle: entry.amount.currencyCode == 'RUB'
+                      ? null
+                      : '${l10n.transactionAmountRub}: '
+                            '${_money(entry.amountRub)}',
                 ),
               ),
               const SizedBox(height: AppSpacing.md),
@@ -120,7 +122,12 @@ class _CashflowDetailsScreenState extends State<CashflowDetailsScreen> {
                       '${entry.comment ?? l10n.transactionCommentEmpty}',
                     ),
                     if (vm.deleteError.value != null)
-                      AppText(l10n.errorStateMessage),
+                      AppText(
+                        l10n.cashflowDeleteError,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
                     const SizedBox(height: AppSpacing.lg),
                     AppButton(
                       label: l10n.accountEdit,
@@ -158,9 +165,12 @@ class _CashflowDetailsScreenState extends State<CashflowDetailsScreen> {
                             AppText(
                               '${l10n.revisionLabel(vm.revisions.value[i].revisionNo)} · '
                               '${_action(l10n, vm.revisions.value[i].action)}',
+                              style: Theme.of(context).textTheme.titleSmall,
                             ),
                             AppText(
-                              _money(vm.revisions.value[i].snapshot.amountRub),
+                              '${const DateFormatter().format(LocalDate.fromDateTime(vm.revisions.value[i].changedAt.toLocal()))} · '
+                              '${_money(vm.revisions.value[i].snapshot.amountRub)}',
+                              style: Theme.of(context).textTheme.bodySmall,
                             ),
                           ],
                         ],

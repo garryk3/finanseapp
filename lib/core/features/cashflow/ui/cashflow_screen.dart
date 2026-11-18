@@ -23,7 +23,7 @@ import 'package:finanseapp/uikit/app_list_view.dart';
 import 'package:finanseapp/uikit/app_operation_list_tile.dart';
 import 'package:finanseapp/uikit/app_scaffold.dart';
 import 'package:finanseapp/uikit/app_skeleton.dart';
-import 'package:finanseapp/uikit/app_summary_card.dart';
+import 'package:finanseapp/uikit/app_cashflow_summary.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:signals_flutter/signals_flutter.dart';
@@ -179,15 +179,14 @@ class _CashflowScreenState extends State<CashflowScreen> {
         if (index == 0) {
           return Padding(
             padding: const EdgeInsets.all(AppSpacing.md),
-            child: AppSummaryCard(
-              title: l10n.cashflowTotalsNet,
-              value: _rub(totals.net),
-              subtitle:
-                  '${l10n.cashflowTotalsIncome}: ${_rub(totals.income)} · '
-                  '${l10n.cashflowTotalsExpense}: ${_rub(totals.expense)}',
-              tone: totals.net.minorUnits < 0
-                  ? AppMoneyTone.expense
-                  : AppMoneyTone.income,
+            child: AppCashflowSummary(
+              incomeText: _rub(totals.income),
+              expenseText: _rub(totals.expense),
+              netText: _rub(totals.net),
+              periodLabel: l10n.cashflowPeriodAll,
+              incomeLabel: l10n.cashflowTotalsIncome,
+              expenseLabel: l10n.cashflowTotalsExpense,
+              netLabel: l10n.cashflowTotalsNet,
             ),
           );
         }

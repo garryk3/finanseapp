@@ -1479,5 +1479,17 @@
   "cashflowTotalsNet": "Итого",
   "@cashflowTotalsNet": {
     "description": "Итог денежного потока."
+  },
+  "cashflowPeriodAll": "Все записи",
+  "@cashflowPeriodAll": {
+    "description": "Период итогов: вся история."
+  },
+  "cashflowCurrencyLabel": "Валюта",
+  "@cashflowCurrencyLabel": {
+    "description": "Поле валюты дохода/расхода."
+  },
+  "cashflowDeleteError": "Не удалось удалить запись.",
+  "@cashflowDeleteError": {
+    "description": "Ошибка удаления записи."
   }
 }

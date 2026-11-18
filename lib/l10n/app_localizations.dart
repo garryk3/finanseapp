@@ -2114,6 +2114,24 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Итого'**
   String get cashflowTotalsNet;
+
+  /// Период итогов: вся история.
+  ///
+  /// In ru, this message translates to:
+  /// **'Все записи'**
+  String get cashflowPeriodAll;
+
+  /// Поле валюты дохода/расхода.
+  ///
+  /// In ru, this message translates to:
+  /// **'Валюта'**
+  String get cashflowCurrencyLabel;
+
+  /// Ошибка удаления записи.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось удалить запись.'**
+  String get cashflowDeleteError;
 }
 
 class _AppLocalizationsDelegate
