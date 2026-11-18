@@ -27,6 +27,8 @@ dependencies:
   crypto: ^3.0.8
   decimal: ^3.2.6
   rational: ^2.2.3
+  http: ^1.6.0
+  xml: ^7.1.0
 
 dev_dependencies:
   flutter_test:

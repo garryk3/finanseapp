@@ -7,6 +7,12 @@ import 'package:finanseapp/core/features/applock/logic/applock_settings_view_mod
 import 'package:finanseapp/core/features/applock/ui/applock_manage_screen.dart';
 import 'package:finanseapp/core/features/assets/domain/subgroup.dart';
 import 'package:finanseapp/core/features/assets/ui/assets_screen.dart';
+import 'package:finanseapp/core/features/currencies/ui/base_currency_screen.dart';
+import 'package:finanseapp/core/features/currencies/ui/base_currency_view_model.dart';
+import 'package:finanseapp/core/features/currencies/ui/currencies_screen.dart';
+import 'package:finanseapp/core/features/currencies/ui/currencies_view_model.dart';
+import 'package:finanseapp/core/features/currencies/ui/currency_form_screen.dart';
+import 'package:finanseapp/core/features/currencies/ui/currency_form_view_model.dart';
 import 'package:finanseapp/core/features/assets/ui/assets_view_model.dart';
 import 'package:finanseapp/core/features/cashflow/ui/cashflow_screen.dart';
 import 'package:finanseapp/core/features/cashflow/ui/cashflow_view_model.dart';
@@ -179,6 +185,27 @@ GoRouter buildRouter({required ServiceLocator locator}) {
                         ),
                       );
                     },
+                  ),
+                  GoRoute(
+                    path: 'currencies',
+                    name: 'currencies',
+                    builder: (context, state) => CurrenciesScreen(
+                      viewModel: locator.get<CurrenciesViewModel>(),
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'currencies/new',
+                    name: 'currency-new',
+                    builder: (context, state) => CurrencyFormScreen(
+                      viewModel: locator.get<CurrencyFormViewModel>(),
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'currencies/base',
+                    name: 'base-currency',
+                    builder: (context, state) => BaseCurrencyScreen(
+                      viewModel: locator.get<BaseCurrencyViewModel>(),
+                    ),
                   ),
                   for (final entry in _morePlaceholders)
                     _placeholderRoute(
@@ -369,9 +396,6 @@ const _morePlaceholders = <({String path, String name})>[
   (path: 'settings', name: 'settings'),
   (path: 'categories', name: 'categories'),
   (path: 'categories/new', name: 'category-new'),
-  (path: 'currencies', name: 'currencies'),
-  (path: 'currencies/new', name: 'currency-new'),
-  (path: 'currencies/base', name: 'base-currency'),
   (path: 'audit', name: 'audit'),
   (path: 'about', name: 'about'),
 ];

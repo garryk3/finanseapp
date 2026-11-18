@@ -391,5 +391,123 @@
         "type": "String"
       }
     }
+  },
+  "currenciesTitle": "Валюты",
+  "@currenciesTitle": {
+    "description": "Заголовок справочника валют."
+  },
+  "currenciesBaseAction": "Базовая валюта",
+  "@currenciesBaseAction": {
+    "description": "Кнопка перехода к выбору базовой валюты."
+  },
+  "currencyAdd": "Новая валюта",
+  "@currencyAdd": {
+    "description": "Действие создания валюты."
+  },
+  "currencyCodeLabel": "Код (три заглавные буквы)",
+  "@currencyCodeLabel": {
+    "description": "Поле кода валюты."
+  },
+  "currencyNameLabel": "Название",
+  "@currencyNameLabel": {
+    "description": "Поле названия валюты."
+  },
+  "currencyFractionLabel": "Знаков после запятой",
+  "@currencyFractionLabel": {
+    "description": "Поле числа дробных знаков."
+  },
+  "currencyFractionValue": "Знаков: {count}",
+  "@currencyFractionValue": {
+    "description": "Подпись числа дробных знаков.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "currencyToggleEnable": "Включить",
+  "@currencyToggleEnable": {
+    "description": "Действие включения валюты."
+  },
+  "currencyToggleDisable": "Отключить",
+  "@currencyToggleDisable": {
+    "description": "Действие отключения валюты."
+  },
+  "currencyRename": "Переименовать",
+  "@currencyRename": {
+    "description": "Действие переименования валюты."
+  },
+  "currencyDelete": "Удалить",
+  "@currencyDelete": {
+    "description": "Действие удаления валюты."
+  },
+  "currencyDeleteConfirmTitle": "Удалить валюту «{code}»?",
+  "@currencyDeleteConfirmTitle": {
+    "description": "Подтверждение удаления валюты.",
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "currencyDeleteConfirmMessage": "Валюта не используется и будет удалена.",
+  "@currencyDeleteConfirmMessage": {
+    "description": "Пояснение удаления валюты."
+  },
+  "currencyErrorDuplicate": "Валюта с таким названием уже есть.",
+  "@currencyErrorDuplicate": {
+    "description": "Ошибка дубликата валюты."
+  },
+  "currencyErrorCode": "Код должен состоять из трёх заглавных букв.",
+  "@currencyErrorCode": {
+    "description": "Ошибка формата кода."
+  },
+  "currencyErrorInUse": "Валюта используется или выбрана базовой.",
+  "@currencyErrorInUse": {
+    "description": "Ошибка удаления/отключения используемой валюты."
+  },
+  "currencyErrorRub": "RUB нельзя отключить или удалить.",
+  "@currencyErrorRub": {
+    "description": "Ошибка защиты RUB."
+  },
+  "baseCurrencyTitle": "Базовая валюта",
+  "@baseCurrencyTitle": {
+    "description": "Заголовок выбора базовой валюты."
+  },
+  "baseCurrencySave": "Сохранить базовую валюту",
+  "@baseCurrencySave": {
+    "description": "Кнопка сохранения базовой валюты."
+  },
+  "baseCurrencyCurrent": "Текущая базовая",
+  "@baseCurrencyCurrent": {
+    "description": "Подпись текущей базовой валюты."
+  },
+  "manualRateTitle": "Ручной курс",
+  "@manualRateTitle": {
+    "description": "Заголовок диалога ручного курса."
+  },
+  "manualRateLabel": "Курс к рублю",
+  "@manualRateLabel": {
+    "description": "Поле ручного курса."
+  },
+  "manualRateHint": "Например, 93,4567",
+  "@manualRateHint": {
+    "description": "Подсказка формата курса."
+  },
+  "manualRateInvalid": "Введите положительный курс.",
+  "@manualRateInvalid": {
+    "description": "Ошибка ручного курса."
+  },
+  "currencySaved": "Валюта сохранена.",
+  "@currencySaved": {
+    "description": "Подтверждение сохранения валюты."
+  },
+  "baseCurrencySaved": "Базовая валюта изменена.",
+  "@baseCurrencySaved": {
+    "description": "Подтверждение смены базовой валюты."
+  },
+  "currencyFractionError": "Введите число от 0 до 8.",
+  "@currencyFractionError": {
+    "description": "Ошибка числа дробных знаков валюты."
   }
 }

@@ -11,7 +11,17 @@ import 'package:finanseapp/core/database/daos/transactions_dao.dart';
 import 'package:finanseapp/core/database/daos/valuations_dao.dart';
 import 'package:finanseapp/core/features/assets/data/subgroup_repository_impl.dart';
 import 'package:finanseapp/core/features/assets/domain/subgroup_repository.dart';
+import 'package:finanseapp/core/features/currencies/data/cbr_exchange_rate_client.dart';
+import 'package:finanseapp/core/features/currencies/data/currency_repository_impl.dart';
+import 'package:finanseapp/core/features/currencies/data/exchange_rate_repository_impl.dart';
+import 'package:finanseapp/core/features/currencies/domain/currency_repository.dart';
+import 'package:finanseapp/core/features/currencies/domain/exchange_rate_repository.dart';
+import 'package:finanseapp/core/features/currencies/ui/base_currency_view_model.dart';
+import 'package:finanseapp/core/features/currencies/ui/currencies_view_model.dart';
+import 'package:finanseapp/core/features/currencies/ui/currency_form_view_model.dart';
 import 'package:finanseapp/core/features/references/ui/subgroups_view_model.dart';
+import 'package:finanseapp/core/features/settings/data/settings_repository_impl.dart';
+import 'package:finanseapp/core/features/settings/domain/settings_repository.dart';
 import 'package:finanseapp/core/di/service_locator.dart';
 import 'package:finanseapp/core/presentation/date_formatter.dart';
 import 'package:finanseapp/core/presentation/money_formatter.dart';
@@ -42,6 +52,33 @@ Future<ServiceLocator> registerCoreServices(
   );
   locator.registerFactory<SubgroupsViewModel>(
     () => SubgroupsViewModel(repository: locator.get<SubgroupRepository>()),
+  );
+
+  locator.register<CbrExchangeRateClient>(CbrExchangeRateClient());
+  locator.register<CurrencyRepository>(
+    CurrencyRepositoryImpl(db.currenciesDao),
+  );
+  locator.register<ExchangeRateRepository>(
+    ExchangeRateRepositoryImpl(
+      db.currenciesDao,
+      locator.get<CbrExchangeRateClient>(),
+    ),
+  );
+  locator.register<SettingsRepository>(SettingsRepositoryImpl(db.settingsDao));
+  locator.registerFactory<CurrenciesViewModel>(
+    () => CurrenciesViewModel(
+      repository: locator.get<CurrencyRepository>(),
+      settingsRepository: locator.get<SettingsRepository>(),
+    ),
+  );
+  locator.registerFactory<CurrencyFormViewModel>(
+    () => CurrencyFormViewModel(repository: locator.get<CurrencyRepository>()),
+  );
+  locator.registerFactory<BaseCurrencyViewModel>(
+    () => BaseCurrencyViewModel(
+      currencyRepository: locator.get<CurrencyRepository>(),
+      settingsRepository: locator.get<SettingsRepository>(),
+    ),
   );
 
   locator.register<MoneyFormatter>(const MoneyFormatter());
