@@ -51,6 +51,7 @@ void main() {
         effectiveOn: LocalDate(2026, 1, 2),
         value: const Money(minorUnits: 150000, currencyCode: 'RUB'),
         rateToRub: Decimal.one,
+        fractionDigits: 2,
       ),
     );
     await db.transactionsDao.create(
@@ -85,6 +86,7 @@ void main() {
           effectiveOn: LocalDate(2026, 1, 2),
           value: Money(minorUnits: value, currencyCode: 'RUB'),
           rateToRub: Decimal.one,
+          fractionDigits: 2,
         ),
       );
     }
@@ -101,6 +103,7 @@ void main() {
         effectiveOn: LocalDate(2026, 1, 2),
         value: const Money(minorUnits: 150000, currencyCode: 'RUB'),
         rateToRub: Decimal.one,
+        fractionDigits: 2,
       ),
     );
 
@@ -145,6 +148,7 @@ void main() {
           effectiveOn: LocalDate(2026, 1, 2),
           value: const Money(minorUnits: -1, currencyCode: 'RUB'),
           rateToRub: Decimal.one,
+          fractionDigits: 2,
         ),
       ),
       throwsA(isA<DomainException>()),
@@ -156,6 +160,7 @@ void main() {
           effectiveOn: LocalDate(2030, 1, 2),
           value: const Money(minorUnits: 100, currencyCode: 'RUB'),
           rateToRub: Decimal.one,
+          fractionDigits: 2,
         ),
       ),
       throwsA(isA<DomainException>()),

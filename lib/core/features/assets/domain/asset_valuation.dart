@@ -30,7 +30,7 @@ final class AssetValuationDraft {
     required this.effectiveOn,
     required this.value,
     required this.rateToRub,
-    this.fractionDigits = 2,
+    required this.fractionDigits,
   });
 
   final int assetId;
