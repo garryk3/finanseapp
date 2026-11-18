@@ -11,16 +11,27 @@ final class CbrExchangeRateClient {
   CbrExchangeRateClient({
     http.Client? client,
     this.timeout = const Duration(seconds: 15),
-  }) : _client = client ?? http.Client();
+  }) {
+    _client = client;
+  }
 
-  final http.Client _client;
+  /// Клиент создаётся лениво: приложение может ни разу не запросить курс,
+  /// а HttpClient держит idle-таймеры.
+  http.Client? _client;
+
+  http.Client get _httpClient {
+    final existing = _client;
+    if (existing != null) return existing;
+    return _client = http.Client();
+  }
+
   final Duration timeout;
   static const _endpoint = 'https://www.cbr.ru/scripts/XML_daily.asp';
 
   Future<CbrRateQuote> fetch(String currencyCode, LocalDate date) async {
     final http.Response response;
     try {
-      response = await _client
+      response = await _httpClient
           .get(
             Uri.parse(_endpoint)
                 .replace(queryParameters: {'date_req': _formatDate(date)}),
@@ -55,6 +66,8 @@ final class CbrExchangeRateClient {
       );
     }
   }
+
+  void close() => _client?.close();
 
   static String _formatDate(LocalDate date) =>
       '${date.day.toString().padLeft(2, '0')}/'

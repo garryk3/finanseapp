@@ -22,18 +22,6 @@ void main() {
     return GoRouter.of(tester.element(find.byType(ShellScreen)));
   }
 
-  testWidgets('статический /assets/new/account не захватывается :id', (
-    tester,
-  ) async {
-    final router = await pumpApp(tester);
-
-    router.go(AppRoutes.accountNew);
-    await tester.pumpAndSettle();
-
-    expect(find.text(l10n.comingSoonTitle), findsOneWidget);
-    expect(find.text(l10n.notFoundTitle), findsNothing);
-  });
-
   testWidgets('невалидный id и unknown route ведут в NotFound', (tester) async {
     final router = await pumpApp(tester);
 

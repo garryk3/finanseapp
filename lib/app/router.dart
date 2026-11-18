@@ -6,7 +6,15 @@ import 'package:finanseapp/core/features/app_info/ui/not_found_view_model.dart';
 import 'package:finanseapp/core/features/applock/logic/applock_settings_view_model.dart';
 import 'package:finanseapp/core/features/applock/ui/applock_manage_screen.dart';
 import 'package:finanseapp/core/features/assets/domain/subgroup.dart';
+import 'package:finanseapp/core/domain/common/local_date.dart';
+import 'package:finanseapp/core/features/assets/domain/asset_repository.dart';
+import 'package:finanseapp/core/features/assets/domain/subgroup_repository.dart';
+import 'package:finanseapp/core/features/assets/ui/account_details_screen.dart';
+import 'package:finanseapp/core/features/assets/ui/account_details_view_model.dart';
+import 'package:finanseapp/core/features/assets/ui/account_form_screen.dart';
+import 'package:finanseapp/core/features/assets/ui/account_form_view_model.dart';
 import 'package:finanseapp/core/features/assets/ui/assets_screen.dart';
+import 'package:finanseapp/core/features/currencies/domain/currency_repository.dart';
 import 'package:finanseapp/core/features/categories/domain/category.dart';
 import 'package:finanseapp/core/features/categories/domain/category_repository.dart';
 import 'package:finanseapp/core/features/categories/ui/categories_screen.dart';
@@ -80,10 +88,16 @@ GoRouter buildRouter({required ServiceLocator locator}) {
                 builder: (context, state) =>
                     AssetsScreen(viewModel: locator.get<AssetsViewModel>()),
                 routes: [
-                  _placeholderRoute(
-                    'new/account',
-                    'account-new',
-                    (l10n) => l10n.navAssets,
+                  GoRoute(
+                    path: 'new/account',
+                    name: 'account-new',
+                    builder: (context, state) => AccountFormScreen(
+                      viewModel: AccountFormViewModel(
+                        repository: locator.get<AssetRepository>(),
+                        subgroupRepository: locator.get<SubgroupRepository>(),
+                        currencyRepository: locator.get<CurrencyRepository>(),
+                      ),
+                    ),
                   ),
                   _placeholderRoute(
                     'new/investment',
@@ -102,13 +116,35 @@ GoRouter buildRouter({required ServiceLocator locator}) {
                       final id = AppRoutes.parseId(state.pathParameters['id']);
                       return id == null
                           ? _notFound(locator)
-                          : ComingSoonScreen(title: l10nOf(context).navAssets);
+                          : AccountDetailsScreen(
+                              viewModel: AccountDetailsViewModel(
+                                repository: locator.get<AssetRepository>(),
+                                assetId: id,
+                                today: LocalDate.fromDateTime(DateTime.now()),
+                              ),
+                            );
                     },
                     routes: [
-                      _placeholderRoute(
-                        'edit/account',
-                        'account-edit',
-                        (l10n) => l10n.navAssets,
+                      GoRoute(
+                        path: 'edit/account',
+                        name: 'account-edit',
+                        builder: (context, state) {
+                          final id = AppRoutes.parseId(
+                            state.pathParameters['id'],
+                          );
+                          return id == null
+                              ? _notFound(locator)
+                              : AccountFormScreen(
+                                  viewModel: AccountFormViewModel(
+                                    repository: locator.get<AssetRepository>(),
+                                    subgroupRepository: locator
+                                        .get<SubgroupRepository>(),
+                                    currencyRepository: locator
+                                        .get<CurrencyRepository>(),
+                                    editingId: id,
+                                  ),
+                                );
+                        },
                       ),
                       _placeholderRoute(
                         'edit/investment',

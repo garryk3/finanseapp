@@ -511,4 +511,92 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get commonNameLabel => 'Название';
+
+  @override
+  String get assetsAddAccount => 'Добавить счёт';
+
+  @override
+  String get accountFormNew => 'Новый счёт';
+
+  @override
+  String get accountFormEdit => 'Изменить счёт';
+
+  @override
+  String get accountNameLabel => 'Название счёта';
+
+  @override
+  String get accountBankLabel => 'Банк';
+
+  @override
+  String get accountOpeningLabel => 'Начальный баланс';
+
+  @override
+  String get accountRateLabel => 'Ставка, % годовых';
+
+  @override
+  String get accountStartDate => 'Дата начала';
+
+  @override
+  String get accountEndDate => 'Дата окончания';
+
+  @override
+  String get accountBalanceLabel => 'Текущий баланс';
+
+  @override
+  String get accountForecastLabel => 'Прогноз';
+
+  @override
+  String get accountForecastHint =>
+      'Оценка с ежемесячной капитализацией, не входит в чистый капитал.';
+
+  @override
+  String get accountArchive => 'Архивировать';
+
+  @override
+  String get accountDelete => 'Удалить';
+
+  @override
+  String accountDeleteTitle(String name) {
+    return 'Удалить счёт «$name»?';
+  }
+
+  @override
+  String get accountDeleteMessage => 'Счёт не используется и будет удалён.';
+
+  @override
+  String get accountArchivedBadge => 'Архивный';
+
+  @override
+  String get accountSaved => 'Счёт сохранён.';
+
+  @override
+  String get accountArchived => 'Счёт архивирован.';
+
+  @override
+  String get accountDeleted => 'Счёт удалён.';
+
+  @override
+  String get accountErrorName => 'Введите название счёта.';
+
+  @override
+  String get accountErrorRate => 'Ставка должна быть от 0 до 100.';
+
+  @override
+  String get accountErrorDates => 'Дата окончания не раньше даты начала.';
+
+  @override
+  String get accountErrorCurrencyLocked =>
+      'Валюту нельзя менять после операций.';
+
+  @override
+  String get accountErrorInUse => 'Счёт используется и не может быть удалён.';
+
+  @override
+  String get accountNoBanks => 'Сначала добавьте банк в справочнике.';
+
+  @override
+  String get accountDetailsTitle => 'Счёт';
+
+  @override
+  String get assetsEmptyCta => 'Добавить счёт';
 }

@@ -1005,6 +1005,174 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Название'**
   String get commonNameLabel;
+
+  /// Действие создания счёта.
+  ///
+  /// In ru, this message translates to:
+  /// **'Добавить счёт'**
+  String get assetsAddAccount;
+
+  /// Заголовок формы нового счёта.
+  ///
+  /// In ru, this message translates to:
+  /// **'Новый счёт'**
+  String get accountFormNew;
+
+  /// Заголовок формы редактирования счёта.
+  ///
+  /// In ru, this message translates to:
+  /// **'Изменить счёт'**
+  String get accountFormEdit;
+
+  /// Поле названия счёта.
+  ///
+  /// In ru, this message translates to:
+  /// **'Название счёта'**
+  String get accountNameLabel;
+
+  /// Поле выбора банка.
+  ///
+  /// In ru, this message translates to:
+  /// **'Банк'**
+  String get accountBankLabel;
+
+  /// Поле начального баланса.
+  ///
+  /// In ru, this message translates to:
+  /// **'Начальный баланс'**
+  String get accountOpeningLabel;
+
+  /// Поле годовой ставки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ставка, % годовых'**
+  String get accountRateLabel;
+
+  /// Поле даты начала вклада.
+  ///
+  /// In ru, this message translates to:
+  /// **'Дата начала'**
+  String get accountStartDate;
+
+  /// Поле даты окончания вклада.
+  ///
+  /// In ru, this message translates to:
+  /// **'Дата окончания'**
+  String get accountEndDate;
+
+  /// Подпись текущего баланса.
+  ///
+  /// In ru, this message translates to:
+  /// **'Текущий баланс'**
+  String get accountBalanceLabel;
+
+  /// Подпись прогноза вклада.
+  ///
+  /// In ru, this message translates to:
+  /// **'Прогноз'**
+  String get accountForecastLabel;
+
+  /// Пояснение прогноза.
+  ///
+  /// In ru, this message translates to:
+  /// **'Оценка с ежемесячной капитализацией, не входит в чистый капитал.'**
+  String get accountForecastHint;
+
+  /// Действие архивирования счёта.
+  ///
+  /// In ru, this message translates to:
+  /// **'Архивировать'**
+  String get accountArchive;
+
+  /// Действие удаления счёта.
+  ///
+  /// In ru, this message translates to:
+  /// **'Удалить'**
+  String get accountDelete;
+
+  /// Подтверждение удаления счёта.
+  ///
+  /// In ru, this message translates to:
+  /// **'Удалить счёт «{name}»?'**
+  String accountDeleteTitle(String name);
+
+  /// Пояснение удаления счёта.
+  ///
+  /// In ru, this message translates to:
+  /// **'Счёт не используется и будет удалён.'**
+  String get accountDeleteMessage;
+
+  /// Пометка архивного актива.
+  ///
+  /// In ru, this message translates to:
+  /// **'Архивный'**
+  String get accountArchivedBadge;
+
+  /// Подтверждение сохранения счёта.
+  ///
+  /// In ru, this message translates to:
+  /// **'Счёт сохранён.'**
+  String get accountSaved;
+
+  /// Подтверждение архивации.
+  ///
+  /// In ru, this message translates to:
+  /// **'Счёт архивирован.'**
+  String get accountArchived;
+
+  /// Подтверждение удаления.
+  ///
+  /// In ru, this message translates to:
+  /// **'Счёт удалён.'**
+  String get accountDeleted;
+
+  /// Ошибка названия.
+  ///
+  /// In ru, this message translates to:
+  /// **'Введите название счёта.'**
+  String get accountErrorName;
+
+  /// Ошибка ставки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ставка должна быть от 0 до 100.'**
+  String get accountErrorRate;
+
+  /// Ошибка дат.
+  ///
+  /// In ru, this message translates to:
+  /// **'Дата окончания не раньше даты начала.'**
+  String get accountErrorDates;
+
+  /// Ошибка смены валюты.
+  ///
+  /// In ru, this message translates to:
+  /// **'Валюту нельзя менять после операций.'**
+  String get accountErrorCurrencyLocked;
+
+  /// Ошибка удаления используемого счёта.
+  ///
+  /// In ru, this message translates to:
+  /// **'Счёт используется и не может быть удалён.'**
+  String get accountErrorInUse;
+
+  /// Пустое состояние выбора банка.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сначала добавьте банк в справочнике.'**
+  String get accountNoBanks;
+
+  /// Заголовок деталей счёта.
+  ///
+  /// In ru, this message translates to:
+  /// **'Счёт'**
+  String get accountDetailsTitle;
+
+  /// CTA пустого списка активов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Добавить счёт'**
+  String get assetsEmptyCta;
 }
 
 class _AppLocalizationsDelegate
