@@ -139,6 +139,18 @@ class _InvestmentFormScreenState extends State<InvestmentFormScreen> {
     if (navigator?.canPop() ?? false) navigator!.pop();
   }
 
+  Future<void> _openBrokers() async {
+    await context.push(AppRoutes.subgroupsPath('broker'));
+    if (!mounted) return;
+    await widget.viewModel.load();
+    if (!mounted) return;
+    setState(() {
+      _brokerId ??= widget.viewModel.brokers.value.isEmpty
+          ? null
+          : widget.viewModel.brokers.value.first.id;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -201,8 +213,7 @@ class _InvestmentFormScreenState extends State<InvestmentFormScreen> {
                     AppButton(
                       label: l10n.brokerAddAction,
                       variant: AppButtonVariant.text,
-                      onPressed: () =>
-                          context.push(AppRoutes.subgroupsPath('broker')),
+                      onPressed: _openBrokers,
                     ),
                   ],
                   AppCurrencySelect(

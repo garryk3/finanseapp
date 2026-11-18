@@ -21,7 +21,10 @@ import 'package:finanseapp/core/features/currencies/domain/currency_repository.d
 import 'package:finanseapp/core/features/currencies/domain/exchange_rate_repository.dart';
 import 'package:finanseapp/core/features/settings/domain/settings_repository.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
+import 'package:finanseapp/uikit/app_button.dart';
+import 'package:finanseapp/uikit/app_scaffold.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 const _rub = Currency(
@@ -86,10 +89,16 @@ final class FakeAssets implements AssetRepository {
 }
 
 final class FakeSubgroups implements SubgroupRepository {
+  FakeSubgroups([List<Subgroup>? brokers])
+    : brokers =
+          brokers ??
+          [const Subgroup(id: 7, kind: SubgroupKind.broker, name: 'Брокер')];
+
+  final List<Subgroup> brokers;
+
   @override
-  Stream<List<Subgroup>> watchByKind(SubgroupKind kind) => Stream.value([
-    const Subgroup(id: 7, kind: SubgroupKind.broker, name: 'Брокер'),
-  ]);
+  Stream<List<Subgroup>> watchByKind(SubgroupKind kind) =>
+      Stream.value([...brokers]);
 
   @override
   Future<int> create(SubgroupKind kind, String name) async => 1;
@@ -250,6 +259,59 @@ void main() {
 
     expect(find.text(l10n.investmentErrorName), findsOneWidget);
     expect(repository.savedDraft, isNull);
+  });
+
+  testWidgets('после добавления брокера форма обновляется', (tester) async {
+    tester.view.physicalSize = const Size(900, 1600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final subgroups = FakeSubgroups([]);
+    final vm = InvestmentFormViewModel(
+      repository: FakeAssets(_snapshot()),
+      subgroupRepository: subgroups,
+      currencyRepository: FakeCurrencies(),
+    );
+    final router = GoRouter(
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (context, state) => InvestmentFormScreen(viewModel: vm),
+        ),
+        GoRoute(
+          path: '/more/subgroups',
+          builder: (context, state) =>
+              AppScaffold(title: 'Брокеры', body: const SizedBox.shrink()),
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      MaterialApp.router(
+        theme: AppTheme.light(),
+        routerConfig: router,
+        localizationsDelegates: const [
+          ...GlobalMaterialLocalizations.delegates,
+          AppLocalizations.delegate,
+        ],
+        supportedLocales: const [Locale('ru')],
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text(l10n.investmentNoBrokers), findsOneWidget);
+
+    subgroups.brokers.add(
+      const Subgroup(id: 8, kind: SubgroupKind.broker, name: 'Новый брокер'),
+    );
+    await tester.ensureVisible(find.text(l10n.brokerAddAction));
+    await tester.tap(find.text(l10n.brokerAddAction));
+    await tester.pumpAndSettle();
+    router.pop();
+    await tester.pumpAndSettle();
+
+    expect(find.text(l10n.investmentNoBrokers), findsNothing);
+    final save = tester.widget<AppButton>(
+      find.widgetWithText(AppButton, l10n.commonSave),
+    );
+    expect(save.onPressed, isNotNull);
   });
 
   testWidgets('оценка сохраняется с курсом RUB и подтверждением', (

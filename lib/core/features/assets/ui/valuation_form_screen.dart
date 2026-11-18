@@ -16,7 +16,6 @@ import 'package:finanseapp/uikit/app_form_section.dart';
 import 'package:finanseapp/uikit/app_list_view.dart';
 import 'package:finanseapp/uikit/app_scaffold.dart';
 import 'package:finanseapp/uikit/app_spinner.dart';
-import 'package:finanseapp/uikit/app_text.dart';
 import 'package:finanseapp/uikit/app_text_field.dart';
 import 'package:flutter/widgets.dart';
 import 'package:signals_flutter/signals_flutter.dart';
@@ -169,6 +168,7 @@ class _ValuationFormScreenState extends State<ValuationFormScreen> {
                       vm.today.day,
                     ),
                     errorText: _dateError,
+                    helperText: l10n.investmentValuationHint,
                     onChanged: (value) => setState(() {
                       _date = LocalDate.fromDateTime(value);
                       _dateError = null;
@@ -179,14 +179,13 @@ class _ValuationFormScreenState extends State<ValuationFormScreen> {
                       label: l10n.valuationRateLabel,
                       controller: _rate,
                       errorText: _rateError,
+                      helperText: l10n.valuationRateOptional,
                       onChanged: (_) => setState(() => _rateError = null),
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
                     ),
-                    AppText(l10n.valuationRateOptional),
                   ],
-                  AppText(l10n.investmentValuationHint),
                   AppButton(
                     label: l10n.commonSave,
                     pending: vm.busy.value,

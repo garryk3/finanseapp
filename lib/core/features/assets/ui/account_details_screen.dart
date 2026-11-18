@@ -21,6 +21,7 @@ import 'package:finanseapp/uikit/app_money_text.dart';
 import 'package:finanseapp/uikit/app_popup_menu.dart';
 import 'package:finanseapp/uikit/app_scaffold.dart';
 import 'package:finanseapp/uikit/app_section.dart';
+import 'package:finanseapp/uikit/app_spinner.dart';
 import 'package:finanseapp/uikit/app_summary_card.dart';
 import 'package:finanseapp/uikit/app_snack_bar.dart';
 import 'package:finanseapp/uikit/app_text.dart';
@@ -77,7 +78,7 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
               AssetKind.property => l10n.assetDetailsTitle,
               AssetKind.account || null => l10n.accountDetailsTitle,
             },
-            actions: [if (asset != null) _actions(l10n, asset)],
+            actions: [if (asset != null) _actions(l10n, vm, asset)],
           ),
           body: _body(context, vm, asset),
         );
@@ -97,7 +98,7 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
       );
     }
     if (asset == null) {
-      return Center(child: AppText(l10n.commonLoading));
+      return Center(child: AppSpinner(semanticLabel: l10n.commonLoading));
     }
     final isAccount = asset is AccountAsset;
     final isInvestment = asset is InvestmentAsset;
@@ -124,7 +125,12 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
               ),
               if (isAccount) ...[
                 const SizedBox(height: AppSpacing.xs),
-                AppText(l10n.accountForecastHint),
+                AppText(
+                  l10n.accountForecastHint,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
               ],
               if (showBase) ...[
                 const SizedBox(height: AppSpacing.md),
@@ -185,8 +191,13 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
     );
   }
 
-  Widget _actions(AppLocalizations l10n, Asset asset) => AppPopupMenu<String>(
+  Widget _actions(
+    AppLocalizations l10n,
+    AccountDetailsViewModel vm,
+    Asset asset,
+  ) => AppPopupMenu<String>(
     tooltip: l10n.assetActions,
+    enabled: !vm.busy.value,
     items: [
       if (asset.archivedAt == null)
         AppPopupMenuItem(
@@ -361,7 +372,9 @@ class _ValuationRow extends StatelessWidget {
     return AppListTile(
       title: formatted,
       subtitle: rub == null ? date : '$date · $rub',
-      trailing: current ? AppChip(label: l10n.valuationCurrent) : null,
+      trailing: current
+          ? ExcludeSemantics(child: AppChip(label: l10n.valuationCurrent))
+          : null,
       semanticLabel:
           '${l10n.valuationDateLabel} $date, $formatted'
           '${rub == null ? '' : ', $rub'}'

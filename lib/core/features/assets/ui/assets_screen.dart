@@ -131,7 +131,6 @@ class _AssetsScreenState extends State<AssetsScreen> {
           ),
           AppButton(
             label: l10n.assetsAddAccount,
-            variant: AppButtonVariant.tonal,
             onPressed: () => Navigator.of(context).pop('account'),
           ),
           AppButton(
