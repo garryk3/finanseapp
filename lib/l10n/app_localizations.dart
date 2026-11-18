@@ -843,6 +843,168 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'От 0 до 8'**
   String get currencyFractionRangeHint;
+
+  /// Заголовок справочника категорий.
+  ///
+  /// In ru, this message translates to:
+  /// **'Категории'**
+  String get categoriesTitle;
+
+  /// Вкладка доходных категорий.
+  ///
+  /// In ru, this message translates to:
+  /// **'Доходы'**
+  String get categoriesIncomeTab;
+
+  /// Вкладка расходных категорий.
+  ///
+  /// In ru, this message translates to:
+  /// **'Расходы'**
+  String get categoriesExpenseTab;
+
+  /// Действие создания категории.
+  ///
+  /// In ru, this message translates to:
+  /// **'Новая категория'**
+  String get categoryAdd;
+
+  /// Заголовок пустого списка категорий.
+  ///
+  /// In ru, this message translates to:
+  /// **'Нет категорий'**
+  String get categoryEmptyTitle;
+
+  /// Пояснение пустого списка категорий.
+  ///
+  /// In ru, this message translates to:
+  /// **'Добавьте категорию для доходов или расходов.'**
+  String get categoryEmptyMessage;
+
+  /// Пометка архивной категории.
+  ///
+  /// In ru, this message translates to:
+  /// **'Архивная'**
+  String get categoryArchivedBadge;
+
+  /// Пометка предустановленной категории.
+  ///
+  /// In ru, this message translates to:
+  /// **'Предустановленная'**
+  String get categoryPresetBadge;
+
+  /// Подсказка меню строки категории.
+  ///
+  /// In ru, this message translates to:
+  /// **'Действия с категорией'**
+  String get categoryActionsTooltip;
+
+  /// Заголовок переименования категории.
+  ///
+  /// In ru, this message translates to:
+  /// **'Переименовать «{name}»'**
+  String categoryRenameNamed(String name);
+
+  /// Подтверждение удаления категории.
+  ///
+  /// In ru, this message translates to:
+  /// **'Удалить «{name}»?'**
+  String categoryDeleteNamed(String name);
+
+  /// Пояснение удаления категории.
+  ///
+  /// In ru, this message translates to:
+  /// **'Категория не используется и будет удалена.'**
+  String get categoryDeleteMessage;
+
+  /// Заголовок конфликта удаления категории.
+  ///
+  /// In ru, this message translates to:
+  /// **'Категория «{name}» используется'**
+  String categoryInUseTitle(String name);
+
+  /// Пояснение конфликта категории.
+  ///
+  /// In ru, this message translates to:
+  /// **'Записей: {count}. Архивируйте категорию или перенесите записи в другую категорию того же типа.'**
+  String categoryInUseMessage(int count);
+
+  /// Действие архивирования категории.
+  ///
+  /// In ru, this message translates to:
+  /// **'Архивировать'**
+  String get categoryArchiveAction;
+
+  /// Действие переноса записей и удаления категории.
+  ///
+  /// In ru, this message translates to:
+  /// **'Перенести и удалить'**
+  String get categoryMoveAction;
+
+  /// Поле выбора целевой категории.
+  ///
+  /// In ru, this message translates to:
+  /// **'Куда перенести записи'**
+  String get categoryMoveTarget;
+
+  /// Ошибка дубликата категории.
+  ///
+  /// In ru, this message translates to:
+  /// **'Категория с таким названием уже есть.'**
+  String get categoryErrorDuplicate;
+
+  /// Ошибка несовпадения типа категории.
+  ///
+  /// In ru, this message translates to:
+  /// **'Перенести можно только в категорию того же типа.'**
+  String get categoryErrorKind;
+
+  /// Ошибка архивной категории.
+  ///
+  /// In ru, this message translates to:
+  /// **'Категория архивирована и недоступна для новых записей.'**
+  String get categoryErrorArchived;
+
+  /// Ошибка пустого названия.
+  ///
+  /// In ru, this message translates to:
+  /// **'Введите название категории.'**
+  String get categoryErrorName;
+
+  /// Подтверждение сохранения категории.
+  ///
+  /// In ru, this message translates to:
+  /// **'Категория сохранена.'**
+  String get categorySaved;
+
+  /// Подтверждение удаления категории.
+  ///
+  /// In ru, this message translates to:
+  /// **'Категория удалена.'**
+  String get categoryDeleted;
+
+  /// Подтверждение архивации категории.
+  ///
+  /// In ru, this message translates to:
+  /// **'Категория архивирована.'**
+  String get categoryArchived;
+
+  /// Заголовок формы создания категории.
+  ///
+  /// In ru, this message translates to:
+  /// **'Новая категория'**
+  String get categoryNewTitle;
+
+  /// Общее действие переименования.
+  ///
+  /// In ru, this message translates to:
+  /// **'Переименовать'**
+  String get commonRename;
+
+  /// Общее поле названия сущности.
+  ///
+  /// In ru, this message translates to:
+  /// **'Название'**
+  String get commonNameLabel;
 }
 
 class _AppLocalizationsDelegate

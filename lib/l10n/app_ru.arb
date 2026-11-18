@@ -562,5 +562,133 @@
   "currencyFractionRangeHint": "От 0 до 8",
   "@currencyFractionRangeHint": {
     "description": "Подсказка диапазона дробных знаков."
+  },
+  "categoriesTitle": "Категории",
+  "@categoriesTitle": {
+    "description": "Заголовок справочника категорий."
+  },
+  "categoriesIncomeTab": "Доходы",
+  "@categoriesIncomeTab": {
+    "description": "Вкладка доходных категорий."
+  },
+  "categoriesExpenseTab": "Расходы",
+  "@categoriesExpenseTab": {
+    "description": "Вкладка расходных категорий."
+  },
+  "categoryAdd": "Новая категория",
+  "@categoryAdd": {
+    "description": "Действие создания категории."
+  },
+  "categoryEmptyTitle": "Нет категорий",
+  "@categoryEmptyTitle": {
+    "description": "Заголовок пустого списка категорий."
+  },
+  "categoryEmptyMessage": "Добавьте категорию для доходов или расходов.",
+  "@categoryEmptyMessage": {
+    "description": "Пояснение пустого списка категорий."
+  },
+  "categoryArchivedBadge": "Архивная",
+  "@categoryArchivedBadge": {
+    "description": "Пометка архивной категории."
+  },
+  "categoryPresetBadge": "Предустановленная",
+  "@categoryPresetBadge": {
+    "description": "Пометка предустановленной категории."
+  },
+  "categoryActionsTooltip": "Действия с категорией",
+  "@categoryActionsTooltip": {
+    "description": "Подсказка меню строки категории."
+  },
+  "categoryRenameNamed": "Переименовать «{name}»",
+  "@categoryRenameNamed": {
+    "description": "Заголовок переименования категории.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "categoryDeleteNamed": "Удалить «{name}»?",
+  "@categoryDeleteNamed": {
+    "description": "Подтверждение удаления категории.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "categoryDeleteMessage": "Категория не используется и будет удалена.",
+  "@categoryDeleteMessage": {
+    "description": "Пояснение удаления категории."
+  },
+  "categoryInUseTitle": "Категория «{name}» используется",
+  "@categoryInUseTitle": {
+    "description": "Заголовок конфликта удаления категории.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "categoryInUseMessage": "Записей: {count}. Архивируйте категорию или перенесите записи в другую категорию того же типа.",
+  "@categoryInUseMessage": {
+    "description": "Пояснение конфликта категории.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "categoryArchiveAction": "Архивировать",
+  "@categoryArchiveAction": {
+    "description": "Действие архивирования категории."
+  },
+  "categoryMoveAction": "Перенести и удалить",
+  "@categoryMoveAction": {
+    "description": "Действие переноса записей и удаления категории."
+  },
+  "categoryMoveTarget": "Куда перенести записи",
+  "@categoryMoveTarget": {
+    "description": "Поле выбора целевой категории."
+  },
+  "categoryErrorDuplicate": "Категория с таким названием уже есть.",
+  "@categoryErrorDuplicate": {
+    "description": "Ошибка дубликата категории."
+  },
+  "categoryErrorKind": "Перенести можно только в категорию того же типа.",
+  "@categoryErrorKind": {
+    "description": "Ошибка несовпадения типа категории."
+  },
+  "categoryErrorArchived": "Категория архивирована и недоступна для новых записей.",
+  "@categoryErrorArchived": {
+    "description": "Ошибка архивной категории."
+  },
+  "categoryErrorName": "Введите название категории.",
+  "@categoryErrorName": {
+    "description": "Ошибка пустого названия."
+  },
+  "categorySaved": "Категория сохранена.",
+  "@categorySaved": {
+    "description": "Подтверждение сохранения категории."
+  },
+  "categoryDeleted": "Категория удалена.",
+  "@categoryDeleted": {
+    "description": "Подтверждение удаления категории."
+  },
+  "categoryArchived": "Категория архивирована.",
+  "@categoryArchived": {
+    "description": "Подтверждение архивации категории."
+  },
+  "categoryNewTitle": "Новая категория",
+  "@categoryNewTitle": {
+    "description": "Заголовок формы создания категории."
+  },
+  "commonRename": "Переименовать",
+  "@commonRename": {
+    "description": "Общее действие переименования."
+  },
+  "commonNameLabel": "Название",
+  "@commonNameLabel": {
+    "description": "Общее поле названия сущности."
   }
 }

@@ -418,4 +418,97 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get currencyFractionRangeHint => 'От 0 до 8';
+
+  @override
+  String get categoriesTitle => 'Категории';
+
+  @override
+  String get categoriesIncomeTab => 'Доходы';
+
+  @override
+  String get categoriesExpenseTab => 'Расходы';
+
+  @override
+  String get categoryAdd => 'Новая категория';
+
+  @override
+  String get categoryEmptyTitle => 'Нет категорий';
+
+  @override
+  String get categoryEmptyMessage =>
+      'Добавьте категорию для доходов или расходов.';
+
+  @override
+  String get categoryArchivedBadge => 'Архивная';
+
+  @override
+  String get categoryPresetBadge => 'Предустановленная';
+
+  @override
+  String get categoryActionsTooltip => 'Действия с категорией';
+
+  @override
+  String categoryRenameNamed(String name) {
+    return 'Переименовать «$name»';
+  }
+
+  @override
+  String categoryDeleteNamed(String name) {
+    return 'Удалить «$name»?';
+  }
+
+  @override
+  String get categoryDeleteMessage =>
+      'Категория не используется и будет удалена.';
+
+  @override
+  String categoryInUseTitle(String name) {
+    return 'Категория «$name» используется';
+  }
+
+  @override
+  String categoryInUseMessage(int count) {
+    return 'Записей: $count. Архивируйте категорию или перенесите записи в другую категорию того же типа.';
+  }
+
+  @override
+  String get categoryArchiveAction => 'Архивировать';
+
+  @override
+  String get categoryMoveAction => 'Перенести и удалить';
+
+  @override
+  String get categoryMoveTarget => 'Куда перенести записи';
+
+  @override
+  String get categoryErrorDuplicate => 'Категория с таким названием уже есть.';
+
+  @override
+  String get categoryErrorKind =>
+      'Перенести можно только в категорию того же типа.';
+
+  @override
+  String get categoryErrorArchived =>
+      'Категория архивирована и недоступна для новых записей.';
+
+  @override
+  String get categoryErrorName => 'Введите название категории.';
+
+  @override
+  String get categorySaved => 'Категория сохранена.';
+
+  @override
+  String get categoryDeleted => 'Категория удалена.';
+
+  @override
+  String get categoryArchived => 'Категория архивирована.';
+
+  @override
+  String get categoryNewTitle => 'Новая категория';
+
+  @override
+  String get commonRename => 'Переименовать';
+
+  @override
+  String get commonNameLabel => 'Название';
 }

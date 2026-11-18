@@ -153,6 +153,54 @@ class ReferencesDao extends DatabaseAccessor<AppDatabase>
         await (delete(subgroups)..where((s) => s.id.equals(sourceId))).go();
       });
 
+  /// Переносит все записи (включая soft-deleted) в активную категорию того же
+  /// типа и удаляет source одной транзакцией (BR-CAT-4).
+  Future<void> moveEntriesAndDelete(int sourceId, int targetId) =>
+      transaction(() async {
+        if (sourceId == targetId) {
+          throw const DomainException(
+            DomainErrorCode.validation,
+            fieldErrors: {'targetId': 'validationCategorySameTarget'},
+          );
+        }
+        final source = await (select(
+          categories,
+        )..where((c) => c.id.equals(sourceId))).getSingleOrNull();
+        final target = await (select(
+          categories,
+        )..where((c) => c.id.equals(targetId))).getSingleOrNull();
+        if (source == null || target == null) {
+          throw const DomainException(
+            DomainErrorCode.notFound,
+            fieldErrors: {'categoryId': 'validationCategoryNotFound'},
+          );
+        }
+        if (source.kind != target.kind) {
+          throw const DomainException(
+            DomainErrorCode.validation,
+            fieldErrors: {'targetId': 'validationCategoryKindMismatch'},
+          );
+        }
+        if (target.archivedAt != null) {
+          throw const DomainException(
+            DomainErrorCode.validation,
+            fieldErrors: {'targetId': 'validationCategoryArchived'},
+          );
+        }
+
+        await (update(cashflowEntries)
+              ..where((e) => e.categoryId.equals(sourceId)))
+            .write(CashflowEntriesCompanion(categoryId: Value(targetId)));
+
+        if (await countEntries(sourceId) != 0) {
+          throw const DomainException(
+            DomainErrorCode.conflict,
+            fieldErrors: {'categoryId': 'validationCategoryInUse'},
+          );
+        }
+        await (delete(categories)..where((c) => c.id.equals(sourceId))).go();
+      });
+
   Stream<List<CategoryRow>> watchCategories(
     CashflowKind kind, {
     bool includeArchived = false,
