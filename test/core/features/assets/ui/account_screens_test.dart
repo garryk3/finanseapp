@@ -259,23 +259,39 @@ void main() {
       asset: _account(),
       currentValue: const Money(minorUnits: 0, currencyCode: 'RUB'),
     );
+    final repository = FakeAssets(snapshot);
     final vm = AccountFormViewModel(
-      repository: FakeAssets(snapshot),
+      repository: repository,
       subgroupRepository: FakeSubgroups(),
       currencyRepository: FakeCurrencies(),
     );
     await _pump(tester, AccountFormScreen(viewModel: vm));
     await tester.pump(const Duration(milliseconds: 500));
 
+    final fields = find.byType(TextField);
+    await tester.enterText(fields.at(0), 'Счёт');
+    await tester.enterText(fields.at(1), '100');
+
     await tester.ensureVisible(find.text(l10n.accountAddEndDate));
     await tester.tap(find.widgetWithText(AppButton, l10n.accountAddEndDate));
     await tester.pump();
     expect(find.text(l10n.accountRemoveEndDate), findsOneWidget);
 
+    await tester.ensureVisible(find.text(l10n.commonSave));
+    await tester.tap(find.text(l10n.commonSave));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(repository.createdDraft, isA<AccountDraft>());
+    expect((repository.createdDraft! as AccountDraft).endDate, isNotNull);
+
     await tester.ensureVisible(find.text(l10n.accountRemoveEndDate));
     await tester.tap(find.widgetWithText(AppButton, l10n.accountRemoveEndDate));
     await tester.pump();
     expect(find.text(l10n.accountAddEndDate), findsOneWidget);
+
+    await tester.ensureVisible(find.text(l10n.commonSave));
+    await tester.tap(find.text(l10n.commonSave));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect((repository.createdDraft! as AccountDraft).endDate, isNull);
   });
 
   testWidgets('детали перезагружаются при новом VM', (tester) async {
