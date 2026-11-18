@@ -349,7 +349,7 @@ abstract class AppLocalizations {
   /// Пояснение пустого списка активов.
   ///
   /// In ru, this message translates to:
-  /// **'Добавьте счёт, инвестицию или квартиру.'**
+  /// **'Добавьте счёт или инвестицию.'**
   String get assetsEmptyMessage;
 
   /// Заголовок пустого списка целей.
@@ -1244,6 +1244,258 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Убрать дату окончания'**
   String get accountRemoveEndDate;
+
+  /// Действие создания любого актива.
+  ///
+  /// In ru, this message translates to:
+  /// **'Добавить актив'**
+  String get assetsAddAsset;
+
+  /// Действие создания инвестиции.
+  ///
+  /// In ru, this message translates to:
+  /// **'Добавить инвестицию'**
+  String get assetsAddInvestment;
+
+  /// Заголовок выбора вида актива.
+  ///
+  /// In ru, this message translates to:
+  /// **'Новый актив'**
+  String get assetsAddTitle;
+
+  /// Заголовок формы новой инвестиции.
+  ///
+  /// In ru, this message translates to:
+  /// **'Новая инвестиция'**
+  String get investmentFormNew;
+
+  /// Заголовок формы редактирования инвестиции.
+  ///
+  /// In ru, this message translates to:
+  /// **'Изменить инвестицию'**
+  String get investmentFormEdit;
+
+  /// Поле названия инвестиции.
+  ///
+  /// In ru, this message translates to:
+  /// **'Название инвестиции'**
+  String get investmentNameLabel;
+
+  /// Поле выбора брокера.
+  ///
+  /// In ru, this message translates to:
+  /// **'Брокер'**
+  String get investmentBrokerLabel;
+
+  /// Пустой список брокеров.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сначала добавьте брокера в справочнике.'**
+  String get investmentNoBrokers;
+
+  /// Поле валюты инвестиции.
+  ///
+  /// In ru, this message translates to:
+  /// **'Валюта инвестиции'**
+  String get investmentCurrencyLabel;
+
+  /// Заголовок деталей инвестиции.
+  ///
+  /// In ru, this message translates to:
+  /// **'Инвестиция'**
+  String get investmentDetailsTitle;
+
+  /// Подпись текущей стоимости инвестиции.
+  ///
+  /// In ru, this message translates to:
+  /// **'Текущая стоимость'**
+  String get investmentCurrentValue;
+
+  /// Пояснение к абсолютной оценке.
+  ///
+  /// In ru, this message translates to:
+  /// **'Оценка задаётся на конец дня: операции этой даты применяются после неё.'**
+  String get investmentValuationHint;
+
+  /// Ошибка названия инвестиции.
+  ///
+  /// In ru, this message translates to:
+  /// **'Введите название инвестиции.'**
+  String get investmentErrorName;
+
+  /// Ошибка выбора брокера.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выберите брокера.'**
+  String get investmentErrorBroker;
+
+  /// Действие добавления оценки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Добавить оценку'**
+  String get investmentAddValuation;
+
+  /// Заголовок формы оценки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Новая оценка'**
+  String get valuationTitle;
+
+  /// Поле абсолютной стоимости.
+  ///
+  /// In ru, this message translates to:
+  /// **'Стоимость'**
+  String get valuationValueLabel;
+
+  /// Поле даты оценки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Дата оценки'**
+  String get valuationDateLabel;
+
+  /// Поле ручного курса для оценки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Курс к рублю'**
+  String get valuationRateLabel;
+
+  /// Пояснение к необязательному курсу.
+  ///
+  /// In ru, this message translates to:
+  /// **'Пусто — возьмём курс ЦБ на дату.'**
+  String get valuationRateOptional;
+
+  /// Ошибка стоимости оценки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Введите стоимость. Стоимость не может быть отрицательной.'**
+  String get valuationErrorValue;
+
+  /// Ошибка получения курса.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось получить курс. Введите курс вручную.'**
+  String get valuationErrorRate;
+
+  /// Заголовок истории оценок.
+  ///
+  /// In ru, this message translates to:
+  /// **'История оценок'**
+  String get valuationHistory;
+
+  /// Пустая история оценок.
+  ///
+  /// In ru, this message translates to:
+  /// **'Оценок пока нет. Стоимость считается по операциям от начального баланса.'**
+  String get valuationHistoryEmpty;
+
+  /// Подтверждение сохранения оценки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Оценка сохранена.'**
+  String get valuationSaved;
+
+  /// Заголовок деталей неизвестного вида актива.
+  ///
+  /// In ru, this message translates to:
+  /// **'Актив'**
+  String get assetDetailsTitle;
+
+  /// Подтверждение архивации актива.
+  ///
+  /// In ru, this message translates to:
+  /// **'Актив архивирован.'**
+  String get assetArchived;
+
+  /// Подтверждение удаления актива.
+  ///
+  /// In ru, this message translates to:
+  /// **'Актив удалён.'**
+  String get assetDeleted;
+
+  /// Подтверждение удаления актива.
+  ///
+  /// In ru, this message translates to:
+  /// **'Удалить «{name}»?'**
+  String assetDeleteTitle(String name);
+
+  /// Пояснение удаления актива.
+  ///
+  /// In ru, this message translates to:
+  /// **'Актив не используется и будет удалён.'**
+  String get assetDeleteMessage;
+
+  /// Ошибка удаления используемого актива.
+  ///
+  /// In ru, this message translates to:
+  /// **'Актив используется и не может быть удалён.'**
+  String get assetErrorInUse;
+
+  /// Рублёвый эквивалент оценки.
+  ///
+  /// In ru, this message translates to:
+  /// **'В рублях'**
+  String get valuationRubValue;
+
+  /// Ошибка будущей даты оценки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Дата оценки не может быть в будущем.'**
+  String get valuationErrorDate;
+
+  /// Вид актива: счёт.
+  ///
+  /// In ru, this message translates to:
+  /// **'Счёт'**
+  String get assetKindAccount;
+
+  /// Вид актива: инвестиция.
+  ///
+  /// In ru, this message translates to:
+  /// **'Инвестиция'**
+  String get assetKindInvestment;
+
+  /// Вид актива: квартира.
+  ///
+  /// In ru, this message translates to:
+  /// **'Квартира'**
+  String get assetKindProperty;
+
+  /// Меню редких действий на деталях актива.
+  ///
+  /// In ru, this message translates to:
+  /// **'Действия с активом'**
+  String get assetActions;
+
+  /// Ошибка архивации актива.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось архивировать актив.'**
+  String get assetArchiveFailed;
+
+  /// Метка актуальной оценки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Текущая'**
+  String get valuationCurrent;
+
+  /// Рублёвый эквивалент оценки.
+  ///
+  /// In ru, this message translates to:
+  /// **'В рублях: {value}'**
+  String valuationRubLine(String value);
+
+  /// Заголовок секции формы инвестиции.
+  ///
+  /// In ru, this message translates to:
+  /// **'Инвестиция'**
+  String get investmentSectionTitle;
+
+  /// Действие перехода к справочнику брокеров.
+  ///
+  /// In ru, this message translates to:
+  /// **'Добавить брокера'**
+  String get brokerAddAction;
 }
 
 class _AppLocalizationsDelegate

@@ -606,7 +606,7 @@
   archive read-only, delete dialog показывает counts; общий DoD. Перед PR спросить о e2e.
 - **Предлагаемый commit:** `task/05.1: реализовать счета и прогноз вклада`.
 
-### 5.2 Инвестиции и абсолютные оценки — [ ]
+### 5.2 Инвестиции и абсолютные оценки — [x] (2026-11-18)
 
 - **Приоритет/зависимости:** P1; после 5.1. **BR:** A-3,5…7, C-1…6, VAL-5,8.
 - **Files:** Create investment form/details VM/screens, `record_asset_valuation.dart`,
@@ -620,10 +620,40 @@
 - **TDD:** opening 1000, tx +100, valuation 1500 на 02.01, tx +50 на 03.01 →1550;
   valuation 1400 поздней датой →1400+поздние tx; две оценки одной даты решает больший id;
   future date/negative value reject, valuation не создаёт cashflow/asset tx.
+- **Рабочий план (2026-11-18):**
+  - **Domain:** `AssetValueCalculator.investment` (последняя оценка по `(effectiveOn,id)`,
+    затем операции с `occurredOn >= effectiveOn`; без оценки — все операции от opening),
+    `property` — в 5.4.
+  - **Data:** repository create/update инвестиции (broker, currency lock, валидации),
+    snapshot с оценками, `recordValuation` с RUB snapshot; DAO updateInvestment,
+    `valuations(id)`.
+  - **UI:** investment form (название/брокер/валюта/opening), details (текущая стоимость,
+    история оценок, add valuation, edit/archive/delete), valuation form (value/date/rate),
+    routes `/assets/new/investment`, `/assets/:id` для investment, `/assets/:id/edit/investment`,
+    `/assets/:id/valuations/new`.
+  - **Тесты:** CALC-014 (opening 1000 +100, оценка 1500 → +50 =1550; оценка 1400 → 1400+tx),
+    две оценки одной даты по id, future/negative reject, repository create/update/lock.
 - **Генерация:** gen-l10n; schema не меняется.
 - **DoD:** ordering `(effectiveOn,id)` подтверждён DB test, original/base values и offline
   manual rate доступны; общий DoD. Перед PR спросить о e2e.
 - **Предлагаемый commit:** `task/05.2: добавить инвестиции и оценки`.
+- **Итог:** `AssetValueCalculator.investment`/`property`, repository create/update инвестиций
+  (broker, currency lock), snapshot с оценками, `recordValuation` с рублёвым snapshot;
+  `updateInvestment`/`investmentDetailsFor` в DAO, `AssetRepository.valuations`.
+  Экраны: выбор вида актива на `AssetsScreen`, `InvestmentFormScreen` (+VM),
+  `ValuationFormScreen` (+VM, курс RUB/ЦБ/ручной, запрет будущей даты), детали актива
+  показывают текущую стоимость, рублёвый эквивалент и историю оценок, «Изменить»/«Добавить
+  оценку» с перезагрузкой. Тесты: CALC-014 и ordering по `(effectiveOn,id)`, repository
+  create/update/lock, форма инвестиции/оценки и детали (6 сценариев). Квартира пока
+  использует общий экран деталей без cashflow-разреза — в 5.4. Новые ключи ARB;
+  schema не менялась. По дизайн-ревью: список активов — `AppAssetListTile` с видом
+  и иконкой, главная сумма — `AppSummaryCard`, история — `AppListTile` с датой/рублями
+  и меткой «Текущая», архив/удаление — в overflow-меню, ошибки форм привязаны к полям,
+  «нет брокеров» ведёт в справочник, эквивалент скрыт при совпадении с базовой валютой.
+- **Отложено в 5.3:** base equivalent в списке активов, `fractionDigits` в списке
+  (в деталях/формах уже из валюты), preview курса оценки (ручной/ЦБ/кэш),
+  подпись брокера и состав стоимости на деталях, правка/удаление оценки,
+  визуальная проверка light/dark на 320dp и textScale 1.3.
 
 ### 5.3 Общий каталог активов, удаление и архивирование — [ ]
 

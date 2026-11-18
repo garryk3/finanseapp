@@ -58,6 +58,9 @@ final class FakeAssets implements AssetRepository {
   AssetDraft? createdDraft;
 
   @override
+  Future<List<AssetValuation>> valuations(int id) async => const [];
+
+  @override
   Future<int> create(AssetDraft draft) async {
     createdDraft = draft;
     return 1;
@@ -246,7 +249,7 @@ void main() {
     await _pump(tester, AccountDetailsScreen(viewModel: vm));
 
     expect(find.text(l10n.accountBalanceLabel), findsOneWidget);
-    expect(find.text(l10n.accountForecastLabel), findsOneWidget);
+    expect(find.textContaining(l10n.accountForecastLabel), findsOneWidget);
     expect(find.text(l10n.accountArchivedBadge), findsOneWidget);
     expect(find.textContaining('100\u00A0000'), findsWidgets);
   });
@@ -364,8 +367,10 @@ void main() {
     );
     await _pump(tester, AccountDetailsScreen(viewModel: vm));
 
+    await tester.tap(find.byTooltip(l10n.assetActions));
+    await tester.pumpAndSettle();
     await tester.tap(find.text(l10n.accountDelete));
-    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pumpAndSettle();
 
     expect(find.text(l10n.assetInUseTitle), findsOneWidget);
     expect(find.text(l10n.assetInUseMessage(2, 0, 1, 0)), findsOneWidget);

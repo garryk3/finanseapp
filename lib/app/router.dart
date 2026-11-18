@@ -14,6 +14,10 @@ import 'package:finanseapp/core/features/assets/ui/account_details_view_model.da
 import 'package:finanseapp/core/features/assets/ui/account_form_screen.dart';
 import 'package:finanseapp/core/features/assets/ui/account_form_view_model.dart';
 import 'package:finanseapp/core/features/assets/ui/assets_screen.dart';
+import 'package:finanseapp/core/features/assets/ui/investment_form_screen.dart';
+import 'package:finanseapp/core/features/assets/ui/investment_form_view_model.dart';
+import 'package:finanseapp/core/features/assets/ui/valuation_form_screen.dart';
+import 'package:finanseapp/core/features/assets/ui/valuation_form_view_model.dart';
 import 'package:finanseapp/core/features/currencies/domain/currency_repository.dart';
 import 'package:finanseapp/core/features/currencies/domain/exchange_rate_repository.dart';
 import 'package:finanseapp/core/features/settings/domain/settings_repository.dart';
@@ -101,10 +105,16 @@ GoRouter buildRouter({required ServiceLocator locator}) {
                       ),
                     ),
                   ),
-                  _placeholderRoute(
-                    'new/investment',
-                    'investment-new',
-                    (l10n) => l10n.navAssets,
+                  GoRoute(
+                    path: 'new/investment',
+                    name: 'investment-new',
+                    builder: (context, state) => InvestmentFormScreen(
+                      viewModel: InvestmentFormViewModel(
+                        repository: locator.get<AssetRepository>(),
+                        subgroupRepository: locator.get<SubgroupRepository>(),
+                        currencyRepository: locator.get<CurrencyRepository>(),
+                      ),
+                    ),
                   ),
                   _placeholderRoute(
                     'new/property',
@@ -154,20 +164,55 @@ GoRouter buildRouter({required ServiceLocator locator}) {
                                 );
                         },
                       ),
-                      _placeholderRoute(
-                        'edit/investment',
-                        'investment-edit',
-                        (l10n) => l10n.navAssets,
+                      GoRoute(
+                        path: 'edit/investment',
+                        name: 'investment-edit',
+                        builder: (context, state) {
+                          final id = AppRoutes.parseId(
+                            state.pathParameters['id'],
+                          );
+                          return id == null
+                              ? _notFound(locator)
+                              : InvestmentFormScreen(
+                                  viewModel: InvestmentFormViewModel(
+                                    repository: locator.get<AssetRepository>(),
+                                    subgroupRepository: locator
+                                        .get<SubgroupRepository>(),
+                                    currencyRepository: locator
+                                        .get<CurrencyRepository>(),
+                                    editingId: id,
+                                  ),
+                                );
+                        },
                       ),
                       _placeholderRoute(
                         'edit/property',
                         'property-edit',
                         (l10n) => l10n.navAssets,
                       ),
-                      _placeholderRoute(
-                        'valuations/new',
-                        'valuation-new',
-                        (l10n) => l10n.navAssets,
+                      GoRoute(
+                        path: 'valuations/new',
+                        name: 'valuation-new',
+                        builder: (context, state) {
+                          final id = AppRoutes.parseId(
+                            state.pathParameters['id'],
+                          );
+                          return id == null
+                              ? _notFound(locator)
+                              : ValuationFormScreen(
+                                  viewModel: ValuationFormViewModel(
+                                    repository: locator.get<AssetRepository>(),
+                                    rateRepository: locator
+                                        .get<ExchangeRateRepository>(),
+                                    currencyRepository: locator
+                                        .get<CurrencyRepository>(),
+                                    assetId: id,
+                                    today: LocalDate.fromDateTime(
+                                      DateTime.now(),
+                                    ),
+                                  ),
+                                );
+                        },
                       ),
                     ],
                   ),
