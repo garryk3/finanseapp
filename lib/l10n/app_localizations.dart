@@ -1484,6 +1484,54 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Добавить брокера'**
   String get brokerAddAction;
+
+  /// Поле поиска по названию актива.
+  ///
+  /// In ru, this message translates to:
+  /// **'Поиск активов'**
+  String get assetsSearchLabel;
+
+  /// Подсказка поиска активов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Название'**
+  String get assetsSearchHint;
+
+  /// Очистка поля поиска.
+  ///
+  /// In ru, this message translates to:
+  /// **'Очистить поиск'**
+  String get assetsSearchClear;
+
+  /// Фильтр всех видов активов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Все'**
+  String get assetsFilterAll;
+
+  /// Показывать архивные активы.
+  ///
+  /// In ru, this message translates to:
+  /// **'Архивные'**
+  String get assetsFilterArchived;
+
+  /// Заголовок пустого результата фильтра.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ничего не найдено'**
+  String get assetsFilteredEmptyTitle;
+
+  /// Пояснение пустого результата фильтра.
+  ///
+  /// In ru, this message translates to:
+  /// **'Измените условия фильтра или сбросьте его.'**
+  String get assetsFilteredEmptyMessage;
+
+  /// Сброс фильтров списка активов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сбросить фильтры'**
+  String get assetsResetFilters;
 }
 
 class _AppLocalizationsDelegate

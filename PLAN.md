@@ -659,7 +659,7 @@
   вынос tie-break `(effectiveOn,id)` в один хелпер, визуальная проверка light/dark
   на 320dp и textScale 1.3.
 
-### 5.3 Общий каталог активов, удаление и архивирование — [ ]
+### 5.3 Общий каталог активов, удаление и архивирование — [x] (2026-11-18)
 
 - **Приоритет/зависимости:** P1; после 5.2. **BR:** A-5…6, C-6, S-1…5.
 - **Files:** Create `assets_state.dart`, `widgets/asset_actions.dart`, shared asset mappers;
@@ -672,10 +672,39 @@
 - **TDD:** unused asset delete исчезает; asset с одной valuation/goal/cashflow/tx получает
   только archive; archive скрыт new selects/current totals после archivedAt, остаётся history;
   failed relation check не удаляет; archived goal link не обрывается.
-- **Генерация:** gen-l10n; build_runner/schema dump при query source changes.
+- **Рабочий план (2026-11-18):**
+  - **Reactive snapshots:** `AssetsDao.watchAll/watchById` через `customSelect` с
+    `readsFrom: {assets, assetValuations, assetTransactions}` — список и детали
+    переизлучаются после оценки/операции; батч транзакций/оценок для `watchAll`
+    (убрать N+1 на emission).
+  - **VM:** `AssetsViewModel` с фильтрами `query`, `kind`, `showArchived`, счётчиками,
+    `visible`; подгрузка валют/базовой валюты/кэша курсов для `fractionDigits` и
+    base equivalent в списке; `empty initial ≠ empty filtered`.
+  - **UI:** `AppSearchField` + `AppFilterBar` (Все/Счёт/Инвестиция/Квартира + Архивные,
+    сброс), `AppAssetListTile` с archived-badge, base equivalent, архивные read-only
+    (без edit/add valuation), CTA создания только для непустого фильтра — сброс.
+  - **Действия:** counts-диалог и физическое delete только unused — уже на деталях;
+    добавить тесты; архивация остаётся единственным путём для используемого актива.
+  - **Тесты:** DAO/repository: unused delete исчезает; с valuation/tx/целью/cashflow —
+    conflict, archive скрывает из `watchAll` и оставляет в `includeArchived`/history;
+    стрим `watchAll` переизлучается после `recordValuation`; widget-тесты списка:
+    empty/initial, поиск/вид/архив, base equivalent, archived badge, сброс фильтров.
+- **Генерация:** gen-l10n; schema не меняется.
 - **DoD:** empty initial≠empty filtered, archive timestamps UTC, прошлые points сохранены;
   общий DoD/design review. Перед PR спросить о e2e.
 - **Предлагаемый commit:** `task/05.3: завершить каталог активов`.
+- **Итог:** `AssetsDao.watchAll/watchById` переизлучаются при изменении активов, операций
+  и оценок (`customSelect` + `readsFrom`), `watchAll` собирает снапшоты батчем (3 запроса
+  вместо N+1). `AssetsViewModel`: поиск, фильтр вида, показ архивных, сброс, base equivalent
+  по кэшу курсов и `fractionDigits` из справочника. UI: `AppSearchField` + `AppFilterBar`,
+  `AppAssetListTile` с видом/иконкой/архивным бейджем, различение «пустой каталог» и
+  «пустой фильтр». Архивные read-only (без edit/добавления оценки). Тесты: catalog DB
+  (delete unused, conflict для оценки/операции/цели/cashflow, archive UTC + скрытие из
+  списка с сохранением истории, переизлучение стрима после оценки/операции), widget-тесты
+  списка (виды/суммы/base, фильтры/поиск/архив, пустые состояния), read-only архив.
+- **Отложено:** живое обновление курсов в списке (сейчас кэш на момент загрузки),
+  подсказка «есть только архивные» в пустом состоянии, визуальная проверка light/dark
+  на 320dp и textScale 1.3 (нет эмулятора).
 
 ### 5.4 Квартиры: стоимость, оценки и денежный поток — [ ]
 

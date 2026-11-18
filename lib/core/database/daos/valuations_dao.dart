@@ -15,6 +15,9 @@ class ValuationsDao extends DatabaseAccessor<AppDatabase>
     with _$ValuationsDaoMixin {
   ValuationsDao(super.db);
 
+  /// Все оценки для батч-сборки снапшотов.
+  Future<List<AssetValuationRow>> allRows() => select(assetValuations).get();
+
   Stream<List<AssetValuationRow>> watchByAsset(int assetId) {
     final query = select(assetValuations)
       ..where((v) => v.assetId.equals(assetId))

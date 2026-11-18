@@ -1,4 +1,5 @@
 import 'package:finanseapp/core/database/app_database.dart';
+import 'package:finanseapp/core/domain/common/local_date.dart';
 import 'package:finanseapp/core/database/app_database_path.dart';
 import 'package:finanseapp/core/database/daos/assets_dao.dart';
 import 'package:finanseapp/core/database/daos/audit_dao.dart';
@@ -65,7 +66,13 @@ Future<ServiceLocator> registerCoreServices(
     AssetRepositoryImpl(db.assetsDao, db.transactionsDao, db.valuationsDao),
   );
   locator.registerFactory<AssetsViewModel>(
-    () => AssetsViewModel(repository: locator.get<AssetRepository>()),
+    () => AssetsViewModel(
+      repository: locator.get<AssetRepository>(),
+      currencyRepository: locator.get<CurrencyRepository>(),
+      settingsRepository: locator.get<SettingsRepository>(),
+      rateRepository: locator.get<ExchangeRateRepository>(),
+      today: LocalDate.fromDateTime(DateTime.now()),
+    ),
   );
 
   locator.register<CurrencyRepository>(

@@ -433,6 +433,27 @@ void main() {
     expect(find.textContaining('90'), findsWidgets);
   });
 
+  testWidgets('архивная инвестиция только для чтения', (tester) async {
+    final snapshot = AssetSnapshot(
+      asset: _investment(archived: true),
+      currentValue: const Money(minorUnits: 150000, currencyCode: 'RUB'),
+    );
+    final vm = AccountDetailsViewModel(
+      repository: FakeAssets(snapshot),
+      assetId: 1,
+      today: LocalDate(2026, 1, 3),
+      settingsRepository: FakeSettings(),
+      currencyRepository: FakeCurrencies(),
+      rateRepository: FakeRates(),
+    );
+    await _pump(tester, AccountDetailsScreen(viewModel: vm));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text(l10n.accountArchivedBadge), findsOneWidget);
+    expect(find.text(l10n.accountEdit), findsNothing);
+    expect(find.text(l10n.investmentAddValuation), findsNothing);
+  });
+
   testWidgets('детали инвестиции показывают стоимость и историю оценок', (
     tester,
   ) async {

@@ -31,7 +31,7 @@ final class AssetRepositoryImpl implements AssetRepository {
   Stream<List<AssetSnapshot>> watchAll({bool includeArchived = false}) =>
       _assetsDao
           .watchAll(includeArchived: includeArchived)
-          .asyncMap((rows) => Future.wait(rows.map(_snapshotOf)));
+          .asyncMap(_snapshotsOf);
 
   @override
   Stream<AssetSnapshot?> watchById(int id) => _assetsDao
@@ -155,15 +155,76 @@ final class AssetRepositoryImpl implements AssetRepository {
   Future<AssetSnapshot> _snapshotOf(AssetRow row) async {
     final transactions = await _transactionsFor(row.id, row.currencyCode);
     final valuations = await _valuationsFor(row.id, row.currencyCode);
+    final account = row.kind == AssetKind.account
+        ? await _assetsDao.accountDetailsFor(row.id)
+        : null;
+    final investment = row.kind == AssetKind.investment
+        ? await _assetsDao.investmentDetailsFor(row.id)
+        : null;
+    return _buildSnapshot(
+      row,
+      transactions,
+      valuations,
+      account: account,
+      investment: investment,
+    );
+  }
+
+  /// Батч-сборка: три запроса вместо N+1 на каждое изменение таблиц.
+  Future<List<AssetSnapshot>> _snapshotsOf(List<AssetRow> rows) async {
+    final transactions = await _transactionsDao.allRows();
+    final valuations = await _valuationsDao.allRows();
+    final accounts = {
+      for (final detail in await _assetsDao.allAccountDetails())
+        detail.assetId: detail,
+    };
+    final investments = {
+      for (final detail in await _assetsDao.allInvestmentDetails())
+        detail.assetId: detail,
+    };
+    final currencyByAsset = {for (final row in rows) row.id: row.currencyCode};
+    final transactionsByAsset = <int, List<AssetTransaction>>{};
+    for (final row in transactions) {
+      final code = currencyByAsset[row.assetId];
+      if (code == null) continue;
+      transactionsByAsset
+          .putIfAbsent(row.assetId, () => [])
+          .add(_transactionFrom(row, code));
+    }
+    final valuationsByAsset = <int, List<AssetValuation>>{};
+    for (final row in valuations) {
+      final code = currencyByAsset[row.assetId];
+      if (code == null) continue;
+      valuationsByAsset
+          .putIfAbsent(row.assetId, () => [])
+          .add(_valuationFrom(row, code));
+    }
+    return [
+      for (final row in rows)
+        _buildSnapshot(
+          row,
+          transactionsByAsset[row.id] ?? const [],
+          valuationsByAsset[row.id] ?? const [],
+          account: accounts[row.id],
+          investment: investments[row.id],
+        ),
+    ];
+  }
+
+  AssetSnapshot _buildSnapshot(
+    AssetRow row,
+    List<AssetTransaction> transactions,
+    List<AssetValuation> valuations, {
+    AccountDetailRow? account,
+    InvestmentDetailRow? investment,
+  }) {
     final opening = Money(
       minorUnits: row.openingValueMinor,
       currencyCode: row.currencyCode,
     );
-
     switch (row.kind) {
       case AssetKind.account:
-        final details = await _assetsDao.accountDetailsFor(row.id);
-        if (details == null) {
+        if (account == null) {
           throw const DomainException(
             DomainErrorCode.notFound,
             fieldErrors: {'assetId': 'validationAssetNotFound'},
@@ -176,18 +237,17 @@ final class AssetRepositoryImpl implements AssetRepository {
           openingValue: opening,
           createdAt: row.createdAt,
           archivedAt: row.archivedAt,
-          bankId: details.bankId,
-          annualRate: details.annualRate,
-          startDate: details.startDate,
-          endDate: details.endDate,
+          bankId: account.bankId,
+          annualRate: account.annualRate,
+          startDate: account.startDate,
+          endDate: account.endDate,
         );
         return AssetSnapshot(
           asset: asset,
           currentValue: AssetValueCalculator.account(asset, transactions),
         );
       case AssetKind.investment:
-        final details = await _assetsDao.investmentDetailsFor(row.id);
-        if (details == null) {
+        if (investment == null) {
           throw const DomainException(
             DomainErrorCode.notFound,
             fieldErrors: {'assetId': 'validationAssetNotFound'},
@@ -200,7 +260,7 @@ final class AssetRepositoryImpl implements AssetRepository {
           openingValue: opening,
           createdAt: row.createdAt,
           archivedAt: row.archivedAt,
-          brokerId: details.brokerId,
+          brokerId: investment.brokerId,
         );
         return AssetSnapshot(
           asset: asset,
@@ -231,18 +291,7 @@ final class AssetRepositoryImpl implements AssetRepository {
     String currencyCode,
   ) async {
     final rows = await _valuationsDao.watchByAsset(assetId).first;
-    return [
-      for (final row in rows)
-        AssetValuation(
-          id: row.id,
-          assetId: row.assetId,
-          effectiveOn: row.effectiveOn,
-          value: Money(minorUnits: row.valueMinor, currencyCode: currencyCode),
-          rateToRub: row.rateToRub,
-          valueRub: Money(minorUnits: row.valueRubMinor, currencyCode: 'RUB'),
-          createdAt: row.createdAt,
-        ),
-    ];
+    return [for (final row in rows) _valuationFrom(row, currencyCode)];
   }
 
   @override
@@ -256,28 +305,40 @@ final class AssetRepositoryImpl implements AssetRepository {
     String currencyCode,
   ) async {
     final rows = await _transactionsDao.watchByAsset(assetId).first;
-    return [
-      for (final row in rows)
-        AssetTransaction(
-          id: row.id,
-          assetId: row.assetId,
-          kind: row.kind,
-          amount: Money(
-            minorUnits: row.amountMinor,
-            currencyCode: currencyCode,
-          ),
-          occurredOn: row.occurredOn,
-          rateToRub: row.rateToRub,
-          amountRub: Money(minorUnits: row.amountRubMinor, currencyCode: 'RUB'),
-          revisionNo: row.revisionNo,
-          createdAt: row.createdAt,
-          updatedAt: row.updatedAt,
-          comment: row.comment,
-          transferId: row.transferId,
-          deletedAt: row.deletedAt,
-        ),
-    ];
+    return [for (final row in rows) _transactionFrom(row, currencyCode)];
   }
+
+  static AssetTransaction _transactionFrom(
+    AssetTransactionRow row,
+    String currencyCode,
+  ) => AssetTransaction(
+    id: row.id,
+    assetId: row.assetId,
+    kind: row.kind,
+    amount: Money(minorUnits: row.amountMinor, currencyCode: currencyCode),
+    occurredOn: row.occurredOn,
+    rateToRub: row.rateToRub,
+    amountRub: Money(minorUnits: row.amountRubMinor, currencyCode: 'RUB'),
+    revisionNo: row.revisionNo,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+    comment: row.comment,
+    transferId: row.transferId,
+    deletedAt: row.deletedAt,
+  );
+
+  static AssetValuation _valuationFrom(
+    AssetValuationRow row,
+    String currencyCode,
+  ) => AssetValuation(
+    id: row.id,
+    assetId: row.assetId,
+    effectiveOn: row.effectiveOn,
+    value: Money(minorUnits: row.valueMinor, currencyCode: currencyCode),
+    rateToRub: row.rateToRub,
+    valueRub: Money(minorUnits: row.valueRubMinor, currencyCode: 'RUB'),
+    createdAt: row.createdAt,
+  );
 
   static void _validateAccountDraft(AccountDraft draft) {
     if (draft.name.trim().isEmpty) {

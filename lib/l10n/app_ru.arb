@@ -1035,5 +1035,37 @@
   "brokerAddAction": "Добавить брокера",
   "@brokerAddAction": {
     "description": "Действие перехода к справочнику брокеров."
+  },
+  "assetsSearchLabel": "Поиск активов",
+  "@assetsSearchLabel": {
+    "description": "Поле поиска по названию актива."
+  },
+  "assetsSearchHint": "Название",
+  "@assetsSearchHint": {
+    "description": "Подсказка поиска активов."
+  },
+  "assetsSearchClear": "Очистить поиск",
+  "@assetsSearchClear": {
+    "description": "Очистка поля поиска."
+  },
+  "assetsFilterAll": "Все",
+  "@assetsFilterAll": {
+    "description": "Фильтр всех видов активов."
+  },
+  "assetsFilterArchived": "Архивные",
+  "@assetsFilterArchived": {
+    "description": "Показывать архивные активы."
+  },
+  "assetsFilteredEmptyTitle": "Ничего не найдено",
+  "@assetsFilteredEmptyTitle": {
+    "description": "Заголовок пустого результата фильтра."
+  },
+  "assetsFilteredEmptyMessage": "Измените условия фильтра или сбросьте его.",
+  "@assetsFilteredEmptyMessage": {
+    "description": "Пояснение пустого результата фильтра."
+  },
+  "assetsResetFilters": "Сбросить фильтры",
+  "@assetsResetFilters": {
+    "description": "Сброс фильтров списка активов."
   }
 }
