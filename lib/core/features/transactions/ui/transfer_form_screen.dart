@@ -1,11 +1,14 @@
+import 'package:decimal/decimal.dart';
 import 'package:finanseapp/app/routes.dart';
 import 'package:finanseapp/app/theme/app_spacing.dart';
 import 'package:finanseapp/core/domain/common/local_date.dart';
 import 'package:finanseapp/core/domain/common/money_math.dart';
 import 'package:finanseapp/core/domain/common/result.dart';
+import 'package:finanseapp/core/features/assets/domain/asset.dart';
 import 'package:finanseapp/core/features/assets/ui/account_form_view_model.dart';
 import 'package:finanseapp/core/features/transactions/ui/transfer_form_view_model.dart';
 import 'package:finanseapp/core/presentation/date_formatter.dart';
+import 'package:finanseapp/core/presentation/money_formatter.dart';
 import 'package:finanseapp/core/presentation/view_state.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
 import 'package:finanseapp/uikit/app_amount_field.dart';
@@ -21,6 +24,7 @@ import 'package:finanseapp/uikit/app_spinner.dart';
 import 'package:finanseapp/uikit/app_text_field.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:rational/rational.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
 /// Перевод между счетами (6.2).
@@ -55,7 +59,7 @@ class _TransferFormScreenState extends State<TransferFormScreen> {
       if (!mounted) return;
       setState(() {
         final accounts = widget.viewModel.accounts.value;
-        _fromId = widget.viewModel.initialFromId ?? accounts.firstOrNull?.id;
+        _fromId = _preferredFrom(accounts, widget.viewModel.initialFromId);
         _toId = accounts
             .where((account) => account.id != _fromId)
             .firstOrNull
@@ -149,6 +153,8 @@ class _TransferFormScreenState extends State<TransferFormScreen> {
         'validationTransferSameAccount' => l10n.transferErrorSameAccount,
         'validationAmountPositive' => l10n.transferErrorAmount,
         'validationDateInFuture' => l10n.transactionErrorDate,
+        'validationDestinationAmountPositive' ||
+        'validationDestinationAmountRequired' => l10n.transferErrorDestination,
         _ when result.error.code == DomainErrorCode.negativeBalance =>
           l10n.transferErrorNegativeBalance,
         _ when result.error.code == DomainErrorCode.rateUnavailable =>
@@ -182,6 +188,11 @@ class _TransferFormScreenState extends State<TransferFormScreen> {
     final navigator = Navigator.maybeOf(context);
     if (navigator?.canPop() ?? false) navigator!.pop(true);
   }
+
+  static int? _preferredFrom(List<AccountAsset> accounts, int? preferred) =>
+      preferred != null && accounts.any((account) => account.id == preferred)
+      ? preferred
+      : accounts.firstOrNull?.id;
 
   Future<void> _addAccount() async {
     await context.push(AppRoutes.accountNew);
@@ -251,12 +262,26 @@ class _TransferFormScreenState extends State<TransferFormScreen> {
               destination.minorUnits > 0) {
             final fromDecimal = MoneyMath.toDecimal(amount, fromCurrency!);
             final toDecimal = MoneyMath.toDecimal(destination, toCurrency!);
-            final rate = toDecimal.toDouble() / fromDecimal.toDouble();
-            rateHint = l10n.transferRateHint(
-              fromCurrency.code,
-              rate.toStringAsFixed(4),
-              toCurrency.code,
-            );
+            final implied = toDecimal.toRational() / fromDecimal.toRational();
+            final formatter = const MoneyFormatter();
+            final one = MoneyMath.fromDecimal(Decimal.one, fromCurrency);
+            if (implied < Rational.one) {
+              rateHint = l10n.transferRateHint(
+                formatter.format(one, toCurrency),
+                formatter.format(
+                  MoneyMath.fromRational(implied.inverse, fromCurrency),
+                  fromCurrency,
+                ),
+              );
+            } else {
+              rateHint = l10n.transferRateHint(
+                formatter.format(one, fromCurrency),
+                formatter.format(
+                  MoneyMath.fromRational(implied, toCurrency),
+                  toCurrency,
+                ),
+              );
+            }
           }
           return AppListView(
             padding: const EdgeInsets.all(AppSpacing.md),

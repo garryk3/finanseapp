@@ -911,8 +911,8 @@ class AppLocalizationsRu extends AppLocalizations {
   String get transferNoAccounts => 'Нужно минимум два счёта.';
 
   @override
-  String transferRateHint(String from, String rate, String to) {
-    return 'Курс по введённым суммам: 1 $from ≈ $rate $to';
+  String transferRateHint(String fromUnit, String toAmount) {
+    return '$fromUnit ≈ $toAmount';
   }
 
   @override

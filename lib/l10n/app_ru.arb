@@ -1216,17 +1216,14 @@
   "@transferNoAccounts": {
     "description": "Пустое состояние выбора счетов."
   },
-  "transferRateHint": "Курс по введённым суммам: 1 {from} ≈ {rate} {to}",
+  "transferRateHint": "{fromUnit} ≈ {toAmount}",
   "@transferRateHint": {
-    "description": "Подсказка курса по суммам перевода.",
+    "description": "Курс по введённым суммам перевода.",
     "placeholders": {
-      "from": {
+      "fromUnit": {
         "type": "String"
       },
-      "rate": {
-        "type": "String"
-      },
-      "to": {
+      "toAmount": {
         "type": "String"
       }
     }

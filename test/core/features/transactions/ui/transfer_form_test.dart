@@ -17,6 +17,7 @@ import 'package:finanseapp/core/features/transactions/domain/transaction_filter.
 import 'package:finanseapp/core/features/transactions/ui/transfer_form_screen.dart';
 import 'package:finanseapp/core/features/transactions/ui/transfer_form_view_model.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
+import 'package:finanseapp/uikit/app_select.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -311,6 +312,36 @@ void main() {
       (result as Failure<int>).error.code,
       DomainErrorCode.negativeBalance,
     );
+  });
+
+  testWidgets('устаревший fromId заменяется первым счётом', (tester) async {
+    final vm = TransferFormViewModel(
+      assetRepository: FakeAssets([_account(1, 'RUB'), _account(2, 'RUB')]),
+      transactionRepository: FakeTransactions(),
+      currencyRepository: FakeCurrencies(),
+      rateRepository: FakeRates(),
+      today: LocalDate(2026, 1, 3),
+      initialFromId: 999,
+    );
+    await _pump(tester, vm);
+
+    final source = tester
+        .widgetList<AppSelect<int>>(find.byType(AppSelect<int>))
+        .first;
+    expect(source.value, 1);
+  });
+
+  testWidgets('счёт-источник не предлагается в списке назначения', (
+    tester,
+  ) async {
+    await _pump(tester, _viewModel(FakeTransactions()));
+
+    final selects = tester.widgetList<AppSelect<int>>(
+      find.byType(AppSelect<int>),
+    );
+    final destination = selects.last;
+    expect(destination.items.map((item) => item.value), isNot(contains(1)));
+    expect(destination.items.map((item) => item.value), contains(2));
   });
 
   testWidgets('форма перевода сохраняет сумму и счета', (tester) async {

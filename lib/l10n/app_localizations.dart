@@ -1755,11 +1755,11 @@ abstract class AppLocalizations {
   /// **'Нужно минимум два счёта.'**
   String get transferNoAccounts;
 
-  /// Подсказка курса по суммам перевода.
+  /// Курс по введённым суммам перевода.
   ///
   /// In ru, this message translates to:
-  /// **'Курс по введённым суммам: 1 {from} ≈ {rate} {to}'**
-  String transferRateHint(String from, String rate, String to);
+  /// **'{fromUnit} ≈ {toAmount}'**
+  String transferRateHint(String fromUnit, String toAmount);
 
   /// Пояснение состояния с одним счётом.
   ///
