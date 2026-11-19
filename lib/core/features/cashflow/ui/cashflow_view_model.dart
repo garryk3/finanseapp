@@ -74,7 +74,7 @@ class CashflowViewModel {
         for (final category in [...income, ...expense])
           category.id: category.name,
       };
-      final list = await currencyRepository.getEnabled();
+      final list = await currencyRepository.watchAll().first;
       currencies.value = {for (final currency in list) currency.code: currency};
     } on Exception {
       // Справочники не блокируют журнал.
@@ -132,7 +132,7 @@ class CashflowFormViewModel {
 
   Future<void> load({CashflowKind? kind}) async {
     try {
-      final list = await currencyRepository.getEnabled();
+      final list = await currencyRepository.watchAll().first;
       currencies.value = {for (final currency in list) currency.code: currency};
       if (editingId != null) {
         final current = await repository.getById(editingId!);

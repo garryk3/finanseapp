@@ -36,7 +36,7 @@ class CashflowDetailsViewModel {
   final Signal<List<CashflowEntryRevision>> revisions = signal(const []);
   final Signal<bool> busy = signal(false);
   final Signal<String?> deleteError = signal(null);
-  final Signal<Currency?> currency = signal(null);
+  final Signal<Map<String, Currency>> currencies = signal(const {});
 
   Future<void> load() async {
     try {
@@ -46,17 +46,10 @@ class CashflowDetailsViewModel {
         return;
       }
       entry.value = current;
-      final currencies = await currencyRepository.watchAll().first;
-      currency.value = currencies.firstWhere(
-        (item) => item.code == current.amount.currencyCode,
-        orElse: () => Currency(
-          code: current.amount.currencyCode,
-          name: current.amount.currencyCode,
-          fractionDigits: 2,
-          isPreset: true,
-          isEnabled: true,
-        ),
-      );
+      final currencyList = await currencyRepository.watchAll().first;
+      currencies.value = {
+        for (final currency in currencyList) currency.code: currency,
+      };
       final all = [
         ...await categoryRepository
             .watchByKind(CashflowKind.income, includeArchived: true)

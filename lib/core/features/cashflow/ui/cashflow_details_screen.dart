@@ -221,7 +221,7 @@ class _CashflowDetailsScreenState extends State<CashflowDetailsScreen> {
 
   String _money(Money money) => const MoneyFormatter().format(
     money,
-    _viewModel.currency.value ??
+    _viewModel.currencies.value[money.currencyCode] ??
         Currency(
           code: money.currencyCode,
           name: money.currencyCode,
