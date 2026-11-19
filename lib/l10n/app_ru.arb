@@ -1785,5 +1785,9 @@
   "goalErrorDate": "Дата цели не может быть в прошлом.",
   "@goalErrorDate": {
     "description": "Ошибка даты цели."
+  },
+  "goalNoLinkedAssets": "Активы не привязаны.",
+  "@goalNoLinkedAssets": {
+    "description": "Пустой список активов в деталях цели."
   }
 }

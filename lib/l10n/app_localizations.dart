@@ -2558,6 +2558,12 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Дата цели не может быть в прошлом.'**
   String get goalErrorDate;
+
+  /// Пустой список активов в деталях цели.
+  ///
+  /// In ru, this message translates to:
+  /// **'Активы не привязаны.'**
+  String get goalNoLinkedAssets;
 }
 
 class _AppLocalizationsDelegate

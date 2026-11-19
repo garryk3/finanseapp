@@ -1333,4 +1333,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get goalErrorDate => 'Дата цели не может быть в прошлом.';
+
+  @override
+  String get goalNoLinkedAssets => 'Активы не привязаны.';
 }

@@ -194,21 +194,27 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
                     errorText: _nameError,
                     onChanged: (_) => setState(() => _nameError = null),
                   ),
-                  AppText(l10n.goalCategoryLabel),
-                  AppSegmentedControl<GoalCategory>(
-                    segments: [
-                      AppSegment(
-                        value: GoalCategory.accounts,
-                        label: l10n.goalCategoryAccounts,
-                      ),
-                      AppSegment(
-                        value: GoalCategory.investments,
-                        label: l10n.goalCategoryInvestments,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      AppText(l10n.goalCategoryLabel),
+                      const SizedBox(height: AppSpacing.xxs),
+                      AppSegmentedControl<GoalCategory>(
+                        segments: [
+                          AppSegment(
+                            value: GoalCategory.accounts,
+                            label: l10n.goalCategoryAccounts,
+                          ),
+                          AppSegment(
+                            value: GoalCategory.investments,
+                            label: l10n.goalCategoryInvestments,
+                          ),
+                        ],
+                        selected: {_category},
+                        onSelectionChanged: (selection) =>
+                            _setCategory(selection.single),
                       ),
                     ],
-                    selected: {_category},
-                    onSelectionChanged: (selection) =>
-                        _setCategory(selection.single),
                   ),
                   AppAmountField(
                     controller: _target,

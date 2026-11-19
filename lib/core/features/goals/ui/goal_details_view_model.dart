@@ -26,7 +26,7 @@ class GoalDetailsViewModel {
   final Signal<FinancialGoal?> goal = signal(null);
   final Signal<List<Asset>> assets = signal(const []);
   final Signal<bool> busy = signal(false);
-  final Signal<bool> statusBusy = signal(false);
+  final Signal<GoalStatus?> pendingStatus = signal(null);
   final Signal<bool> deleteBusy = signal(false);
   final Signal<Map<String, Currency>> currencies = signal(const {});
 
@@ -63,7 +63,7 @@ class GoalDetailsViewModel {
 
   Future<Result<void>> setStatus(GoalStatus status) async {
     busy.value = true;
-    statusBusy.value = true;
+    pendingStatus.value = status;
     try {
       await repository.setStatus(goalId, status);
       await load();
@@ -74,7 +74,7 @@ class GoalDetailsViewModel {
       return const Failure(DomainException(DomainErrorCode.storageFailure));
     } finally {
       busy.value = false;
-      statusBusy.value = false;
+      pendingStatus.value = null;
     }
   }
 

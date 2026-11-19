@@ -117,13 +117,16 @@ class _GoalDetailsScreenState extends State<GoalDetailsScreen> {
                         '${const DateFormatter().format(goal.targetDate!)}',
                       ),
                     AppText(l10n.goalAssetsLabel),
-                    if (vm.assets.value.isEmpty) AppText(l10n.goalNoAssets),
+                    if (vm.assets.value.isEmpty)
+                      AppText(l10n.goalNoLinkedAssets),
                     for (final asset in vm.assets.value)
                       Row(
                         children: [
                           Expanded(child: AppText(asset.name)),
-                          if (asset.archivedAt != null)
+                          if (asset.archivedAt != null) ...[
+                            const SizedBox(width: AppSpacing.xs),
                             AppChip(label: l10n.accountArchivedBadge),
+                          ],
                         ],
                       ),
                     const SizedBox(height: AppSpacing.lg),
@@ -143,7 +146,7 @@ class _GoalDetailsScreenState extends State<GoalDetailsScreen> {
                       AppButton(
                         label: l10n.goalMarkAchieved,
                         variant: AppButtonVariant.tonal,
-                        pending: vm.statusBusy.value,
+                        pending: vm.pendingStatus.value == GoalStatus.achieved,
                         onPressed: vm.busy.value
                             ? null
                             : () => _setStatus(GoalStatus.achieved),
@@ -153,7 +156,7 @@ class _GoalDetailsScreenState extends State<GoalDetailsScreen> {
                       AppButton(
                         label: l10n.goalClose,
                         variant: AppButtonVariant.tonal,
-                        pending: vm.statusBusy.value,
+                        pending: vm.pendingStatus.value == GoalStatus.closed,
                         onPressed: vm.busy.value
                             ? null
                             : () => _setStatus(GoalStatus.closed),
@@ -162,7 +165,7 @@ class _GoalDetailsScreenState extends State<GoalDetailsScreen> {
                       AppButton(
                         label: l10n.goalActivate,
                         variant: AppButtonVariant.tonal,
-                        pending: vm.statusBusy.value,
+                        pending: vm.pendingStatus.value == GoalStatus.active,
                         onPressed: vm.busy.value
                             ? null
                             : () => _setStatus(GoalStatus.active),
