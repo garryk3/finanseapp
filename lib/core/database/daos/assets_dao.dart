@@ -41,6 +41,9 @@ class AssetsDao extends DatabaseAccessor<AppDatabase> with _$AssetsDaoMixin {
     },
   ).watchSingleOrNull().map((row) => row == null ? null : assets.map(row.data));
 
+  /// Все активы, включая архивные и удалённые из выборов (analytics 9.1).
+  Future<List<AssetRow>> allRows() => select(assets).get();
+
   /// Все detail-строки для батч-сборки снапшотов без N+1.
   Future<List<AccountDetailRow>> allAccountDetails() =>
       select(accountDetails).get();
