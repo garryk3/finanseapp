@@ -183,7 +183,7 @@ class CashflowFormViewModel {
     occurredOn: occurredOn,
     manualRate: manualRate,
     comment: comment,
-    propertyId: propertyId,
+    propertyId: propertyId ?? entry.value?.propertyId,
   );
 
   void dispose() {}

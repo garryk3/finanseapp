@@ -209,6 +209,7 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
             repository: vm.cashflowRepository!,
             propertyId: asset.id,
             today: vm.today,
+            readOnly: isArchived,
           ),
         if (!isAccount)
           AppSection(

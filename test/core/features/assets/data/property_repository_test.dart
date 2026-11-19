@@ -7,6 +7,7 @@ import 'package:finanseapp/core/domain/common/result.dart';
 import 'package:finanseapp/core/features/assets/data/asset_repository_impl.dart';
 import 'package:finanseapp/core/features/assets/domain/asset.dart';
 import 'package:finanseapp/core/features/assets/domain/asset_draft.dart';
+import 'package:finanseapp/core/features/assets/domain/asset_valuation.dart';
 import 'package:finanseapp/core/features/cashflow/data/cashflow_repository_impl.dart';
 import 'package:finanseapp/core/features/cashflow/domain/cashflow_entry.dart';
 import 'package:finanseapp/core/features/cashflow/domain/cashflow_filter.dart';
@@ -74,6 +75,33 @@ void main() {
     final cleared = (await assets.getById(id)).asset as PropertyAsset;
     expect(cleared.address, isNull);
     expect(cleared.purchasePrice, isNull);
+  });
+
+  test('оценка меняет стоимость, расход не меняет', () async {
+    final id = await assets.create(draft());
+    await assets.recordValuation(
+      AssetValuationDraft(
+        assetId: id,
+        effectiveOn: LocalDate(2026, 1, 2),
+        value: const Money(minorUnits: 550000000, currencyCode: 'RUB'),
+        rateToRub: Decimal.one,
+        fractionDigits: 2,
+      ),
+    );
+    expect((await assets.getById(id)).currentValue.minorUnits, 550000000);
+
+    await cashflow.create(
+      CashflowEntryDraft(
+        kind: CashflowKind.expense,
+        categoryId: expenseCategoryId,
+        amount: const Money(minorUnits: 10000000, currencyCode: 'RUB'),
+        occurredOn: LocalDate(2026, 1, 3),
+        rateToRub: Decimal.one,
+        affectsBalance: false,
+        propertyId: id,
+      ),
+    );
+    expect((await assets.getById(id)).currentValue.minorUnits, 550000000);
   });
 
   test('cashflow с propertyId связывается с квартирой и фильтруется', () async {

@@ -59,6 +59,7 @@ class _CashflowFormScreenState extends State<CashflowFormScreen> {
   @override
   void initState() {
     super.initState();
+    _kind = widget.viewModel.initialKind;
     widget.viewModel.load(kind: _kind).then((_) {
       if (!mounted) return;
       final entry = widget.viewModel.entry.value;

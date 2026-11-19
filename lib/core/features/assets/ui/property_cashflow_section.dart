@@ -16,9 +16,10 @@ import 'package:finanseapp/uikit/app_button.dart';
 import 'package:finanseapp/uikit/app_cashflow_summary.dart';
 import 'package:finanseapp/uikit/app_filter_bar.dart';
 import 'package:finanseapp/uikit/app_filter_chip.dart';
+import 'package:finanseapp/uikit/app_spinner.dart';
 import 'package:finanseapp/uikit/app_section.dart';
 import 'package:finanseapp/uikit/app_text.dart';
-import 'package:flutter/widgets.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
 
 /// Денежный поток квартиры за период + создание дохода/расхода (5.4).
@@ -28,11 +29,13 @@ class PropertyCashflowSection extends StatefulWidget {
     required this.repository,
     required this.propertyId,
     required this.today,
+    this.readOnly = false,
   });
 
   final CashflowRepository repository;
   final int propertyId;
   final LocalDate today;
+  final bool readOnly;
 
   @override
   State<PropertyCashflowSection> createState() =>
@@ -45,11 +48,24 @@ class _PropertyCashflowSectionState extends State<PropertyCashflowSection> {
   _Period _period = _Period.month;
   List<CashflowEntry> _entries = const [];
   StreamSubscription<List<CashflowEntry>>? _subscription;
+  // ignore: prefer_final_fields
+  bool _loading = true;
+  // ignore: prefer_final_fields
+  bool _failed = false;
 
   @override
   void initState() {
     super.initState();
     _subscribe();
+  }
+
+  @override
+  void didUpdateWidget(covariant PropertyCashflowSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.propertyId != widget.propertyId ||
+        !identical(oldWidget.repository, widget.repository)) {
+      _subscribe();
+    }
   }
 
   @override
@@ -129,40 +145,46 @@ class _PropertyCashflowSectionState extends State<PropertyCashflowSection> {
               ),
             ],
           ),
-          AppCashflowSummary(
-            incomeText: _rub(totals.income),
-            expenseText: _rub(totals.expense),
-            netText: _rub(totals.net),
-            periodLabel: switch (_period) {
-              _Period.month => l10n.cashflowPeriodMonth,
-              _Period.year => l10n.cashflowPeriodYear,
-              _Period.all => l10n.cashflowPeriodAll,
-            },
-            incomeLabel: l10n.cashflowTotalsIncome,
-            expenseLabel: l10n.cashflowTotalsExpense,
-            netLabel: l10n.cashflowTotalsNet,
-          ),
-          if (_entries.isEmpty) AppText(l10n.propertyCashflowEmpty),
           const SizedBox(height: AppSpacing.sm),
-          Row(
-            children: [
-              Expanded(
-                child: AppButton(
-                  label: l10n.propertyAddIncome,
-                  variant: AppButtonVariant.tonal,
-                  onPressed: () => _add(income: true),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: AppButton(
-                  label: l10n.propertyAddExpense,
-                  variant: AppButtonVariant.tonal,
-                  onPressed: () => _add(income: false),
-                ),
-              ),
-            ],
-          ),
+          if (_loading)
+            AppSpinner(semanticLabel: l10n.commonLoading)
+          else if (_failed)
+            AppText(l10n.errorStateMessage)
+          else
+            AppCashflowSummary(
+              incomeText: _rub(totals.income),
+              expenseText: _rub(totals.expense),
+              netText: _rub(totals.net),
+              periodLabel: switch (_period) {
+                _Period.month =>
+                  MaterialLocalizations.of(context).formatMonthYear(
+                    DateTime(widget.today.year, widget.today.month),
+                  ),
+                _Period.year => '${widget.today.year}',
+                _Period.all => l10n.cashflowPeriodAll,
+              },
+              incomeLabel: l10n.cashflowTotalsIncome,
+              expenseLabel: l10n.cashflowTotalsExpense,
+              netLabel: l10n.cashflowTotalsNet,
+            ),
+          if (!_loading && !_failed && _entries.isEmpty) ...[
+            const SizedBox(height: AppSpacing.sm),
+            AppText(l10n.propertyCashflowEmpty),
+          ],
+          if (!widget.readOnly) ...[
+            const SizedBox(height: AppSpacing.md),
+            AppButton(
+              label: l10n.propertyAddIncome,
+              variant: AppButtonVariant.tonal,
+              onPressed: () => _add(income: true),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            AppButton(
+              label: l10n.propertyAddExpense,
+              variant: AppButtonVariant.tonal,
+              onPressed: () => _add(income: false),
+            ),
+          ],
         ],
       ),
     );
