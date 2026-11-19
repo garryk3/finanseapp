@@ -1673,5 +1673,121 @@
   "cashflowPropertyNoAccount": "Не влияет на баланс счёта",
   "@cashflowPropertyNoAccount": {
     "description": "Пояснение отсутствия счёта."
+  },
+  "goalsAdd": "Добавить цель",
+  "@goalsAdd": {
+    "description": "Создание цели."
+  },
+  "goalFormNew": "Новая цель",
+  "@goalFormNew": {
+    "description": "Заголовок новой цели."
+  },
+  "goalFormEdit": "Изменить цель",
+  "@goalFormEdit": {
+    "description": "Заголовок редактирования цели."
+  },
+  "goalDetailsTitle": "Цель",
+  "@goalDetailsTitle": {
+    "description": "Заголовок деталей цели."
+  },
+  "goalNameLabel": "Название цели",
+  "@goalNameLabel": {
+    "description": "Поле названия."
+  },
+  "goalTargetAmountLabel": "Целевая сумма",
+  "@goalTargetAmountLabel": {
+    "description": "Поле целевой суммы."
+  },
+  "goalTargetDateLabel": "Дата цели",
+  "@goalTargetDateLabel": {
+    "description": "Необязательная дата цели."
+  },
+  "goalCategoryLabel": "Категория цели",
+  "@goalCategoryLabel": {
+    "description": "Категория цели."
+  },
+  "goalCategoryAccounts": "Счета",
+  "@goalCategoryAccounts": {
+    "description": "Цель по счетам."
+  },
+  "goalCategoryInvestments": "Инвестиции",
+  "@goalCategoryInvestments": {
+    "description": "Цель по инвестициям."
+  },
+  "goalAssetsLabel": "Активы цели",
+  "@goalAssetsLabel": {
+    "description": "Список привязанных активов."
+  },
+  "goalNoAssets": "Нет подходящих активов.",
+  "@goalNoAssets": {
+    "description": "Пустой список активов."
+  },
+  "goalErrorName": "Введите название цели.",
+  "@goalErrorName": {
+    "description": "Ошибка названия."
+  },
+  "goalErrorAmount": "Введите положительную целевую сумму.",
+  "@goalErrorAmount": {
+    "description": "Ошибка суммы."
+  },
+  "goalErrorAssets": "Выберите хотя бы один актив.",
+  "@goalErrorAssets": {
+    "description": "Ошибка активов."
+  },
+  "goalStatusActive": "Активна",
+  "@goalStatusActive": {
+    "description": "Статус цели."
+  },
+  "goalStatusAchieved": "Достигнута",
+  "@goalStatusAchieved": {
+    "description": "Статус цели."
+  },
+  "goalStatusClosed": "Закрыта",
+  "@goalStatusClosed": {
+    "description": "Статус цели."
+  },
+  "goalDeleted": "Цель удалена.",
+  "@goalDeleted": {
+    "description": "Подтверждение удаления."
+  },
+  "goalDeleteTitle": "Удалить цель?",
+  "@goalDeleteTitle": {
+    "description": "Подтверждение удаления."
+  },
+  "goalDeleteMessage": "Цель будет скрыта; связи с активами сохранятся в истории.",
+  "@goalDeleteMessage": {
+    "description": "Пояснение удаления."
+  },
+  "goalMarkAchieved": "Отметить достигнутой",
+  "@goalMarkAchieved": {
+    "description": "Действие статуса."
+  },
+  "goalClose": "Закрыть цель",
+  "@goalClose": {
+    "description": "Действие статуса."
+  },
+  "goalActivate": "Вернуть в работу",
+  "@goalActivate": {
+    "description": "Действие статуса."
+  },
+  "goalSectionTitle": "Параметры цели",
+  "@goalSectionTitle": {
+    "description": "Заголовок секции формы цели."
+  },
+  "goalCurrencyLabel": "Валюта цели",
+  "@goalCurrencyLabel": {
+    "description": "Поле валюты целевой суммы."
+  },
+  "goalDateToggle": "Указать дату цели",
+  "@goalDateToggle": {
+    "description": "Включить дату цели."
+  },
+  "goalErrorDate": "Дата цели не может быть в прошлом.",
+  "@goalErrorDate": {
+    "description": "Ошибка даты цели."
+  },
+  "goalNoLinkedAssets": "Активы не привязаны.",
+  "@goalNoLinkedAssets": {
+    "description": "Пустой список активов в деталях цели."
   }
 }
