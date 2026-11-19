@@ -10,6 +10,8 @@ import 'package:finanseapp/core/database/daos/references_dao.dart';
 import 'package:finanseapp/core/database/daos/settings_dao.dart';
 import 'package:finanseapp/core/database/daos/transactions_dao.dart';
 import 'package:finanseapp/core/database/daos/valuations_dao.dart';
+import 'package:finanseapp/core/features/analytics/data/analytics_queries_impl.dart';
+import 'package:finanseapp/core/features/analytics/domain/analytics_queries.dart';
 import 'package:finanseapp/core/features/assets/data/asset_repository_impl.dart';
 import 'package:finanseapp/core/features/audit/data/audit_repository_impl.dart';
 import 'package:finanseapp/core/features/audit/domain/audit_repository.dart';
@@ -99,6 +101,14 @@ Future<ServiceLocator> registerCoreServices(
     ),
   );
   locator.register<SettingsRepository>(SettingsRepositoryImpl(db.settingsDao));
+  locator.register<AnalyticsQueries>(
+    AnalyticsQueriesImpl(
+      db,
+      locator.get<ExchangeRateRepository>(),
+      locator.get<SettingsRepository>(),
+      locator.get<CurrencyRepository>(),
+    ),
+  );
   locator.registerFactory<CurrenciesViewModel>(
     () => CurrenciesViewModel(
       repository: locator.get<CurrencyRepository>(),

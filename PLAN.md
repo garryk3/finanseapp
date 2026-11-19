@@ -1095,8 +1095,35 @@
 
 ## Этап 9 — Аналитика и графики
 
-### 9.1 Net worth в выбранной базовой валюте — [ ]
+### 9.1 Net worth в выбранной базовой валюте — [x] (2026-11-19)
 
+- **Рабочий план:**
+  - **Data:** `AssetsDao.allRows()`; `analytics_mappers.dart` — стоимости на дату
+    (account: opening + операции `<= onDate`; investment: последняя оценка `<= onDate` +
+    операции после неё; property: последняя оценка), включение актива по `createdAt`/
+    `archivedAt` (A-6: с даты архивации исключён).
+  - **Logic:** `NetWorthCalculator` — принимает стоимости в валютах активов, курсы к RUB и
+    базовую валюту, считает exact Rational A→RUB→base, округляет общий итог один раз,
+    категории — из тех же значений с распределением остатка в крупнейшую; нет курса →
+    `rateUnavailable` (не ноль), RUB не конвертируется.
+  - **Impl/DI:** `AnalyticsQueriesImpl.netWorth` читает активы/операции/оценки, валюты,
+    базовую валюту и dated-курсы `onDate`; регистрация в DI. Остальные методы интерфейса —
+    заготовки для 9.2/9.3.
+  - **TDD:** account 1000 RUB + investment 10 USD×90=900 RUB + property 2 EUR×100=200 RUB
+    → 2100 RUB; base EUR → 21 EUR; нет base rate → rateUnavailable; archived до/с даты архивации;
+    deleted-операция не участвует; категории в сумме дают общий итог.
+  - **Генерация:** схема БД не меняется; ARB не требуется (ошибки — существующие коды).
+  - **commit:** `task/09.1: рассчитать совокупную стоимость`.
+- **Итог:** `AssetsDao.allRows()`; `AnalyticsMappers` — стоимости на дату (account/opening+
+  операции, investment/последняя оценка+операции, property/последняя оценка) и cutoff по
+  `createdAt`/`archivedAt`; `NetWorthCalculator` — exact A→RUB→base, одно округление на итог,
+  категории из тех же значений с распределением остатка, нет курса → `rateUnavailable`;
+  `AnalyticsQueriesImpl.netWorth` + DI. Тесты: 10 data (RUB/EUR, no-rate, архив,
+  deleted-операция, оценка, инвариант категорий, CALC-022, as-of операция/оценка) + 4 logic. Арифметика TDD уточнена: 2100 RUB / 21 EUR
+  (в исходной формулировке было 20 900/209 — опечатка на порядок).
+- **Отложено:** `netWorthSeries` (9.2), cashflow-агрегаты (9.3), подключение к Dashboard (10.1),
+  общий as-of в `AssetValueCalculator` (сейчас правила стоимости продублированы в
+  `AnalyticsMappers` — свести в 9.2), widget/integration-тесты; ARB не менялся.
 - **Приоритет/зависимости:** P1; после 5.4, 6.3 и 8.2. **BR:** S-1…5, C-5…6, A-6.
 - **Files:** Create analytics data/logic `analytics_queries.dart`,
   `net_worth_summary.dart`, `analytics_queries_impl.dart`, `analytics_mappers.dart`;
