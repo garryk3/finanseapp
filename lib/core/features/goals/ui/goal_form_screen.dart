@@ -139,14 +139,20 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
     if (!mounted) return;
     if (result is Failure<int>) {
       setState(() {
-        _formError = switch (result.error.fieldErrors.values.firstOrNull) {
-          'validationNameRequired' => l10n.goalErrorName,
-          'validationAmountPositive' => l10n.goalErrorAmount,
-          'validationGoalAssetsRequired' => l10n.goalErrorAssets,
-          'validationGoalAssetKind' => l10n.goalErrorAssets,
-          'validationGoalDateInPast' => l10n.goalErrorDate,
-          _ => l10n.errorStateMessage,
-        };
+        _formError = null;
+        _dateError = null;
+        switch (result.error.fieldErrors.values.firstOrNull) {
+          case 'validationNameRequired':
+            _nameError = l10n.goalErrorName;
+          case 'validationAmountPositive':
+            _amountError = l10n.goalErrorAmount;
+          case 'validationGoalAssetsRequired' || 'validationGoalAssetKind':
+            _assetsError = l10n.goalErrorAssets;
+          case 'validationGoalDateInPast':
+            _dateError = l10n.goalErrorDate;
+          default:
+            _formError = l10n.errorStateMessage;
+        }
       });
       return;
     }

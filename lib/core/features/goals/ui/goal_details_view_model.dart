@@ -14,13 +14,13 @@ class GoalDetailsViewModel {
     required this.repository,
     required this.assetRepository,
     required this.goalId,
-    this.currencyRepository,
+    required this.currencyRepository,
   });
 
   final GoalRepository repository;
   final AssetRepository assetRepository;
   final int goalId;
-  final CurrencyRepository? currencyRepository;
+  final CurrencyRepository currencyRepository;
 
   final Signal<ViewState<void>> state = signal(const ViewLoading());
   final Signal<FinancialGoal?> goal = signal(null);
@@ -38,13 +38,11 @@ class GoalDetailsViewModel {
         return;
       }
       goal.value = current;
-      if (currencyRepository != null) {
-        try {
-          final list = await currencyRepository!.watchAll().first;
-          currencies.value = {for (final item in list) item.code: item};
-        } on Exception {
-          // Валюта не блокирует детали.
-        }
+      try {
+        final list = await currencyRepository.watchAll().first;
+        currencies.value = {for (final item in list) item.code: item};
+      } on Exception {
+        // Валюта не блокирует детали.
       }
       final list = <Asset>[];
       for (final id in current.assetIds) {
