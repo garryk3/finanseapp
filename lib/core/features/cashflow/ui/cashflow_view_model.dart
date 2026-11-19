@@ -8,6 +8,8 @@ import 'package:finanseapp/core/domain/common/result.dart';
 import 'package:finanseapp/core/features/cashflow/domain/cashflow_entry.dart';
 import 'package:finanseapp/core/features/cashflow/domain/cashflow_filter.dart';
 import 'package:finanseapp/core/features/cashflow/domain/cashflow_repository.dart';
+import 'package:finanseapp/core/features/assets/domain/asset.dart';
+import 'package:finanseapp/core/features/assets/domain/asset_repository.dart';
 import 'package:finanseapp/core/features/categories/domain/cashflow_category.dart';
 import 'package:finanseapp/core/features/categories/domain/category.dart';
 import 'package:finanseapp/core/features/cashflow/logic/cashflow_commands.dart';
@@ -111,6 +113,7 @@ class CashflowFormViewModel {
     required this.categoryRepository,
     required this.currencyRepository,
     required this.commands,
+    required this.assetRepository,
     this.editingId,
     this.initialKind = CashflowKind.expense,
   });
@@ -119,12 +122,14 @@ class CashflowFormViewModel {
   final CategoryRepository categoryRepository;
   final CurrencyRepository currencyRepository;
   final CashflowCommands commands;
+  final AssetRepository assetRepository;
   final int? editingId;
   final CashflowKind initialKind;
 
   final Signal<ViewState<void>> state = signal(const ViewLoading());
   final Signal<List<CashflowCategory>> categories = signal(const []);
   final Signal<Map<String, Currency>> currencies = signal(const {});
+  final Signal<List<AccountAsset>> accounts = signal(const []);
   final Signal<CashflowEntry?> entry = signal(null);
   final Signal<bool> busy = signal(false);
 
@@ -143,6 +148,14 @@ class CashflowFormViewModel {
       } else if (kind != null) {
         await loadCategories(kind);
       }
+      final snapshots = await assetRepository.watchAll().first;
+      accounts.value = [
+        for (final snapshot in snapshots)
+          if (snapshot.asset is AccountAsset &&
+              (snapshot.asset.archivedAt == null ||
+                  snapshot.asset.id == entry.value?.accountId))
+            snapshot.asset as AccountAsset,
+      ];
       state.value = const ViewData(null);
     } on DomainException catch (error) {
       state.value = ViewError(error.code);
@@ -175,6 +188,8 @@ class CashflowFormViewModel {
     Decimal? manualRate,
     String? comment,
     int? propertyId,
+    int? accountId,
+    bool affectsBalance = false,
   }) => commands.save(
     id: editingId,
     kind: kind,
@@ -184,6 +199,8 @@ class CashflowFormViewModel {
     manualRate: manualRate,
     comment: comment,
     propertyId: propertyId ?? entry.value?.propertyId,
+    accountId: accountId,
+    affectsBalance: affectsBalance,
   );
 
   void dispose() {}

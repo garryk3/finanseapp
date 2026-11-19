@@ -2234,6 +2234,48 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Добавить квартиру'**
   String get assetsAddProperty;
+
+  /// Необязательный счёт для дохода/расхода.
+  ///
+  /// In ru, this message translates to:
+  /// **'Счёт'**
+  String get cashflowAccountLabel;
+
+  /// Создать связанную операцию по счёту.
+  ///
+  /// In ru, this message translates to:
+  /// **'Влияет на баланс счёта'**
+  String get cashflowAffectsBalance;
+
+  /// Ошибка счёта при affectsBalance.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выберите счёт или отключите влияние на баланс.'**
+  String get cashflowErrorAccount;
+
+  /// Нет счетов для связи.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сначала добавьте счёт.'**
+  String get cashflowNoAccounts;
+
+  /// Причина блокировки валюты.
+  ///
+  /// In ru, this message translates to:
+  /// **'Валюта берётся из счёта'**
+  String get cashflowCurrencyFromAccount;
+
+  /// Подсказка выбора счёта.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выберите счёт'**
+  String get cashflowAccountHint;
+
+  /// Ошибка валюты при связи со счётом.
+  ///
+  /// In ru, this message translates to:
+  /// **'Валюта записи не совпадает с валютой счёта.'**
+  String get cashflowErrorCurrencyMismatch;
 }
 
 class _AppLocalizationsDelegate

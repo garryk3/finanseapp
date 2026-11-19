@@ -1163,4 +1163,27 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get assetsAddProperty => 'Добавить квартиру';
+
+  @override
+  String get cashflowAccountLabel => 'Счёт';
+
+  @override
+  String get cashflowAffectsBalance => 'Влияет на баланс счёта';
+
+  @override
+  String get cashflowErrorAccount =>
+      'Выберите счёт или отключите влияние на баланс.';
+
+  @override
+  String get cashflowNoAccounts => 'Сначала добавьте счёт.';
+
+  @override
+  String get cashflowCurrencyFromAccount => 'Валюта берётся из счёта';
+
+  @override
+  String get cashflowAccountHint => 'Выберите счёт';
+
+  @override
+  String get cashflowErrorCurrencyMismatch =>
+      'Валюта записи не совпадает с валютой счёта.';
 }

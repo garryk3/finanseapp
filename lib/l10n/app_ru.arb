@@ -1559,5 +1559,33 @@
   "assetsAddProperty": "Добавить квартиру",
   "@assetsAddProperty": {
     "description": "Действие создания квартиры."
+  },
+  "cashflowAccountLabel": "Счёт",
+  "@cashflowAccountLabel": {
+    "description": "Необязательный счёт для дохода/расхода."
+  },
+  "cashflowAffectsBalance": "Влияет на баланс счёта",
+  "@cashflowAffectsBalance": {
+    "description": "Создать связанную операцию по счёту."
+  },
+  "cashflowErrorAccount": "Выберите счёт или отключите влияние на баланс.",
+  "@cashflowErrorAccount": {
+    "description": "Ошибка счёта при affectsBalance."
+  },
+  "cashflowNoAccounts": "Сначала добавьте счёт.",
+  "@cashflowNoAccounts": {
+    "description": "Нет счетов для связи."
+  },
+  "cashflowCurrencyFromAccount": "Валюта берётся из счёта",
+  "@cashflowCurrencyFromAccount": {
+    "description": "Причина блокировки валюты."
+  },
+  "cashflowAccountHint": "Выберите счёт",
+  "@cashflowAccountHint": {
+    "description": "Подсказка выбора счёта."
+  },
+  "cashflowErrorCurrencyMismatch": "Валюта записи не совпадает с валютой счёта.",
+  "@cashflowErrorCurrencyMismatch": {
+    "description": "Ошибка валюты при связи со счётом."
   }
 }
