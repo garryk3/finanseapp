@@ -1275,11 +1275,42 @@
 
 ## Этап 10 — Dashboard, настройки, backup и updates
 
-### 10.1 Dashboard с реальными итогами и quick actions — [ ]
+### 10.1 Dashboard с реальными итогами и quick actions — [x] (2026-11-19)
 
+- **Рабочий план:**
+  - **VM:** подписки assets/goals/transactions + base currency; net worth через
+    `AnalyticsQueries.netWorth(today)`; прогресс целей через `CalculateGoalProgress`
+    (без записи статуса, achieved показывается из прогресса); последние 5 операций с именами
+    активов; повторяемый `now`, токены против гонок, dispose всех подписок.
+  - **UI:** `AppAdaptiveGrid` (одна колонка <600, две — шире): net worth + дата/базовая
+    валюта → quick add (Доход/Расход/Перевод с prefill) → цели (до 3 AppGoalCard + «Все
+    цели»/«Добавить») → последние операции (AppListTile + сумма/дата, tap в детали). Пустая
+    БД — честные нули, без демо-данных, quick add как CTA.
+  - **Тесты:** пустая БД (нули + CTA), данные (net worth, цель achieved, recent), реакция на
+    новый поток/ошибку, dispose; widget 320dp.
+  - **Генерация:** gen-l10n; схема не меняется.
+  - **commit:** `task/10.1: реализовать главный экран`.
+- **Итог:** `DashboardViewModel` на подписках assets/goals/transactions/base currency, net
+  worth через `AnalyticsQueries.netWorth(today)`, прогресс целей через
+  `CalculateGoalProgress` (achieved показывается из прогресса без записи), последние 5
+  операций с именами активов, repeatable now и dispose всех подписок; экран —
+  `AppAdaptiveGrid` (1/2 колонки), net worth card с датой/валютой и переходом в аналитику,
+  quick actions Доход/Расход/Перевод с prefill, блок целей (3 + все/добавить), последние
+  операции с переходом в детали; пустая БД — честные нули и CTA, без демо. Переводы
+  показываются тоном transfer и иконкой, секция честно названа «Операции по активам» с
+  переходом в журнал; ошибка курса net worth локализована карточкой, остальные блоки живы;
+  `AppAdaptiveGrid` выравнивает ячейки по верху (без переполнения низких секций). Тесты:
+  пустая БД, данные, повторная эмиссия/dispose, prefill quick actions, локальная ошибка
+  курса, 320dp/1.3/dark; всего 514.
+- **Отложено:** cashflow месяца и единые переходы (10.2), ручной/визуальный QA 320dp/1.3,
+  расширенные типы операций в recent (cashflow отдельно), skeleton по точной структуре,
+  `limit` для последних операций (сейчас читается весь журнал ради 5 строк), обновление
+  `today` на resume, инкремент токенов в `init()`, чистка неиспользуемых `PrimaryEmptyBody`
+  и ключей `dashboardEmptyTitle`/`dashboardEmptyMessage`.
 - **Приоритет/зависимости:** P1; после 9.4. **BR:** S-1…5, G-2…6, IE-13.
-- **Files:** Modify dashboard screen/VM/state; Create widgets `{dashboard_net_worth,dashboard_goals,
-  dashboard_recent_operations}.dart`; Modify root router/DI/ARB/test app;
+- **Files:** Modify dashboard screen/VM, `lib/uikit/app_adaptive_grid.dart` (top-aligned
+  ячейки), root router/DI/ARB/test app; Create widgets
+  `{dashboard_net_worth,dashboard_goals,dashboard_recent_operations}.dart`;
   Test `test/core/features/dashboard/ui/dashboard_screen_test.dart`.
 - **Consumes:** AnalyticsQueries.netWorth/cashflow, GoalRepository/progress, операции watch.
 - **Produces:** net worth, quick add, goals, recent operations и базовая валюта на `/`.

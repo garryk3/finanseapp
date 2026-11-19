@@ -16,7 +16,8 @@ import 'package:finanseapp/app/theme/app_spacing.dart';
 /// одной колонкой: `AppAdaptiveGrid(maxColumns: 1, maxWidth: AppSpacing.formMaxWidth)`.
 ///
 /// Заполняется сверху вниз, слева направо: порядок [children] — визуальный
-/// порядок чтения. Каждая ячейка stretch по высоте своей строки.
+/// порядок чтения. Ячейки выравниваются по верху и сохраняют естественную
+/// высоту (не тянутся под соседа: карточки/секции не переполняются).
 ///
 /// Экраны: все master-экраны на fold/планшете — Dashboard (summary + cashflow
 /// + цели + последние операции), Активы, Цели, Аналитика, Настройки, Ещё.
@@ -74,11 +75,9 @@ class AppAdaptiveGrid extends StatelessWidget {
         i + columns > children.length ? children.length : i + columns,
       );
       rows.add(
-        IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: _spacedRow(chunk, columns, gap),
-          ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: _spacedRow(chunk, columns, gap),
         ),
       );
     }

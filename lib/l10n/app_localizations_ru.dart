@@ -1530,4 +1530,37 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get analyticsUnknownCategory => 'Без категории';
+
+  @override
+  String get dashboardNetWorthTitle => 'Чистый капитал';
+
+  @override
+  String get dashboardQuickActions => 'Быстрые действия';
+
+  @override
+  String get dashboardGoalsEmpty => 'Целей пока нет';
+
+  @override
+  String get dashboardAllGoals => 'Все цели';
+
+  @override
+  String get dashboardRecentTitle => 'Операции по активам';
+
+  @override
+  String get dashboardRecentEmpty => 'Операций по активам пока нет.';
+
+  @override
+  String get dashboardAllOperations => 'Все операции';
+
+  @override
+  String get dashboardOverview => 'Обзор';
+
+  @override
+  String get dashboardGoalsTitle => 'Цели';
+
+  @override
+  String get dashboardUnknownAsset => 'Актив';
+
+  @override
+  String get dashboardNetWorthUnavailable => 'Не удалось рассчитать';
 }

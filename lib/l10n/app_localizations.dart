@@ -2899,6 +2899,72 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Без категории'**
   String get analyticsUnknownCategory;
+
+  /// Заголовок net worth на главной.
+  ///
+  /// In ru, this message translates to:
+  /// **'Чистый капитал'**
+  String get dashboardNetWorthTitle;
+
+  /// Секция быстрых действий.
+  ///
+  /// In ru, this message translates to:
+  /// **'Быстрые действия'**
+  String get dashboardQuickActions;
+
+  /// Пустой блок целей на главной.
+  ///
+  /// In ru, this message translates to:
+  /// **'Целей пока нет'**
+  String get dashboardGoalsEmpty;
+
+  /// Переход к списку целей.
+  ///
+  /// In ru, this message translates to:
+  /// **'Все цели'**
+  String get dashboardAllGoals;
+
+  /// Секция последних операций.
+  ///
+  /// In ru, this message translates to:
+  /// **'Операции по активам'**
+  String get dashboardRecentTitle;
+
+  /// Пустой блок операций на главной.
+  ///
+  /// In ru, this message translates to:
+  /// **'Операций по активам пока нет.'**
+  String get dashboardRecentEmpty;
+
+  /// Переход в журнал операций с главной.
+  ///
+  /// In ru, this message translates to:
+  /// **'Все операции'**
+  String get dashboardAllOperations;
+
+  /// Заголовок секции net worth.
+  ///
+  /// In ru, this message translates to:
+  /// **'Обзор'**
+  String get dashboardOverview;
+
+  /// Заголовок секции целей на главной.
+  ///
+  /// In ru, this message translates to:
+  /// **'Цели'**
+  String get dashboardGoalsTitle;
+
+  /// Фоллбэк имени актива на главной.
+  ///
+  /// In ru, this message translates to:
+  /// **'Актив'**
+  String get dashboardUnknownAsset;
+
+  /// Нейтральная ошибка расчёта net worth.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось рассчитать'**
+  String get dashboardNetWorthUnavailable;
 }
 
 class _AppLocalizationsDelegate
