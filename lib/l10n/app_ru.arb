@@ -2077,5 +2077,49 @@
   "analyticsUnknownCategory": "Без категории",
   "@analyticsUnknownCategory": {
     "description": "Фоллбэк имени категории в аналитике."
+  },
+  "dashboardNetWorthTitle": "Чистый капитал",
+  "@dashboardNetWorthTitle": {
+    "description": "Заголовок net worth на главной."
+  },
+  "dashboardQuickActions": "Быстрые действия",
+  "@dashboardQuickActions": {
+    "description": "Секция быстрых действий."
+  },
+  "dashboardGoalsEmpty": "Целей пока нет",
+  "@dashboardGoalsEmpty": {
+    "description": "Пустой блок целей на главной."
+  },
+  "dashboardAllGoals": "Все цели",
+  "@dashboardAllGoals": {
+    "description": "Переход к списку целей."
+  },
+  "dashboardRecentTitle": "Операции по активам",
+  "@dashboardRecentTitle": {
+    "description": "Секция последних операций."
+  },
+  "dashboardRecentEmpty": "Операций по активам пока нет.",
+  "@dashboardRecentEmpty": {
+    "description": "Пустой блок операций на главной."
+  },
+  "dashboardAllOperations": "Все операции",
+  "@dashboardAllOperations": {
+    "description": "Переход в журнал операций с главной."
+  },
+  "dashboardOverview": "Обзор",
+  "@dashboardOverview": {
+    "description": "Заголовок секции net worth."
+  },
+  "dashboardGoalsTitle": "Цели",
+  "@dashboardGoalsTitle": {
+    "description": "Заголовок секции целей на главной."
+  },
+  "dashboardUnknownAsset": "Актив",
+  "@dashboardUnknownAsset": {
+    "description": "Фоллбэк имени актива на главной."
+  },
+  "dashboardNetWorthUnavailable": "Не удалось рассчитать",
+  "@dashboardNetWorthUnavailable": {
+    "description": "Нейтральная ошибка расчёта net worth."
   }
 }

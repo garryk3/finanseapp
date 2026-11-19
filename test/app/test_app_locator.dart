@@ -39,7 +39,18 @@ Future<ServiceLocator> buildTestLocator({AppDatabase? database}) async {
   await controller.init();
 
   locator
-    ..registerFactory<DashboardViewModel>(DashboardViewModel.new)
+    ..registerFactory<DashboardViewModel>(
+      () => DashboardViewModel(
+        queries: locator.get<AnalyticsQueries>(),
+        goalRepository: locator.get<GoalRepository>(),
+        assetRepository: locator.get<AssetRepository>(),
+        transactionRepository: locator.get<AssetTransactionRepository>(),
+        settingsRepository: locator.get<SettingsRepository>(),
+        currencyRepository: locator.get<CurrencyRepository>(),
+        rateRepository: locator.get<ExchangeRateRepository>(),
+        now: () => LocalDate.fromDateTime(DateTime.now()),
+      ),
+    )
     ..registerFactory<CashflowViewModel>(
       () => CashflowViewModel(
         repository: locator.get<CashflowRepository>(),

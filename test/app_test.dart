@@ -1,4 +1,5 @@
 import 'package:finanseapp/app/app.dart';
+import 'package:finanseapp/core/features/dashboard/ui/dashboard_screen.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -25,7 +26,9 @@ void main() {
     expect(find.text(l10n.navAssets), findsOneWidget);
     expect(find.text(l10n.navGoals), findsOneWidget);
     expect(find.text(l10n.navMore), findsOneWidget);
-    expect(find.text(l10n.dashboardEmptyTitle), findsOneWidget);
+    expect(find.byType(DashboardScreen), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(milliseconds: 20));
   });
 
   testWidgets('переключение разделов сохраняет выбранный tab', (tester) async {
@@ -125,6 +128,8 @@ void main() {
     final context = tester.element(find.text(l10n.appLockStatusOff));
     GoRouter.of(context).go('/');
     await tester.pumpAndSettle();
-    expect(find.text(l10n.dashboardEmptyTitle), findsOneWidget);
+    expect(find.byType(DashboardScreen), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(milliseconds: 20));
   });
 }
