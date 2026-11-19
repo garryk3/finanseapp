@@ -63,6 +63,9 @@ class AnalyticsViewModel {
   int _requestId = 0;
   bool _disposed = false;
 
+  /// Prefill периода из маршрута (до init).
+  void setInitialPeriod(AnalyticsPeriod value) => period.value = value;
+
   bool get filtersActive => generalFiltersActive || cashflowFiltersActive;
 
   bool get generalFiltersActive =>

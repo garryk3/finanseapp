@@ -443,4 +443,17 @@ void main() {
       expect(vm.kind.value, isNull);
     },
   );
+
+  test('initialPeriod из маршрута применяется до init', () async {
+    final queries = _Queries(points);
+    final vm = build(queries)..setInitialPeriod(AnalyticsPeriod.year);
+    vm.init();
+    await pumpEventQueue();
+
+    expect(vm.period.value, AnalyticsPeriod.year);
+    expect(
+      queries.lastRange,
+      DateRange(start: LocalDate(2026, 1, 1), end: LocalDate(2026, 12, 31)),
+    );
+  });
 }

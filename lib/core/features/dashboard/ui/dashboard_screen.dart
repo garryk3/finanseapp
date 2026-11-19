@@ -1,5 +1,6 @@
 import 'package:finanseapp/app/routes.dart';
 import 'package:finanseapp/app/theme/app_spacing.dart';
+import 'package:finanseapp/core/features/dashboard/ui/dashboard_cashflow.dart';
 import 'package:finanseapp/core/features/dashboard/ui/dashboard_goals.dart';
 import 'package:finanseapp/core/features/dashboard/ui/dashboard_net_worth.dart';
 import 'package:finanseapp/core/features/dashboard/ui/dashboard_recent_operations.dart';
@@ -14,6 +15,7 @@ import 'package:finanseapp/uikit/app_error_state.dart';
 import 'package:finanseapp/uikit/app_scaffold.dart';
 import 'package:finanseapp/uikit/app_section.dart';
 import 'package:finanseapp/uikit/app_skeleton.dart';
+import 'package:finanseapp/uikit/app_text.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:signals_flutter/signals_flutter.dart';
@@ -116,6 +118,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
           _quickActions(context, l10n),
+          if (vm.cashflowSummary.value != null)
+            DashboardCashflow(
+              summary: vm.cashflowSummary.value!,
+              points: vm.cashflowPoints.value,
+              baseCurrency: vm.currencyOf(
+                vm.cashflowSummary.value!.currencyCode,
+              ),
+              monthLabel:
+                  '${const DateFormatter().format(vm.cashflowRange.start)}'
+                  ' – ${const DateFormatter().format(vm.cashflowRange.end)}',
+              l10n: l10n,
+              formatMoney: vm.formatMoney,
+              onOpenAnalytics: () =>
+                  context.push('${AppRoutes.analytics}?period=month'),
+              onAddExpense: () =>
+                  context.push('${AppRoutes.cashflowNew}?kind=expense'),
+            )
+          else if (vm.cashflowError.value != null)
+            AppSection(
+              header: l10n.dashboardCashflowTitle,
+              child: AppText(
+                vm.cashflowError.value == DomainErrorCode.rateUnavailable
+                    ? l10n.assetBaseUnavailable
+                    : l10n.dashboardNetWorthUnavailable,
+              ),
+            ),
           DashboardGoals(
             goals: vm.goals.value,
             l10n: l10n,

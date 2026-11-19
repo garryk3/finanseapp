@@ -2121,5 +2121,21 @@
   "dashboardNetWorthUnavailable": "Не удалось рассчитать",
   "@dashboardNetWorthUnavailable": {
     "description": "Нейтральная ошибка расчёта net worth."
+  },
+  "dashboardCashflowTitle": "Денежный поток",
+  "@dashboardCashflowTitle": {
+    "description": "Секция cashflow месяца на главной."
+  },
+  "dashboardCashflowEmpty": "В этом месяце нет операций",
+  "@dashboardCashflowEmpty": {
+    "description": "Пустой cashflow месяца."
+  },
+  "dashboardAddExpense": "Добавить расход",
+  "@dashboardAddExpense": {
+    "description": "CTA пустого cashflow месяца."
+  },
+  "dashboardCashflowDynamics": "По неделям",
+  "@dashboardCashflowDynamics": {
+    "description": "Подзаголовок недельного графика cashflow на главной."
   }
 }

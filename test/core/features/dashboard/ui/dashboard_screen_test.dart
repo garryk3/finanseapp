@@ -4,6 +4,7 @@ import 'package:decimal/decimal.dart';
 import 'package:finanseapp/app/theme/app_theme.dart';
 import 'package:finanseapp/core/domain/common/currency.dart';
 import 'package:finanseapp/core/domain/common/date_range.dart';
+
 import 'package:finanseapp/core/domain/common/exchange_rate.dart';
 import 'package:finanseapp/core/domain/common/local_date.dart';
 import 'package:finanseapp/core/domain/common/money.dart';
@@ -15,7 +16,9 @@ import 'package:finanseapp/core/features/assets/domain/asset.dart';
 import 'package:finanseapp/core/features/assets/domain/asset_draft.dart';
 import 'package:finanseapp/core/features/assets/domain/asset_repository.dart';
 import 'package:finanseapp/core/features/assets/domain/asset_valuation.dart';
+import 'package:finanseapp/core/features/cashflow/domain/cashflow_entry.dart';
 import 'package:finanseapp/core/features/cashflow/domain/cashflow_filter.dart';
+import 'package:finanseapp/core/features/cashflow/domain/cashflow_repository.dart';
 import 'package:finanseapp/core/features/cashflow/domain/cashflow_summary.dart';
 import 'package:finanseapp/core/features/currencies/domain/currency_repository.dart';
 import 'package:finanseapp/core/features/currencies/domain/exchange_rate_repository.dart';
@@ -28,6 +31,7 @@ import 'package:finanseapp/core/features/transactions/domain/asset_transaction.d
 import 'package:finanseapp/core/features/transactions/domain/asset_transaction_repository.dart';
 import 'package:finanseapp/core/features/transactions/domain/transaction_filter.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
+import 'package:finanseapp/uikit/app_cashflow_summary.dart';
 import 'package:finanseapp/uikit/app_text.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -46,10 +50,25 @@ final _today = LocalDate(2026, 11, 19);
 Money _rubles(int major) => Money(minorUnits: major * 100, currencyCode: 'RUB');
 
 final class _Queries implements AnalyticsQueries {
-  _Queries(this.total, {this.error});
+  _Queries(
+    this.total, {
+    this.error,
+    this.cashflowResult = const CashflowSummary(
+      income: Money(minorUnits: 0, currencyCode: 'RUB'),
+      expense: Money(minorUnits: 0, currencyCode: 'RUB'),
+      net: Money(minorUnits: 0, currencyCode: 'RUB'),
+      currencyCode: 'RUB',
+    ),
+    this.cashflowPoints = const [],
+    this.cashflowError,
+  });
 
   Money total;
   final Object? error;
+  CashflowSummary cashflowResult;
+  CashflowFilter? lastCashflowFilter;
+  final List<CashflowPeriodPoint> cashflowPoints;
+  final Object? cashflowError;
 
   @override
   Future<NetWorthSummary> netWorth(LocalDate onDate) async {
@@ -74,16 +93,21 @@ final class _Queries implements AnalyticsQueries {
   }) => throw UnimplementedError();
 
   @override
-  Future<CashflowSummary> cashflow(CashflowFilter filter) =>
-      throw UnimplementedError();
+  Future<CashflowSummary> cashflow(CashflowFilter filter) async {
+    lastCashflowFilter = filter;
+    final failure = cashflowError;
+    if (failure != null) throw failure;
+    return cashflowResult;
+  }
 
   @override
   Future<List<CategoryTotal>> cashflowByCategory(CashflowFilter filter) =>
       throw UnimplementedError();
 
   @override
-  Future<List<CashflowPeriodPoint>> cashflowSeries(CashflowFilter filter) =>
-      throw UnimplementedError();
+  Future<List<CashflowPeriodPoint>> cashflowSeries(
+    CashflowFilter filter,
+  ) async => cashflowPoints;
 }
 
 final class _Goals implements GoalRepository {
@@ -186,9 +210,43 @@ final class _Transactions implements AssetTransactionRepository {
   Future<void> softDeleteTransfer(int transferId) => throw UnimplementedError();
 }
 
-final class _Settings implements SettingsRepository {
+final class _Cashflows implements CashflowRepository {
+  _Cashflows({this.controller});
+
+  final StreamController<List<CashflowEntry>>? controller;
+
   @override
-  Stream<Currency> watchBaseCurrency() => Stream.value(_rub);
+  Stream<List<CashflowEntry>> watch(CashflowFilter filter) =>
+      controller?.stream ?? Stream.value(const []);
+
+  @override
+  Future<CashflowEntry> getById(int id) => throw UnimplementedError();
+
+  @override
+  Future<int> create(CashflowEntryDraft draft) => throw UnimplementedError();
+
+  @override
+  Future<int> createLinked(
+    CashflowEntryDraft draft, {
+    required int assetTransactionId,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<void> revise(int id, CashflowEntryDraft draft) =>
+      throw UnimplementedError();
+
+  @override
+  Future<void> softDelete(int id) => throw UnimplementedError();
+}
+
+final class _Settings implements SettingsRepository {
+  _Settings({this.controller});
+
+  final StreamController<Currency>? controller;
+
+  @override
+  Stream<Currency> watchBaseCurrency() =>
+      controller?.stream ?? Stream.value(_rub);
 
   @override
   Future<Currency> getBaseCurrency() async => _rub;
@@ -293,14 +351,31 @@ void main() {
     List<AssetTransaction> operations = const [],
     StreamController<List<AssetSnapshot>>? assetController,
     StreamController<List<AssetTransaction>>? transactionController,
+    CashflowSummary? cashflowResult,
+    List<CashflowPeriodPoint> cashflowPoints = const [],
+    Object? cashflowError,
   }) => DashboardViewModel(
-    queries: _Queries(total ?? _rubles(0), error: error),
+    queries: _Queries(
+      total ?? _rubles(0),
+      error: error,
+      cashflowResult:
+          cashflowResult ??
+          const CashflowSummary(
+            income: Money(minorUnits: 0, currencyCode: 'RUB'),
+            expense: Money(minorUnits: 0, currencyCode: 'RUB'),
+            net: Money(minorUnits: 0, currencyCode: 'RUB'),
+            currencyCode: 'RUB',
+          ),
+      cashflowPoints: cashflowPoints,
+      cashflowError: cashflowError,
+    ),
     goalRepository: _Goals(goals),
     assetRepository: _Assets(snapshots, controller: assetController),
     transactionRepository: _Transactions(
       operations,
       controller: transactionController,
     ),
+    cashflowRepository: _Cashflows(),
     settingsRepository: _Settings(),
     currencyRepository: _Currencies(),
     rateRepository: _Rates(),
@@ -314,6 +389,7 @@ void main() {
     List<FinancialGoal> goals = const [],
     List<AssetSnapshot> snapshots = const [],
     List<AssetTransaction> operations = const [],
+    Object? cashflowError,
     double width = 1000,
     bool dark = false,
     bool largeText = false,
@@ -324,6 +400,7 @@ void main() {
       goals: goals,
       snapshots: snapshots,
       operations: operations,
+      cashflowError: cashflowError,
     );
     tester.view.physicalSize = Size(width, 2000);
     tester.view.devicePixelRatio = 1;
@@ -360,6 +437,8 @@ void main() {
     expect(find.text(l10n.transferAction), findsOneWidget);
     expect(find.text(l10n.dashboardGoalsEmpty), findsOneWidget);
     expect(find.text(l10n.dashboardRecentEmpty), findsOneWidget);
+    expect(find.text(l10n.dashboardCashflowEmpty), findsOneWidget);
+    expect(find.text(l10n.dashboardAddExpense), findsOneWidget);
     expect(find.text(l10n.dashboardEmptyTitle), findsNothing);
   });
 
@@ -418,6 +497,7 @@ void main() {
       goalRepository: _Goals(const []),
       assetRepository: _Assets(const [], controller: assets),
       transactionRepository: _Transactions(const [], controller: operations),
+      cashflowRepository: _Cashflows(),
       settingsRepository: _Settings(),
       currencyRepository: _Currencies(),
       rateRepository: _Rates(),
@@ -506,5 +586,184 @@ void main() {
     await tester.tap(find.text(l10n.transferAction));
     await tester.pumpAndSettle();
     expect(find.text('TRANSFER'), findsOneWidget);
+  });
+
+  testWidgets('cashflow месяца и переход в аналитику с периодом', (
+    tester,
+  ) async {
+    const summary = CashflowSummary(
+      income: Money(minorUnits: 100000, currencyCode: 'RUB'),
+      expense: Money(minorUnits: 25000, currencyCode: 'RUB'),
+      net: Money(minorUnits: 75000, currencyCode: 'RUB'),
+      currencyCode: 'RUB',
+    );
+    final vm = viewModel(
+      cashflowResult: summary,
+      cashflowPoints: [
+        CashflowPeriodPoint(
+          periodStart: LocalDate(2026, 11, 5),
+          summary: summary,
+        ),
+      ],
+    );
+    addTearDown(vm.dispose);
+    final router = GoRouter(
+      initialLocation: '/',
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (context, state) => DashboardScreen(viewModel: vm),
+        ),
+        GoRoute(
+          path: '/more/analytics',
+          builder: (context, state) =>
+              AppText('PERIOD:${state.uri.queryParameters['period']}'),
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      MaterialApp.router(
+        theme: AppTheme.light(),
+        localizationsDelegates: const [
+          ...GlobalMaterialLocalizations.delegates,
+          AppLocalizations.delegate,
+        ],
+        supportedLocales: const [Locale('ru')],
+        routerConfig: router,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text(l10n.dashboardCashflowTitle), findsWidgets);
+    expect(find.text(vm.formatMoney(summary.income)), findsWidgets);
+    expect(
+      vm.cashflowRange,
+      DateRange(start: LocalDate(2026, 11, 1), end: LocalDate(2026, 11, 30)),
+    );
+
+    await tester.tap(find.byType(AppCashflowSummary));
+    await tester.pumpAndSettle();
+
+    expect(find.text('PERIOD:month'), findsOneWidget);
+  });
+
+  testWidgets('пустой месяц: CTA ведёт на добавление расхода', (tester) async {
+    final vm = viewModel();
+    addTearDown(vm.dispose);
+    final router = GoRouter(
+      initialLocation: '/',
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (context, state) => DashboardScreen(viewModel: vm),
+        ),
+        GoRoute(
+          path: '/cashflow/new',
+          builder: (context, state) =>
+              AppText('KIND:${state.uri.queryParameters['kind']}'),
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      MaterialApp.router(
+        theme: AppTheme.light(),
+        localizationsDelegates: const [
+          ...GlobalMaterialLocalizations.delegates,
+          AppLocalizations.delegate,
+        ],
+        supportedLocales: const [Locale('ru')],
+        routerConfig: router,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text(l10n.dashboardAddExpense));
+    await tester.pumpAndSettle();
+
+    expect(find.text('KIND:expense'), findsOneWidget);
+  });
+
+  testWidgets('ошибка курса cashflow не скрывает секцию молча', (tester) async {
+    await pump(
+      tester,
+      cashflowError: const DomainException(DomainErrorCode.rateUnavailable),
+    );
+
+    expect(find.text(l10n.dashboardCashflowTitle), findsOneWidget);
+    expect(find.text(l10n.assetBaseUnavailable), findsOneWidget);
+    expect(find.text(l10n.dashboardGoalsEmpty), findsOneWidget);
+  });
+
+  testWidgets('cashflow обновляется по стриму и при смене базовой валюты', (
+    tester,
+  ) async {
+    final cashflows = StreamController<List<CashflowEntry>>.broadcast();
+    final settings = StreamController<Currency>.broadcast();
+    addTearDown(cashflows.close);
+    addTearDown(settings.close);
+    const first = CashflowSummary(
+      income: Money(minorUnits: 100000, currencyCode: 'RUB'),
+      expense: Money(minorUnits: 0, currencyCode: 'RUB'),
+      net: Money(minorUnits: 100000, currencyCode: 'RUB'),
+      currencyCode: 'RUB',
+    );
+    final queries = _Queries(
+      _rubles(0),
+      cashflowResult: first,
+      cashflowPoints: [
+        CashflowPeriodPoint(
+          periodStart: LocalDate(2026, 11, 5),
+          summary: first,
+        ),
+      ],
+    );
+    final vm = DashboardViewModel(
+      queries: queries,
+      goalRepository: _Goals(const []),
+      assetRepository: _Assets(const []),
+      transactionRepository: _Transactions(const []),
+      cashflowRepository: _Cashflows(controller: cashflows),
+      settingsRepository: _Settings(controller: settings),
+      currencyRepository: _Currencies(),
+      rateRepository: _Rates(),
+      now: () => _today,
+    );
+    addTearDown(vm.dispose);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light(),
+        localizationsDelegates: const [
+          ...GlobalMaterialLocalizations.delegates,
+          AppLocalizations.delegate,
+        ],
+        supportedLocales: const [Locale('ru')],
+        home: DashboardScreen(viewModel: vm),
+      ),
+    );
+    cashflows.add(const []);
+    await tester.pumpAndSettle();
+    expect(find.text(vm.formatMoney(first.income)), findsWidgets);
+
+    const second = CashflowSummary(
+      income: Money(minorUnits: 200000, currencyCode: 'RUB'),
+      expense: Money(minorUnits: 0, currencyCode: 'RUB'),
+      net: Money(minorUnits: 200000, currencyCode: 'RUB'),
+      currencyCode: 'RUB',
+    );
+    queries.cashflowResult = second;
+    cashflows.add(const []);
+    await tester.pumpAndSettle();
+    expect(find.text(vm.formatMoney(second.income)), findsWidgets);
+
+    const third = CashflowSummary(
+      income: Money(minorUnits: 300000, currencyCode: 'RUB'),
+      expense: Money(minorUnits: 0, currencyCode: 'RUB'),
+      net: Money(minorUnits: 300000, currencyCode: 'RUB'),
+      currencyCode: 'RUB',
+    );
+    queries.cashflowResult = third;
+    settings.add(_rub);
+    await tester.pumpAndSettle();
+    expect(find.text(vm.formatMoney(third.income)), findsWidgets);
   });
 }

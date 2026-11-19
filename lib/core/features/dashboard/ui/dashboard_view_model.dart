@@ -2,13 +2,20 @@ import 'dart:async';
 
 import 'package:decimal/decimal.dart';
 import 'package:finanseapp/core/domain/common/currency.dart';
+import 'package:finanseapp/core/domain/common/date_range.dart';
 import 'package:finanseapp/core/domain/common/local_date.dart';
 import 'package:finanseapp/core/domain/common/money.dart';
 import 'package:finanseapp/core/domain/common/result.dart';
 import 'package:finanseapp/core/features/analytics/domain/analytics_queries.dart';
+import 'package:finanseapp/core/features/analytics/domain/cashflow_period_point.dart';
 import 'package:finanseapp/core/features/analytics/domain/net_worth_summary.dart';
+import 'package:finanseapp/core/features/analytics/logic/analytics_periods.dart';
 import 'package:finanseapp/core/features/assets/domain/asset.dart';
 import 'package:finanseapp/core/features/assets/domain/asset_repository.dart';
+import 'package:finanseapp/core/features/cashflow/domain/cashflow_entry.dart';
+import 'package:finanseapp/core/features/cashflow/domain/cashflow_filter.dart';
+import 'package:finanseapp/core/features/cashflow/domain/cashflow_repository.dart';
+import 'package:finanseapp/core/features/cashflow/domain/cashflow_summary.dart';
 import 'package:finanseapp/core/features/currencies/domain/currency_repository.dart';
 import 'package:finanseapp/core/features/currencies/domain/exchange_rate_repository.dart';
 import 'package:finanseapp/core/features/goals/domain/financial_goal.dart';
@@ -44,6 +51,7 @@ class DashboardViewModel {
     required this.goalRepository,
     required this.assetRepository,
     required this.transactionRepository,
+    required this.cashflowRepository,
     required this.settingsRepository,
     required this.currencyRepository,
     required this.rateRepository,
@@ -54,6 +62,7 @@ class DashboardViewModel {
   final GoalRepository goalRepository;
   final AssetRepository assetRepository;
   final AssetTransactionRepository transactionRepository;
+  final CashflowRepository cashflowRepository;
   final SettingsRepository settingsRepository;
   final CurrencyRepository currencyRepository;
   final ExchangeRateRepository rateRepository;
@@ -68,6 +77,9 @@ class DashboardViewModel {
   final Signal<List<DashboardGoal>> goals = signal(const []);
   final Signal<List<AssetTransaction>> recentOperations = signal(const []);
   final Signal<Map<int, String>> assetNames = signal(const {});
+  final Signal<CashflowSummary?> cashflowSummary = signal(null);
+  final Signal<List<CashflowPeriodPoint>> cashflowPoints = signal(const []);
+  final Signal<DomainErrorCode?> cashflowError = signal(null);
   final Signal<LocalDate> today = signal(
     LocalDate.fromDateTime(DateTime.now()),
   );
@@ -80,9 +92,11 @@ class DashboardViewModel {
   Map<String, Currency> _currencies = const {};
   int _goalToken = 0;
   int _netWorthToken = 0;
+  int _cashflowToken = 0;
   bool _assetsReady = false;
   bool _fatal = false;
   bool _netWorthReady = false;
+  bool _cashflowReady = false;
   bool _goalsReady = false;
   bool _transactionsReady = false;
   bool _disposed = false;
@@ -91,6 +105,7 @@ class DashboardViewModel {
   StreamSubscription<List<FinancialGoal>>? _goalsSubscription;
   StreamSubscription<List<AssetTransaction>>? _transactionsSubscription;
   StreamSubscription<Currency>? _baseSubscription;
+  StreamSubscription<List<CashflowEntry>>? _cashflowSubscription;
 
   void init() {
     today.value = now();
@@ -98,12 +113,21 @@ class DashboardViewModel {
     _assetsReady = false;
     _fatal = false;
     _netWorthReady = false;
+    _cashflowReady = false;
     _goalsReady = false;
     _transactionsReady = false;
     state.value = const ViewLoading();
     netWorthError.value = null;
     _loadCurrencies();
     _subscribeBaseCurrency();
+    cashflowError.value = null;
+    _cashflowSubscription?.cancel();
+    _cashflowSubscription = cashflowRepository
+        .watch(CashflowFilter(period: _monthRange))
+        .listen(
+          (_) => unawaited(_reloadCashflow()),
+          onError: _failLocalCashflow,
+        );
     _assetsSubscription?.cancel();
     _assetsSubscription = assetRepository
         .watchAll(includeArchived: true)
@@ -151,8 +175,46 @@ class DashboardViewModel {
       currency,
     ) {
       baseCurrency.value = currency;
+      unawaited(_reloadCashflow());
       unawaited(_reloadNetWorth());
     }, onError: _fail);
+  }
+
+  DateRange get cashflowRange =>
+      analyticsRange(period: AnalyticsPeriod.month, today: today.value);
+
+  DateRange get _monthRange => cashflowRange;
+
+  Future<void> _reloadCashflow() async {
+    final token = ++_cashflowToken;
+    final filter = CashflowFilter(period: _monthRange);
+    try {
+      final summary = await queries.cashflow(filter);
+      final points = await queries.cashflowSeries(filter);
+      if (_disposed || token != _cashflowToken) return;
+      cashflowSummary.value = summary;
+      cashflowPoints.value = points;
+      cashflowError.value = null;
+      _cashflowReady = true;
+      _emit();
+    } on DomainException catch (error) {
+      if (_disposed || token != _cashflowToken) return;
+      cashflowError.value = error.code;
+      _cashflowReady = true;
+      _emit();
+    } on Exception {
+      if (_disposed || token != _cashflowToken) return;
+      cashflowError.value = DomainErrorCode.storageFailure;
+      _cashflowReady = true;
+      _emit();
+    }
+  }
+
+  void _failLocalCashflow(Object _) {
+    if (_disposed) return;
+    cashflowError.value = DomainErrorCode.storageFailure;
+    _cashflowReady = true;
+    _emit();
   }
 
   Future<void> _reloadNetWorth() async {
@@ -219,7 +281,12 @@ class DashboardViewModel {
 
   void _emit() {
     if (_disposed || _fatal) return;
-    if (!_netWorthReady || !_goalsReady || !_transactionsReady) return;
+    if (!_netWorthReady ||
+        !_cashflowReady ||
+        !_goalsReady ||
+        !_transactionsReady) {
+      return;
+    }
     state.value = const ViewData(null);
   }
 
@@ -252,6 +319,7 @@ class DashboardViewModel {
     _assetsSubscription?.cancel();
     _goalsSubscription?.cancel();
     _transactionsSubscription?.cancel();
+    _cashflowSubscription?.cancel();
     _baseSubscription?.cancel();
   }
 }

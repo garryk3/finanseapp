@@ -4,6 +4,7 @@ import 'package:finanseapp/app/shell_screen.dart';
 import 'package:finanseapp/core/di/service_locator.dart';
 import 'package:finanseapp/core/features/app_info/ui/not_found_screen.dart';
 import 'package:finanseapp/core/features/app_info/ui/not_found_view_model.dart';
+import 'package:finanseapp/core/features/analytics/logic/analytics_periods.dart';
 import 'package:finanseapp/core/features/analytics/ui/analytics_screen.dart';
 import 'package:finanseapp/core/features/analytics/ui/analytics_view_model.dart';
 import 'package:finanseapp/core/features/applock/logic/applock_settings_view_model.dart';
@@ -433,9 +434,16 @@ GoRouter buildRouter({required ServiceLocator locator}) {
                   GoRoute(
                     path: 'analytics',
                     name: 'analytics',
-                    builder: (context, state) => AnalyticsScreen(
-                      viewModel: locator.get<AnalyticsViewModel>(),
-                    ),
+                    builder: (context, state) {
+                      final viewModel = locator.get<AnalyticsViewModel>();
+                      final period = _analyticsPeriod(
+                        state.uri.queryParameters['period'],
+                      );
+                      if (period != null) {
+                        viewModel.setInitialPeriod(period);
+                      }
+                      return AnalyticsScreen(viewModel: viewModel);
+                    },
                   ),
                   for (final entry in _morePlaceholders)
                     _placeholderRoute(
@@ -711,6 +719,15 @@ List<AppNavigationDestination> _destinations(BuildContext context) {
 }
 
 AppLocalizations l10nOf(BuildContext context) => AppLocalizations.of(context);
+
+AnalyticsPeriod? _analyticsPeriod(String? value) => switch (value) {
+  'month' => AnalyticsPeriod.month,
+  '3m' => AnalyticsPeriod.threeMonths,
+  '6m' => AnalyticsPeriod.sixMonths,
+  'year' => AnalyticsPeriod.year,
+  'all' => AnalyticsPeriod.all,
+  _ => null,
+};
 
 const _morePlaceholders = <({String path, String name})>[
   (path: 'settings', name: 'settings'),

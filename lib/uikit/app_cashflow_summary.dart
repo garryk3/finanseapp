@@ -24,9 +24,11 @@ class AppCashflowSummary extends StatelessWidget {
     this.incomeLabel = 'Доход',
     this.expenseLabel = 'Расход',
     this.netLabel = 'Итог',
+    this.onTap,
   });
 
   final String incomeText, expenseText, netText, periodLabel;
+  final VoidCallback? onTap;
 
   /// Подписи метрик — chrome-строки, по умолчанию на русском; feature может
   /// переопределить (l10n-правило design/README.md).
@@ -50,6 +52,7 @@ class AppCashflowSummary extends StatelessWidget {
       AppMetric(label: netLabel, value: netText),
     ];
     return AppCard(
+      onTap: onTap,
       child: LayoutBuilder(
         builder: (context, constraints) {
           final wide = constraints.maxWidth >= AppSpacing.twoColumnBreakpoint;
