@@ -245,7 +245,6 @@ class CashflowFormViewModel {
   final Signal<List<CashflowCategory>> categories = signal(const []);
   final Signal<Map<String, Currency>> currencies = signal(const {});
   final Signal<List<AccountAsset>> accounts = signal(const []);
-  final Signal<List<PropertyAsset>> properties = signal(const []);
   final Signal<CashflowEntry?> entry = signal(null);
   final Signal<bool> busy = signal(false);
 

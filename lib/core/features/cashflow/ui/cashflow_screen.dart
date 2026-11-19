@@ -89,6 +89,7 @@ class _CashflowScreenState extends State<CashflowScreen> {
       context: context,
       builder: (context) => AppDialog(
         title: AppText(l10n.cashflowFilters),
+        scrollable: true,
         content: SignalBuilder(
           builder: (context) {
             final vm = _viewModel;
@@ -106,15 +107,17 @@ class _CashflowScreenState extends State<CashflowScreen> {
                   onChanged: (value) => vm.setCategory(value),
                 ),
                 AppSelect<int>(
-                  label: l10n.propertyCashflowTitle,
+                  label: l10n.cashflowPropertyLabel,
                   value: vm.propertyId.value,
-                  hint: l10n.cashflowAllCategories,
+                  hint: l10n.cashflowAllProperties,
                   items: [
                     for (final property in vm.properties.value)
                       AppSelectItem(value: property.id, label: property.name),
                   ],
+                  searchable: true,
                   onChanged: (value) => vm.setProperty(value),
                 ),
+                const SizedBox(height: AppSpacing.md),
                 AppSelect<int>(
                   label: l10n.cashflowAccountLabel,
                   value: vm.accountId.value,
@@ -127,8 +130,10 @@ class _CashflowScreenState extends State<CashflowScreen> {
                         subtitle: account.currencyCode,
                       ),
                   ],
+                  searchable: true,
                   onChanged: (value) => vm.setAccount(value),
                 ),
+                const SizedBox(height: AppSpacing.md),
                 AppSelect<String>(
                   label: l10n.cashflowCurrencyLabel,
                   value: vm.currencyCode.value,
@@ -204,6 +209,12 @@ class _CashflowScreenState extends State<CashflowScreen> {
                   (state.value.isEmpty && !vm.filtersActive)) {
                 return const SizedBox.shrink();
               }
+              final listEmpty = state.value.isEmpty;
+              final advancedCount =
+                  (vm.categoryId.value == null ? 0 : 1) +
+                  (vm.accountId.value == null ? 0 : 1) +
+                  (vm.currencyCode.value == null ? 0 : 1) +
+                  (vm.propertyId.value == null ? 0 : 1);
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                 child: Column(
@@ -229,7 +240,9 @@ class _CashflowScreenState extends State<CashflowScreen> {
                           (vm.accountId.value == null ? 0 : 1) +
                           (vm.currencyCode.value == null ? 0 : 1) +
                           (vm.propertyId.value == null ? 0 : 1),
-                      onReset: vm.filtersActive ? _resetFilters : null,
+                      onReset: vm.filtersActive && !listEmpty
+                          ? _resetFilters
+                          : null,
                       resetLabel: l10n.cashflowResetFilters,
                       children: [
                         AppFilterChip(
@@ -271,7 +284,9 @@ class _CashflowScreenState extends State<CashflowScreen> {
                       ],
                     ),
                     AppButton(
-                      label: l10n.cashflowFilters,
+                      label: advancedCount == 0
+                          ? l10n.cashflowFilters
+                          : l10n.cashflowFiltersWithCount(advancedCount),
                       variant: AppButtonVariant.text,
                       onPressed: _openAdvancedFilters,
                     ),

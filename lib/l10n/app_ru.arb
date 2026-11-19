@@ -1620,10 +1620,6 @@
   "@cashflowFilters": {
     "description": "Открыть дополнительные фильтры."
   },
-  "cashflowFiltersHide": "Скрыть фильтры",
-  "@cashflowFiltersHide": {
-    "description": "Скрыть дополнительные фильтры."
-  },
   "cashflowAllCategories": "Все категории",
   "@cashflowAllCategories": {
     "description": "Сброс фильтра категории."
@@ -1644,8 +1640,25 @@
   "@commonDone": {
     "description": "Закрыть диалог."
   },
-  "cashflowSummaryInRub": "Итоги в RUB",
+  "cashflowSummaryInRub": "Итоги в ₽",
   "@cashflowSummaryInRub": {
     "description": "Пометка рублёвых итогов."
+  },
+  "cashflowAllProperties": "Все квартиры",
+  "@cashflowAllProperties": {
+    "description": "Сброс фильтра квартиры."
+  },
+  "cashflowPropertyLabel": "Квартира",
+  "@cashflowPropertyLabel": {
+    "description": "Поле фильтра по квартире."
+  },
+  "cashflowFiltersWithCount": "Фильтры · {count}",
+  "@cashflowFiltersWithCount": {
+    "description": "Кнопка фильтров со счётчиком.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }

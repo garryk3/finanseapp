@@ -2325,12 +2325,6 @@ abstract class AppLocalizations {
   /// **'Фильтры'**
   String get cashflowFilters;
 
-  /// Скрыть дополнительные фильтры.
-  ///
-  /// In ru, this message translates to:
-  /// **'Скрыть фильтры'**
-  String get cashflowFiltersHide;
-
   /// Сброс фильтра категории.
   ///
   /// In ru, this message translates to:
@@ -2364,8 +2358,26 @@ abstract class AppLocalizations {
   /// Пометка рублёвых итогов.
   ///
   /// In ru, this message translates to:
-  /// **'Итоги в RUB'**
+  /// **'Итоги в ₽'**
   String get cashflowSummaryInRub;
+
+  /// Сброс фильтра квартиры.
+  ///
+  /// In ru, this message translates to:
+  /// **'Все квартиры'**
+  String get cashflowAllProperties;
+
+  /// Поле фильтра по квартире.
+  ///
+  /// In ru, this message translates to:
+  /// **'Квартира'**
+  String get cashflowPropertyLabel;
+
+  /// Кнопка фильтров со счётчиком.
+  ///
+  /// In ru, this message translates to:
+  /// **'Фильтры · {count}'**
+  String cashflowFiltersWithCount(int count);
 }
 
 class _AppLocalizationsDelegate

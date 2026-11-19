@@ -1213,9 +1213,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get cashflowFilters => 'Фильтры';
 
   @override
-  String get cashflowFiltersHide => 'Скрыть фильтры';
-
-  @override
   String get cashflowAllCategories => 'Все категории';
 
   @override
@@ -1231,5 +1228,16 @@ class AppLocalizationsRu extends AppLocalizations {
   String get commonDone => 'Готово';
 
   @override
-  String get cashflowSummaryInRub => 'Итоги в RUB';
+  String get cashflowSummaryInRub => 'Итоги в ₽';
+
+  @override
+  String get cashflowAllProperties => 'Все квартиры';
+
+  @override
+  String get cashflowPropertyLabel => 'Квартира';
+
+  @override
+  String cashflowFiltersWithCount(int count) {
+    return 'Фильтры · $count';
+  }
 }
