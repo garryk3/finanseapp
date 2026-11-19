@@ -8,6 +8,8 @@ import 'package:finanseapp/core/features/applock/logic/applock_controller.dart';
 import 'package:finanseapp/core/features/analytics/domain/analytics_queries.dart';
 import 'package:finanseapp/core/features/analytics/ui/analytics_view_model.dart';
 import 'package:finanseapp/core/features/applock/logic/applock_settings_view_model.dart';
+import 'package:finanseapp/core/features/backup/data/platform_backup_file_gateway.dart';
+import 'package:finanseapp/core/features/backup/logic/backup_view_model.dart';
 import 'package:finanseapp/core/features/applock/logic/applock_view_model.dart';
 import 'package:finanseapp/core/features/cashflow/domain/cashflow_repository.dart';
 import 'package:finanseapp/core/features/categories/domain/category_repository.dart';
@@ -91,6 +93,14 @@ Future<ServiceLocator> buildTestLocator({AppDatabase? database}) async {
     )
     ..registerFactory<SettingsViewModel>(
       () => SettingsViewModel(repository: locator.get<SettingsRepository>()),
+    )
+    ..register<BackupViewModel>(
+      BackupViewModel(
+        // В widget-тестах backup-действия не вызываются.
+        () => throw UnimplementedError(),
+        const PlatformBackupFileGateway(),
+      ),
+      dispose: (value) => value.dispose(),
     )
     ..registerFactory<AboutViewModel>(AboutViewModel.new)
     ..registerFactory<MoreViewModel>(MoreViewModel.new)

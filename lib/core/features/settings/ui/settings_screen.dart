@@ -1,6 +1,9 @@
+import 'package:finanseapp/app/app_restart.dart';
 import 'package:finanseapp/app/routes.dart';
 import 'package:finanseapp/app/theme/app_spacing.dart';
+import 'package:finanseapp/core/features/backup/logic/backup_view_model.dart';
 import 'package:finanseapp/core/features/settings/ui/settings_view_model.dart';
+import 'package:finanseapp/core/features/settings/ui/widgets/backup_section.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
 import 'package:finanseapp/uikit/app_icon.dart';
 import 'package:finanseapp/uikit/app_list_tile.dart';
@@ -13,9 +16,14 @@ import 'package:signals_flutter/signals_flutter.dart';
 
 /// Настройки: базовая валюта и вход в «О приложении» (10.3).
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key, required this.viewModel});
+  const SettingsScreen({
+    super.key,
+    required this.viewModel,
+    required this.backupViewModel,
+  });
 
   final SettingsViewModel viewModel;
+  final BackupViewModel backupViewModel;
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -64,6 +72,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   leading: const AppIcon(Icons.star_outline),
                   onTap: () => context.push(AppRoutes.baseCurrency),
                 ),
+              ),
+              BackupSection(
+                viewModel: widget.backupViewModel,
+                onRestart: restartApp,
               ),
               AppSection(
                 header: l10n.settingsAboutSection,

@@ -2169,5 +2169,113 @@
   "settingsAboutDetails": "Подробнее",
   "@settingsAboutDetails": {
     "description": "Переход на экран About из настроек."
+  },
+  "settingsBackupSection": "Резервная копия",
+  "@settingsBackupSection": {
+    "description": "Секция backup в настройках."
+  },
+  "settingsBackupWarning": "Файл не зашифрован и содержит финансовые данные. Храните и передавайте его только доверенным способом.",
+  "@settingsBackupWarning": {
+    "description": "Предупреждение backup."
+  },
+  "backupShare": "Поделиться",
+  "@backupShare": {
+    "description": "Действие share backup."
+  },
+  "backupSave": "Сохранить файл",
+  "@backupSave": {
+    "description": "Действие save backup."
+  },
+  "backupImport": "Импортировать",
+  "@backupImport": {
+    "description": "Действие import backup."
+  },
+  "backupImportConfirmTitle": "Заменить данные?",
+  "@backupImportConfirmTitle": {
+    "description": "Подтверждение импорта."
+  },
+  "backupImportConfirmMessage": "Текущие локальные данные будут заменены. Рекомендуется сначала сохранить резервную копию.",
+  "@backupImportConfirmMessage": {
+    "description": "Пояснение импорта."
+  },
+  "backupImportConfirm": "Заменить",
+  "@backupImportConfirm": {
+    "description": "Подтвердить импорт."
+  },
+  "backupExportShared": "Файл передан системе.",
+  "@backupExportShared": {
+    "description": "Share success."
+  },
+  "backupExportSaved": "Резервная копия сохранена.",
+  "@backupExportSaved": {
+    "description": "Save success."
+  },
+  "backupShareCancelled": "Отправка отменена.",
+  "@backupShareCancelled": {
+    "description": "Share cancelled."
+  },
+  "backupShareUnknown": "Файл подготовлен. Результат отправки неизвестен.",
+  "@backupShareUnknown": {
+    "description": "Share unavailable."
+  },
+  "backupSaveCancelled": "Сохранение отменено.",
+  "@backupSaveCancelled": {
+    "description": "Save cancelled."
+  },
+  "backupImportDone": "Импорт завершён. Приложение будет перезапущено.",
+  "@backupImportDone": {
+    "description": "Import success."
+  },
+  "backupExportFailed": "Не удалось создать резервную копию.",
+  "@backupExportFailed": {
+    "description": "Export error."
+  },
+  "backupImportFailed": "Импорт не выполнен, прежние данные восстановлены.",
+  "@backupImportFailed": {
+    "description": "Import rollback."
+  },
+  "backupRestoreFailed": "Не удалось автоматически восстановить прежние данные. Не вводите новые данные и не повторяйте импорт. Rollback-файл сохранён на устройстве.",
+  "@backupRestoreFailed": {
+    "description": "Blocking rollback failure."
+  },
+  "backupValidationNotDatabase": "Файл не является базой SQLite.",
+  "@backupValidationNotDatabase": {
+    "description": "Validation error."
+  },
+  "backupValidationCorrupted": "Файл повреждён.",
+  "@backupValidationCorrupted": {
+    "description": "Validation error."
+  },
+  "backupValidationOtherApp": "Это не база FinanseApp.",
+  "@backupValidationOtherApp": {
+    "description": "Validation error."
+  },
+  "backupValidationNewerSchema": "База создана более новой версией приложения (schema {schema}, установлено {installed}).",
+  "@backupValidationNewerSchema": {
+    "description": "Validation error new schema.",
+    "placeholders": {
+      "schema": {
+        "type": "int"
+      },
+      "installed": {
+        "type": "int"
+      }
+    }
+  },
+  "backupValidationReferences": "База содержит некорректные ссылки.",
+  "@backupValidationReferences": {
+    "description": "Validation error FK."
+  },
+  "backupRestartTitle": "Требуется перезапуск",
+  "@backupRestartTitle": {
+    "description": "Restart dialog title."
+  },
+  "backupRestartMessage": "Импорт завершён. Приложение будет перезапущено.",
+  "@backupRestartMessage": {
+    "description": "Restart dialog."
+  },
+  "backupRestartOk": "Перезапустить",
+  "@backupRestartOk": {
+    "description": "Restart action."
   }
 }

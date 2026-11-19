@@ -1,5 +1,7 @@
 import 'package:finanseapp/app/theme/app_theme.dart';
 import 'package:finanseapp/core/domain/common/currency.dart';
+import 'package:finanseapp/core/features/backup/domain/backup_service.dart';
+import 'package:finanseapp/core/features/backup/logic/backup_view_model.dart';
 import 'package:finanseapp/core/features/settings/domain/settings_repository.dart';
 import 'package:finanseapp/core/features/settings/ui/about_screen.dart';
 import 'package:finanseapp/core/features/settings/ui/about_view_model.dart';
@@ -20,6 +22,19 @@ const _usd = Currency(
   isPreset: true,
   isEnabled: true,
 );
+
+final class _Gateway implements BackupFileGateway {
+  @override
+  Future<String?> pickDatabase() async => null;
+
+  @override
+  Future<BackupShareOutcome> share(BackupFile file) async =>
+      BackupShareOutcome.cancelled;
+
+  @override
+  Future<bool> save(BackupFile file, {required String dialogTitle}) async =>
+      false;
+}
 
 final class _Settings implements SettingsRepository {
   @override
@@ -113,6 +128,10 @@ void main() {
       tester,
       home: SettingsScreen(
         viewModel: SettingsViewModel(repository: _Settings()),
+        backupViewModel: BackupViewModel(
+          () => throw UnimplementedError(),
+          _Gateway(),
+        ),
       ),
       routes: [
         GoRoute(

@@ -1,4 +1,10 @@
-import 'package:finanseapp/app/app.dart';
+import 'package:finanseapp/app/app_restart.dart';
+import 'package:finanseapp/core/database/app_database_path.dart';
+import 'package:finanseapp/core/features/backup/data/local_database_backup_service.dart';
+import 'package:finanseapp/core/features/backup/data/platform_backup_file_gateway.dart';
+import 'package:finanseapp/core/features/backup/domain/backup_service.dart';
+import 'package:finanseapp/core/features/backup/logic/backup_view_model.dart';
+import 'package:finanseapp/core/database/app_database.dart';
 import 'package:finanseapp/core/di/register_core_services.dart';
 import 'package:finanseapp/core/di/service_locator.dart';
 import 'package:finanseapp/core/features/applock/data/local_auth_biometric_gateway.dart';
@@ -30,7 +36,10 @@ import 'package:flutter/widgets.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  runApp(AppRestartHost(build: buildAppLocator));
+}
 
+Future<ServiceLocator> buildAppLocator() async {
   final ServiceLocator locator = ServiceLocator();
   await registerCoreServices(locator);
 
@@ -109,5 +118,21 @@ Future<void> main() async {
       ApplockSettingsViewModel(service: service, biometrics: biometrics),
     );
 
-  runApp(FinanseApp(locator: locator));
+  locator.register<BackupServiceFactory>(
+    () => LocalDatabaseBackupService(
+      databaseProvider: () => locator.get<AppDatabase>(),
+      databasePath: appDatabaseFilePath,
+      closeDatabase: () => locator.get<AppDatabase>().close(),
+      installedSchemaVersion: locator.get<AppDatabase>().schemaVersion,
+    ),
+  );
+  locator.register<BackupViewModel>(
+    BackupViewModel(
+      locator.get<BackupServiceFactory>(),
+      const PlatformBackupFileGateway(),
+    ),
+    dispose: (value) => value.dispose(),
+  );
+
+  return locator;
 }
