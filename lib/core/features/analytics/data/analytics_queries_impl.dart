@@ -4,11 +4,13 @@ import 'package:finanseapp/core/domain/common/currency.dart';
 import 'package:finanseapp/core/domain/common/date_range.dart';
 import 'package:finanseapp/core/domain/common/local_date.dart';
 import 'package:finanseapp/core/domain/common/money.dart';
+import 'package:finanseapp/core/domain/common/money_math.dart';
 import 'package:finanseapp/core/domain/common/result.dart';
 import 'package:finanseapp/core/features/analytics/data/analytics_mappers.dart';
 import 'package:finanseapp/core/features/analytics/domain/analytics_queries.dart';
 import 'package:finanseapp/core/features/analytics/domain/cashflow_period_point.dart';
 import 'package:finanseapp/core/features/analytics/domain/net_worth_summary.dart';
+import 'package:finanseapp/core/features/analytics/logic/cashflow_analytics.dart';
 import 'package:finanseapp/core/features/analytics/logic/net_worth_calculator.dart';
 import 'package:finanseapp/core/features/assets/domain/asset.dart';
 import 'package:finanseapp/core/features/cashflow/domain/cashflow_filter.dart';
@@ -221,16 +223,101 @@ final class AnalyticsQueriesImpl implements AnalyticsQueries {
   }
 
   @override
-  Future<CashflowSummary> cashflow(CashflowFilter filter) =>
-      throw UnimplementedError('9.3');
+  Future<CashflowSummary> cashflow(CashflowFilter filter) async {
+    final data = await _cashflowValues(filter);
+    return CashflowAnalytics.summarize(data.values, data.baseCurrency);
+  }
 
   @override
-  Future<List<CategoryTotal>> cashflowByCategory(CashflowFilter filter) =>
-      throw UnimplementedError('9.3');
+  Future<List<CategoryTotal>> cashflowByCategory(CashflowFilter filter) async {
+    final data = await _cashflowValues(filter);
+    return CashflowAnalytics.byCategory(data.values, data.baseCurrency);
+  }
 
   @override
-  Future<List<CashflowPeriodPoint>> cashflowSeries(CashflowFilter filter) =>
-      throw UnimplementedError('9.3');
+  Future<List<CashflowPeriodPoint>> cashflowSeries(
+    CashflowFilter filter,
+  ) async {
+    final data = await _cashflowValues(filter);
+    final period = filter.period ?? _periodOf(data.values);
+    if (period == null) return const [];
+    return CashflowAnalytics.series(
+      values: data.values,
+      period: period,
+      baseCurrency: data.baseCurrency,
+    );
+  }
+
+  Future<({List<CashflowAmount> values, Currency baseCurrency})>
+  _cashflowValues(CashflowFilter filter) async {
+    final baseCurrency = await _settingsRepository.getBaseCurrency();
+    final currencies = {
+      for (final currency in await _currencyRepository.watchAll().first)
+        currency.code: currency,
+    };
+    final search = filter.query.trim().toLowerCase();
+    final rows = await _db.cashflowDao
+        .watchFiltered(
+          CashflowFilter(
+            period: filter.period,
+            kind: filter.kind,
+            categoryId: filter.categoryId,
+            currencyCode: filter.currencyCode,
+            propertyId: filter.propertyId,
+            accountId: filter.accountId,
+          ),
+        )
+        .first;
+    final values = <CashflowAmount>[];
+    final rateCache = <String, Decimal>{};
+    for (final row in rows) {
+      if (search.isNotEmpty &&
+          !(row.comment ?? '').toLowerCase().contains(search)) {
+        continue;
+      }
+      final source = currencies[row.currencyCode];
+      if (source == null) {
+        throw AnalyticsMappers.currencyNotFound(row.currencyCode);
+      }
+      final amount = MoneyMath.toDecimal(
+        Money(minorUnits: row.amountMinor, currencyCode: row.currencyCode),
+        source,
+      ).toRational();
+      final converted = row.currencyCode == baseCurrency.code
+          ? amount
+          : amount *
+                (await _rateFor(
+                  row.currencyCode,
+                  row.occurredOn,
+                  rateCache,
+                )).toRational() /
+                (await _rateFor(
+                  baseCurrency.code,
+                  row.occurredOn,
+                  rateCache,
+                )).toRational();
+      values.add(
+        CashflowAmount(
+          kind: row.kind,
+          categoryId: row.categoryId,
+          occurredOn: row.occurredOn,
+          amount: converted,
+        ),
+      );
+    }
+    return (values: values, baseCurrency: baseCurrency);
+  }
+
+  static DateRange? _periodOf(List<CashflowAmount> values) {
+    if (values.isEmpty) return null;
+    var start = values.first.occurredOn;
+    var end = values.first.occurredOn;
+    for (final value in values.skip(1)) {
+      if (value.occurredOn.compareTo(start) < 0) start = value.occurredOn;
+      if (value.occurredOn.compareTo(end) > 0) end = value.occurredOn;
+    }
+    return DateRange(start: start, end: end);
+  }
 }
 
 final class _AnalyticsDataset {

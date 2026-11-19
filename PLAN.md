@@ -1178,8 +1178,38 @@
   uikit-долг: нейтральный тон `AppErrorState` для отсутствующего курса и исключение
   двойной семантики `AppChartFrame`/`AppSummaryCard`, визуальный QA 320dp/1.3.
 
-### 9.3 Cashflow aggregates по периодам и категориям — [ ]
+### 9.3 Cashflow aggregates по периодам и категориям — [x] (2026-11-19)
 
+- **Рабочий план:**
+  - **Data:** `cashflow(cashflowByCategory/cashflowSeries)` читают active-записи через
+    `CashflowDao.watchFiltered` (+ поиск по комментарию), конвертируют каждую запись из её
+    валюты в базовую по курсам `occurredOn` (исходная→RUB→base, кэш `(code,date)`), суммы
+    копятся Rational, округление — на итоге; нет курса → `rateUnavailable`.
+  - **Logic:** `CashflowAnalytics` — summary (income/expense/net), totals по категориям,
+    серия: месячные бакеты при периоде >62 дней, иначе дневные, все бакеты заполняются
+    нулями; пустой набор при `period == null` без записей.
+  - **UI:** `CashflowChartSection` — `AppChartFrame` + `AppCashflowChart`, legend и доступный
+    список периодов; подключается к экрану в 9.4.
+  - **TDD:** income 1000/expense 250 → net 750; linked expense один раз; transfer/standalone
+    deposit не участвуют; property/account filters; deleted excluded; archived category;
+    USD→EUR через RUB по дате; месяцы/дни и нулевые точки; категории.
+  - **Генерация:** gen-l10n; схема БД не меняется.
+  - **commit:** `task/09.3: добавить аналитику денежного потока`.
+- **Итог:** `cashflow`/`cashflowByCategory`/`cashflowSeries` читают active-записи через
+  `watchFiltered` с поиском по комментарию, конвертируют каждую запись в базовую валюту по
+  курсу `occurredOn` (исходная→RUB→base, кэш `(code,date)`, нет курса → rateUnavailable);
+  `CashflowAnalytics` считает summary/категории/серию (месяцы при периоде >62 дней, иначе
+  дни, нулевые бакеты включены); `CashflowChartSection` — `AppCashflowSummary`,
+  `AppCashflowChart`, legend и доступный список периодов (короткие подписи, сворачивание
+  5 + «показать все», нулевая серия → empty, текстовая альтернатива с MergeSemantics).
+  `AppCashflowChart` получил горизонтальный скролл для многих периодов. Тесты: 23
+  (13 data: linked expense один раз, transfer/standalone deposit, account/property,
+  deleted, категории+архив, USD→EUR, rateUnavailable; 5 logic; 5 chart section); всего
+  analytics 70.
+- **Отложено:** подключение секции и категорий к экрану аналитики (9.4), проценты категорий
+  и выбор категории (9.4), e2e analytics_flow (9.4), общий хелпер поиска/фильтра с журналом
+  (сейчас продублирован в `CashflowRepositoryImpl.watch` и аналитике), uikit-тон ошибки курса,
+  визуальный QA.
 - **Приоритет/зависимости:** P1; после 7.4 и 9.1. **BR:** IE-10…15, RE-3…5, C-5.
 - **Files:** Create `cashflow_period_point.dart`, `cashflow_analytics.dart`,
   `cashflow_chart_section.dart`; Modify analytics queries/DAO/DI/ARB;

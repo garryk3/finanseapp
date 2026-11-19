@@ -1901,7 +1901,7 @@
   "@analyticsEmptyMessage": {
     "description": "Пояснение пустой серии."
   },
-  "analyticsPointsTitle": "Точки графика",
+  "analyticsPointsTitle": "Значения по датам",
   "@analyticsPointsTitle": {
     "description": "Доступный список точек графика."
   },
@@ -2006,5 +2006,52 @@
   "analyticsKindEmptyMessage": "Нет активов выбранного вида.",
   "@analyticsKindEmptyMessage": {
     "description": "Пустая аналитика по фильтру вида."
+  },
+  "analyticsCashflowTitle": "Денежный поток",
+  "@analyticsCashflowTitle": {
+    "description": "Заголовок cashflow-секции аналитики."
+  },
+  "analyticsPeriodsTitle": "Значения по периодам",
+  "@analyticsPeriodsTitle": {
+    "description": "Доступный список cashflow-серии."
+  },
+  "analyticsCashflowChartSummary": "Период: {period}. Доход: {income}. Расход: {expense}. Итог: {net}.",
+  "@analyticsCashflowChartSummary": {
+    "description": "Доступное описание cashflow-графика.",
+    "placeholders": {
+      "period": {
+        "type": "String"
+      },
+      "income": {
+        "type": "String"
+      },
+      "expense": {
+        "type": "String"
+      },
+      "net": {
+        "type": "String"
+      }
+    }
+  },
+  "analyticsCashflowEmptyTitle": "Нет операций за период",
+  "@analyticsCashflowEmptyTitle": {
+    "description": "Пустая cashflow-серия."
+  },
+  "analyticsCashflowEmptyMessage": "Измените период или добавьте операцию.",
+  "@analyticsCashflowEmptyMessage": {
+    "description": "Пояснение пустой cashflow-серии."
+  },
+  "analyticsShowAllPeriods": "Показать все периоды ({count})",
+  "@analyticsShowAllPeriods": {
+    "description": "Развернуть cashflow-список периодов.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "analyticsCollapsePeriods": "Свернуть периоды",
+  "@analyticsCollapsePeriods": {
+    "description": "Свернуть cashflow-список периодов."
   }
 }

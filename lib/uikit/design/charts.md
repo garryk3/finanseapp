@@ -117,7 +117,8 @@ list тех же точек; `AppChartFrame` сам данные не дубли
 - Frame имеет surfaceContainerLow, 16dp padding, bounded height 240; не glass/gradient.
 - Axis labels берутся из `AppChartPoint.label`; density подбирается по width, но все labels
   доступны в text alternative. Horizontal scroll используется для большого числа periods,
-  а не микроскопические подписи.
+  а не микроскопические подписи. Минимальная ширина группы cashflow-графика — 36dp;
+  при переполнении контейнера включается горизонтальный скролл.
 - Tooltip содержит exact formatted values, не raw double. Tap/focus tooltip не единственный
   способ получить значение.
 - Line income/expense отличаются label + dash/marker, не только цветом. Zero baseline и

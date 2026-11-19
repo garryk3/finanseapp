@@ -2700,7 +2700,7 @@ abstract class AppLocalizations {
   /// Доступный список точек графика.
   ///
   /// In ru, this message translates to:
-  /// **'Точки графика'**
+  /// **'Значения по датам'**
   String get analyticsPointsTitle;
 
   /// Направление серии.
@@ -2816,6 +2816,53 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Нет активов выбранного вида.'**
   String get analyticsKindEmptyMessage;
+
+  /// Заголовок cashflow-секции аналитики.
+  ///
+  /// In ru, this message translates to:
+  /// **'Денежный поток'**
+  String get analyticsCashflowTitle;
+
+  /// Доступный список cashflow-серии.
+  ///
+  /// In ru, this message translates to:
+  /// **'Значения по периодам'**
+  String get analyticsPeriodsTitle;
+
+  /// Доступное описание cashflow-графика.
+  ///
+  /// In ru, this message translates to:
+  /// **'Период: {period}. Доход: {income}. Расход: {expense}. Итог: {net}.'**
+  String analyticsCashflowChartSummary(
+    String period,
+    String income,
+    String expense,
+    String net,
+  );
+
+  /// Пустая cashflow-серия.
+  ///
+  /// In ru, this message translates to:
+  /// **'Нет операций за период'**
+  String get analyticsCashflowEmptyTitle;
+
+  /// Пояснение пустой cashflow-серии.
+  ///
+  /// In ru, this message translates to:
+  /// **'Измените период или добавьте операцию.'**
+  String get analyticsCashflowEmptyMessage;
+
+  /// Развернуть cashflow-список периодов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Показать все периоды ({count})'**
+  String analyticsShowAllPeriods(int count);
+
+  /// Свернуть cashflow-список периодов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Свернуть периоды'**
+  String get analyticsCollapsePeriods;
 }
 
 class _AppLocalizationsDelegate
