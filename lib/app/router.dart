@@ -4,6 +4,8 @@ import 'package:finanseapp/app/shell_screen.dart';
 import 'package:finanseapp/core/di/service_locator.dart';
 import 'package:finanseapp/core/features/app_info/ui/not_found_screen.dart';
 import 'package:finanseapp/core/features/app_info/ui/not_found_view_model.dart';
+import 'package:finanseapp/core/features/analytics/ui/analytics_screen.dart';
+import 'package:finanseapp/core/features/analytics/ui/analytics_view_model.dart';
 import 'package:finanseapp/core/features/applock/logic/applock_settings_view_model.dart';
 import 'package:finanseapp/core/features/applock/ui/applock_manage_screen.dart';
 import 'package:finanseapp/core/features/assets/domain/subgroup.dart';
@@ -428,6 +430,13 @@ GoRouter buildRouter({required ServiceLocator locator}) {
                       viewModel: locator.get<BaseCurrencyViewModel>(),
                     ),
                   ),
+                  GoRoute(
+                    path: 'analytics',
+                    name: 'analytics',
+                    builder: (context, state) => AnalyticsScreen(
+                      viewModel: locator.get<AnalyticsViewModel>(),
+                    ),
+                  ),
                   for (final entry in _morePlaceholders)
                     _placeholderRoute(
                       entry.path,
@@ -704,7 +713,6 @@ List<AppNavigationDestination> _destinations(BuildContext context) {
 AppLocalizations l10nOf(BuildContext context) => AppLocalizations.of(context);
 
 const _morePlaceholders = <({String path, String name})>[
-  (path: 'analytics', name: 'analytics'),
   (path: 'settings', name: 'settings'),
   (path: 'audit', name: 'audit'),
   (path: 'about', name: 'about'),

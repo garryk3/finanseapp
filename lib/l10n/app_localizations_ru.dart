@@ -1380,4 +1380,105 @@ class AppLocalizationsRu extends AppLocalizations {
   String goalProgressSemantics(String progress, String target) {
     return 'Накоплено $progress из $target';
   }
+
+  @override
+  String get analyticsTitle => 'Аналитика';
+
+  @override
+  String get analyticsNetWorthTitle => 'Чистый капитал';
+
+  @override
+  String get analyticsPeriodMonth => 'Месяц';
+
+  @override
+  String get analyticsPeriodThreeMonths => '3 месяца';
+
+  @override
+  String get analyticsPeriodSixMonths => '6 месяцев';
+
+  @override
+  String get analyticsPeriodYear => 'Год';
+
+  @override
+  String get analyticsPeriodAll => 'Всё время';
+
+  @override
+  String get analyticsKindAll => 'Все активы';
+
+  @override
+  String get analyticsEmptyTitle => 'Нет данных за период';
+
+  @override
+  String get analyticsEmptyMessage => 'Измените период или вид активов.';
+
+  @override
+  String get analyticsPointsTitle => 'Точки графика';
+
+  @override
+  String get analyticsTrendUp => 'Рост';
+
+  @override
+  String get analyticsTrendDown => 'Снижение';
+
+  @override
+  String get analyticsTrendFlat => 'Без изменений';
+
+  @override
+  String analyticsChartSummary(
+    String period,
+    String last,
+    String min,
+    String max,
+    String trend,
+  ) {
+    return 'Период: $period. Последнее: $last. Минимум: $min. Максимум: $max. $trend.';
+  }
+
+  @override
+  String get moreOverviewSection => 'Обзор';
+
+  @override
+  String get analyticsRateErrorTitle => 'Нет курса валюты';
+
+  @override
+  String analyticsRateErrorMessage(String currency, String date) {
+    return 'Курс $currency на $date не найден. Введите его вручную, чтобы построить график.';
+  }
+
+  @override
+  String get analyticsEnterRate => 'Ввести курс';
+
+  @override
+  String get analyticsNoAssetsTitle => 'Нет активов';
+
+  @override
+  String get analyticsNoAssetsMessage =>
+      'Добавьте счёт, инвестицию или квартиру, чтобы увидеть динамику.';
+
+  @override
+  String get analyticsMinLabel => 'Минимум';
+
+  @override
+  String get analyticsMaxLabel => 'Максимум';
+
+  @override
+  String get analyticsNoChangesTitle => 'Нет изменений за период';
+
+  @override
+  String get analyticsNoChangesMessage =>
+      'За выбранный период стоимость не менялась.';
+
+  @override
+  String analyticsShowAllPoints(int count) {
+    return 'Показать все точки ($count)';
+  }
+
+  @override
+  String get analyticsCollapsePoints => 'Свернуть точки';
+
+  @override
+  String get analyticsDynamicsTitle => 'Динамика за период';
+
+  @override
+  String get analyticsKindEmptyMessage => 'Нет активов выбранного вида.';
 }
