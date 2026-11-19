@@ -2965,6 +2965,30 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Не удалось рассчитать'**
   String get dashboardNetWorthUnavailable;
+
+  /// Секция cashflow месяца на главной.
+  ///
+  /// In ru, this message translates to:
+  /// **'Денежный поток'**
+  String get dashboardCashflowTitle;
+
+  /// Пустой cashflow месяца.
+  ///
+  /// In ru, this message translates to:
+  /// **'В этом месяце нет операций'**
+  String get dashboardCashflowEmpty;
+
+  /// CTA пустого cashflow месяца.
+  ///
+  /// In ru, this message translates to:
+  /// **'Добавить расход'**
+  String get dashboardAddExpense;
+
+  /// Подзаголовок недельного графика cashflow на главной.
+  ///
+  /// In ru, this message translates to:
+  /// **'По неделям'**
+  String get dashboardCashflowDynamics;
 }
 
 class _AppLocalizationsDelegate

@@ -1563,4 +1563,16 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get dashboardNetWorthUnavailable => 'Не удалось рассчитать';
+
+  @override
+  String get dashboardCashflowTitle => 'Денежный поток';
+
+  @override
+  String get dashboardCashflowEmpty => 'В этом месяце нет операций';
+
+  @override
+  String get dashboardAddExpense => 'Добавить расход';
+
+  @override
+  String get dashboardCashflowDynamics => 'По неделям';
 }

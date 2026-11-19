@@ -46,6 +46,7 @@ Future<void> main() async {
         goalRepository: locator.get<GoalRepository>(),
         assetRepository: locator.get<AssetRepository>(),
         transactionRepository: locator.get<AssetTransactionRepository>(),
+        cashflowRepository: locator.get<CashflowRepository>(),
         settingsRepository: locator.get<SettingsRepository>(),
         currencyRepository: locator.get<CurrencyRepository>(),
         rateRepository: locator.get<ExchangeRateRepository>(),

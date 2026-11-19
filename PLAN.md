@@ -1322,8 +1322,31 @@
   одна без overflow; общий DoD/design review. Перед PR спросить о e2e.
 - **Предлагаемый commit:** `task/10.1: реализовать главный экран`.
 
-### 10.2 Dashboard cashflow и единые переходы в аналитику — [ ]
+### 10.2 Dashboard cashflow и единые переходы в аналитику — [x] (2026-11-19)
 
+- **Рабочий план:**
+  - **VM:** подписка `CashflowRepository.watch` как сигнал изменений; summary/series текущего
+    месяца через `AnalyticsQueries` (то же округление/base), диапазон от injected today
+    (первый/последний день включительно), локальная ошибка курса без падения всего экрана.
+  - **UI:** `DashboardCashflow` — компактные доход/расход/итог + bars месяца, tap ведёт в
+    Аналитику с prefill `period=month` (push), пустой месяц — CTA «Добавить расход»;
+    `AnalyticsViewModel.initialPeriod` + чтение `period` из query в роутере.
+  - **Тесты:** месяц от today inclusive; transfer/asset deposit не меняют виджет; повторная
+    эмиссия обновляет; tap сохраняет period; empty CTA; VM/analytics prefill.
+  - **Генерация:** gen-l10n; схема не меняется.
+  - **commit:** `task/10.2: добавить виджет денежного потока`.
+- **Итог:** DashboardVM подписан на `CashflowRepository.watch` месяца и грузит
+  summary/series текущего месяца через `AnalyticsQueries` (range от injected today,
+  первый/последний день включительно), ошибка курса локализована (секция показывает текст,
+  а не исчезает); `DashboardCashflow` — компактные income/expense/net + недельные bars
+  (height 140, 4–5 групп вместо скрытого скролла по дням), `AppCashflowSummary` тапается в
+  Аналитику с prefill `?period=month`, пустой месяц — CTA «Добавить расход»;
+  `AnalyticsViewModel.setInitialPeriod` + разбор `period` в роутере; недельная свёртка
+  покрыта отдельным widget-тестом (30 дней → 5 групп, суммы/метки); смена базовой валюты
+  перезапрашивает cashflow. Тесты: +5 dashboard (cashflow/tap prefill, empty CTA, ошибка
+  курса, weekly, реактивность/валюта) +1 analytics prefill; всего 520.
+- **Отложено:** prefill остальных фильтров (kind/category) из Dashboard, router-prefill в
+  `initState` при переиспользуемой VM, визуальный QA 320dp/1.3, точный skeleton.
 - **Приоритет/зависимости:** P1; после 10.1. **BR:** IE-10…15, S-1…5.
 - **Files:** Create `dashboard_cashflow.dart`; Modify dashboard VM/state/screen, analytics
   prefill/routes/ARB; Test dashboard cashflow widget+navigation tests.
