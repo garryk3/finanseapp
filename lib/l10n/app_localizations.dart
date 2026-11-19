@@ -2234,6 +2234,24 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Добавить квартиру'**
   String get assetsAddProperty;
+
+  /// Необязательный счёт для дохода/расхода.
+  ///
+  /// In ru, this message translates to:
+  /// **'Счёт'**
+  String get cashflowAccountLabel;
+
+  /// Создать связанную операцию по счёту.
+  ///
+  /// In ru, this message translates to:
+  /// **'Влияет на баланс счёта'**
+  String get cashflowAffectsBalance;
+
+  /// Ошибка счёта при affectsBalance.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выберите счёт или отключите влияние на баланс.'**
+  String get cashflowErrorAccount;
 }
 
 class _AppLocalizationsDelegate

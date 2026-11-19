@@ -1559,5 +1559,17 @@
   "assetsAddProperty": "Добавить квартиру",
   "@assetsAddProperty": {
     "description": "Действие создания квартиры."
+  },
+  "cashflowAccountLabel": "Счёт",
+  "@cashflowAccountLabel": {
+    "description": "Необязательный счёт для дохода/расхода."
+  },
+  "cashflowAffectsBalance": "Влияет на баланс счёта",
+  "@cashflowAffectsBalance": {
+    "description": "Создать связанную операцию по счёту."
+  },
+  "cashflowErrorAccount": "Выберите счёт или отключите влияние на баланс.",
+  "@cashflowErrorAccount": {
+    "description": "Ошибка счёта при affectsBalance."
   }
 }

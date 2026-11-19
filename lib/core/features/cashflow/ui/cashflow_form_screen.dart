@@ -20,6 +20,8 @@ import 'package:finanseapp/uikit/app_form_section.dart';
 import 'package:finanseapp/uikit/app_list_view.dart';
 import 'package:finanseapp/uikit/app_scaffold.dart';
 import 'package:finanseapp/uikit/app_segmented_control.dart';
+import 'package:finanseapp/uikit/app_select.dart';
+import 'package:finanseapp/uikit/app_switch.dart';
 import 'package:finanseapp/uikit/app_spinner.dart';
 import 'package:finanseapp/uikit/app_text.dart';
 import 'package:finanseapp/uikit/app_text_field.dart';
@@ -47,11 +49,14 @@ class _CashflowFormScreenState extends State<CashflowFormScreen> {
   final _comment = TextEditingController();
   CashflowKind _kind = CashflowKind.expense;
   int? _categoryId;
+  int? _accountId;
+  bool _affectsBalance = false;
   String _currencyCode = 'RUB';
   LocalDate? _date;
   String? _amountError;
   String? _categoryError;
   String? _rateError;
+  String? _accountError;
   String? _formError;
   bool _loaded = false;
   bool _saving = false;
@@ -69,6 +74,8 @@ class _CashflowFormScreenState extends State<CashflowFormScreen> {
         if (entry != null) {
           _kind = entry.kind;
           _categoryId = entry.categoryId;
+          _accountId = entry.accountId;
+          _affectsBalance = entry.affectsBalance;
           _currencyCode = entry.amount.currencyCode;
           _amount.text = MoneyMath.toDecimal(
             entry.amount,
@@ -111,6 +118,9 @@ class _CashflowFormScreenState extends State<CashflowFormScreen> {
     final categoryError = _categoryId == null
         ? l10n.cashflowErrorCategory
         : null;
+    final accountError = _affectsBalance && _accountId == null
+        ? l10n.cashflowErrorAccount
+        : null;
     final rawRate = widget.viewModel.isEditing && _currencyCode == 'RUB'
         ? ''
         : _rate.text.trim().replaceAll(',', '.');
@@ -122,16 +132,18 @@ class _CashflowFormScreenState extends State<CashflowFormScreen> {
         return;
       }
     }
-    if (amountError != null || categoryError != null) {
+    if (amountError != null || categoryError != null || accountError != null) {
       setState(() {
         _amountError = amountError;
         _categoryError = categoryError;
+        _accountError = accountError;
       });
       return;
     }
     setState(() {
       _amountError = null;
       _categoryError = null;
+      _accountError = null;
       _rateError = null;
       _formError = null;
       _saving = true;
@@ -147,6 +159,8 @@ class _CashflowFormScreenState extends State<CashflowFormScreen> {
       manualRate: manualRate,
       comment: _comment.text,
       propertyId: widget.propertyId,
+      accountId: _accountId,
+      affectsBalance: _affectsBalance,
     );
     if (!mounted) return;
     setState(() => _saving = false);
@@ -259,6 +273,43 @@ class _CashflowFormScreenState extends State<CashflowFormScreen> {
                       _currencyCode = code;
                       _rate.clear();
                       _rateError = null;
+                    }),
+                  ),
+                  AppSelect<int>(
+                    label: l10n.cashflowAccountLabel,
+                    value: _accountId,
+                    items: [
+                      for (final account in vm.accounts.value)
+                        AppSelectItem(
+                          value: account.id,
+                          label: account.name,
+                          subtitle: account.currencyCode,
+                        ),
+                    ],
+                    errorText: _accountError,
+                    onChanged: (value) => setState(() {
+                      _accountId = value;
+                      _accountError = null;
+                      if (_affectsBalance) {
+                        final account = vm.accounts.value.firstWhere(
+                          (item) => item.id == value,
+                        );
+                        _currencyCode = account.currencyCode;
+                      }
+                    }),
+                  ),
+                  AppSwitch(
+                    value: _affectsBalance,
+                    label: l10n.cashflowAffectsBalance,
+                    onChanged: (value) => setState(() {
+                      _affectsBalance = value;
+                      _accountError = null;
+                      if (value && _accountId != null) {
+                        final account = vm.accounts.value.firstWhere(
+                          (item) => item.id == _accountId,
+                        );
+                        _currencyCode = account.currencyCode;
+                      }
                     }),
                   ),
                   AppCategorySelect(

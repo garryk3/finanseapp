@@ -9,6 +9,10 @@ import 'package:finanseapp/core/features/cashflow/data/cashflow_repository_impl.
 import 'package:finanseapp/core/features/cashflow/domain/cashflow_entry.dart';
 import 'package:finanseapp/core/features/cashflow/domain/cashflow_filter.dart';
 import 'package:finanseapp/core/features/cashflow/logic/cashflow_calculator.dart';
+import 'package:finanseapp/core/features/assets/domain/asset.dart';
+import 'package:finanseapp/core/features/assets/domain/asset_draft.dart';
+import 'package:finanseapp/core/features/assets/domain/asset_repository.dart';
+import 'package:finanseapp/core/features/assets/domain/asset_valuation.dart';
 import 'package:finanseapp/core/features/cashflow/logic/cashflow_commands.dart';
 import 'package:finanseapp/core/features/cashflow/ui/cashflow_view_model.dart';
 import 'package:finanseapp/core/features/categories/data/category_repository_impl.dart';
@@ -52,6 +56,40 @@ final class FakeCurrencies implements CurrencyRepository {
 
   @override
   Future<void> deleteIfUnused(String code) async {}
+}
+
+final class FakeAssets implements AssetRepository {
+  @override
+  Stream<List<AssetSnapshot>> watchAll({bool includeArchived = false}) =>
+      Stream.value(const []);
+
+  @override
+  Stream<AssetSnapshot?> watchById(int id) => const Stream.empty();
+
+  @override
+  Future<AssetSnapshot> getById(int id) => throw UnimplementedError();
+
+  @override
+  Future<int> create(AssetDraft draft) async => 1;
+
+  @override
+  Future<void> update(int id, AssetDraft draft) async {}
+
+  @override
+  Future<void> deleteIfUnused(int id) async {}
+
+  @override
+  Future<void> archive(int id) async {}
+
+  @override
+  Future<void> recordValuation(AssetValuationDraft draft) async {}
+
+  @override
+  Future<AssetReferenceCounts> referenceCounts(int id) =>
+      throw UnimplementedError();
+
+  @override
+  Future<List<AssetValuation>> valuations(int id) async => const [];
 }
 
 final class FakeRates implements ExchangeRateRepository {
@@ -227,6 +265,7 @@ void main() {
       categoryRepository: CategoryRepositoryImpl(db.referencesDao),
       currencyRepository: FakeCurrencies(),
       commands: commands,
+      assetRepository: FakeAssets(),
       editingId: id,
     );
     await form.load();

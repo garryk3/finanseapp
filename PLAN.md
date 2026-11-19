@@ -918,7 +918,7 @@
   audit денежного потока (7.4), inline-ошибки удаления, визуальный QA; перед 7.2 —
   пробрасывать существующие linkage-поля (`affectsBalance/accountId/propertyId`) в revise.
 
-### 7.2 Явная связь денежного потока со счётом — [ ]
+### 7.2 Явная связь денежного потока со счётом — [x] (2026-11-19)
 
 - **Приоритет/зависимости:** P1; после 7.1. **BR:** IE-8…17, VAL-7, T-3…4.
 - **Files:** Modify `cashflow_commands.dart`, linked repository implementations,
@@ -934,6 +934,14 @@
 - **DoD:** единственный FK cashflow.assetTransactionId, derived reverse join, итоги не
   дублируются; все TX-LINKED-SAVE cases pass; общий DoD. Перед PR спросить о e2e.
 - **Предлагаемый commit:** `task/07.2: связать расходы и доходы со счетами`.
+- **Итог:** `CashflowCommands` (+db) — linked-сохранение в одной транзакции: income→deposit/
+  expense→withdrawal, `affectsBalance=true` требует счёт; off→on создаёт операцию и
+  связывает запись, on→off мягко удаляет операцию и снимает связь, delete удаляет пару с
+  ревизиями обеих; `CashflowDao.reviseWithLink`. Форма: счёт + «Влияет на баланс»,
+  авто-валюта счёта, ошибка счёта; prefill editing. Тесты linked_pair: создание пары без
+  дублей, нехватка баланса откатывает обе записи, off→on, on→off, delete-ревизии обеих.
+- **Отложено:** единый choice «счёт/квартира» в одной форме, badge связи в журнале и
+  audit денежного потока (7.3/7.4), ручное unlink вне toggle, визуальный QA.
 
 ### 7.3 Журнал денежного потока и фильтры — [ ]
 

@@ -1163,4 +1163,14 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get assetsAddProperty => 'Добавить квартиру';
+
+  @override
+  String get cashflowAccountLabel => 'Счёт';
+
+  @override
+  String get cashflowAffectsBalance => 'Влияет на баланс счёта';
+
+  @override
+  String get cashflowErrorAccount =>
+      'Выберите счёт или отключите влияние на баланс.';
 }

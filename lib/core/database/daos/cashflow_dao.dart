@@ -226,6 +226,39 @@ class CashflowDao extends DatabaseAccessor<AppDatabase>
         await _writeRevision(await _requireEntry(id), RevisionAction.edit, now);
       });
 
+  /// Ревизия записи с изменением/снятием связи с операцией (7.2).
+  Future<void> reviseWithLink(
+    int id,
+    CashflowEntryInput input,
+    int? assetTransactionId,
+  ) => transaction(() async {
+    final current = await _requireEntry(id);
+    if (current.deletedAt != null) {
+      throw _conflict('validationEntryDeleted');
+    }
+    await _validate(input);
+    final now = attachedDatabase.clock();
+    await (update(cashflowEntries)..where((e) => e.id.equals(id))).write(
+      CashflowEntriesCompanion(
+        kind: Value(input.kind),
+        categoryId: Value(input.categoryId),
+        amountMinor: Value(input.amountMinor),
+        currencyCode: Value(input.currencyCode),
+        occurredOn: Value(input.occurredOn),
+        rateToRub: Value(input.rateToRub),
+        amountRubMinor: Value(input.amountRubMinor),
+        affectsBalance: Value(input.affectsBalance),
+        comment: Value(input.comment),
+        propertyId: Value(input.propertyId),
+        accountId: Value(input.accountId),
+        assetTransactionId: Value(assetTransactionId),
+        revisionNo: Value(current.revisionNo + 1),
+        updatedAt: Value(now),
+      ),
+    );
+    await _writeRevision(await _requireEntry(id), RevisionAction.edit, now);
+  });
+
   /// Мягкое удаление связанной записи из команды операции (BR-IE-14).
   Future<void> softDeleteFromAsset(int id) => transaction(() async {
     final current = await _requireEntry(id);

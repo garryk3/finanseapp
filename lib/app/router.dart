@@ -1,4 +1,5 @@
 import 'package:finanseapp/app/routes.dart';
+import 'package:finanseapp/core/database/app_database.dart';
 import 'package:finanseapp/app/shell_screen.dart';
 import 'package:finanseapp/core/di/service_locator.dart';
 import 'package:finanseapp/core/features/app_info/ui/not_found_screen.dart';
@@ -502,6 +503,7 @@ GoRouter buildRouter({required ServiceLocator locator}) {
             categoryRepository: locator.get<CategoryRepository>(),
             currencyRepository: locator.get<CurrencyRepository>(),
             commands: _cashflowCommands(locator),
+            assetRepository: locator.get<AssetRepository>(),
             initialKind: state.uri.queryParameters['kind'] == 'income'
                 ? CashflowKind.income
                 : CashflowKind.expense,
@@ -572,6 +574,7 @@ GoRouter buildRouter({required ServiceLocator locator}) {
                     categoryRepository: locator.get<CategoryRepository>(),
                     currencyRepository: locator.get<CurrencyRepository>(),
                     commands: _cashflowCommands(locator),
+                    assetRepository: locator.get<AssetRepository>(),
                     editingId: id,
                   ),
                 );
@@ -587,6 +590,7 @@ CashflowCommands _cashflowCommands(ServiceLocator locator) => CashflowCommands(
   currencyRepository: locator.get<CurrencyRepository>(),
   rateRepository: locator.get<ExchangeRateRepository>(),
   today: LocalDate.fromDateTime(DateTime.now()),
+  db: locator.get<AppDatabase>(),
 );
 
 /// Вкладки журнала операций с сохранением выбора в query.
