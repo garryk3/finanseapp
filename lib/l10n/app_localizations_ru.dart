@@ -1240,4 +1240,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String cashflowFiltersWithCount(int count) {
     return 'Фильтры · $count';
   }
+
+  @override
+  String cashflowPropertyContext(String name) {
+    return 'Квартира: $name';
+  }
+
+  @override
+  String get cashflowPropertyNoAccount => 'Не влияет на баланс счёта';
 }

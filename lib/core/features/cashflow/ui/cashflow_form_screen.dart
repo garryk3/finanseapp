@@ -27,8 +27,8 @@ import 'package:finanseapp/uikit/app_switch.dart';
 import 'package:finanseapp/uikit/app_spinner.dart';
 import 'package:finanseapp/uikit/app_text.dart';
 import 'package:finanseapp/uikit/app_text_field.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
 /// Форма дохода/расхода без влияния на баланс (7.1).
@@ -216,12 +216,16 @@ class _CashflowFormScreenState extends State<CashflowFormScreen> {
           if (vm.state.value case ViewError(
             errorCode: DomainErrorCode.notFound,
           )) {
-            return AppEmptyState(
-              icon: Icons.search_off,
-              title: l10n.notFoundTitle,
-              message: l10n.notFoundMessage,
-              actionLabel: l10n.notFoundHome,
-              onAction: () => Navigator.of(context).maybePop(),
+            return AppListView(
+              children: [
+                AppEmptyState(
+                  icon: Icons.search_off,
+                  title: l10n.notFoundTitle,
+                  message: l10n.notFoundMessage,
+                  actionLabel: l10n.notFoundHome,
+                  onAction: () => context.go(AppRoutes.dashboard),
+                ),
+              ],
             );
           }
           if (vm.state.value is ViewError) {
@@ -256,6 +260,17 @@ class _CashflowFormScreenState extends State<CashflowFormScreen> {
                     : l10n.cashflowFormNew,
                 errorText: _formError,
                 children: [
+                  if (vm.property.value != null) ...[
+                    AppText(
+                      l10n.cashflowPropertyContext(vm.property.value!.name),
+                    ),
+                    AppText(
+                      l10n.cashflowPropertyNoAccount,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
                   AppSegmentedControl<CashflowKind>(
                     segments: [
                       AppSegment(

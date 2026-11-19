@@ -270,6 +270,16 @@ class CashflowFormViewModel {
       if (editingId != null) {
         final current = await repository.getById(editingId!);
         entry.value = current;
+        if (propertyId == null && current.propertyId != null) {
+          try {
+            final snapshot = await assetRepository.getById(current.propertyId!);
+            if (snapshot.asset is PropertyAsset) {
+              property.value = snapshot.asset as PropertyAsset;
+            }
+          } catch (_) {
+            // Контекст квартиры не блокирует редактирование записи.
+          }
+        }
         await loadCategories(current.kind);
       } else if (kind != null) {
         await loadCategories(kind);
@@ -324,7 +334,7 @@ class CashflowFormViewModel {
     occurredOn: occurredOn,
     manualRate: manualRate,
     comment: comment,
-    propertyId: propertyId ?? entry.value?.propertyId,
+    propertyId: propertyId ?? entry.value?.propertyId ?? this.propertyId,
     accountId: accountId,
     affectsBalance: affectsBalance,
   );
