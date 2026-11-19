@@ -255,7 +255,7 @@ void main() {
     await form.load(kind: CashflowKind.expense);
     expect(form.state.value, isA<ViewError<void>>());
     expect(
-      (form.state.value! as ViewError<void>).errorCode,
+      (form.state.value as ViewError<void>).errorCode,
       DomainErrorCode.notFound,
     );
   });
