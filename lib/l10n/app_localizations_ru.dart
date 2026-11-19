@@ -1600,4 +1600,88 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get settingsAboutDetails => 'Подробнее';
+
+  @override
+  String get settingsBackupSection => 'Резервная копия';
+
+  @override
+  String get settingsBackupWarning =>
+      'Файл не зашифрован и содержит финансовые данные. Храните и передавайте его только доверенным способом.';
+
+  @override
+  String get backupShare => 'Поделиться';
+
+  @override
+  String get backupSave => 'Сохранить файл';
+
+  @override
+  String get backupImport => 'Импортировать';
+
+  @override
+  String get backupImportConfirmTitle => 'Заменить данные?';
+
+  @override
+  String get backupImportConfirmMessage =>
+      'Текущие локальные данные будут заменены. Рекомендуется сначала сохранить резервную копию.';
+
+  @override
+  String get backupImportConfirm => 'Заменить';
+
+  @override
+  String get backupExportShared => 'Файл передан системе.';
+
+  @override
+  String get backupExportSaved => 'Резервная копия сохранена.';
+
+  @override
+  String get backupShareCancelled => 'Отправка отменена.';
+
+  @override
+  String get backupShareUnknown =>
+      'Файл подготовлен. Результат отправки неизвестен.';
+
+  @override
+  String get backupSaveCancelled => 'Сохранение отменено.';
+
+  @override
+  String get backupImportDone =>
+      'Импорт завершён. Приложение будет перезапущено.';
+
+  @override
+  String get backupExportFailed => 'Не удалось создать резервную копию.';
+
+  @override
+  String get backupImportFailed =>
+      'Импорт не выполнен, прежние данные восстановлены.';
+
+  @override
+  String get backupRestoreFailed =>
+      'Не удалось автоматически восстановить прежние данные. Не вводите новые данные и не повторяйте импорт. Rollback-файл сохранён на устройстве.';
+
+  @override
+  String get backupValidationNotDatabase => 'Файл не является базой SQLite.';
+
+  @override
+  String get backupValidationCorrupted => 'Файл повреждён.';
+
+  @override
+  String get backupValidationOtherApp => 'Это не база FinanseApp.';
+
+  @override
+  String backupValidationNewerSchema(int schema, int installed) {
+    return 'База создана более новой версией приложения (schema $schema, установлено $installed).';
+  }
+
+  @override
+  String get backupValidationReferences => 'База содержит некорректные ссылки.';
+
+  @override
+  String get backupRestartTitle => 'Требуется перезапуск';
+
+  @override
+  String get backupRestartMessage =>
+      'Импорт завершён. Приложение будет перезапущено.';
+
+  @override
+  String get backupRestartOk => 'Перезапустить';
 }

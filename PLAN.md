@@ -1405,7 +1405,7 @@
   Перед PR спросить о e2e.
 - **Предлагаемый commit:** `task/10.3: реализовать экран настроек`.
 
-### 10.4 SQLite export/share/save/import с rollback — [ ]
+### 10.4 SQLite export/share/save/import с rollback — [x] (2026-11-19)
 
 - **Приоритет/зависимости:** P1; после 10.3 и 3.2. **BR:** BU-1…6.
 - **Files:** Create `lib/app/app_restart.dart`, backup domain/data/logic files и
@@ -1438,6 +1438,24 @@
   disabled, повторный tap не очищает состояние; общий DoD/design review.
   Перед PR спросить о e2e, включая backup_flow.
 - **Предлагаемый commit:** `task/10.4: добавить резервное копирование БД`.
+- **Итог:** deps (path_provider/path/file_picker/share_plus/cross_file/sqlite3); domain
+  BackupService/exception/gateway; `LocalDatabaseBackupService` — VACUUM INTO export,
+  validation (magic/integrity/application_id/user_version/foreign_key_check), candidate
+  migration, rollback snapshot, безопасный replace с восстановлением;
+  `BackupViewModel` с typed-статусами и blocking restoreFailed; `BackupSection` в настройках
+  (равноправные tonal-кнопки с иконками/вертикальный стек, warning-тон, busy-per-action,
+  destructive confirm, одиночный nondismissible restart-диалог, blocking-restoreFailed);
+  `AppRestartHost` с
+  пересозданием ServiceLocator/router по `appRestartTick`; Android SAF-канал
+  `com.example.finanseapp/file_saver`; тесты: VM статусы/блокировки + реальные temp-SQLite
+  export/import/wrong-magic/foreign-app/newer-schema/replace/reopen/rollback, BackupSection
+  states/320-dark (12); всего 537. Импорт больше не пересоздаёт UI сам: при успехе диалог →
+  restart, при откате показывается сообщение и кнопка перезапуска.
+- **Отложено:** `backup_flow` integration test и полный SAF-прогон на Android, восстановление
+  `*.pre-import` при старте, `beforeOpen`-проверка application_id, post-migration integrity/FK
+  для схем >1, retry picker по расширениям, background cleanup временных файлов, desktop
+  share edge-cases, визуальный QA.
+- **Приоритет/зависимости:** P1; после 10.3 и 3.2. **BR:** BU-1…6.
 
 ### 10.5 Проверка обновлений через GitHub Releases — [ ]
 

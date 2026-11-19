@@ -3037,6 +3037,156 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Подробнее'**
   String get settingsAboutDetails;
+
+  /// Секция backup в настройках.
+  ///
+  /// In ru, this message translates to:
+  /// **'Резервная копия'**
+  String get settingsBackupSection;
+
+  /// Предупреждение backup.
+  ///
+  /// In ru, this message translates to:
+  /// **'Файл не зашифрован и содержит финансовые данные. Храните и передавайте его только доверенным способом.'**
+  String get settingsBackupWarning;
+
+  /// Действие share backup.
+  ///
+  /// In ru, this message translates to:
+  /// **'Поделиться'**
+  String get backupShare;
+
+  /// Действие save backup.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сохранить файл'**
+  String get backupSave;
+
+  /// Действие import backup.
+  ///
+  /// In ru, this message translates to:
+  /// **'Импортировать'**
+  String get backupImport;
+
+  /// Подтверждение импорта.
+  ///
+  /// In ru, this message translates to:
+  /// **'Заменить данные?'**
+  String get backupImportConfirmTitle;
+
+  /// Пояснение импорта.
+  ///
+  /// In ru, this message translates to:
+  /// **'Текущие локальные данные будут заменены. Рекомендуется сначала сохранить резервную копию.'**
+  String get backupImportConfirmMessage;
+
+  /// Подтвердить импорт.
+  ///
+  /// In ru, this message translates to:
+  /// **'Заменить'**
+  String get backupImportConfirm;
+
+  /// Share success.
+  ///
+  /// In ru, this message translates to:
+  /// **'Файл передан системе.'**
+  String get backupExportShared;
+
+  /// Save success.
+  ///
+  /// In ru, this message translates to:
+  /// **'Резервная копия сохранена.'**
+  String get backupExportSaved;
+
+  /// Share cancelled.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отправка отменена.'**
+  String get backupShareCancelled;
+
+  /// Share unavailable.
+  ///
+  /// In ru, this message translates to:
+  /// **'Файл подготовлен. Результат отправки неизвестен.'**
+  String get backupShareUnknown;
+
+  /// Save cancelled.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сохранение отменено.'**
+  String get backupSaveCancelled;
+
+  /// Import success.
+  ///
+  /// In ru, this message translates to:
+  /// **'Импорт завершён. Приложение будет перезапущено.'**
+  String get backupImportDone;
+
+  /// Export error.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось создать резервную копию.'**
+  String get backupExportFailed;
+
+  /// Import rollback.
+  ///
+  /// In ru, this message translates to:
+  /// **'Импорт не выполнен, прежние данные восстановлены.'**
+  String get backupImportFailed;
+
+  /// Blocking rollback failure.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось автоматически восстановить прежние данные. Не вводите новые данные и не повторяйте импорт. Rollback-файл сохранён на устройстве.'**
+  String get backupRestoreFailed;
+
+  /// Validation error.
+  ///
+  /// In ru, this message translates to:
+  /// **'Файл не является базой SQLite.'**
+  String get backupValidationNotDatabase;
+
+  /// Validation error.
+  ///
+  /// In ru, this message translates to:
+  /// **'Файл повреждён.'**
+  String get backupValidationCorrupted;
+
+  /// Validation error.
+  ///
+  /// In ru, this message translates to:
+  /// **'Это не база FinanseApp.'**
+  String get backupValidationOtherApp;
+
+  /// Validation error new schema.
+  ///
+  /// In ru, this message translates to:
+  /// **'База создана более новой версией приложения (schema {schema}, установлено {installed}).'**
+  String backupValidationNewerSchema(int schema, int installed);
+
+  /// Validation error FK.
+  ///
+  /// In ru, this message translates to:
+  /// **'База содержит некорректные ссылки.'**
+  String get backupValidationReferences;
+
+  /// Restart dialog title.
+  ///
+  /// In ru, this message translates to:
+  /// **'Требуется перезапуск'**
+  String get backupRestartTitle;
+
+  /// Restart dialog.
+  ///
+  /// In ru, this message translates to:
+  /// **'Импорт завершён. Приложение будет перезапущено.'**
+  String get backupRestartMessage;
+
+  /// Restart action.
+  ///
+  /// In ru, this message translates to:
+  /// **'Перезапустить'**
+  String get backupRestartOk;
 }
 
 class _AppLocalizationsDelegate

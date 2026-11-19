@@ -1,4 +1,5 @@
 import 'package:finanseapp/app/routes.dart';
+import 'package:finanseapp/core/features/backup/logic/backup_view_model.dart';
 import 'package:finanseapp/core/database/app_database.dart';
 import 'package:finanseapp/app/shell_screen.dart';
 import 'package:finanseapp/core/di/service_locator.dart';
@@ -454,6 +455,7 @@ GoRouter buildRouter({required ServiceLocator locator}) {
                     name: 'settings',
                     builder: (context, state) => SettingsScreen(
                       viewModel: locator.get<SettingsViewModel>(),
+                      backupViewModel: locator.get<BackupViewModel>(),
                     ),
                   ),
                   GoRoute(
