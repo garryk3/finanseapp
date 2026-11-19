@@ -209,14 +209,8 @@ class _CashflowFormScreenState extends State<CashflowFormScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final vm = widget.viewModel;
-    final notFound = switch (vm.state.value) {
-      ViewError(errorCode: DomainErrorCode.notFound) => true,
-      _ => false,
-    };
     return AppScaffold(
-      title: notFound
-          ? l10n.cashflowDetailsTitle
-          : (vm.isEditing ? l10n.cashflowFormEdit : l10n.cashflowFormNew),
+      title: vm.isEditing ? l10n.cashflowFormEdit : l10n.cashflowFormNew,
       body: SignalBuilder(
         builder: (context) {
           if (vm.state.value case ViewError(

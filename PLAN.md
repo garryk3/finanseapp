@@ -1001,16 +1001,13 @@
 - **DoD:** нет автоматического изменения стоимости/второй asset tx, property periods совпадают
   с global aggregate; общий DoD. Перед PR спросить о e2e.
 - **Предлагаемый commit:** `task/07.4: завершить денежный поток недвижимости`.
-- **Итог:** property context передаётся в `CashflowFormViewModel`, валидируется через
-  assetRepository (invalid id → NotFound/empty state), заголовок формы показывает квартиру;
-  на форме квартиры недоступна привязка к счёту (включая edit по entry.propertyId);
-  после сохранения property-секция и глобальный журнал обновляются реактивно, стоимость
-  квартиры не меняется. Тесты: income/expense по property обновляют только cashflow,
-  invalid property id → ошибка, форма квартиры не предлагает счёт; property-фильтры
-  глобального журнала уже покрыты 7.3. Тесты: income/expense квартиры в общем итоге и
-  неизменность стоимости, invalid property id → ViewError NotFound (с проверкой errorCode).
-  Контекст «Квартира: имя · Не влияет на баланс счёта» показан в форме (в т.ч. для edit
-  по entry.propertyId); NotFound-CTA ведёт на dashboard.
+- **Итог:** property context передаётся в `CashflowFormViewModel` и валидируется через
+  assetRepository (invalid id → NotFound/empty state); в форме показывается «Квартира: имя ·
+  Не влияет на баланс счёта» (в т.ч. для edit по entry.propertyId), привязка к счёту на
+  property-форме недоступна; после сохранения property-секция и глобальный журнал обновляются
+  реактивно, стоимость квартиры не меняется. Тесты: income/expense квартиры в общем итоге и
+  неизменность стоимости, invalid property id → ViewError notFound (с проверкой errorCode);
+  property-фильтры глобального журнала покрыты 7.3; NotFound-CTA ведёт на dashboard.
 - **Отложено:** integration_test cashflow_flow (e2e сценарий квартиры), виджет-тест формы
   (нет account switch / inline NotFound), diff в audit, badge связи, визуальный QA.
 

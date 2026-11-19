@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 
 import 'package:decimal/decimal.dart';
 import 'package:finanseapp/core/domain/common/currency.dart';
@@ -276,8 +277,15 @@ class CashflowFormViewModel {
             if (snapshot.asset is PropertyAsset) {
               property.value = snapshot.asset as PropertyAsset;
             }
-          } catch (_) {
-            // Контекст квартиры не блокирует редактирование записи.
+          } on DomainException {
+            // Нет доступа к квартире — контекст просто не показываем.
+          } catch (error, stackTrace) {
+            developer.log(
+              'Не удалось загрузить контекст квартиры',
+              name: 'cashflow.form',
+              error: error,
+              stackTrace: stackTrace,
+            );
           }
         }
         await loadCategories(current.kind);
