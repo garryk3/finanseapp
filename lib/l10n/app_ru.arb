@@ -1480,7 +1480,7 @@
   "@cashflowTotalsNet": {
     "description": "Итог денежного потока."
   },
-  "cashflowPeriodAll": "Все время",
+  "cashflowPeriodAll": "Всё время",
   "@cashflowPeriodAll": {
     "description": "Период: все время."
   },
@@ -1587,5 +1587,78 @@
   "cashflowErrorCurrencyMismatch": "Валюта записи не совпадает с валютой счёта.",
   "@cashflowErrorCurrencyMismatch": {
     "description": "Ошибка валюты при связи со счётом."
+  },
+  "cashflowSearchLabel": "Поиск по комментарию",
+  "@cashflowSearchLabel": {
+    "description": "Поиск по комментарию cashflow."
+  },
+  "cashflowSearchHint": "Комментарий",
+  "@cashflowSearchHint": {
+    "description": "Подсказка поиска."
+  },
+  "cashflowSearchClear": "Очистить поиск",
+  "@cashflowSearchClear": {
+    "description": "Очистка поиска."
+  },
+  "cashflowFilterAll": "Все",
+  "@cashflowFilterAll": {
+    "description": "Все виды записей."
+  },
+  "cashflowFilteredEmptyTitle": "Записей не найдено",
+  "@cashflowFilteredEmptyTitle": {
+    "description": "Пустой фильтр."
+  },
+  "cashflowFilteredEmptyMessage": "Измените фильтры или сбросьте их.",
+  "@cashflowFilteredEmptyMessage": {
+    "description": "Пояснение пустого фильтра."
+  },
+  "cashflowResetFilters": "Сбросить фильтры",
+  "@cashflowResetFilters": {
+    "description": "Сброс фильтров."
+  },
+  "cashflowFilters": "Фильтры",
+  "@cashflowFilters": {
+    "description": "Открыть дополнительные фильтры."
+  },
+  "cashflowAllCategories": "Все категории",
+  "@cashflowAllCategories": {
+    "description": "Сброс фильтра категории."
+  },
+  "cashflowAllAccounts": "Все счета",
+  "@cashflowAllAccounts": {
+    "description": "Сброс фильтра счёта."
+  },
+  "cashflowAllCurrencies": "Все валюты",
+  "@cashflowAllCurrencies": {
+    "description": "Сброс фильтра валюты."
+  },
+  "cashflowAuditTitle": "Аудит записи",
+  "@cashflowAuditTitle": {
+    "description": "Заголовок аудита денежного потока."
+  },
+  "commonDone": "Готово",
+  "@commonDone": {
+    "description": "Закрыть диалог."
+  },
+  "cashflowSummaryInRub": "Итоги в ₽",
+  "@cashflowSummaryInRub": {
+    "description": "Пометка рублёвых итогов."
+  },
+  "cashflowAllProperties": "Все квартиры",
+  "@cashflowAllProperties": {
+    "description": "Сброс фильтра квартиры."
+  },
+  "cashflowPropertyLabel": "Квартира",
+  "@cashflowPropertyLabel": {
+    "description": "Поле фильтра по квартире."
+  },
+  "cashflowFiltersWithCount": "Фильтры · {count}",
+  "@cashflowFiltersWithCount": {
+    "description": "Кнопка фильтров со счётчиком.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }

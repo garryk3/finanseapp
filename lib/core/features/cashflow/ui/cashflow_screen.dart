@@ -16,13 +16,20 @@ import 'package:finanseapp/core/presentation/money_formatter.dart';
 import 'package:finanseapp/core/presentation/view_state.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
 import 'package:finanseapp/uikit/app_date_header.dart';
+import 'package:finanseapp/uikit/app_dialog.dart';
 import 'package:finanseapp/uikit/app_empty_state.dart';
 import 'package:finanseapp/uikit/app_error_state.dart';
+import 'package:finanseapp/uikit/app_button.dart';
+import 'package:finanseapp/uikit/app_filter_bar.dart';
+import 'package:finanseapp/uikit/app_filter_chip.dart';
 import 'package:finanseapp/uikit/app_floating_action_button.dart';
 import 'package:finanseapp/uikit/app_list_view.dart';
 import 'package:finanseapp/uikit/app_operation_list_tile.dart';
 import 'package:finanseapp/uikit/app_scaffold.dart';
+import 'package:finanseapp/uikit/app_search_field.dart';
+import 'package:finanseapp/uikit/app_select.dart';
 import 'package:finanseapp/uikit/app_skeleton.dart';
+import 'package:finanseapp/uikit/app_text.dart';
 import 'package:finanseapp/uikit/app_cashflow_summary.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
@@ -45,6 +52,7 @@ class CashflowScreen extends StatefulWidget {
 
 class _CashflowScreenState extends State<CashflowScreen> {
   late CashflowViewModel _viewModel = widget.viewModel;
+  final _search = TextEditingController();
 
   @override
   void initState() {
@@ -57,14 +65,97 @@ class _CashflowScreenState extends State<CashflowScreen> {
     super.didUpdateWidget(oldWidget);
     if (!identical(oldWidget.viewModel, widget.viewModel)) {
       oldWidget.viewModel.dispose();
+      _search.clear();
       _viewModel = widget.viewModel..init();
     }
   }
 
   @override
   void dispose() {
+    _search.dispose();
     _viewModel.dispose();
     super.dispose();
+  }
+
+  void _resetFilters() {
+    _search.clear();
+    FocusScope.of(context).unfocus();
+    _viewModel.resetFilters();
+  }
+
+  Future<void> _openAdvancedFilters() async {
+    final l10n = AppLocalizations.of(context);
+    await showAppDialog<void>(
+      context: context,
+      builder: (context) => AppDialog(
+        title: AppText(l10n.cashflowFilters),
+        scrollable: true,
+        content: SignalBuilder(
+          builder: (context) {
+            final vm = _viewModel;
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AppSelect<int>(
+                  label: l10n.cashflowCategoryLabel,
+                  value: vm.categoryId.value,
+                  hint: l10n.cashflowAllCategories,
+                  items: [
+                    for (final category in vm.categories.value)
+                      AppSelectItem(value: category.id, label: category.name),
+                  ],
+                  onChanged: (value) => vm.setCategory(value),
+                ),
+                AppSelect<int>(
+                  label: l10n.cashflowPropertyLabel,
+                  value: vm.propertyId.value,
+                  hint: l10n.cashflowAllProperties,
+                  items: [
+                    for (final property in vm.properties.value)
+                      AppSelectItem(value: property.id, label: property.name),
+                  ],
+                  searchable: true,
+                  onChanged: (value) => vm.setProperty(value),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                AppSelect<int>(
+                  label: l10n.cashflowAccountLabel,
+                  value: vm.accountId.value,
+                  hint: l10n.cashflowAllAccounts,
+                  items: [
+                    for (final account in vm.accounts.value)
+                      AppSelectItem(
+                        value: account.id,
+                        label: account.name,
+                        subtitle: account.currencyCode,
+                      ),
+                  ],
+                  searchable: true,
+                  onChanged: (value) => vm.setAccount(value),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                AppSelect<String>(
+                  label: l10n.cashflowCurrencyLabel,
+                  value: vm.currencyCode.value,
+                  hint: l10n.cashflowAllCurrencies,
+                  items: [
+                    for (final code in vm.currencies.value.keys)
+                      AppSelectItem(value: code, label: code),
+                  ],
+                  onChanged: (value) => vm.setCurrency(value),
+                ),
+              ],
+            );
+          },
+        ),
+        actions: [
+          AppButton(
+            label: l10n.commonDone,
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _add() async {
@@ -110,6 +201,100 @@ class _CashflowScreenState extends State<CashflowScreen> {
               ),
             ),
           ),
+          SignalBuilder(
+            builder: (context) {
+              final vm = _viewModel;
+              final state = vm.state.value;
+              if (state is! ViewData<List<CashflowEntry>> ||
+                  (state.value.isEmpty && !vm.filtersActive)) {
+                return const SizedBox.shrink();
+              }
+              final listEmpty = state.value.isEmpty;
+              final advancedCount =
+                  (vm.categoryId.value == null ? 0 : 1) +
+                  (vm.accountId.value == null ? 0 : 1) +
+                  (vm.currencyCode.value == null ? 0 : 1) +
+                  (vm.propertyId.value == null ? 0 : 1);
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    AppSearchField(
+                      controller: _search,
+                      label: l10n.cashflowSearchLabel,
+                      hint: l10n.cashflowSearchHint,
+                      onChanged: vm.setQuery,
+                      onClear: () => vm.setQuery(''),
+                      clearTooltip: l10n.cashflowSearchClear,
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    AppFilterBar(
+                      activeCount:
+                          (vm.query.value.trim().isEmpty ? 0 : 1) +
+                          (vm.kind.value == null ? 0 : 1) +
+                          (vm.period.value == CashflowJournalPeriod.all
+                              ? 0
+                              : 1) +
+                          (vm.categoryId.value == null ? 0 : 1) +
+                          (vm.accountId.value == null ? 0 : 1) +
+                          (vm.currencyCode.value == null ? 0 : 1) +
+                          (vm.propertyId.value == null ? 0 : 1),
+                      onReset: vm.filtersActive && !listEmpty
+                          ? _resetFilters
+                          : null,
+                      resetLabel: l10n.cashflowResetFilters,
+                      children: [
+                        AppFilterChip(
+                          label: l10n.cashflowFilterAll,
+                          selected: vm.kind.value == null,
+                          onSelected: (_) => vm.setKind(null),
+                        ),
+                        AppFilterChip(
+                          label: l10n.cashflowIncome,
+                          selected: vm.kind.value == CashflowKind.income,
+                          onSelected: (_) => vm.setKind(CashflowKind.income),
+                        ),
+                        AppFilterChip(
+                          label: l10n.cashflowExpense,
+                          selected: vm.kind.value == CashflowKind.expense,
+                          onSelected: (_) => vm.setKind(CashflowKind.expense),
+                        ),
+                        AppFilterChip(
+                          label: l10n.cashflowPeriodMonth,
+                          selected:
+                              vm.period.value == CashflowJournalPeriod.month,
+                          onSelected: (_) =>
+                              vm.setPeriod(CashflowJournalPeriod.month),
+                        ),
+                        AppFilterChip(
+                          label: l10n.cashflowPeriodYear,
+                          selected:
+                              vm.period.value == CashflowJournalPeriod.year,
+                          onSelected: (_) =>
+                              vm.setPeriod(CashflowJournalPeriod.year),
+                        ),
+                        AppFilterChip(
+                          label: l10n.cashflowPeriodAll,
+                          selected:
+                              vm.period.value == CashflowJournalPeriod.all,
+                          onSelected: (_) =>
+                              vm.setPeriod(CashflowJournalPeriod.all),
+                        ),
+                      ],
+                    ),
+                    AppButton(
+                      label: advancedCount == 0
+                          ? l10n.cashflowFilters
+                          : l10n.cashflowFiltersWithCount(advancedCount),
+                      variant: AppButtonVariant.text,
+                      onPressed: _openAdvancedFilters,
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
           Expanded(
             child: SignalBuilder(
               builder: (context) {
@@ -137,13 +322,22 @@ class _CashflowScreenState extends State<CashflowScreen> {
                     value.isEmpty
                         ? AppListView(
                             children: [
-                              AppEmptyState(
-                                icon: Icons.receipt_long_outlined,
-                                title: l10n.cashflowEmptyTitle,
-                                message: l10n.cashflowEmptyMessage,
-                                actionLabel: l10n.cashflowAdd,
-                                onAction: _add,
-                              ),
+                              if (vm.filtersActive)
+                                AppEmptyState(
+                                  icon: Icons.search_off,
+                                  title: l10n.cashflowFilteredEmptyTitle,
+                                  message: l10n.cashflowFilteredEmptyMessage,
+                                  actionLabel: l10n.cashflowResetFilters,
+                                  onAction: _resetFilters,
+                                )
+                              else
+                                AppEmptyState(
+                                  icon: Icons.receipt_long_outlined,
+                                  title: l10n.cashflowEmptyTitle,
+                                  message: l10n.cashflowEmptyMessage,
+                                  actionLabel: l10n.cashflowAdd,
+                                  onAction: _add,
+                                ),
                             ],
                           )
                         : _journal(context, l10n, vm, value),
@@ -183,7 +377,13 @@ class _CashflowScreenState extends State<CashflowScreen> {
               incomeText: _rub(totals.income),
               expenseText: _rub(totals.expense),
               netText: _rub(totals.net),
-              periodLabel: l10n.cashflowPeriodAll,
+              periodLabel:
+                  '${l10n.cashflowSummaryInRub} · '
+                  '${switch (vm.period.value) {
+                    CashflowJournalPeriod.month => l10n.cashflowPeriodMonth,
+                    CashflowJournalPeriod.year => l10n.cashflowPeriodYear,
+                    CashflowJournalPeriod.all => l10n.cashflowPeriodAll,
+                  }}',
               incomeLabel: l10n.cashflowTotalsIncome,
               expenseLabel: l10n.cashflowTotalsExpense,
               netLabel: l10n.cashflowTotalsNet,

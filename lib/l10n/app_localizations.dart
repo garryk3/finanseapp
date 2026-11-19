@@ -2118,7 +2118,7 @@ abstract class AppLocalizations {
   /// Период: все время.
   ///
   /// In ru, this message translates to:
-  /// **'Все время'**
+  /// **'Всё время'**
   String get cashflowPeriodAll;
 
   /// Поле валюты дохода/расхода.
@@ -2276,6 +2276,108 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Валюта записи не совпадает с валютой счёта.'**
   String get cashflowErrorCurrencyMismatch;
+
+  /// Поиск по комментарию cashflow.
+  ///
+  /// In ru, this message translates to:
+  /// **'Поиск по комментарию'**
+  String get cashflowSearchLabel;
+
+  /// Подсказка поиска.
+  ///
+  /// In ru, this message translates to:
+  /// **'Комментарий'**
+  String get cashflowSearchHint;
+
+  /// Очистка поиска.
+  ///
+  /// In ru, this message translates to:
+  /// **'Очистить поиск'**
+  String get cashflowSearchClear;
+
+  /// Все виды записей.
+  ///
+  /// In ru, this message translates to:
+  /// **'Все'**
+  String get cashflowFilterAll;
+
+  /// Пустой фильтр.
+  ///
+  /// In ru, this message translates to:
+  /// **'Записей не найдено'**
+  String get cashflowFilteredEmptyTitle;
+
+  /// Пояснение пустого фильтра.
+  ///
+  /// In ru, this message translates to:
+  /// **'Измените фильтры или сбросьте их.'**
+  String get cashflowFilteredEmptyMessage;
+
+  /// Сброс фильтров.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сбросить фильтры'**
+  String get cashflowResetFilters;
+
+  /// Открыть дополнительные фильтры.
+  ///
+  /// In ru, this message translates to:
+  /// **'Фильтры'**
+  String get cashflowFilters;
+
+  /// Сброс фильтра категории.
+  ///
+  /// In ru, this message translates to:
+  /// **'Все категории'**
+  String get cashflowAllCategories;
+
+  /// Сброс фильтра счёта.
+  ///
+  /// In ru, this message translates to:
+  /// **'Все счета'**
+  String get cashflowAllAccounts;
+
+  /// Сброс фильтра валюты.
+  ///
+  /// In ru, this message translates to:
+  /// **'Все валюты'**
+  String get cashflowAllCurrencies;
+
+  /// Заголовок аудита денежного потока.
+  ///
+  /// In ru, this message translates to:
+  /// **'Аудит записи'**
+  String get cashflowAuditTitle;
+
+  /// Закрыть диалог.
+  ///
+  /// In ru, this message translates to:
+  /// **'Готово'**
+  String get commonDone;
+
+  /// Пометка рублёвых итогов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Итоги в ₽'**
+  String get cashflowSummaryInRub;
+
+  /// Сброс фильтра квартиры.
+  ///
+  /// In ru, this message translates to:
+  /// **'Все квартиры'**
+  String get cashflowAllProperties;
+
+  /// Поле фильтра по квартире.
+  ///
+  /// In ru, this message translates to:
+  /// **'Квартира'**
+  String get cashflowPropertyLabel;
+
+  /// Кнопка фильтров со счётчиком.
+  ///
+  /// In ru, this message translates to:
+  /// **'Фильтры · {count}'**
+  String cashflowFiltersWithCount(int count);
 }
 
 class _AppLocalizationsDelegate

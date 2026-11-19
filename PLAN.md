@@ -948,7 +948,7 @@
 - **Отложено:** единый choice «счёт/квартира» в одной форме, badge связи в журнале и
   audit денежного потока (7.3/7.4), ручное unlink вне toggle, визуальный QA.
 
-### 7.3 Журнал денежного потока и фильтры — [ ]
+### 7.3 Журнал денежного потока и фильтры — [x] (2026-11-19)
 
 - **Приоритет/зависимости:** P1; после 7.2. **BR:** IE-10…15, S-2…5, RE-3.
 - **Files:** Create cashflow state/list/filter sheet; Modify cashflow screen/VM/details,
@@ -960,10 +960,30 @@
 - **TDD:** transfer и deposit без cashflow не попадают; связанный expense попадает один раз;
   account filter показывает affectsBalance entries; deleted скрыт, summary уменьшается;
   empty filtered Reset восстанавливает; date end inclusive.
+- **Рабочий план (2026-11-19):**
+  - **VM:** фильтры query/kind/period/category/account/currency, счета и категории в
+    сигналах, reactive watch без утечки подписок.
+  - **UI:** поиск + фильтры вида/периода + advanced-селекты (категория/счёт/валюта),
+    сброс, filtered empty, группы по дате, lazy builder, summary из отфильтрованного набора.
+  - **Audit:** экран ревизий денежного потока `/more/audit/cashflow/:id`; из NotFound
+    удалённой записи — переход в аудит.
+  - **Тесты:** account filter только affectsBalance, deleted скрыт и summary уменьшается,
+    сброс восстанавливает, конец периода включителен, audit удалённой записи.
 - **Генерация:** gen-l10n; schema не меняется.
 - **DoD:** фильтры не мутируют глобально другой tab, large list lazy, accessible amounts;
   общий DoD/design review. Перед PR спросить о e2e.
 - **Предлагаемый commit:** `task/07.3: добавить журнал денежного потока`.
+- **Итог:** VM журнала с query/kind/period (месяц/год/всё)/category/account/currency,
+  reactive watch и сбросом; счета и категории в сигналах; UI — поиск, чипы вида/периода,
+  advanced-селекты категории/счёта/валюты, filtered empty, summary из отфильтрованного
+  набора, группы по дате; audit денежного потока (append-only ревизии) и переход в него из
+  NotFound удалённой записи. Тесты: account filter только связанные записи, deleted скрыт и
+  summary уменьшается, конец периода включителен, audit create/edit/delete, фильтры.
+  По ревью: filtered empty с reset, счётчик всех фильтров включая advanced, advanced в
+  диалоге (шапка низкая), property-фильтр, periodLabel с периодом и «Итоги в RUB»,
+  widget-тест пустого фильтра и сброса.
+- **Отложено:** ленивый builder при большом списке и совмещение шапки фильтров со списком,
+  badge связи в журнале, визуальный QA 320dp/1.3.
 
 ### 7.4 Операции квартиры end-to-end — [ ]
 

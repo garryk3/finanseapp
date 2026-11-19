@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:decimal/decimal.dart';
 import 'package:finanseapp/core/domain/common/currency.dart';
+import 'package:finanseapp/core/domain/common/date_range.dart';
 import 'package:finanseapp/core/domain/common/local_date.dart';
 import 'package:finanseapp/core/domain/common/money.dart';
 import 'package:finanseapp/core/domain/common/result.dart';
@@ -25,17 +26,33 @@ class CashflowViewModel {
     required this.repository,
     required this.categoryRepository,
     required this.currencyRepository,
+    required this.assetRepository,
+    required this.today,
   });
 
   final CashflowRepository repository;
   final CategoryRepository categoryRepository;
   final CurrencyRepository currencyRepository;
+  final AssetRepository assetRepository;
+  final LocalDate today;
 
   final Signal<ViewState<List<CashflowEntry>>> state = signal(
     const ViewLoading(),
   );
   final Signal<Map<int, String>> categoryNames = signal(const {});
   final Signal<Map<String, Currency>> currencies = signal(const {});
+  final Signal<List<CashflowCategory>> categories = signal(const []);
+  final Signal<List<AccountAsset>> accounts = signal(const []);
+  final Signal<List<PropertyAsset>> properties = signal(const []);
+  final Signal<String> query = signal('');
+  final Signal<CashflowKind?> kind = signal(null);
+  final Signal<CashflowJournalPeriod> period = signal(
+    CashflowJournalPeriod.all,
+  );
+  final Signal<int?> categoryId = signal(null);
+  final Signal<int?> accountId = signal(null);
+  final Signal<String?> currencyCode = signal(null);
+  final Signal<int?> propertyId = signal(null);
 
   StreamSubscription<List<CashflowEntry>>? _subscription;
   bool _disposed = false;
@@ -48,10 +65,91 @@ class CashflowViewModel {
 
   void reload() => _subscribe();
 
+  bool get filtersActive =>
+      query.value.trim().isNotEmpty ||
+      kind.value != null ||
+      period.value != CashflowJournalPeriod.all ||
+      categoryId.value != null ||
+      accountId.value != null ||
+      currencyCode.value != null ||
+      propertyId.value != null;
+
+  void setQuery(String value) {
+    query.value = value;
+    _subscribe();
+  }
+
+  void setKind(CashflowKind? value) {
+    kind.value = value;
+    _subscribe();
+  }
+
+  void setPeriod(CashflowJournalPeriod value) {
+    period.value = value;
+    _subscribe();
+  }
+
+  void setCategory(int? value) {
+    categoryId.value = value;
+    _subscribe();
+  }
+
+  void setAccount(int? value) {
+    accountId.value = value;
+    _subscribe();
+  }
+
+  void setCurrency(String? value) {
+    currencyCode.value = value;
+    _subscribe();
+  }
+
+  void setProperty(int? value) {
+    propertyId.value = value;
+    _subscribe();
+  }
+
+  void resetFilters() {
+    query.value = '';
+    kind.value = null;
+    period.value = CashflowJournalPeriod.all;
+    categoryId.value = null;
+    accountId.value = null;
+    currencyCode.value = null;
+    propertyId.value = null;
+    _subscribe();
+  }
+
+  DateRange? get _range => switch (period.value) {
+    CashflowJournalPeriod.month => DateRange(
+      start: LocalDate(today.year, today.month, 1),
+      end: LocalDate(
+        today.year,
+        today.month,
+        DateTime(today.year, today.month + 1, 0).day,
+      ),
+    ),
+    CashflowJournalPeriod.year => DateRange(
+      start: LocalDate(today.year, 1, 1),
+      end: LocalDate(today.year, 12, 31),
+    ),
+    CashflowJournalPeriod.all => null,
+  };
+
   void _subscribe() {
     _subscription?.cancel();
     _subscription = repository
-        .watch(const CashflowFilter())
+        .watch(
+          CashflowFilter(
+            period: _range,
+            kind: kind.value,
+            categoryId: categoryId.value,
+            accountId: accountId.value,
+            currencyCode: currencyCode.value,
+            propertyId: propertyId.value,
+            query: query.value,
+          ),
+        )
         .listen(
           (entries) {
             if (_disposed) return;
@@ -72,12 +170,26 @@ class CashflowViewModel {
       final expense = await categoryRepository
           .watchByKind(CashflowKind.expense, includeArchived: true)
           .first;
+      final all = [...income, ...expense];
+      categories.value = all;
       categoryNames.value = {
-        for (final category in [...income, ...expense])
-          category.id: category.name,
+        for (final category in all) category.id: category.name,
       };
       final list = await currencyRepository.watchAll().first;
       currencies.value = {for (final currency in list) currency.code: currency};
+      final snapshots = await assetRepository.watchAll().first;
+      accounts.value = [
+        for (final snapshot in snapshots)
+          if (snapshot.asset is AccountAsset &&
+              snapshot.asset.archivedAt == null)
+            snapshot.asset as AccountAsset,
+      ];
+      properties.value = [
+        for (final snapshot in snapshots)
+          if (snapshot.asset is PropertyAsset &&
+              snapshot.asset.archivedAt == null)
+            snapshot.asset as PropertyAsset,
+      ];
     } on Exception {
       // Справочники не блокируют журнал.
     }
@@ -105,6 +217,9 @@ class CashflowViewModel {
     _subscription?.cancel();
   }
 }
+
+/// Период журнала денежного потока.
+enum CashflowJournalPeriod { month, year, all }
 
 /// ViewModel формы дохода/расхода (7.1).
 class CashflowFormViewModel {

@@ -41,6 +41,8 @@ Future<void> main() async {
         repository: locator.get<CashflowRepository>(),
         categoryRepository: locator.get<CategoryRepository>(),
         currencyRepository: locator.get<CurrencyRepository>(),
+        assetRepository: locator.get<AssetRepository>(),
+        today: LocalDate.fromDateTime(DateTime.now()),
       ),
     )
     ..registerFactory<TransactionsViewModel>(
