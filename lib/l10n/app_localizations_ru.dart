@@ -1512,4 +1512,22 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get analyticsCollapsePeriods => 'Свернуть периоды';
+
+  @override
+  String get analyticsCashflowKindAll => 'Все операции';
+
+  @override
+  String get analyticsCashflowIncome => 'Доходы';
+
+  @override
+  String get analyticsCashflowExpense => 'Расходы';
+
+  @override
+  String get analyticsCategoryFilterLabel => 'Категория';
+
+  @override
+  String get analyticsCategoriesTitle => 'Итоги по категориям';
+
+  @override
+  String get analyticsUnknownCategory => 'Без категории';
 }

@@ -7,7 +7,13 @@ import 'package:finanseapp/core/domain/common/result.dart';
 import 'package:finanseapp/core/features/analytics/domain/analytics_queries.dart';
 import 'package:finanseapp/core/features/analytics/domain/net_worth_summary.dart';
 import 'package:finanseapp/core/features/analytics/logic/analytics_periods.dart';
+import 'package:finanseapp/core/features/analytics/domain/cashflow_period_point.dart';
 import 'package:finanseapp/core/features/assets/domain/asset.dart';
+import 'package:finanseapp/core/features/cashflow/domain/cashflow_filter.dart';
+import 'package:finanseapp/core/features/cashflow/domain/cashflow_summary.dart';
+import 'package:finanseapp/core/features/categories/domain/cashflow_category.dart';
+import 'package:finanseapp/core/features/categories/domain/category.dart';
+import 'package:finanseapp/core/features/categories/domain/category_repository.dart';
 import 'package:finanseapp/core/features/currencies/domain/currency_repository.dart';
 import 'package:finanseapp/core/features/currencies/domain/exchange_rate_repository.dart';
 import 'package:finanseapp/core/features/settings/domain/settings_repository.dart';
@@ -23,6 +29,7 @@ class AnalyticsViewModel {
     required this.settingsRepository,
     required this.currencyRepository,
     required this.rateRepository,
+    required this.categoryRepository,
     required this.now,
   });
 
@@ -30,6 +37,7 @@ class AnalyticsViewModel {
   final SettingsRepository settingsRepository;
   final CurrencyRepository currencyRepository;
   final ExchangeRateRepository rateRepository;
+  final CategoryRepository categoryRepository;
 
   /// Провайдер «сегодня»: экран открывается заново, но дата должна быть
   /// актуальной при каждом reload.
@@ -39,17 +47,29 @@ class AnalyticsViewModel {
   final Signal<AnalyticsPeriod> period = signal(AnalyticsPeriod.month);
   final Signal<AssetKind?> kind = signal(null);
   final Signal<List<NetWorthPoint>> points = signal(const []);
+  final Signal<CashflowKind?> cashflowKind = signal(null);
+  final Signal<int?> categoryId = signal(null);
+  final Signal<CashflowSummary?> cashflowSummary = signal(null);
+  final Signal<List<CashflowPeriodPoint>> cashflowPoints = signal(const []);
+  final Signal<List<CategoryTotal>> categoryTotals = signal(const []);
+  final Signal<Map<int, CashflowCategory>> categories = signal(const {});
   final Signal<Currency?> baseCurrency = signal(null);
   final Signal<Map<String, Currency>> currencies = signal(const {});
   final Signal<bool> hasAnyAssets = signal(false);
+  final Signal<bool> hasAnyCashflow = signal(false);
   final Signal<MissingRate?> missingRate = signal(null);
 
   LocalDate _today = LocalDate.fromDateTime(DateTime.now());
   int _requestId = 0;
   bool _disposed = false;
 
-  bool get filtersActive =>
+  bool get filtersActive => generalFiltersActive || cashflowFiltersActive;
+
+  bool get generalFiltersActive =>
       period.value != AnalyticsPeriod.month || kind.value != null;
+
+  bool get cashflowFiltersActive =>
+      cashflowKind.value != null || categoryId.value != null;
 
   void init() {
     _today = now();
@@ -71,7 +91,51 @@ class AnalyticsViewModel {
   void resetFilters() {
     period.value = AnalyticsPeriod.month;
     kind.value = null;
+    cashflowKind.value = null;
+    categoryId.value = null;
     _reload();
+  }
+
+  void resetGeneralFilters() {
+    period.value = AnalyticsPeriod.month;
+    kind.value = null;
+    _reload();
+  }
+
+  void resetCashflowFilters() {
+    cashflowKind.value = null;
+    categoryId.value = null;
+    _reload();
+  }
+
+  void selectCashflowKind(CashflowKind? value) {
+    if (cashflowKind.value == value) return;
+    cashflowKind.value = value;
+    final selectedCategory = categories.value[categoryId.value];
+    if (selectedCategory != null &&
+        value != null &&
+        selectedCategory.kind != value) {
+      categoryId.value = null;
+    }
+    if (value == null) categoryId.value = null;
+    _reload();
+  }
+
+  void selectCategory(int? value) {
+    if (categoryId.value == value) return;
+    categoryId.value = value;
+    _reload();
+  }
+
+  double categoryShare(CategoryTotal total) {
+    final category = categories.value[total.categoryId];
+    final summary = cashflowSummary.value;
+    if (category == null || summary == null) return 0;
+    final denominator = category.kind == CashflowKind.income
+        ? summary.income.minorUnits
+        : summary.expense.minorUnits;
+    if (denominator == 0) return 0;
+    return (total.total.minorUnits / denominator).clamp(0, 1).toDouble();
   }
 
   void reload() {
@@ -99,14 +163,37 @@ class AnalyticsViewModel {
         period: range,
         assetKind: selectedKind,
       );
+      final hasAnyCashflow = await queries.hasAnyCashflow();
+      final cashflowFilter = CashflowFilter(
+        period: period.value == AnalyticsPeriod.all ? null : range,
+        kind: cashflowKind.value,
+        categoryId: categoryId.value,
+      );
+      final cashflowSummary = await queries.cashflow(cashflowFilter);
+      final cashflowPoints = await queries.cashflowSeries(cashflowFilter);
+      final categoryTotals = await queries.cashflowByCategory(cashflowFilter);
+      final incomeCategories = await categoryRepository
+          .watchByKind(CashflowKind.income, includeArchived: true)
+          .first;
+      final expenseCategories = await categoryRepository
+          .watchByKind(CashflowKind.expense, includeArchived: true)
+          .first;
       if (_disposed || request != _requestId) return;
       baseCurrency.value = base;
       currencies.value = {
         for (final currency in currencyList) currency.code: currency,
       };
+      categories.value = {
+        for (final category in [...incomeCategories, ...expenseCategories])
+          category.id: category,
+      };
       hasAnyAssets.value = earliestAll != null;
+      this.hasAnyCashflow.value = hasAnyCashflow;
       missingRate.value = null;
       points.value = series;
+      this.cashflowSummary.value = cashflowSummary;
+      this.cashflowPoints.value = cashflowPoints;
+      this.categoryTotals.value = categoryTotals;
       state.value = const ViewData(null);
     } on DomainException catch (error) {
       if (_disposed || request != _requestId) return;
