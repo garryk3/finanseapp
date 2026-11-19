@@ -11,6 +11,7 @@ import 'package:finanseapp/uikit/app_error_state.dart';
 import 'package:finanseapp/uikit/app_floating_action_button.dart';
 import 'package:finanseapp/uikit/app_icon.dart';
 import 'package:finanseapp/uikit/app_list_tile.dart';
+import 'package:finanseapp/uikit/app_money_text.dart';
 import 'package:finanseapp/uikit/app_list_view.dart';
 import 'package:finanseapp/uikit/app_scaffold.dart';
 import 'package:finanseapp/uikit/app_skeleton.dart';
@@ -113,13 +114,12 @@ class _GoalsScreenState extends State<GoalsScreen> {
                         return AppListTile(
                           key: ValueKey(goal.id),
                           title: goal.name,
-                          subtitle:
-                              '${vm.formatTarget(goal)} · '
-                              '${_status(l10n, goal.status)}',
+                          subtitle: _status(l10n, goal.status),
                           leading: const AppIcon(Icons.flag_outlined),
-                          trailing: goal.status == GoalStatus.achieved
-                              ? const AppIcon(Icons.check_circle_outline)
-                              : null,
+                          trailing: AppMoneyText(
+                            vm.formatTarget(goal),
+                            style: Theme.of(context).textTheme.titleSmall,
+                          ),
                           onTap: () => _open(goal.id),
                         );
                       },

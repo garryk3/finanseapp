@@ -2499,12 +2499,6 @@ abstract class AppLocalizations {
   /// **'Закрыта'**
   String get goalStatusClosed;
 
-  /// Подтверждение сохранения.
-  ///
-  /// In ru, this message translates to:
-  /// **'Цель сохранена.'**
-  String get goalSaved;
-
   /// Подтверждение удаления.
   ///
   /// In ru, this message translates to:
@@ -2540,6 +2534,30 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Вернуть в работу'**
   String get goalActivate;
+
+  /// Заголовок секции формы цели.
+  ///
+  /// In ru, this message translates to:
+  /// **'Параметры цели'**
+  String get goalSectionTitle;
+
+  /// Поле валюты целевой суммы.
+  ///
+  /// In ru, this message translates to:
+  /// **'Валюта цели'**
+  String get goalCurrencyLabel;
+
+  /// Включить дату цели.
+  ///
+  /// In ru, this message translates to:
+  /// **'Указать дату цели'**
+  String get goalDateToggle;
+
+  /// Ошибка даты цели.
+  ///
+  /// In ru, this message translates to:
+  /// **'Дата цели не может быть в прошлом.'**
+  String get goalErrorDate;
 }
 
 class _AppLocalizationsDelegate

@@ -1304,9 +1304,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get goalStatusClosed => 'Закрыта';
 
   @override
-  String get goalSaved => 'Цель сохранена.';
-
-  @override
   String get goalDeleted => 'Цель удалена.';
 
   @override
@@ -1324,4 +1321,16 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get goalActivate => 'Вернуть в работу';
+
+  @override
+  String get goalSectionTitle => 'Параметры цели';
+
+  @override
+  String get goalCurrencyLabel => 'Валюта цели';
+
+  @override
+  String get goalDateToggle => 'Указать дату цели';
+
+  @override
+  String get goalErrorDate => 'Дата цели не может быть в прошлом.';
 }

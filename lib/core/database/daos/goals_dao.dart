@@ -53,6 +53,7 @@ class GoalsDao extends DatabaseAccessor<AppDatabase> with _$GoalsDaoMixin {
   }) => transaction(() async {
     final trimmed = _requireName(name);
     _requirePositiveTarget(targetAmountMinor);
+    _requireNotPastTargetDate(targetDate);
     await _requireCurrency(currencyCode);
     await _requireCompatibleAssets(category, assetIds);
 
@@ -103,7 +104,8 @@ class GoalsDao extends DatabaseAccessor<AppDatabase> with _$GoalsDaoMixin {
   });
 
   Future<void> setStatus(int id, GoalStatus status) async {
-    await getById(id);
+    final current = await getById(id);
+    if (current.deletedAt != null) throw _conflict('validationGoalDeleted');
     await (update(goals)..where((g) => g.id.equals(id))).write(
       GoalsCompanion(
         status: Value(status),
@@ -184,6 +186,17 @@ class GoalsDao extends DatabaseAccessor<AppDatabase> with _$GoalsDaoMixin {
       );
     }
     return trimmed;
+  }
+
+  /// BR-G-6: дата цели при создании не может быть в прошлом.
+  void _requireNotPastTargetDate(LocalDate? targetDate) {
+    if (targetDate != null &&
+        targetDate.compareTo(attachedDatabase.today()) < 0) {
+      throw const DomainException(
+        DomainErrorCode.validation,
+        fieldErrors: {'targetDate': 'validationGoalDateInPast'},
+      );
+    }
   }
 
   static void _requirePositiveTarget(int amountMinor) {

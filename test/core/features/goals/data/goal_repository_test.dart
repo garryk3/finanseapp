@@ -1,4 +1,5 @@
 import 'package:finanseapp/core/database/app_database.dart';
+import 'package:finanseapp/core/domain/common/local_date.dart';
 import 'package:finanseapp/core/domain/common/money.dart';
 import 'package:finanseapp/core/domain/common/result.dart';
 import 'package:finanseapp/core/features/goals/data/goal_repository_impl.dart';
@@ -29,11 +30,13 @@ void main() {
     Set<int>? assetIds,
     int target = 1000000,
     String name = 'Цель',
+    LocalDate? targetDate,
   }) => GoalDraft(
     name: name,
     category: category,
     targetAmount: Money(minorUnits: target, currencyCode: 'RUB'),
     assetIds: assetIds ?? {},
+    targetDate: targetDate,
   );
 
   test('accounts goal принимает два счёта', () async {
@@ -109,5 +112,39 @@ void main() {
     expect(goal.name, 'Новая цель');
     expect(goal.targetAmount.minorUnits, 2000000);
     expect(goal.assetIds, {second});
+  });
+
+  test('дата цели в прошлом отклоняется при создании (BR-G-6)', () async {
+    final acc = await account('А');
+    final today = db.today();
+    final yesterday = LocalDate.fromDateTime(
+      DateTime.utc(
+        today.year,
+        today.month,
+        today.day,
+      ).subtract(const Duration(days: 1)),
+    );
+
+    await expectLater(
+      repository.create(draft(assetIds: {acc}, targetDate: yesterday)),
+      throwsA(
+        isA<DomainException>().having(
+          (error) => error.fieldErrors['targetDate'],
+          'targetDate',
+          'validationGoalDateInPast',
+        ),
+      ),
+    );
+  });
+
+  test('setStatus не меняет soft-deleted цель', () async {
+    final acc = await account('А');
+    final id = await repository.create(draft(assetIds: {acc}));
+    await repository.softDelete(id);
+
+    await expectLater(
+      repository.setStatus(id, GoalStatus.closed),
+      throwsA(isA<DomainException>()),
+    );
   });
 }

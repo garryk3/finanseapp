@@ -296,6 +296,8 @@ GoRouter buildRouter({required ServiceLocator locator}) {
                               viewModel: GoalDetailsViewModel(
                                 repository: locator.get<GoalRepository>(),
                                 assetRepository: locator.get<AssetRepository>(),
+                                currencyRepository: locator
+                                    .get<CurrencyRepository>(),
                                 goalId: id,
                               ),
                             );

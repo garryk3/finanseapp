@@ -118,13 +118,17 @@ class GoalFormViewModel {
     }
   }
 
-  List<Asset> eligibleAssets(GoalCategory category) => [
-    for (final asset in assets.value)
-      if (category == GoalCategory.accounts
-          ? asset is AccountAsset
-          : asset is InvestmentAsset)
-        asset,
-  ];
+  /// Архивные активы доступны только если уже привязаны к цели (8.1).
+  List<Asset> eligibleAssets(GoalCategory category) {
+    final linked = goal.value?.assetIds ?? const <int>{};
+    return [
+      for (final asset in assets.value)
+        if (category == GoalCategory.accounts
+            ? asset is AccountAsset
+            : asset is InvestmentAsset)
+          if (asset.archivedAt == null || linked.contains(asset.id)) asset,
+    ];
+  }
 
   Currency currencyOf(String code) =>
       currencies.value[code] ??

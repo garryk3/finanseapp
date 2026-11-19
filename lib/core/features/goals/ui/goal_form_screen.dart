@@ -24,7 +24,7 @@ import 'package:finanseapp/uikit/app_spinner.dart';
 import 'package:finanseapp/uikit/app_switch.dart';
 import 'package:finanseapp/uikit/app_text.dart';
 import 'package:finanseapp/uikit/app_text_field.dart';
-import 'package:flutter/widgets.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
 /// Форма финансовой цели с multi-select активов (8.1).
@@ -48,6 +48,7 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
   String? _nameError;
   String? _amountError;
   String? _assetsError;
+  String? _dateError;
   String? _formError;
   bool _loaded = false;
 
@@ -82,6 +83,14 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
   }
 
   Currency _currencyOf(String code) => widget.viewModel.currencyOf(code);
+
+  /// Дата цели при создании не может быть в прошлом (BR-G-6); уже сохранённую
+  /// прошлую дату форма не блокирует.
+  DateTime get _firstDate {
+    final today = LocalDate.fromDateTime(DateTime.now());
+    final date = _targetDate.compareTo(today) < 0 ? _targetDate : today;
+    return DateTime(date.year, date.month, date.day);
+  }
 
   void _setCategory(GoalCategory category) {
     final eligible = {
@@ -135,6 +144,7 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
           'validationAmountPositive' => l10n.goalErrorAmount,
           'validationGoalAssetsRequired' => l10n.goalErrorAssets,
           'validationGoalAssetKind' => l10n.goalErrorAssets,
+          'validationGoalDateInPast' => l10n.goalErrorDate,
           _ => l10n.errorStateMessage,
         };
       });
@@ -169,7 +179,7 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
             padding: const EdgeInsets.all(AppSpacing.md),
             children: [
               AppFormSection(
-                title: l10n.goalFormNew,
+                title: l10n.goalSectionTitle,
                 errorText: _formError,
                 children: [
                   AppTextField(
@@ -178,6 +188,7 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
                     errorText: _nameError,
                     onChanged: (_) => setState(() => _nameError = null),
                   ),
+                  AppText(l10n.goalCategoryLabel),
                   AppSegmentedControl<GoalCategory>(
                     segments: [
                       AppSegment(
@@ -203,7 +214,7 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
                     onChanged: (_) => setState(() => _amountError = null),
                   ),
                   AppCurrencySelect(
-                    label: l10n.accountCurrencyLabel,
+                    label: l10n.goalCurrencyLabel,
                     valueCode: _currencyCode,
                     items: [
                       for (final currency in vm.currencies.value.values)
@@ -218,18 +229,20 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
                   ),
                   AppSwitch(
                     value: _hasDate,
-                    label: l10n.goalTargetDateLabel,
+                    label: l10n.goalDateToggle,
                     onChanged: (value) => setState(() => _hasDate = value),
                   ),
                   if (_hasDate)
                     AppDatePickerField(
                       label: l10n.goalTargetDateLabel,
                       valueText: const DateFormatter().format(_targetDate),
-                      firstDate: DateTime(2000),
+                      firstDate: _firstDate,
                       lastDate: DateTime(2100),
-                      onChanged: (value) => setState(
-                        () => _targetDate = LocalDate.fromDateTime(value),
-                      ),
+                      errorText: _dateError,
+                      onChanged: (value) => setState(() {
+                        _targetDate = LocalDate.fromDateTime(value);
+                        _dateError = null;
+                      }),
                     ),
                   AppText(l10n.goalAssetsLabel),
                   if (eligible.isEmpty) AppText(l10n.goalNoAssets),
@@ -248,7 +261,16 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
                         _assetsError = null;
                       }),
                     ),
-                  if (_assetsError != null) AppText(_assetsError!),
+                  if (_assetsError != null)
+                    Semantics(
+                      liveRegion: true,
+                      child: AppText(
+                        _assetsError!,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
+                    ),
                   AppButton(
                     label: l10n.commonSave,
                     pending: vm.busy.value,

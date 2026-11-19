@@ -1746,10 +1746,6 @@
   "@goalStatusClosed": {
     "description": "Статус цели."
   },
-  "goalSaved": "Цель сохранена.",
-  "@goalSaved": {
-    "description": "Подтверждение сохранения."
-  },
   "goalDeleted": "Цель удалена.",
   "@goalDeleted": {
     "description": "Подтверждение удаления."
@@ -1773,5 +1769,21 @@
   "goalActivate": "Вернуть в работу",
   "@goalActivate": {
     "description": "Действие статуса."
+  },
+  "goalSectionTitle": "Параметры цели",
+  "@goalSectionTitle": {
+    "description": "Заголовок секции формы цели."
+  },
+  "goalCurrencyLabel": "Валюта цели",
+  "@goalCurrencyLabel": {
+    "description": "Поле валюты целевой суммы."
+  },
+  "goalDateToggle": "Указать дату цели",
+  "@goalDateToggle": {
+    "description": "Включить дату цели."
+  },
+  "goalErrorDate": "Дата цели не может быть в прошлом.",
+  "@goalErrorDate": {
+    "description": "Ошибка даты цели."
   }
 }

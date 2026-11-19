@@ -10,6 +10,7 @@ import 'package:finanseapp/core/presentation/money_formatter.dart';
 import 'package:finanseapp/core/presentation/view_state.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
 import 'package:finanseapp/uikit/app_button.dart';
+import 'package:finanseapp/uikit/app_chip.dart';
 import 'package:finanseapp/uikit/app_confirm_dialog.dart';
 import 'package:finanseapp/uikit/app_dialog.dart';
 import 'package:finanseapp/uikit/app_empty_state.dart';
@@ -116,11 +117,14 @@ class _GoalDetailsScreenState extends State<GoalDetailsScreen> {
                         '${const DateFormatter().format(goal.targetDate!)}',
                       ),
                     AppText(l10n.goalAssetsLabel),
+                    if (vm.assets.value.isEmpty) AppText(l10n.goalNoAssets),
                     for (final asset in vm.assets.value)
-                      AppText(
-                        asset.archivedAt == null
-                            ? asset.name
-                            : '${asset.name} · ${l10n.accountArchivedBadge}',
+                      Row(
+                        children: [
+                          Expanded(child: AppText(asset.name)),
+                          if (asset.archivedAt != null)
+                            AppChip(label: l10n.accountArchivedBadge),
+                        ],
                       ),
                     const SizedBox(height: AppSpacing.lg),
                     AppButton(
@@ -139,6 +143,7 @@ class _GoalDetailsScreenState extends State<GoalDetailsScreen> {
                       AppButton(
                         label: l10n.goalMarkAchieved,
                         variant: AppButtonVariant.tonal,
+                        pending: vm.statusBusy.value,
                         onPressed: vm.busy.value
                             ? null
                             : () => _setStatus(GoalStatus.achieved),
@@ -148,6 +153,7 @@ class _GoalDetailsScreenState extends State<GoalDetailsScreen> {
                       AppButton(
                         label: l10n.goalClose,
                         variant: AppButtonVariant.tonal,
+                        pending: vm.statusBusy.value,
                         onPressed: vm.busy.value
                             ? null
                             : () => _setStatus(GoalStatus.closed),
@@ -156,6 +162,7 @@ class _GoalDetailsScreenState extends State<GoalDetailsScreen> {
                       AppButton(
                         label: l10n.goalActivate,
                         variant: AppButtonVariant.tonal,
+                        pending: vm.statusBusy.value,
                         onPressed: vm.busy.value
                             ? null
                             : () => _setStatus(GoalStatus.active),
@@ -164,7 +171,7 @@ class _GoalDetailsScreenState extends State<GoalDetailsScreen> {
                     AppButton(
                       label: l10n.accountDelete,
                       variant: AppButtonVariant.destructive,
-                      pending: vm.busy.value,
+                      pending: vm.deleteBusy.value,
                       onPressed: vm.busy.value ? null : _delete,
                     ),
                   ],
@@ -223,14 +230,15 @@ class _GoalDetailsScreenState extends State<GoalDetailsScreen> {
         GoalStatus.closed => l10n.goalStatusClosed,
       };
 
-  static String _money(Money money) => const MoneyFormatter().format(
+  String _money(Money money) => const MoneyFormatter().format(
     money,
-    Currency(
-      code: money.currencyCode,
-      name: money.currencyCode,
-      fractionDigits: 2,
-      isPreset: true,
-      isEnabled: true,
-    ),
+    _viewModel.currencies.value[money.currencyCode] ??
+        Currency(
+          code: money.currencyCode,
+          name: money.currencyCode,
+          fractionDigits: 2,
+          isPreset: true,
+          isEnabled: true,
+        ),
   );
 }

@@ -1,6 +1,8 @@
 import 'package:finanseapp/core/domain/common/result.dart';
 import 'package:finanseapp/core/features/assets/domain/asset.dart';
+import 'package:finanseapp/core/domain/common/currency.dart';
 import 'package:finanseapp/core/features/assets/domain/asset_repository.dart';
+import 'package:finanseapp/core/features/currencies/domain/currency_repository.dart';
 import 'package:finanseapp/core/features/goals/domain/financial_goal.dart';
 import 'package:finanseapp/core/features/goals/domain/goal_repository.dart';
 import 'package:finanseapp/core/presentation/view_state.dart';
@@ -12,16 +14,21 @@ class GoalDetailsViewModel {
     required this.repository,
     required this.assetRepository,
     required this.goalId,
+    this.currencyRepository,
   });
 
   final GoalRepository repository;
   final AssetRepository assetRepository;
   final int goalId;
+  final CurrencyRepository? currencyRepository;
 
   final Signal<ViewState<void>> state = signal(const ViewLoading());
   final Signal<FinancialGoal?> goal = signal(null);
   final Signal<List<Asset>> assets = signal(const []);
   final Signal<bool> busy = signal(false);
+  final Signal<bool> statusBusy = signal(false);
+  final Signal<bool> deleteBusy = signal(false);
+  final Signal<Map<String, Currency>> currencies = signal(const {});
 
   Future<void> load() async {
     try {
@@ -31,6 +38,14 @@ class GoalDetailsViewModel {
         return;
       }
       goal.value = current;
+      if (currencyRepository != null) {
+        try {
+          final list = await currencyRepository!.watchAll().first;
+          currencies.value = {for (final item in list) item.code: item};
+        } on Exception {
+          // Валюта не блокирует детали.
+        }
+      }
       final list = <Asset>[];
       for (final id in current.assetIds) {
         try {
@@ -50,6 +65,7 @@ class GoalDetailsViewModel {
 
   Future<Result<void>> setStatus(GoalStatus status) async {
     busy.value = true;
+    statusBusy.value = true;
     try {
       await repository.setStatus(goalId, status);
       await load();
@@ -60,11 +76,13 @@ class GoalDetailsViewModel {
       return const Failure(DomainException(DomainErrorCode.storageFailure));
     } finally {
       busy.value = false;
+      statusBusy.value = false;
     }
   }
 
   Future<Result<void>> delete() async {
     busy.value = true;
+    deleteBusy.value = true;
     try {
       await repository.softDelete(goalId);
       return const Success(null);
@@ -74,6 +92,7 @@ class GoalDetailsViewModel {
       return const Failure(DomainException(DomainErrorCode.storageFailure));
     } finally {
       busy.value = false;
+      deleteBusy.value = false;
     }
   }
 
