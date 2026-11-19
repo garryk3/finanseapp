@@ -985,7 +985,7 @@
 - **Отложено:** ленивый builder при большом списке и совмещение шапки фильтров со списком,
   badge связи в журнале, визуальный QA 320dp/1.3.
 
-### 7.4 Операции квартиры end-to-end — [ ]
+### 7.4 Операции квартиры end-to-end — [x] (2026-11-19)
 
 - **Приоритет/зависимости:** P1; после 5.4 и 7.3. **BR:** RE-1…5,7, IE-3,10,13.
 - **Files:** Modify property details/cashflow form/list/analytics mappers, routes/DI/ARB;
@@ -1001,6 +1001,15 @@
 - **DoD:** нет автоматического изменения стоимости/второй asset tx, property periods совпадают
   с global aggregate; общий DoD. Перед PR спросить о e2e.
 - **Предлагаемый commit:** `task/07.4: завершить денежный поток недвижимости`.
+- **Итог:** property context передаётся в `CashflowFormViewModel` и валидируется через
+  assetRepository (invalid id → NotFound/empty state); в форме показывается «Квартира: имя ·
+  Не влияет на баланс счёта» (в т.ч. для edit по entry.propertyId), привязка к счёту на
+  property-форме недоступна; после сохранения property-секция и глобальный журнал обновляются
+  реактивно, стоимость квартиры не меняется. Тесты: income/expense квартиры в общем итоге и
+  неизменность стоимости, invalid property id → ViewError notFound (с проверкой errorCode);
+  property-фильтры глобального журнала покрыты 7.3; NotFound-CTA ведёт на dashboard.
+- **Отложено:** integration_test cashflow_flow (e2e сценарий квартиры), виджет-тест формы
+  (нет account switch / inline NotFound), diff в audit, badge связи, визуальный QA.
 
 ## Этап 8 — Финансовые цели
 

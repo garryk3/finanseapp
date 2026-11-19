@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 
 import 'package:decimal/decimal.dart';
 import 'package:finanseapp/core/domain/common/currency.dart';
@@ -231,6 +232,7 @@ class CashflowFormViewModel {
     required this.assetRepository,
     this.editingId,
     this.initialKind = CashflowKind.expense,
+    this.propertyId,
   });
 
   final CashflowRepository repository;
@@ -240,11 +242,13 @@ class CashflowFormViewModel {
   final AssetRepository assetRepository;
   final int? editingId;
   final CashflowKind initialKind;
+  final int? propertyId;
 
   final Signal<ViewState<void>> state = signal(const ViewLoading());
   final Signal<List<CashflowCategory>> categories = signal(const []);
   final Signal<Map<String, Currency>> currencies = signal(const {});
   final Signal<List<AccountAsset>> accounts = signal(const []);
+  final Signal<PropertyAsset?> property = signal(null);
   final Signal<CashflowEntry?> entry = signal(null);
   final Signal<bool> busy = signal(false);
 
@@ -254,11 +258,36 @@ class CashflowFormViewModel {
 
   Future<void> load({CashflowKind? kind}) async {
     try {
+      if (propertyId != null) {
+        final snapshot = await assetRepository.getById(propertyId!);
+        if (snapshot.asset is! PropertyAsset) {
+          state.value = const ViewError(DomainErrorCode.notFound);
+          return;
+        }
+        property.value = snapshot.asset as PropertyAsset;
+      }
       final list = await currencyRepository.watchAll().first;
       currencies.value = {for (final currency in list) currency.code: currency};
       if (editingId != null) {
         final current = await repository.getById(editingId!);
         entry.value = current;
+        if (propertyId == null && current.propertyId != null) {
+          try {
+            final snapshot = await assetRepository.getById(current.propertyId!);
+            if (snapshot.asset is PropertyAsset) {
+              property.value = snapshot.asset as PropertyAsset;
+            }
+          } on DomainException {
+            // Нет доступа к квартире — контекст просто не показываем.
+          } catch (error, stackTrace) {
+            developer.log(
+              'Не удалось загрузить контекст квартиры',
+              name: 'cashflow.form',
+              error: error,
+              stackTrace: stackTrace,
+            );
+          }
+        }
         await loadCategories(current.kind);
       } else if (kind != null) {
         await loadCategories(kind);
@@ -313,7 +342,7 @@ class CashflowFormViewModel {
     occurredOn: occurredOn,
     manualRate: manualRate,
     comment: comment,
-    propertyId: propertyId ?? entry.value?.propertyId,
+    propertyId: propertyId ?? entry.value?.propertyId ?? this.propertyId,
     accountId: accountId,
     affectsBalance: affectsBalance,
   );

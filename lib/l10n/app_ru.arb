@@ -1660,5 +1660,18 @@
         "type": "int"
       }
     }
+  },
+  "cashflowPropertyContext": "Квартира: {name}",
+  "@cashflowPropertyContext": {
+    "description": "Контекст квартиры в форме.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "cashflowPropertyNoAccount": "Не влияет на баланс счёта",
+  "@cashflowPropertyNoAccount": {
+    "description": "Пояснение отсутствия счёта."
   }
 }

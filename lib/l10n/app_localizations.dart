@@ -2378,6 +2378,18 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Фильтры · {count}'**
   String cashflowFiltersWithCount(int count);
+
+  /// Контекст квартиры в форме.
+  ///
+  /// In ru, this message translates to:
+  /// **'Квартира: {name}'**
+  String cashflowPropertyContext(String name);
+
+  /// Пояснение отсутствия счёта.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не влияет на баланс счёта'**
+  String get cashflowPropertyNoAccount;
 }
 
 class _AppLocalizationsDelegate
