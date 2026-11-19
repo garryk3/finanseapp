@@ -7,6 +7,9 @@ import 'package:finanseapp/core/features/applock/domain/applock_service.dart';
 import 'package:finanseapp/core/features/applock/logic/applock_controller.dart';
 import 'package:finanseapp/core/features/applock/logic/applock_settings_view_model.dart';
 import 'package:finanseapp/core/features/applock/logic/applock_view_model.dart';
+import 'package:finanseapp/core/features/cashflow/domain/cashflow_repository.dart';
+import 'package:finanseapp/core/features/categories/domain/category_repository.dart';
+import 'package:finanseapp/core/features/currencies/domain/currency_repository.dart';
 import 'package:finanseapp/core/features/cashflow/ui/cashflow_view_model.dart';
 import 'package:finanseapp/core/features/dashboard/ui/dashboard_view_model.dart';
 import 'package:finanseapp/core/features/goals/ui/goals_view_model.dart';
@@ -32,7 +35,13 @@ Future<ServiceLocator> buildTestLocator({AppDatabase? database}) async {
 
   locator
     ..registerFactory<DashboardViewModel>(DashboardViewModel.new)
-    ..registerFactory<CashflowViewModel>(CashflowViewModel.new)
+    ..registerFactory<CashflowViewModel>(
+      () => CashflowViewModel(
+        repository: locator.get<CashflowRepository>(),
+        categoryRepository: locator.get<CategoryRepository>(),
+        currencyRepository: locator.get<CurrencyRepository>(),
+      ),
+    )
     ..registerFactory<TransactionsViewModel>(
       () => TransactionsViewModel(
         repository: locator.get<AssetTransactionRepository>(),

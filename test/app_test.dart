@@ -65,6 +65,9 @@ void main() {
     await tester.tap(find.text(l10n.navGoals));
     await tester.pumpAndSettle();
     expect(find.text(l10n.goalsEmptyTitle), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(milliseconds: 20));
   });
 
   testWidgets('вкладки журнала операций переключаются и сохраняются', (

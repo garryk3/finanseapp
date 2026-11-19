@@ -1043,4 +1043,76 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get transactionAuditAction => 'Открыть аудит';
+
+  @override
+  String get cashflowIncome => 'Доход';
+
+  @override
+  String get cashflowExpense => 'Расход';
+
+  @override
+  String get cashflowAdd => 'Добавить доход или расход';
+
+  @override
+  String get cashflowFormNew => 'Новая запись';
+
+  @override
+  String get cashflowFormEdit => 'Изменить запись';
+
+  @override
+  String get cashflowCategoryLabel => 'Категория';
+
+  @override
+  String get cashflowAmountLabel => 'Сумма';
+
+  @override
+  String get cashflowSaved => 'Запись сохранена.';
+
+  @override
+  String get cashflowDeleted => 'Запись удалена.';
+
+  @override
+  String get cashflowDeleteTitle => 'Удалить запись?';
+
+  @override
+  String get cashflowDeleteMessage =>
+      'Запись будет скрыта из журнала; история останется в аудите.';
+
+  @override
+  String get cashflowDetailsTitle => 'Доход или расход';
+
+  @override
+  String get cashflowErrorAmount => 'Введите положительную сумму.';
+
+  @override
+  String get cashflowErrorCategory => 'Выберите категорию.';
+
+  @override
+  String get cashflowErrorKindMismatch =>
+      'Категория не соответствует типу записи.';
+
+  @override
+  String get cashflowNoCategories => 'Нет категорий для этого типа.';
+
+  @override
+  String get cashflowTotalsIncome => 'Доходы';
+
+  @override
+  String get cashflowTotalsExpense => 'Расходы';
+
+  @override
+  String get cashflowTotalsNet => 'Итого';
+
+  @override
+  String get cashflowPeriodAll => 'Все записи';
+
+  @override
+  String get cashflowCurrencyLabel => 'Валюта';
+
+  @override
+  String get cashflowDeleteError => 'Не удалось удалить запись.';
+
+  @override
+  String get cashflowErrorCategoryArchived =>
+      'Категория в архиве. Выберите активную.';
 }

@@ -17,6 +17,10 @@ void main() {
     final locator = await buildTestLocator();
     await tester.pumpWidget(FinanseApp(locator: locator));
     await tester.pumpAndSettle();
+    addTearDown(() async {
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump(const Duration(milliseconds: 20));
+    });
 
     expect(find.byType(AppNavigationBar), findsOneWidget);
     expect(find.byType(AppNavigationRail), findsNothing);
@@ -35,6 +39,10 @@ void main() {
     final locator = await buildTestLocator();
     await tester.pumpWidget(FinanseApp(locator: locator));
     await tester.pumpAndSettle();
+    addTearDown(() async {
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump(const Duration(milliseconds: 20));
+    });
 
     expect(find.byType(AppNavigationBar), findsOneWidget);
 
@@ -67,6 +75,10 @@ void main() {
     final locator = await buildTestLocator();
     await tester.pumpWidget(FinanseApp(locator: locator));
     await tester.pumpAndSettle();
+    addTearDown(() async {
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump(const Duration(milliseconds: 20));
+    });
 
     expect(
       tester.widget<NavigationBar>(find.byType(NavigationBar)).labelBehavior,
@@ -97,6 +109,10 @@ void main() {
     final locator = await buildTestLocator();
     await tester.pumpWidget(FinanseApp(locator: locator));
     await tester.pumpAndSettle();
+    addTearDown(() async {
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump(const Duration(milliseconds: 20));
+    });
 
     expect(find.byType(AppNavigationRail), findsOneWidget);
     expect(find.byType(AppNavigationBar), findsNothing);

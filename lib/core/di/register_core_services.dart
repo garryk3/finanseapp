@@ -19,6 +19,8 @@ import 'package:finanseapp/core/features/assets/data/subgroup_repository_impl.da
 import 'package:finanseapp/core/features/assets/domain/asset_repository.dart';
 import 'package:finanseapp/core/features/assets/ui/assets_view_model.dart';
 import 'package:finanseapp/core/features/assets/domain/subgroup_repository.dart';
+import 'package:finanseapp/core/features/cashflow/data/cashflow_repository_impl.dart';
+import 'package:finanseapp/core/features/cashflow/domain/cashflow_repository.dart';
 import 'package:finanseapp/core/features/categories/data/category_repository_impl.dart';
 import 'package:finanseapp/core/features/categories/domain/category_repository.dart';
 import 'package:finanseapp/core/features/categories/ui/categories_view_model.dart';
@@ -106,6 +108,9 @@ Future<ServiceLocator> registerCoreServices(
   );
   locator.register<CategoryRepository>(
     CategoryRepositoryImpl(db.referencesDao),
+  );
+  locator.register<CashflowRepository>(
+    CashflowRepositoryImpl(db.cashflowDao, db.currenciesDao),
   );
   locator.registerFactory<CategoriesViewModel>(
     () => CategoriesViewModel(repository: locator.get<CategoryRepository>()),

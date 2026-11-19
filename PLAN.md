@@ -866,7 +866,7 @@
 
 ## Этап 7 — Доходы, расходы и связь со счетами
 
-### 7.1 Cashflow CRUD без влияния на баланс — [ ]
+### 7.1 Cashflow CRUD без влияния на баланс — [x] (2026-11-19)
 
 - **Приоритет/зависимости:** P1; после 4.3 и 6.3. **BR:** IE-1…7,10,12, CAT-8, VAL-5,7.
 - **Files:** Create cashflow data/logic + form/details screens/VM,
@@ -879,10 +879,35 @@
 - **TDD:** Salary 100000 RUB → income; Food 250.50 RUB expense; kind/category mismatch,
   zero/future/archived category reject; empty comment→null; edit revision increment;
   без account никогда не создаётся asset tx.
+- **Рабочий план (2026-11-18):**
+  - **Data:** `CashflowRepositoryImpl` (watch/getById/create/createLinked/revise/softDelete)
+    с amountRub через `MoneyMath`/валюту; `CashflowDao.watchFiltered`; DI.
+  - **Logic:** `CashflowCommands.save` (validate >0/future, ResolveExchangeRate, affectsBalance=false
+    без счёта, edit/delete) и `CashflowCalculator.totals` (income/expense/net в RUB).
+  - **UI:** журнал (группы по дате, FAB, пустые состояния), форма дохода/расхода
+    (вид/категория/сумма/валюта/дата/курс/комментарий, edit), детали (сумма original+RUB,
+    категория, ревизии, edit/delete), маршруты `/cashflow/new|:id|:id/edit`.
+  - **Тесты:** 100000 RUB income, 250.50 expense, kind/category mismatch, zero/future/
+    archived category, empty comment→null, edit revision increment, no account → нет asset tx.
 - **Генерация:** gen-l10n; build_runner/schema dump при DAO changes.
 - **DoD:** amountRub=original×rate, current journal only active, errors локализованы;
   общий DoD. Перед PR спросить о e2e.
 - **Предлагаемый commit:** `task/07.1: реализовать доходы и расходы`.
+- **Итог:** `CashflowRepositoryImpl` (watch с фильтрами и поиском в Dart, getById, create/
+  createLinked/revise/softDelete, amountRub через `MoneyMath`), `CashflowDao.watchFiltered`,
+  DI. `CashflowCommands` (validate, ResolveExchangeRate, affectsBalance=false, edit/delete),
+  `CashflowCalculator.totals`. UI: журнал с итогами/группами/датами и FAB, форма дохода/
+  расхода (вид/категория/сумма/валюта/дата/курс/комментарий, edit), детали (RUB snapshot,
+  категория, ревизии, edit/delete), маршруты `/cashflow/new|:id|:id/edit`. Тесты: RUB
+  income/expense snapshots, kind mismatch, zero/future/archived, empty comment→null, edit
+  revision+amount, delete скрывает и сохраняет ревизии, отсутствие asset tx, итоги.
+  По дизайн-ревью: категории загружаются сразу в create, итоги — `AppCashflowSummary`
+  с периодом, empty state центрирован через scroll-обёртку (без overflow 320dp/1.3),
+  заголовок edit-формы, RUB-строка не дублируется, ревизии с датой/типографикой,
+  отдельный текст ошибки удаления, «Валюта» вместо «Валюта счёта».
+- **Отложено:** фильтры/поиск журнала в UI (7.3), привязка к счёту/affectsBalance (7.2),
+  audit денежного потока (7.4), inline-ошибки удаления, визуальный QA; перед 7.2 —
+  пробрасывать существующие linkage-поля (`affectsBalance/accountId/propertyId`) в revise.
 
 ### 7.2 Явная связь денежного потока со счётом — [ ]
 
