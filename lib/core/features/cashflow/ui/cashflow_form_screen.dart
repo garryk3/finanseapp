@@ -259,7 +259,8 @@ class _CashflowFormScreenState extends State<CashflowFormScreen> {
                     onSelectionChanged: (selection) =>
                         _setKind(selection.single),
                   ),
-                  if (widget.propertyId == null)
+                  if (widget.propertyId == null &&
+                      widget.viewModel.entry.value?.propertyId == null)
                     AppSwitch(
                       value: _affectsBalance,
                       label: l10n.cashflowAffectsBalance,
@@ -274,13 +275,19 @@ class _CashflowFormScreenState extends State<CashflowFormScreen> {
                                 final account = vm.accounts.value
                                     .where((item) => item.id == _accountId)
                                     .firstOrNull;
-                                if (account != null) {
+                                if (account != null &&
+                                    account.currencyCode != _currencyCode) {
                                   _currencyCode = account.currencyCode;
+                                  _amount.clear();
+                                  _amountError = null;
+                                  _rate.clear();
+                                  _rateError = null;
                                 }
                               }
                             }),
                     ),
-                  if (vm.accounts.value.isEmpty) ...[
+                  if (widget.propertyId == null &&
+                      vm.accounts.value.isEmpty) ...[
                     AppText(
                       l10n.cashflowNoAccounts,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
