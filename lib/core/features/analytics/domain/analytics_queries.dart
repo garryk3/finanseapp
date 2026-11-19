@@ -14,6 +14,9 @@ abstract interface class AnalyticsQueries {
   /// начало периода «всё время» (calculations §10).
   Future<LocalDate?> earliestActivityDate({AssetKind? assetKind});
 
+  /// Есть ли вообще активные записи денежного потока (без конвертации).
+  Future<bool> hasAnyCashflow();
+
   Future<List<NetWorthPoint>> netWorthSeries({
     required DateRange period,
     AssetKind? assetKind,

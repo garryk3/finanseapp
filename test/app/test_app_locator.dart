@@ -71,6 +71,7 @@ Future<ServiceLocator> buildTestLocator({AppDatabase? database}) async {
         settingsRepository: locator.get<SettingsRepository>(),
         currencyRepository: locator.get<CurrencyRepository>(),
         rateRepository: locator.get<ExchangeRateRepository>(),
+        categoryRepository: locator.get<CategoryRepository>(),
         now: () => LocalDate.fromDateTime(DateTime.now()),
       ),
     )

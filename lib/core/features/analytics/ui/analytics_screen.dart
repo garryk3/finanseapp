@@ -2,13 +2,17 @@ import 'package:finanseapp/app/routes.dart';
 import 'package:finanseapp/app/theme/app_spacing.dart';
 import 'package:finanseapp/core/features/analytics/logic/analytics_periods.dart';
 import 'package:finanseapp/core/features/analytics/ui/analytics_view_model.dart';
+import 'package:finanseapp/core/features/analytics/ui/cashflow_chart_section.dart';
+import 'package:finanseapp/core/features/analytics/ui/category_totals_section.dart';
 import 'package:finanseapp/core/features/analytics/ui/net_worth_chart_section.dart';
 import 'package:finanseapp/core/features/assets/domain/asset.dart';
+import 'package:finanseapp/core/features/categories/domain/category.dart';
 import 'package:finanseapp/core/features/currencies/ui/manual_rate_dialog.dart';
 import 'package:finanseapp/core/domain/common/result.dart';
 import 'package:finanseapp/core/presentation/date_formatter.dart';
 import 'package:finanseapp/core/presentation/view_state.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
+import 'package:finanseapp/uikit/app_category_select.dart';
 import 'package:finanseapp/uikit/app_empty_state.dart';
 import 'package:finanseapp/uikit/app_error_state.dart';
 import 'package:finanseapp/uikit/app_filter_bar.dart';
@@ -103,35 +107,60 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               )
             else if (state case ViewError(:final errorCode))
               _errorState(context, l10n, vm, errorCode)
-            else if (points.isEmpty || base == null)
-              vm.hasAnyAssets.value
-                  ? AppEmptyState(
-                      icon: Icons.show_chart,
-                      title: l10n.analyticsEmptyTitle,
-                      message: l10n.analyticsEmptyMessage,
-                      actionLabel: vm.filtersActive
-                          ? l10n.assetsResetFilters
-                          : null,
-                      onAction: vm.filtersActive ? vm.resetFilters : null,
-                    )
-                  : AppEmptyState(
-                      icon: Icons.account_balance_wallet_outlined,
-                      title: l10n.analyticsNoAssetsTitle,
-                      message: l10n.analyticsNoAssetsMessage,
-                      actionLabel: l10n.navAssets,
-                      onAction: () => context.go(AppRoutes.assets),
-                    )
-            else
-              NetWorthChartSection(
-                points: points,
-                baseCurrency: base,
-                periodLabel: _periodLabel(l10n, vm.period.value),
-                l10n: l10n,
-                formatMoney: vm.formatMoney,
-                onShowAllTime: vm.period.value == AnalyticsPeriod.all
-                    ? null
-                    : () => vm.selectPeriod(AnalyticsPeriod.all),
-              ),
+            else if (!vm.hasAnyAssets.value && !vm.hasAnyCashflow.value)
+              AppEmptyState(
+                icon: Icons.account_balance_wallet_outlined,
+                title: l10n.analyticsNoAssetsTitle,
+                message: l10n.analyticsNoAssetsMessage,
+                actionLabel: l10n.navAssets,
+                onAction: () => context.go(AppRoutes.assets),
+              )
+            else ...[
+              if (points.isNotEmpty && base != null)
+                NetWorthChartSection(
+                  points: points,
+                  baseCurrency: base,
+                  periodLabel: _periodLabel(l10n, vm.period.value),
+                  l10n: l10n,
+                  formatMoney: vm.formatMoney,
+                  onShowAllTime: vm.period.value == AnalyticsPeriod.all
+                      ? null
+                      : () => vm.selectPeriod(AnalyticsPeriod.all),
+                )
+              else if (vm.hasAnyAssets.value)
+                AppEmptyState(
+                  icon: Icons.show_chart,
+                  title: l10n.analyticsEmptyTitle,
+                  message: l10n.analyticsEmptyMessage,
+                  actionLabel: vm.filtersActive
+                      ? l10n.assetsResetFilters
+                      : null,
+                  onAction: vm.filtersActive ? vm.resetFilters : null,
+                ),
+              const SizedBox(height: AppSpacing.lg),
+              _cashflowFilters(l10n, vm),
+              const SizedBox(height: AppSpacing.sm),
+              if (base != null &&
+                  vm.cashflowSummary.value != null &&
+                  vm.cashflowPoints.value.isNotEmpty)
+                CashflowChartSection(
+                  summary: vm.cashflowSummary.value!,
+                  points: vm.cashflowPoints.value,
+                  baseCurrency: base,
+                  periodLabel: _periodLabel(l10n, vm.period.value),
+                  l10n: l10n,
+                  formatMoney: vm.formatMoney,
+                ),
+              if (base != null)
+                CategoryTotalsSection(
+                  totals: vm.categoryTotals.value,
+                  categories: vm.categories.value,
+                  l10n: l10n,
+                  formatMoney: vm.formatMoney,
+                  shareOf: vm.categoryShare,
+                  showShare: vm.categoryId.value == null,
+                ),
+            ],
           ],
         ),
       ),
@@ -144,8 +173,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         AppFilterBar(
-          activeCount: vm.filtersActive ? 1 : 0,
-          onReset: vm.filtersActive ? vm.resetFilters : null,
+          activeCount: vm.generalFiltersActive ? 1 : 0,
+          onReset: vm.generalFiltersActive ? vm.resetGeneralFilters : null,
           resetLabel: l10n.assetsResetFilters,
           children: [
             for (final period in AnalyticsPeriod.values)
@@ -175,6 +204,65 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       ],
     ),
   );
+
+  Widget _cashflowFilters(AppLocalizations l10n, AnalyticsViewModel vm) {
+    final categories = [
+      for (final category in vm.categories.value.values)
+        if (category.kind == vm.cashflowKind.value &&
+            (category.archivedAt == null || category.id == vm.categoryId.value))
+          category,
+    ];
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          AppFilterBar(
+            activeCount: vm.cashflowFiltersActive ? 1 : 0,
+            onReset: vm.cashflowFiltersActive ? vm.resetCashflowFilters : null,
+            resetLabel: l10n.assetsResetFilters,
+            children: [
+              AppFilterChip(
+                label: l10n.analyticsCashflowKindAll,
+                selected: vm.cashflowKind.value == null,
+                onSelected: (_) => vm.selectCashflowKind(null),
+              ),
+              AppFilterChip(
+                label: l10n.analyticsCashflowIncome,
+                selected: vm.cashflowKind.value == CashflowKind.income,
+                onSelected: (_) => vm.selectCashflowKind(CashflowKind.income),
+              ),
+              AppFilterChip(
+                label: l10n.analyticsCashflowExpense,
+                selected: vm.cashflowKind.value == CashflowKind.expense,
+                onSelected: (_) => vm.selectCashflowKind(CashflowKind.expense),
+              ),
+            ],
+          ),
+          if (vm.cashflowKind.value != null)
+            Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.xs),
+              child: AppCategorySelect(
+                label: l10n.analyticsCategoryFilterLabel,
+                valueId: vm.categoryId.value ?? 0,
+                archivedLabel: l10n.accountArchivedBadge,
+                items: [
+                  AppCategoryOption(id: 0, name: l10n.cashflowAllCategories),
+                  for (final category in categories)
+                    AppCategoryOption(
+                      id: category.id,
+                      name: category.name,
+                      colorKey: category.colorKey,
+                      archived: category.archivedAt != null,
+                    ),
+                ],
+                onChanged: (id) => vm.selectCategory(id == 0 ? null : id),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
 
   Widget _errorState(
     BuildContext context,

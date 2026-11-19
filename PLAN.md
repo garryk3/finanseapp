@@ -1225,11 +1225,41 @@
   как существующие операции; общий DoD. Перед PR спросить о e2e.
 - **Предлагаемый commit:** `task/09.3: добавить аналитику денежного потока`.
 
-### 9.4 Экран аналитики и доступные графики — [ ]
+### 9.4 Экран аналитики и доступные графики — [x] (2026-11-19)
 
+- **Рабочий план:**
+  - **VM:** единый `period` для обеих секций; `assetKind` для net worth; `cashflowKind` и
+    `categoryId` для cashflow (смена kind сбрасывает несовместимую категорию); загрузка
+    категорий (включая архивные) для селекта и подписей; net worth range + cashflow
+    filter.period (`all` → null), summary/byCategory/series; общий rate/manual-rate error;
+    проценты категорий считаются из категориальных итогов.
+  - **UI:** секция «Денежный поток» с `CashflowChartSection`, фильтры cashflow (Все/Доходы/
+    Расходы + категория) перед секцией; секция «Категории» (имя, сумма, доля); period
+    сохраняется при смене вида активов; empty/error/loading по секциям; 320dp/1.3.
+  - **Тесты:** VM (period сохраняется, incompatible category сбрасывается, summary/series/
+    categories грузятся, rate error/manual rate), screen (cashflow-секция, категории,
+    фильтры), e2e `analytics_flow_test.dart` (More → Аналитика, period, empty).
+  - **Генерация:** gen-l10n; схема БД не меняется.
+  - **commit:** `task/09.4: реализовать экран аналитики`.
+- **Итог:** VM грузит net worth + cashflow summary/byCategory/series + категории (включая
+  архивные), shared period, assetKind, cashflowKind/category (смена kind сбрасывает чужую
+  категорию), `all` передаёт cashflow `period=null`, доля категории из summary; экран
+  показывает net worth-секцию (или empty), фильтры cashflow, `CashflowChartSection`,
+  `CategoryTotalsSection` (имя/архивный чип/доля/сумма), сохраняет период при смене вида;
+  нет активов и нет cashflow → empty с CTA в активы (наличие cashflow проверяется
+  existence-запросом `hasAnyCashflow()` без периода/фильтров и конвертации); категории
+  различают доход/расход тоном и подписью, сброс фильтров раздельный для общего блока и
+  cashflow, доля скрывается при фильтре категории. Добавлен e2e `analytics_flow_test.dart`.
+  Тесты: +5 VM (cashflow/категории/сброс kind/раздельные reset) +2 screen (cashflow/
+  категории/фильтры; нет активов, но есть cashflow); всего 508 unit + e2e.
+- **Отложено:** тройная агрегация cashflow на reload (summary/series/byCategory) — общий
+  комбинированный запрос в 9.x/10; `EXISTS`/`limit(1)` для `hasAnyCashflow`; правило
+  архивных опций — в VM-хелпер; проценты/фильтры категорий в отдельном диалоге;
+  динамическая ширина столбца и аффорданс горизонтального скролла (uikit); визуальный QA
+  320dp/1.3.
 - **Приоритет/зависимости:** P1; после 9.2 и 9.3. **BR:** S-1…5, IE-13, DESIGN charts.
 - **Files:** Modify `analytics_screen.dart`, `analytics_view_model.dart`,
-  `analytics_state.dart`, two chart sections, routes/DI/ARB;
+  two chart sections, routes/DI/ARB;
   Test `test/core/features/analytics/ui/analytics_screen_test.dart`,
   `integration_test/analytics_flow_test.dart`.
 - **Consumes:** AnalyticsQueries всех методов, AppLineChart/AppCashflowChart, base currency.

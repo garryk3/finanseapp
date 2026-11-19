@@ -6,6 +6,7 @@ import 'package:finanseapp/core/domain/common/currency.dart';
 import 'package:finanseapp/core/domain/common/date_range.dart';
 import 'package:finanseapp/core/domain/common/exchange_rate.dart';
 import 'package:finanseapp/core/domain/common/local_date.dart';
+import 'package:finanseapp/core/domain/common/money.dart';
 import 'package:finanseapp/core/domain/common/result.dart';
 import 'package:finanseapp/core/features/analytics/domain/analytics_queries.dart';
 import 'package:finanseapp/core/features/analytics/domain/cashflow_period_point.dart';
@@ -15,6 +16,9 @@ import 'package:finanseapp/core/features/analytics/ui/analytics_view_model.dart'
 import 'package:finanseapp/core/features/assets/domain/asset.dart';
 import 'package:finanseapp/core/features/cashflow/domain/cashflow_filter.dart';
 import 'package:finanseapp/core/features/cashflow/domain/cashflow_summary.dart';
+import 'package:finanseapp/core/features/categories/domain/cashflow_category.dart';
+import 'package:finanseapp/core/features/categories/domain/category.dart';
+import 'package:finanseapp/core/features/categories/domain/category_repository.dart';
 import 'package:finanseapp/core/features/currencies/domain/currency_repository.dart';
 import 'package:finanseapp/core/features/currencies/domain/exchange_rate_repository.dart';
 import 'package:finanseapp/core/features/settings/domain/settings_repository.dart';
@@ -37,6 +41,17 @@ final class _Queries implements AnalyticsQueries {
     this.earliestForKind,
     this.error,
     this.earliestGate,
+    this.netWorthPoints = const [],
+    this.cashflowResult = const CashflowSummary(
+      income: Money(minorUnits: 0, currencyCode: 'RUB'),
+      expense: Money(minorUnits: 0, currencyCode: 'RUB'),
+      net: Money(minorUnits: 0, currencyCode: 'RUB'),
+      currencyCode: 'RUB',
+    ),
+    this.filteredCashflowResult,
+    this.hasCashflow = false,
+    this.cashflowPoints = const [],
+    this.categoryTotals = const [],
   }) : earliest = earliest ?? LocalDate(2024, 3, 5);
 
   final LocalDate earliest;
@@ -44,6 +59,13 @@ final class _Queries implements AnalyticsQueries {
   final LocalDate? earliestForKind;
   final Object? error;
   final Completer<LocalDate?>? earliestGate;
+  final List<NetWorthPoint> netWorthPoints;
+  final CashflowSummary cashflowResult;
+  final CashflowSummary? filteredCashflowResult;
+  final bool hasCashflow;
+  final List<CashflowPeriodPoint> cashflowPoints;
+  final List<CategoryTotal> categoryTotals;
+  CashflowFilter? lastCashflowFilter;
   AssetKind? lastKind;
 
   @override
@@ -55,6 +77,9 @@ final class _Queries implements AnalyticsQueries {
   }
 
   @override
+  Future<bool> hasAnyCashflow() async => hasCashflow;
+
+  @override
   Future<List<NetWorthPoint>> netWorthSeries({
     required DateRange period,
     AssetKind? assetKind,
@@ -62,7 +87,7 @@ final class _Queries implements AnalyticsQueries {
     lastKind = assetKind;
     final failure = error;
     if (failure != null) throw failure;
-    return const [];
+    return netWorthPoints;
   }
 
   @override
@@ -70,16 +95,60 @@ final class _Queries implements AnalyticsQueries {
       throw UnimplementedError();
 
   @override
-  Future<CashflowSummary> cashflow(CashflowFilter filter) =>
+  Future<CashflowSummary> cashflow(CashflowFilter filter) async {
+    lastCashflowFilter = filter;
+    final isAllTime =
+        filter.period == null &&
+        filter.kind == null &&
+        filter.categoryId == null;
+    return isAllTime
+        ? cashflowResult
+        : filteredCashflowResult ?? cashflowResult;
+  }
+
+  @override
+  Future<List<CategoryTotal>> cashflowByCategory(CashflowFilter filter) async =>
+      categoryTotals;
+
+  @override
+  Future<List<CashflowPeriodPoint>> cashflowSeries(
+    CashflowFilter filter,
+  ) async => cashflowPoints;
+}
+
+final class _Categories implements CategoryRepository {
+  _Categories([this.items = const []]);
+
+  final List<CashflowCategory> items;
+
+  @override
+  Stream<List<CashflowCategory>> watchByKind(
+    CashflowKind kind, {
+    bool includeArchived = false,
+  }) => Stream.value([
+    for (final item in items)
+      if (item.kind == kind && (includeArchived || item.archivedAt == null))
+        item,
+  ]);
+
+  @override
+  Future<int> create(CashflowCategoryDraft draft) => throw UnimplementedError();
+
+  @override
+  Future<void> update(CashflowCategory category) => throw UnimplementedError();
+
+  @override
+  Future<int> countEntries(int id) => throw UnimplementedError();
+
+  @override
+  Future<void> archive(int id) => throw UnimplementedError();
+
+  @override
+  Future<void> moveEntriesAndDelete(int id, int targetId) =>
       throw UnimplementedError();
 
   @override
-  Future<List<CategoryTotal>> cashflowByCategory(CashflowFilter filter) =>
-      throw UnimplementedError();
-
-  @override
-  Future<List<CashflowPeriodPoint>> cashflowSeries(CashflowFilter filter) =>
-      throw UnimplementedError();
+  Future<void> deleteIfUnused(int id) => throw UnimplementedError();
 }
 
 final class _Settings implements SettingsRepository {
@@ -143,11 +212,15 @@ final class _Rates implements ExchangeRateRepository {
   );
 }
 
-AnalyticsViewModel _viewModel(_Queries queries) => AnalyticsViewModel(
+AnalyticsViewModel _viewModel(
+  _Queries queries, {
+  List<CashflowCategory> categories = const [],
+}) => AnalyticsViewModel(
   queries: queries,
   settingsRepository: _Settings(),
   currencyRepository: _Currencies(),
   rateRepository: _Rates(),
+  categoryRepository: _Categories(categories),
   now: () => LocalDate(2026, 11, 19),
 );
 
@@ -241,5 +314,136 @@ void main() {
     await tester.pump(const Duration(milliseconds: 50));
 
     expect(queries.lastKind, isNull);
+  });
+
+  testWidgets('cashflow-секция, категории и фильтр по типу', (tester) async {
+    final incomeCategory = CashflowCategory(
+      id: 1,
+      kind: CashflowKind.income,
+      name: 'Зарплата',
+      isPreset: false,
+    );
+    final queries = _Queries(
+      netWorthPoints: [
+        NetWorthPoint(
+          date: LocalDate(2026, 11, 1),
+          value: const Money(minorUnits: 100000, currencyCode: 'RUB'),
+        ),
+        NetWorthPoint(
+          date: LocalDate(2026, 11, 5),
+          value: const Money(minorUnits: 150000, currencyCode: 'RUB'),
+        ),
+      ],
+      cashflowResult: const CashflowSummary(
+        income: Money(minorUnits: 100000, currencyCode: 'RUB'),
+        expense: Money(minorUnits: 0, currencyCode: 'RUB'),
+        net: Money(minorUnits: 100000, currencyCode: 'RUB'),
+        currencyCode: 'RUB',
+      ),
+      cashflowPoints: [
+        CashflowPeriodPoint(
+          periodStart: LocalDate(2026, 11, 1),
+          summary: const CashflowSummary(
+            income: Money(minorUnits: 100000, currencyCode: 'RUB'),
+            expense: Money(minorUnits: 0, currencyCode: 'RUB'),
+            net: Money(minorUnits: 100000, currencyCode: 'RUB'),
+            currencyCode: 'RUB',
+          ),
+        ),
+      ],
+      categoryTotals: const [
+        CategoryTotal(
+          categoryId: 1,
+          total: Money(minorUnits: 100000, currencyCode: 'RUB'),
+        ),
+      ],
+    );
+
+    await _pump(tester, _viewModel(queries, categories: [incomeCategory]));
+
+    expect(find.text(l10n.analyticsCashflowTitle), findsOneWidget);
+    expect(find.text(l10n.analyticsCategoriesTitle), findsOneWidget);
+    expect(find.text('Зарплата'), findsOneWidget);
+    expect(find.textContaining('100%'), findsOneWidget);
+    expect(find.text(l10n.analyticsCashflowIncome), findsOneWidget);
+
+    await tester.tap(find.text(l10n.analyticsCashflowIncome));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+
+    expect(queries.lastCashflowFilter?.kind, CashflowKind.income);
+    expect(find.text(l10n.analyticsCategoryFilterLabel), findsOneWidget);
+  });
+
+  testWidgets('нет активов, но есть cashflow — показывается cashflow', (
+    tester,
+  ) async {
+    final incomeCategory = CashflowCategory(
+      id: 1,
+      kind: CashflowKind.income,
+      name: 'Зарплата',
+      isPreset: false,
+    );
+    final queries = _Queries(
+      hasEarliest: false,
+      hasCashflow: true,
+      cashflowResult: const CashflowSummary(
+        income: Money(minorUnits: 100000, currencyCode: 'RUB'),
+        expense: Money(minorUnits: 0, currencyCode: 'RUB'),
+        net: Money(minorUnits: 100000, currencyCode: 'RUB'),
+        currencyCode: 'RUB',
+      ),
+      cashflowPoints: [
+        CashflowPeriodPoint(
+          periodStart: LocalDate(2026, 11, 1),
+          summary: const CashflowSummary(
+            income: Money(minorUnits: 100000, currencyCode: 'RUB'),
+            expense: Money(minorUnits: 0, currencyCode: 'RUB'),
+            net: Money(minorUnits: 100000, currencyCode: 'RUB'),
+            currencyCode: 'RUB',
+          ),
+        ),
+      ],
+    );
+
+    await _pump(tester, _viewModel(queries, categories: [incomeCategory]));
+
+    expect(find.text(l10n.analyticsCashflowTitle), findsOneWidget);
+    expect(find.text(l10n.analyticsNoAssetsTitle), findsNothing);
+  });
+
+  testWidgets('нет активов + фильтр без совпадений: фильтры остаются', (
+    tester,
+  ) async {
+    const income = CashflowSummary(
+      income: Money(minorUnits: 100000, currencyCode: 'RUB'),
+      expense: Money(minorUnits: 0, currencyCode: 'RUB'),
+      net: Money(minorUnits: 100000, currencyCode: 'RUB'),
+      currencyCode: 'RUB',
+    );
+    const zero = CashflowSummary(
+      income: Money(minorUnits: 0, currencyCode: 'RUB'),
+      expense: Money(minorUnits: 0, currencyCode: 'RUB'),
+      net: Money(minorUnits: 0, currencyCode: 'RUB'),
+      currencyCode: 'RUB',
+    );
+    final queries = _Queries(
+      hasEarliest: false,
+      hasCashflow: true,
+      cashflowResult: income,
+      filteredCashflowResult: zero,
+    );
+
+    await _pump(tester, _viewModel(queries));
+
+    expect(find.text(l10n.analyticsNoAssetsTitle), findsNothing);
+    expect(find.text(l10n.analyticsCashflowIncome), findsOneWidget);
+
+    await tester.tap(find.text(l10n.analyticsCashflowIncome));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+
+    expect(find.text(l10n.analyticsNoAssetsTitle), findsNothing);
+    expect(find.text(l10n.analyticsCashflowIncome), findsOneWidget);
   });
 }

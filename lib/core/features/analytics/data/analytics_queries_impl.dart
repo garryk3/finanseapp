@@ -73,6 +73,10 @@ final class AnalyticsQueriesImpl implements AnalyticsQueries {
   }
 
   @override
+  Future<bool> hasAnyCashflow() async =>
+      (await _db.cashflowDao.watchAll().first).isNotEmpty;
+
+  @override
   Future<List<NetWorthPoint>> netWorthSeries({
     required DateRange period,
     AssetKind? assetKind,

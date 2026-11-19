@@ -2863,6 +2863,42 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Свернуть периоды'**
   String get analyticsCollapsePeriods;
+
+  /// Фильтр cashflow-аналитики по типу.
+  ///
+  /// In ru, this message translates to:
+  /// **'Все операции'**
+  String get analyticsCashflowKindAll;
+
+  /// Фильтр cashflow — доходы.
+  ///
+  /// In ru, this message translates to:
+  /// **'Доходы'**
+  String get analyticsCashflowIncome;
+
+  /// Фильтр cashflow — расходы.
+  ///
+  /// In ru, this message translates to:
+  /// **'Расходы'**
+  String get analyticsCashflowExpense;
+
+  /// Фильтр аналитики по категории.
+  ///
+  /// In ru, this message translates to:
+  /// **'Категория'**
+  String get analyticsCategoryFilterLabel;
+
+  /// Секция итогов по категориям.
+  ///
+  /// In ru, this message translates to:
+  /// **'Итоги по категориям'**
+  String get analyticsCategoriesTitle;
+
+  /// Фоллбэк имени категории в аналитике.
+  ///
+  /// In ru, this message translates to:
+  /// **'Без категории'**
+  String get analyticsUnknownCategory;
 }
 
 class _AppLocalizationsDelegate

@@ -2053,5 +2053,29 @@
   "analyticsCollapsePeriods": "Свернуть периоды",
   "@analyticsCollapsePeriods": {
     "description": "Свернуть cashflow-список периодов."
+  },
+  "analyticsCashflowKindAll": "Все операции",
+  "@analyticsCashflowKindAll": {
+    "description": "Фильтр cashflow-аналитики по типу."
+  },
+  "analyticsCashflowIncome": "Доходы",
+  "@analyticsCashflowIncome": {
+    "description": "Фильтр cashflow — доходы."
+  },
+  "analyticsCashflowExpense": "Расходы",
+  "@analyticsCashflowExpense": {
+    "description": "Фильтр cashflow — расходы."
+  },
+  "analyticsCategoryFilterLabel": "Категория",
+  "@analyticsCategoryFilterLabel": {
+    "description": "Фильтр аналитики по категории."
+  },
+  "analyticsCategoriesTitle": "Итоги по категориям",
+  "@analyticsCategoriesTitle": {
+    "description": "Секция итогов по категориям."
+  },
+  "analyticsUnknownCategory": "Без категории",
+  "@analyticsUnknownCategory": {
+    "description": "Фоллбэк имени категории в аналитике."
   }
 }
