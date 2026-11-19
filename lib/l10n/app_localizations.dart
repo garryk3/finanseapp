@@ -349,7 +349,7 @@ abstract class AppLocalizations {
   /// Пояснение пустого списка активов.
   ///
   /// In ru, this message translates to:
-  /// **'Добавьте счёт или инвестицию.'**
+  /// **'Добавьте счёт, инвестицию или квартиру.'**
   String get assetsEmptyMessage;
 
   /// Заголовок пустого списка целей.
@@ -2115,10 +2115,10 @@ abstract class AppLocalizations {
   /// **'Итого'**
   String get cashflowTotalsNet;
 
-  /// Период итогов: вся история.
+  /// Период: все время.
   ///
   /// In ru, this message translates to:
-  /// **'Все записи'**
+  /// **'Все время'**
   String get cashflowPeriodAll;
 
   /// Поле валюты дохода/расхода.
@@ -2138,6 +2138,102 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Категория в архиве. Выберите активную.'**
   String get cashflowErrorCategoryArchived;
+
+  /// Заголовок формы новой квартиры.
+  ///
+  /// In ru, this message translates to:
+  /// **'Новая квартира'**
+  String get propertyFormNew;
+
+  /// Заголовок редактирования квартиры.
+  ///
+  /// In ru, this message translates to:
+  /// **'Изменить квартиру'**
+  String get propertyFormEdit;
+
+  /// Поле названия квартиры.
+  ///
+  /// In ru, this message translates to:
+  /// **'Название квартиры'**
+  String get propertyNameLabel;
+
+  /// Необязательный адрес.
+  ///
+  /// In ru, this message translates to:
+  /// **'Адрес'**
+  String get propertyAddressLabel;
+
+  /// Необязательная цена покупки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Цена покупки'**
+  String get propertyPurchasePriceLabel;
+
+  /// Начальная стоимость квартиры.
+  ///
+  /// In ru, this message translates to:
+  /// **'Начальная стоимость'**
+  String get propertyValueLabel;
+
+  /// Валюта стоимости квартиры.
+  ///
+  /// In ru, this message translates to:
+  /// **'Валюта квартиры'**
+  String get propertyCurrencyLabel;
+
+  /// Заголовок секции формы квартиры.
+  ///
+  /// In ru, this message translates to:
+  /// **'Квартира'**
+  String get propertySectionTitle;
+
+  /// Ошибка названия квартиры.
+  ///
+  /// In ru, this message translates to:
+  /// **'Введите название квартиры.'**
+  String get propertyErrorName;
+
+  /// Секция cashflow квартиры.
+  ///
+  /// In ru, this message translates to:
+  /// **'Денежный поток по квартире'**
+  String get propertyCashflowTitle;
+
+  /// Пустой поток квартиры.
+  ///
+  /// In ru, this message translates to:
+  /// **'Записей за период нет.'**
+  String get propertyCashflowEmpty;
+
+  /// Добавить доход по квартире.
+  ///
+  /// In ru, this message translates to:
+  /// **'Добавить доход'**
+  String get propertyAddIncome;
+
+  /// Добавить расход по квартире.
+  ///
+  /// In ru, this message translates to:
+  /// **'Добавить расход'**
+  String get propertyAddExpense;
+
+  /// Период: месяц.
+  ///
+  /// In ru, this message translates to:
+  /// **'Месяц'**
+  String get cashflowPeriodMonth;
+
+  /// Период: год.
+  ///
+  /// In ru, this message translates to:
+  /// **'Год'**
+  String get cashflowPeriodYear;
+
+  /// Действие создания квартиры.
+  ///
+  /// In ru, this message translates to:
+  /// **'Добавить квартиру'**
+  String get assetsAddProperty;
 }
 
 class _AppLocalizationsDelegate

@@ -6,6 +6,7 @@ import 'package:finanseapp/core/domain/common/result.dart';
 import 'package:finanseapp/core/features/assets/domain/asset.dart';
 import 'package:finanseapp/core/features/assets/domain/asset_valuation.dart';
 import 'package:finanseapp/core/features/assets/ui/account_details_view_model.dart';
+import 'package:finanseapp/core/features/assets/ui/property_cashflow_section.dart';
 import 'package:finanseapp/core/presentation/date_formatter.dart';
 import 'package:finanseapp/core/presentation/money_formatter.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
@@ -75,7 +76,7 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
           appBar: AppTopAppBar(
             title: switch (asset?.kind) {
               AssetKind.investment => l10n.investmentDetailsTitle,
-              AssetKind.property => l10n.assetDetailsTitle,
+              AssetKind.property => l10n.assetKindProperty,
               AssetKind.account || null => l10n.accountDetailsTitle,
             },
             actions: [if (asset != null) _actions(l10n, vm, asset)],
@@ -132,6 +133,24 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                   ),
                 ),
               ],
+              if (asset is PropertyAsset) ...[
+                const SizedBox(height: AppSpacing.xs),
+                if (asset.address != null)
+                  AppText(
+                    asset.address!,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                if (asset.address != null && asset.purchasePrice != null)
+                  const SizedBox(height: AppSpacing.xs),
+                if (asset.purchasePrice != null)
+                  AppText(
+                    '${l10n.propertyPurchasePriceLabel}: '
+                    '${_money(asset.purchasePrice)}',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+              ],
               if (showBase) ...[
                 const SizedBox(height: AppSpacing.md),
                 AppText(l10n.assetBaseEquivalent),
@@ -149,7 +168,8 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                 Row(children: [AppChip(label: l10n.accountArchivedBadge)]),
               ],
               const SizedBox(height: AppSpacing.lg),
-              if (!isArchived && (isAccount || isInvestment))
+              if (!isArchived &&
+                  (isAccount || isInvestment || asset is PropertyAsset))
                 AppButton(
                   label: l10n.accountEdit,
                   variant: AppButtonVariant.outlined,
@@ -203,6 +223,13 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
             ],
           ),
         ),
+        if (asset is PropertyAsset && vm.cashflowRepository != null)
+          PropertyCashflowSection(
+            repository: vm.cashflowRepository!,
+            propertyId: asset.id,
+            today: vm.today,
+            readOnly: isArchived,
+          ),
         if (!isAccount)
           AppSection(
             header: l10n.valuationHistory,
@@ -261,9 +288,11 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
   );
 
   Future<void> _edit(Asset asset) async {
-    final path = asset is AccountAsset
-        ? AppRoutes.accountEditPath(asset.id)
-        : AppRoutes.investmentEditPath(asset.id);
+    final path = switch (asset) {
+      AccountAsset() => AppRoutes.accountEditPath(asset.id),
+      InvestmentAsset() => AppRoutes.investmentEditPath(asset.id),
+      PropertyAsset() => AppRoutes.propertyEditPath(asset.id),
+    };
     await context.push(path);
     if (!mounted) return;
     await _viewModel.load();

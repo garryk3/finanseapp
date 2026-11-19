@@ -71,10 +71,21 @@ final class AssetRepositoryImpl implements AssetRepository {
             brokerId: investment.brokerId,
           ),
         );
-      case PropertyDraft():
-        throw const DomainException(
-          DomainErrorCode.validation,
-          fieldErrors: {'kind': 'validationAssetKindUnsupported'},
+      case PropertyDraft property:
+        _validatePropertyDraft(property);
+        return _assetsDao.create(
+          name: property.name.trim(),
+          kind: AssetKind.property,
+          currencyCode: property.currencyCode,
+          openingValueMinor: property.openingValue.minorUnits,
+          property: PropertyDetailsCompanion.insert(
+            address: Value(
+              property.address?.trim().isEmpty ?? true
+                  ? null
+                  : property.address!.trim(),
+            ),
+            purchasePriceMinor: Value(property.purchasePrice?.minorUnits),
+          ),
         );
     }
   }
@@ -103,10 +114,15 @@ final class AssetRepositoryImpl implements AssetRepository {
           openingValueMinor: investment.openingValue.minorUnits,
           brokerId: investment.brokerId,
         );
-      case PropertyDraft():
-        throw const DomainException(
-          DomainErrorCode.validation,
-          fieldErrors: {'kind': 'validationAssetKindUnsupported'},
+      case PropertyDraft property:
+        _validatePropertyDraft(property);
+        await _assetsDao.updateProperty(
+          assetId: id,
+          name: property.name.trim(),
+          currencyCode: property.currencyCode,
+          openingValueMinor: property.openingValue.minorUnits,
+          address: property.address,
+          purchasePriceMinor: property.purchasePrice?.minorUnits,
         );
     }
   }
@@ -162,12 +178,16 @@ final class AssetRepositoryImpl implements AssetRepository {
     final investment = row.kind == AssetKind.investment
         ? await _assetsDao.investmentDetailsFor(row.id)
         : null;
+    final property = row.kind == AssetKind.property
+        ? await _assetsDao.propertyDetailsFor(row.id)
+        : null;
     return _buildSnapshot(
       row,
       transactions,
       valuations,
       account: account,
       investment: investment,
+      property: property,
     );
   }
 
@@ -181,6 +201,10 @@ final class AssetRepositoryImpl implements AssetRepository {
     };
     final investments = {
       for (final detail in await _assetsDao.allInvestmentDetails())
+        detail.assetId: detail,
+    };
+    final properties = {
+      for (final detail in await _assetsDao.allPropertyDetails())
         detail.assetId: detail,
     };
     final currencyByAsset = {for (final row in rows) row.id: row.currencyCode};
@@ -209,6 +233,7 @@ final class AssetRepositoryImpl implements AssetRepository {
           valuationsByAsset[row.id] ?? const [],
           account: accounts[row.id],
           investment: investments[row.id],
+          property: properties[row.id],
         ),
     ];
   }
@@ -219,6 +244,7 @@ final class AssetRepositoryImpl implements AssetRepository {
     List<AssetValuation> valuations, {
     AccountDetailRow? account,
     InvestmentDetailRow? investment,
+    PropertyDetailRow? property,
   }) {
     final opening = Money(
       minorUnits: row.openingValueMinor,
@@ -280,6 +306,13 @@ final class AssetRepositoryImpl implements AssetRepository {
           openingValue: opening,
           createdAt: row.createdAt,
           archivedAt: row.archivedAt,
+          address: property?.address,
+          purchasePrice: property?.purchasePriceMinor == null
+              ? null
+              : Money(
+                  minorUnits: property!.purchasePriceMinor!,
+                  currencyCode: row.currencyCode,
+                ),
         );
         return AssetSnapshot(
           asset: asset,
@@ -360,6 +393,22 @@ final class AssetRepositoryImpl implements AssetRepository {
       );
     }
     if (draft.openingValue.isNegative) {
+      throw const DomainException(
+        DomainErrorCode.validation,
+        fieldErrors: {'openingValue': 'validationAmountNegative'},
+      );
+    }
+  }
+
+  static void _validatePropertyDraft(PropertyDraft draft) {
+    if (draft.name.trim().isEmpty) {
+      throw const DomainException(
+        DomainErrorCode.validation,
+        fieldErrors: {'name': 'validationNameRequired'},
+      );
+    }
+    if (draft.openingValue.isNegative ||
+        (draft.purchasePrice?.isNegative ?? false)) {
       throw const DomainException(
         DomainErrorCode.validation,
         fieldErrors: {'openingValue': 'validationAmountNegative'},

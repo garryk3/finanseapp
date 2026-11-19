@@ -72,6 +72,8 @@ abstract final class AppRoutes {
   static String transferEditPath(int transferId) =>
       '/transactions/transfer/$transferId/edit';
   static String cashflowDetailsPath(int id) => '/cashflow/$id';
+  static String cashflowNewForProperty(int id, {bool income = false}) =>
+      '$cashflowNew?propertyId=$id&kind=${income ? 'income' : 'expense'}';
   static String cashflowEditPath(int id) => '/cashflow/$id/edit';
   static String goalDetailsPath(int id) => '/goals/$id';
   static String goalEditPath(int id) => '/goals/$id/edit';

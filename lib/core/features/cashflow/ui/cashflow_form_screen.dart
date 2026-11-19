@@ -28,9 +28,14 @@ import 'package:signals_flutter/signals_flutter.dart';
 
 /// Форма дохода/расхода без влияния на баланс (7.1).
 class CashflowFormScreen extends StatefulWidget {
-  const CashflowFormScreen({super.key, required this.viewModel});
+  const CashflowFormScreen({
+    super.key,
+    required this.viewModel,
+    this.propertyId,
+  });
 
   final CashflowFormViewModel viewModel;
+  final int? propertyId;
 
   @override
   State<CashflowFormScreen> createState() => _CashflowFormScreenState();
@@ -54,11 +59,13 @@ class _CashflowFormScreenState extends State<CashflowFormScreen> {
   @override
   void initState() {
     super.initState();
+    _kind = widget.viewModel.initialKind;
     widget.viewModel.load(kind: _kind).then((_) {
       if (!mounted) return;
       final entry = widget.viewModel.entry.value;
       setState(() {
         _date = widget.viewModel.today;
+        _kind = widget.viewModel.initialKind;
         if (entry != null) {
           _kind = entry.kind;
           _categoryId = entry.categoryId;
@@ -139,6 +146,7 @@ class _CashflowFormScreenState extends State<CashflowFormScreen> {
       occurredOn: _date!,
       manualRate: manualRate,
       comment: _comment.text,
+      propertyId: widget.propertyId,
     );
     if (!mounted) return;
     setState(() => _saving = false);

@@ -6,9 +6,12 @@ import 'package:finanseapp/core/domain/common/local_date.dart';
 import 'package:finanseapp/core/domain/common/money.dart';
 import 'package:finanseapp/core/domain/common/result.dart';
 import 'package:finanseapp/core/features/cashflow/data/cashflow_repository_impl.dart';
+import 'package:finanseapp/core/features/cashflow/domain/cashflow_entry.dart';
 import 'package:finanseapp/core/features/cashflow/domain/cashflow_filter.dart';
 import 'package:finanseapp/core/features/cashflow/logic/cashflow_calculator.dart';
 import 'package:finanseapp/core/features/cashflow/logic/cashflow_commands.dart';
+import 'package:finanseapp/core/features/cashflow/ui/cashflow_view_model.dart';
+import 'package:finanseapp/core/features/categories/data/category_repository_impl.dart';
 import 'package:finanseapp/core/features/categories/domain/category.dart';
 import 'package:finanseapp/core/features/currencies/domain/currency_repository.dart';
 import 'package:finanseapp/core/features/currencies/domain/exchange_rate_repository.dart';
@@ -204,6 +207,41 @@ void main() {
     expect(await repository.watch(const CashflowFilter()).first, isEmpty);
     expect(await db.cashflowDao.revisions(id), hasLength(2));
     expect(await db.transactionsDao.allRows(), isEmpty);
+  });
+
+  test('editing сохраняет propertyId записи', () async {
+    final propertyId = await createProperty(db);
+    final id = await repository.create(
+      CashflowEntryDraft(
+        kind: CashflowKind.expense,
+        categoryId: expenseCategoryId,
+        amount: const Money(minorUnits: 10000, currencyCode: 'RUB'),
+        occurredOn: LocalDate(2026, 1, 2),
+        rateToRub: Decimal.one,
+        affectsBalance: false,
+        propertyId: propertyId,
+      ),
+    );
+    final form = CashflowFormViewModel(
+      repository: repository,
+      categoryRepository: CategoryRepositoryImpl(db.referencesDao),
+      currencyRepository: FakeCurrencies(),
+      commands: commands,
+      editingId: id,
+    );
+    await form.load();
+
+    final result = await form.save(
+      kind: CashflowKind.expense,
+      categoryId: expenseCategoryId,
+      amount: const Money(minorUnits: 20000, currencyCode: 'RUB'),
+      occurredOn: LocalDate(2026, 1, 2),
+    );
+
+    expect(result, isA<Success<int>>());
+    final entry = await repository.getById(id);
+    expect(entry.propertyId, propertyId);
+    expect(entry.amount.minorUnits, 20000);
   });
 
   test('итоги считают доходы и расходы в RUB', () async {
