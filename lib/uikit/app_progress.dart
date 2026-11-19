@@ -16,11 +16,16 @@ class AppProgress extends StatelessWidget {
     required this.value,
     this.label,
     this.semanticLabel,
+    this.semanticsValue,
   });
 
   final double? value; // null = indeterminate, иначе clamp 0..1
   final String? label;
   final String? semanticLabel;
+
+  /// Доступное значение (например, «50%»): без него TalkBack не сообщает,
+  /// насколько заполнен индикатор.
+  final String? semanticsValue;
 
   @override
   Widget build(BuildContext context) {
@@ -28,6 +33,7 @@ class AppProgress extends StatelessWidget {
     final indicator = LinearProgressIndicator(
       value: clamped,
       semanticsLabel: semanticLabel ?? label,
+      semanticsValue: semanticsValue,
     );
     if (label == null) return indicator;
     return Column(

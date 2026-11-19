@@ -2520,12 +2520,6 @@ abstract class AppLocalizations {
   /// Действие статуса.
   ///
   /// In ru, this message translates to:
-  /// **'Отметить достигнутой'**
-  String get goalMarkAchieved;
-
-  /// Действие статуса.
-  ///
-  /// In ru, this message translates to:
   /// **'Закрыть цель'**
   String get goalClose;
 
@@ -2564,6 +2558,84 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Активы не привязаны.'**
   String get goalNoLinkedAssets;
+
+  /// Заголовок секции прогресса в деталях цели.
+  ///
+  /// In ru, this message translates to:
+  /// **'Прогресс цели'**
+  String get goalProgressSectionTitle;
+
+  /// Текущий прогресс цели.
+  ///
+  /// In ru, this message translates to:
+  /// **'Накоплено'**
+  String get goalProgressLabel;
+
+  /// Сколько осталось до цели.
+  ///
+  /// In ru, this message translates to:
+  /// **'Осталось'**
+  String get goalDeficitLabel;
+
+  /// Насколько прогресс превышает цель.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сверх цели'**
+  String get goalSurplusLabel;
+
+  /// Рекомендуемый месячный взнос.
+  ///
+  /// In ru, this message translates to:
+  /// **'В месяц'**
+  String get goalMonthlyLabel;
+
+  /// Дата цели в прошлом при дефиците.
+  ///
+  /// In ru, this message translates to:
+  /// **'Срок истёк'**
+  String get goalDeadlineExpired;
+
+  /// Строка дефицита в карточке цели.
+  ///
+  /// In ru, this message translates to:
+  /// **'Осталось: {amount}'**
+  String goalDeficit(String amount);
+
+  /// Строка превышения в карточке цели.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сверх цели: {amount}'**
+  String goalSurplus(String amount);
+
+  /// Срок цели в карточке.
+  ///
+  /// In ru, this message translates to:
+  /// **'До {date}'**
+  String goalDeadline(String date);
+
+  /// Заголовок группы активных целей.
+  ///
+  /// In ru, this message translates to:
+  /// **'Активные'**
+  String get goalGroupActive;
+
+  /// Заголовок группы достигнутых целей.
+  ///
+  /// In ru, this message translates to:
+  /// **'Достигнутые'**
+  String get goalGroupAchieved;
+
+  /// Заголовок группы закрытых целей.
+  ///
+  /// In ru, this message translates to:
+  /// **'Закрытые'**
+  String get goalGroupClosed;
+
+  /// Доступное описание прогресса цели.
+  ///
+  /// In ru, this message translates to:
+  /// **'Накоплено {progress} из {target}'**
+  String goalProgressSemantics(String progress, String target);
 }
 
 class _AppLocalizationsDelegate

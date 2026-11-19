@@ -322,10 +322,12 @@ class AppSkeleton extends StatelessWidget {
 class AppProgress extends StatelessWidget {
   const AppProgress({
     super.key, required this.value, this.label, this.semanticLabel,
+    this.semanticsValue,
   });
   final double? value; // null = indeterminate, иначе clamp 0..1
   final String? label;
   final String? semanticLabel;
+  final String? semanticsValue; // например, «50%» для TalkBack
 }
 
 class AppDivider extends StatelessWidget {

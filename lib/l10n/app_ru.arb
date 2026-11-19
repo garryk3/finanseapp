@@ -1758,10 +1758,6 @@
   "@goalDeleteMessage": {
     "description": "Пояснение удаления."
   },
-  "goalMarkAchieved": "Отметить достигнутой",
-  "@goalMarkAchieved": {
-    "description": "Действие статуса."
-  },
   "goalClose": "Закрыть цель",
   "@goalClose": {
     "description": "Действие статуса."
@@ -1789,5 +1785,80 @@
   "goalNoLinkedAssets": "Активы не привязаны.",
   "@goalNoLinkedAssets": {
     "description": "Пустой список активов в деталях цели."
+  },
+  "goalProgressSectionTitle": "Прогресс цели",
+  "@goalProgressSectionTitle": {
+    "description": "Заголовок секции прогресса в деталях цели."
+  },
+  "goalProgressLabel": "Накоплено",
+  "@goalProgressLabel": {
+    "description": "Текущий прогресс цели."
+  },
+  "goalDeficitLabel": "Осталось",
+  "@goalDeficitLabel": {
+    "description": "Сколько осталось до цели."
+  },
+  "goalSurplusLabel": "Сверх цели",
+  "@goalSurplusLabel": {
+    "description": "Насколько прогресс превышает цель."
+  },
+  "goalMonthlyLabel": "В месяц",
+  "@goalMonthlyLabel": {
+    "description": "Рекомендуемый месячный взнос."
+  },
+  "goalDeadlineExpired": "Срок истёк",
+  "@goalDeadlineExpired": {
+    "description": "Дата цели в прошлом при дефиците."
+  },
+  "goalDeficit": "Осталось: {amount}",
+  "@goalDeficit": {
+    "description": "Строка дефицита в карточке цели.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "goalSurplus": "Сверх цели: {amount}",
+  "@goalSurplus": {
+    "description": "Строка превышения в карточке цели.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "goalDeadline": "До {date}",
+  "@goalDeadline": {
+    "description": "Срок цели в карточке.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "goalGroupActive": "Активные",
+  "@goalGroupActive": {
+    "description": "Заголовок группы активных целей."
+  },
+  "goalGroupAchieved": "Достигнутые",
+  "@goalGroupAchieved": {
+    "description": "Заголовок группы достигнутых целей."
+  },
+  "goalGroupClosed": "Закрытые",
+  "@goalGroupClosed": {
+    "description": "Заголовок группы закрытых целей."
+  },
+  "goalProgressSemantics": "Накоплено {progress} из {target}",
+  "@goalProgressSemantics": {
+    "description": "Доступное описание прогресса цели.",
+    "placeholders": {
+      "progress": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
   }
 }

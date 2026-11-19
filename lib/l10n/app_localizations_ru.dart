@@ -1314,9 +1314,6 @@ class AppLocalizationsRu extends AppLocalizations {
       'Цель будет скрыта; связи с активами сохранятся в истории.';
 
   @override
-  String get goalMarkAchieved => 'Отметить достигнутой';
-
-  @override
   String get goalClose => 'Закрыть цель';
 
   @override
@@ -1336,4 +1333,51 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get goalNoLinkedAssets => 'Активы не привязаны.';
+
+  @override
+  String get goalProgressSectionTitle => 'Прогресс цели';
+
+  @override
+  String get goalProgressLabel => 'Накоплено';
+
+  @override
+  String get goalDeficitLabel => 'Осталось';
+
+  @override
+  String get goalSurplusLabel => 'Сверх цели';
+
+  @override
+  String get goalMonthlyLabel => 'В месяц';
+
+  @override
+  String get goalDeadlineExpired => 'Срок истёк';
+
+  @override
+  String goalDeficit(String amount) {
+    return 'Осталось: $amount';
+  }
+
+  @override
+  String goalSurplus(String amount) {
+    return 'Сверх цели: $amount';
+  }
+
+  @override
+  String goalDeadline(String date) {
+    return 'До $date';
+  }
+
+  @override
+  String get goalGroupActive => 'Активные';
+
+  @override
+  String get goalGroupAchieved => 'Достигнутые';
+
+  @override
+  String get goalGroupClosed => 'Закрытые';
+
+  @override
+  String goalProgressSemantics(String progress, String target) {
+    return 'Накоплено $progress из $target';
+  }
 }

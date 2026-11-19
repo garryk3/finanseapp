@@ -1,4 +1,5 @@
 import 'package:finanseapp/app/routes.dart';
+import 'package:finanseapp/app/theme/app_semantic_colors.dart';
 import 'package:finanseapp/app/theme/app_spacing.dart';
 import 'package:finanseapp/core/domain/common/currency.dart';
 import 'package:finanseapp/core/domain/common/money.dart';
@@ -16,6 +17,8 @@ import 'package:finanseapp/uikit/app_dialog.dart';
 import 'package:finanseapp/uikit/app_empty_state.dart';
 import 'package:finanseapp/uikit/app_error_state.dart';
 import 'package:finanseapp/uikit/app_list_view.dart';
+import 'package:finanseapp/uikit/app_metric.dart';
+import 'package:finanseapp/uikit/app_progress.dart';
 import 'package:finanseapp/uikit/app_scaffold.dart';
 import 'package:finanseapp/uikit/app_section.dart';
 import 'package:finanseapp/uikit/app_snack_bar.dart';
@@ -25,7 +28,7 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
-/// Детали финансовой цели (8.1).
+/// Детали финансовой цели (8.1–8.2).
 class GoalDetailsScreen extends StatefulWidget {
   const GoalDetailsScreen({super.key, required this.viewModel});
 
@@ -62,128 +65,180 @@ class _GoalDetailsScreenState extends State<GoalDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return AppScaffold(
-      title: l10n.goalDetailsTitle,
-      body: SignalBuilder(
-        builder: (context) {
-          final vm = _viewModel;
-          final goal = vm.goal.value;
-          if (vm.state.value is ViewError) {
-            if (vm.state.value case ViewError(
-              errorCode: DomainErrorCode.notFound,
-            )) {
-              return AppEmptyState(
-                icon: Icons.search_off,
-                title: l10n.notFoundTitle,
-                message: l10n.notFoundMessage,
-                actionLabel: l10n.notFoundHome,
-                onAction: () => context.go(AppRoutes.dashboard),
-              );
-            }
-            return AppErrorState(
-              title: l10n.errorStateTitle,
-              message: l10n.errorStateMessage,
-              errorLabel: l10n.errorLabel,
-              retryLabel: l10n.retry,
-              onRetry: vm.load,
-            );
-          }
-          if (goal == null) {
-            return Center(child: AppText(l10n.commonLoading));
-          }
-          return AppListView(
+    return SignalBuilder(
+      builder: (context) {
+        final vm = _viewModel;
+        final goal = vm.goal.value;
+        return AppScaffold(
+          title: goal?.name ?? l10n.goalDetailsTitle,
+          body: _body(context, l10n, vm, goal),
+        );
+      },
+    );
+  }
+
+  Widget _body(
+    BuildContext context,
+    AppLocalizations l10n,
+    GoalDetailsViewModel vm,
+    FinancialGoal? goal,
+  ) {
+    if (vm.state.value is ViewError) {
+      if (vm.state.value case ViewError(errorCode: DomainErrorCode.notFound)) {
+        return AppEmptyState(
+          icon: Icons.search_off,
+          title: l10n.notFoundTitle,
+          message: l10n.notFoundMessage,
+          actionLabel: l10n.notFoundHome,
+          onAction: () => context.go(AppRoutes.dashboard),
+        );
+      }
+      return AppErrorState(
+        title: l10n.errorStateTitle,
+        message: l10n.errorStateMessage,
+        errorLabel: l10n.errorLabel,
+        retryLabel: l10n.retry,
+        onRetry: vm.load,
+      );
+    }
+    if (goal == null) {
+      return Center(child: AppText(l10n.commonLoading));
+    }
+    return AppListView(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+          child: AppSummaryCard(
+            title: l10n.goalTargetAmountLabel,
+            value: _money(goal.targetAmount),
+            subtitle: _status(l10n, goal.status),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        AppSection(
+          header: l10n.goalProgressSectionTitle,
+          child: _progressBody(l10n, vm),
+        ),
+        AppSection(
+          header: l10n.goalSectionTitle,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                child: AppSummaryCard(
-                  title: l10n.goalTargetAmountLabel,
-                  value: _money(goal.targetAmount),
-                  subtitle: _status(l10n, goal.status),
-                ),
+              AppText(
+                '${l10n.goalCategoryLabel}: '
+                '${goal.category == GoalCategory.accounts ? l10n.goalCategoryAccounts : l10n.goalCategoryInvestments}',
               ),
-              const SizedBox(height: AppSpacing.md),
-              AppSection(
-                header: goal.name,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+              if (goal.targetDate != null)
+                AppText(
+                  '${l10n.goalTargetDateLabel}: '
+                  '${const DateFormatter().format(goal.targetDate!)}',
+                ),
+              AppText(l10n.goalAssetsLabel),
+              if (vm.assets.value.isEmpty) AppText(l10n.goalNoLinkedAssets),
+              for (final asset in vm.assets.value)
+                Row(
                   children: [
-                    AppText(
-                      '${l10n.goalCategoryLabel}: '
-                      '${goal.category == GoalCategory.accounts ? l10n.goalCategoryAccounts : l10n.goalCategoryInvestments}',
-                    ),
-                    if (goal.targetDate != null)
-                      AppText(
-                        '${l10n.goalTargetDateLabel}: '
-                        '${const DateFormatter().format(goal.targetDate!)}',
-                      ),
-                    AppText(l10n.goalAssetsLabel),
-                    if (vm.assets.value.isEmpty)
-                      AppText(l10n.goalNoLinkedAssets),
-                    for (final asset in vm.assets.value)
-                      Row(
-                        children: [
-                          Expanded(child: AppText(asset.name)),
-                          if (asset.archivedAt != null) ...[
-                            const SizedBox(width: AppSpacing.xs),
-                            AppChip(label: l10n.accountArchivedBadge),
-                          ],
-                        ],
-                      ),
-                    const SizedBox(height: AppSpacing.lg),
-                    AppButton(
-                      label: l10n.accountEdit,
-                      variant: AppButtonVariant.outlined,
-                      onPressed: () async {
-                        final saved = await context.push<bool>(
-                          AppRoutes.goalEditPath(goal.id),
-                        );
-                        if (!mounted || saved != true) return;
-                        await vm.load();
-                      },
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    if (goal.status != GoalStatus.achieved)
-                      AppButton(
-                        label: l10n.goalMarkAchieved,
-                        variant: AppButtonVariant.tonal,
-                        pending: vm.pendingStatus.value == GoalStatus.achieved,
-                        onPressed: vm.busy.value
-                            ? null
-                            : () => _setStatus(GoalStatus.achieved),
-                      ),
-                    const SizedBox(height: AppSpacing.sm),
-                    if (goal.status == GoalStatus.active)
-                      AppButton(
-                        label: l10n.goalClose,
-                        variant: AppButtonVariant.tonal,
-                        pending: vm.pendingStatus.value == GoalStatus.closed,
-                        onPressed: vm.busy.value
-                            ? null
-                            : () => _setStatus(GoalStatus.closed),
-                      )
-                    else
-                      AppButton(
-                        label: l10n.goalActivate,
-                        variant: AppButtonVariant.tonal,
-                        pending: vm.pendingStatus.value == GoalStatus.active,
-                        onPressed: vm.busy.value
-                            ? null
-                            : () => _setStatus(GoalStatus.active),
-                      ),
-                    const SizedBox(height: AppSpacing.sm),
-                    AppButton(
-                      label: l10n.accountDelete,
-                      variant: AppButtonVariant.destructive,
-                      pending: vm.deleteBusy.value,
-                      onPressed: vm.busy.value ? null : _delete,
-                    ),
+                    Expanded(child: AppText(asset.name)),
+                    if (asset.archivedAt != null) ...[
+                      const SizedBox(width: AppSpacing.xs),
+                      AppChip(label: l10n.accountArchivedBadge),
+                    ],
                   ],
                 ),
+              const SizedBox(height: AppSpacing.lg),
+              AppButton(
+                label: l10n.accountEdit,
+                variant: AppButtonVariant.outlined,
+                onPressed: () async {
+                  final saved = await context.push<bool>(
+                    AppRoutes.goalEditPath(goal.id),
+                  );
+                  if (!mounted || saved != true) return;
+                  await vm.load();
+                },
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              if (goal.status != GoalStatus.closed)
+                AppButton(
+                  label: l10n.goalClose,
+                  variant: AppButtonVariant.tonal,
+                  pending: vm.pendingStatus.value == GoalStatus.closed,
+                  onPressed: vm.busy.value
+                      ? null
+                      : () => _setStatus(GoalStatus.closed),
+                )
+              else
+                AppButton(
+                  label: l10n.goalActivate,
+                  variant: AppButtonVariant.tonal,
+                  pending: vm.pendingStatus.value == GoalStatus.active,
+                  onPressed: vm.busy.value
+                      ? null
+                      : () => _setStatus(GoalStatus.active),
+                ),
+              const SizedBox(height: AppSpacing.sm),
+              AppButton(
+                label: l10n.accountDelete,
+                variant: AppButtonVariant.destructive,
+                pending: vm.deleteBusy.value,
+                onPressed: vm.busy.value ? null : _delete,
               ),
             ],
-          );
-        },
-      ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _progressBody(AppLocalizations l10n, GoalDetailsViewModel vm) {
+    final progress = vm.progress.value;
+    if (progress == null) return AppText(l10n.assetBaseUnavailable);
+    final targetDate = progress.goal.targetDate;
+    final closed = vm.goal.value?.status == GoalStatus.closed;
+    final expired = targetDate != null && targetDate.compareTo(vm.today) < 0;
+    final monthly = progress.monthlyContribution;
+    // Усечение, а не округление: 99,99% не должно читаться как «100%».
+    final tenths = (progress.completionRatio.toDouble() * 1000).floor();
+    final percent = tenths % 10 == 0 ? '${tenths ~/ 10}%' : '${tenths / 10}%';
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        AppProgress(
+          value: progress.completionRatio.toDouble(),
+          semanticLabel: l10n.goalProgressSemantics(
+            _money(progress.progress),
+            _money(progress.goal.targetAmount),
+          ),
+          semanticsValue: percent,
+        ),
+        const SizedBox(height: AppSpacing.md),
+        AppMetric(
+          label: l10n.goalProgressLabel,
+          value: _money(progress.progress),
+        ),
+        if (progress.deficit.minorUnits > 0) ...[
+          const SizedBox(height: AppSpacing.sm),
+          AppMetric(
+            label: l10n.goalDeficitLabel,
+            value: _money(progress.deficit),
+            tone: AppMoneyTone.expense,
+          ),
+        ] else if (progress.surplus.minorUnits > 0) ...[
+          const SizedBox(height: AppSpacing.sm),
+          AppMetric(
+            label: l10n.goalSurplusLabel,
+            value: _money(progress.surplus),
+            tone: AppMoneyTone.income,
+          ),
+        ],
+        if (!closed && monthly != null) ...[
+          const SizedBox(height: AppSpacing.sm),
+          AppMetric(label: l10n.goalMonthlyLabel, value: _money(monthly)),
+        ] else if (!closed && expired && progress.deficit.minorUnits > 0) ...[
+          const SizedBox(height: AppSpacing.sm),
+          AppText(l10n.goalDeadlineExpired),
+        ],
+      ],
     );
   }
 
