@@ -960,6 +960,15 @@
 - **TDD:** transfer и deposit без cashflow не попадают; связанный expense попадает один раз;
   account filter показывает affectsBalance entries; deleted скрыт, summary уменьшается;
   empty filtered Reset восстанавливает; date end inclusive.
+- **Рабочий план (2026-11-19):**
+  - **VM:** фильтры query/kind/period/category/account/currency, счета и категории в
+    сигналах, reactive watch без утечки подписок.
+  - **UI:** поиск + фильтры вида/периода + advanced-селекты (категория/счёт/валюта),
+    сброс, filtered empty, группы по дате, lazy builder, summary из отфильтрованного набора.
+  - **Audit:** экран ревизий денежного потока `/more/audit/cashflow/:id`; из NotFound
+    удалённой записи — переход в аудит.
+  - **Тесты:** account filter только affectsBalance, deleted скрыт и summary уменьшается,
+    сброс восстанавливает, конец периода включителен, audit удалённой записи.
 - **Генерация:** gen-l10n; schema не меняется.
 - **DoD:** фильтры не мутируют глобально другой tab, large list lazy, accessible amounts;
   общий DoD/design review. Перед PR спросить о e2e.
