@@ -509,6 +509,9 @@ GoRouter buildRouter({required ServiceLocator locator}) {
             initialKind: state.uri.queryParameters['kind'] == 'income'
                 ? CashflowKind.income
                 : CashflowKind.expense,
+            propertyId: int.tryParse(
+              state.uri.queryParameters['propertyId'] ?? '',
+            ),
           ),
         ),
       ),

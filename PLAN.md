@@ -1007,7 +1007,8 @@
   после сохранения property-секция и глобальный журнал обновляются реактивно, стоимость
   квартиры не меняется. Тесты: income/expense по property обновляют только cashflow,
   invalid property id → ошибка, форма квартиры не предлагает счёт; property-фильтры
-  глобального журнала уже покрыты 7.3.
+  глобального журнала уже покрыты 7.3. Тесты: income/expense квартиры в общем итоге и
+  неизменность стоимости, invalid property id → ViewError NotFound в форме.
 - **Отложено:** integration_test cashflow_flow (e2e сценарий квартиры), diff в audit,
   badge связи, визуальный QA.
 

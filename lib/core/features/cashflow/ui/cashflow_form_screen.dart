@@ -16,6 +16,7 @@ import 'package:finanseapp/uikit/app_button.dart';
 import 'package:finanseapp/uikit/app_category_select.dart';
 import 'package:finanseapp/uikit/app_currency_select.dart';
 import 'package:finanseapp/uikit/app_date_picker_field.dart';
+import 'package:finanseapp/uikit/app_empty_state.dart';
 import 'package:finanseapp/uikit/app_error_state.dart';
 import 'package:finanseapp/uikit/app_form_section.dart';
 import 'package:finanseapp/uikit/app_list_view.dart';
@@ -212,6 +213,17 @@ class _CashflowFormScreenState extends State<CashflowFormScreen> {
       title: vm.isEditing ? l10n.cashflowFormEdit : l10n.cashflowFormNew,
       body: SignalBuilder(
         builder: (context) {
+          if (vm.state.value case ViewError(
+            errorCode: DomainErrorCode.notFound,
+          )) {
+            return AppEmptyState(
+              icon: Icons.search_off,
+              title: l10n.notFoundTitle,
+              message: l10n.notFoundMessage,
+              actionLabel: l10n.notFoundHome,
+              onAction: () => Navigator.of(context).maybePop(),
+            );
+          }
           if (vm.state.value is ViewError) {
             return AppErrorState(
               title: l10n.errorStateTitle,

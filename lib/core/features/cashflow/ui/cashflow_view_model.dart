@@ -231,6 +231,7 @@ class CashflowFormViewModel {
     required this.assetRepository,
     this.editingId,
     this.initialKind = CashflowKind.expense,
+    this.propertyId,
   });
 
   final CashflowRepository repository;
@@ -240,11 +241,13 @@ class CashflowFormViewModel {
   final AssetRepository assetRepository;
   final int? editingId;
   final CashflowKind initialKind;
+  final int? propertyId;
 
   final Signal<ViewState<void>> state = signal(const ViewLoading());
   final Signal<List<CashflowCategory>> categories = signal(const []);
   final Signal<Map<String, Currency>> currencies = signal(const {});
   final Signal<List<AccountAsset>> accounts = signal(const []);
+  final Signal<PropertyAsset?> property = signal(null);
   final Signal<CashflowEntry?> entry = signal(null);
   final Signal<bool> busy = signal(false);
 
@@ -254,6 +257,14 @@ class CashflowFormViewModel {
 
   Future<void> load({CashflowKind? kind}) async {
     try {
+      if (propertyId != null) {
+        final snapshot = await assetRepository.getById(propertyId!);
+        if (snapshot.asset is! PropertyAsset) {
+          state.value = const ViewError(DomainErrorCode.notFound);
+          return;
+        }
+        property.value = snapshot.asset as PropertyAsset;
+      }
       final list = await currencyRepository.watchAll().first;
       currencies.value = {for (final currency in list) currency.code: currency};
       if (editingId != null) {
