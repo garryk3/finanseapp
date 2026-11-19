@@ -36,6 +36,7 @@ class _PropertyFormScreenState extends State<PropertyFormScreen> {
   String _currencyCode = 'RUB';
   String? _nameError;
   String? _amountError;
+  String? _purchaseError;
   String? _formError;
   bool _loaded = false;
 
@@ -97,9 +98,12 @@ class _PropertyFormScreenState extends State<PropertyFormScreen> {
       setState(() => _nameError = l10n.propertyErrorName);
       return;
     }
-    if (opening == null ||
-        (purchase == null && _purchase.text.trim().isNotEmpty)) {
+    if (opening == null) {
       setState(() => _amountError = l10n.accountErrorAmount);
+      return;
+    }
+    if (purchase == null && _purchase.text.trim().isNotEmpty) {
+      setState(() => _purchaseError = l10n.accountErrorAmount);
       return;
     }
     final result = await widget.viewModel.save(
@@ -178,6 +182,8 @@ class _PropertyFormScreenState extends State<PropertyFormScreen> {
                     maxFractionDigits: _currencyOf(_currencyCode)
                         .fractionDigits,
                     allowZero: true,
+                    errorText: _purchaseError,
+                    onChanged: (_) => setState(() => _purchaseError = null),
                   ),
                   AppCurrencySelect(
                     label: l10n.propertyCurrencyLabel,
@@ -197,8 +203,8 @@ class _PropertyFormScreenState extends State<PropertyFormScreen> {
                     ],
                     onChanged: (code) => setState(() {
                       _currencyCode = code;
-                      _opening.clear();
-                      _purchase.clear();
+                      _amountError = null;
+                      _purchaseError = null;
                     }),
                   ),
                   AppButton(

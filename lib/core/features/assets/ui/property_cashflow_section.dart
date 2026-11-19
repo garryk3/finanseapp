@@ -48,9 +48,7 @@ class _PropertyCashflowSectionState extends State<PropertyCashflowSection> {
   _Period _period = _Period.month;
   List<CashflowEntry> _entries = const [];
   StreamSubscription<List<CashflowEntry>>? _subscription;
-  // ignore: prefer_final_fields
   bool _loading = true;
-  // ignore: prefer_final_fields
   bool _failed = false;
 
   @override
@@ -92,12 +90,28 @@ class _PropertyCashflowSectionState extends State<PropertyCashflowSection> {
 
   void _subscribe() {
     _subscription?.cancel();
+    setState(() {
+      _loading = true;
+      _failed = false;
+    });
     _subscription = widget.repository
         .watch(CashflowFilter(period: _range, propertyId: widget.propertyId))
-        .listen((entries) {
-          if (!mounted) return;
-          setState(() => _entries = entries);
-        });
+        .listen(
+          (entries) {
+            if (!mounted) return;
+            setState(() {
+              _entries = entries;
+              _loading = false;
+            });
+          },
+          onError: (Object _) {
+            if (!mounted) return;
+            setState(() {
+              _failed = true;
+              _loading = false;
+            });
+          },
+        );
   }
 
   Future<void> _add({required bool income}) async {
@@ -149,7 +163,16 @@ class _PropertyCashflowSectionState extends State<PropertyCashflowSection> {
           if (_loading)
             AppSpinner(semanticLabel: l10n.commonLoading)
           else if (_failed)
-            AppText(l10n.errorStateMessage)
+            Column(
+              children: [
+                AppText(l10n.errorStateMessage),
+                AppButton(
+                  label: l10n.retry,
+                  variant: AppButtonVariant.text,
+                  onPressed: _subscribe,
+                ),
+              ],
+            )
           else
             AppCashflowSummary(
               incomeText: _rub(totals.income),

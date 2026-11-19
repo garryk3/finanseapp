@@ -76,7 +76,7 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
           appBar: AppTopAppBar(
             title: switch (asset?.kind) {
               AssetKind.investment => l10n.investmentDetailsTitle,
-              AssetKind.property => l10n.assetDetailsTitle,
+              AssetKind.property => l10n.assetKindProperty,
               AssetKind.account || null => l10n.accountDetailsTitle,
             },
             actions: [if (asset != null) _actions(l10n, vm, asset)],
@@ -133,6 +133,14 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                   ),
                 ),
               ],
+              if (asset is PropertyAsset) ...[
+                if (asset.address != null) AppText(asset.address!),
+                if (asset.purchasePrice != null)
+                  AppText(
+                    '${l10n.propertyPurchasePriceLabel}: '
+                    '${_money(asset.purchasePrice)}',
+                  ),
+              ],
               if (showBase) ...[
                 const SizedBox(height: AppSpacing.md),
                 AppText(l10n.assetBaseEquivalent),
@@ -150,7 +158,8 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                 Row(children: [AppChip(label: l10n.accountArchivedBadge)]),
               ],
               const SizedBox(height: AppSpacing.lg),
-              if (!isArchived && (isAccount || isInvestment))
+              if (!isArchived &&
+                  (isAccount || isInvestment || asset is PropertyAsset))
                 AppButton(
                   label: l10n.accountEdit,
                   variant: AppButtonVariant.outlined,
