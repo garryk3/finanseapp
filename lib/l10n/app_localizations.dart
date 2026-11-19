@@ -2118,7 +2118,7 @@ abstract class AppLocalizations {
   /// Период: все время.
   ///
   /// In ru, this message translates to:
-  /// **'Все время'**
+  /// **'Всё время'**
   String get cashflowPeriodAll;
 
   /// Поле валюты дохода/расхода.
@@ -2280,7 +2280,7 @@ abstract class AppLocalizations {
   /// Поиск по комментарию cashflow.
   ///
   /// In ru, this message translates to:
-  /// **'Поиск записей'**
+  /// **'Поиск по комментарию'**
   String get cashflowSearchLabel;
 
   /// Подсказка поиска.
@@ -2354,6 +2354,18 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Аудит записи'**
   String get cashflowAuditTitle;
+
+  /// Закрыть диалог.
+  ///
+  /// In ru, this message translates to:
+  /// **'Готово'**
+  String get commonDone;
+
+  /// Пометка рублёвых итогов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Итоги в RUB'**
+  String get cashflowSummaryInRub;
 }
 
 class _AppLocalizationsDelegate

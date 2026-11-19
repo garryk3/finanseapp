@@ -1480,7 +1480,7 @@
   "@cashflowTotalsNet": {
     "description": "Итог денежного потока."
   },
-  "cashflowPeriodAll": "Все время",
+  "cashflowPeriodAll": "Всё время",
   "@cashflowPeriodAll": {
     "description": "Период: все время."
   },
@@ -1588,7 +1588,7 @@
   "@cashflowErrorCurrencyMismatch": {
     "description": "Ошибка валюты при связи со счётом."
   },
-  "cashflowSearchLabel": "Поиск записей",
+  "cashflowSearchLabel": "Поиск по комментарию",
   "@cashflowSearchLabel": {
     "description": "Поиск по комментарию cashflow."
   },
@@ -1639,5 +1639,13 @@
   "cashflowAuditTitle": "Аудит записи",
   "@cashflowAuditTitle": {
     "description": "Заголовок аудита денежного потока."
+  },
+  "commonDone": "Готово",
+  "@commonDone": {
+    "description": "Закрыть диалог."
+  },
+  "cashflowSummaryInRub": "Итоги в RUB",
+  "@cashflowSummaryInRub": {
+    "description": "Пометка рублёвых итогов."
   }
 }

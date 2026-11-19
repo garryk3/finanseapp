@@ -1104,7 +1104,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get cashflowTotalsNet => 'Итого';
 
   @override
-  String get cashflowPeriodAll => 'Все время';
+  String get cashflowPeriodAll => 'Всё время';
 
   @override
   String get cashflowCurrencyLabel => 'Валюта';
@@ -1188,7 +1188,7 @@ class AppLocalizationsRu extends AppLocalizations {
       'Валюта записи не совпадает с валютой счёта.';
 
   @override
-  String get cashflowSearchLabel => 'Поиск записей';
+  String get cashflowSearchLabel => 'Поиск по комментарию';
 
   @override
   String get cashflowSearchHint => 'Комментарий';
@@ -1226,4 +1226,10 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get cashflowAuditTitle => 'Аудит записи';
+
+  @override
+  String get commonDone => 'Готово';
+
+  @override
+  String get cashflowSummaryInRub => 'Итоги в RUB';
 }

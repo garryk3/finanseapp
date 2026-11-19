@@ -43,6 +43,7 @@ class CashflowViewModel {
   final Signal<Map<String, Currency>> currencies = signal(const {});
   final Signal<List<CashflowCategory>> categories = signal(const []);
   final Signal<List<AccountAsset>> accounts = signal(const []);
+  final Signal<List<PropertyAsset>> properties = signal(const []);
   final Signal<String> query = signal('');
   final Signal<CashflowKind?> kind = signal(null);
   final Signal<CashflowJournalPeriod> period = signal(
@@ -51,6 +52,7 @@ class CashflowViewModel {
   final Signal<int?> categoryId = signal(null);
   final Signal<int?> accountId = signal(null);
   final Signal<String?> currencyCode = signal(null);
+  final Signal<int?> propertyId = signal(null);
 
   StreamSubscription<List<CashflowEntry>>? _subscription;
   bool _disposed = false;
@@ -69,7 +71,8 @@ class CashflowViewModel {
       period.value != CashflowJournalPeriod.all ||
       categoryId.value != null ||
       accountId.value != null ||
-      currencyCode.value != null;
+      currencyCode.value != null ||
+      propertyId.value != null;
 
   void setQuery(String value) {
     query.value = value;
@@ -101,6 +104,11 @@ class CashflowViewModel {
     _subscribe();
   }
 
+  void setProperty(int? value) {
+    propertyId.value = value;
+    _subscribe();
+  }
+
   void resetFilters() {
     query.value = '';
     kind.value = null;
@@ -108,6 +116,7 @@ class CashflowViewModel {
     categoryId.value = null;
     accountId.value = null;
     currencyCode.value = null;
+    propertyId.value = null;
     _subscribe();
   }
 
@@ -137,6 +146,7 @@ class CashflowViewModel {
             categoryId: categoryId.value,
             accountId: accountId.value,
             currencyCode: currencyCode.value,
+            propertyId: propertyId.value,
             query: query.value,
           ),
         )
@@ -173,6 +183,12 @@ class CashflowViewModel {
           if (snapshot.asset is AccountAsset &&
               snapshot.asset.archivedAt == null)
             snapshot.asset as AccountAsset,
+      ];
+      properties.value = [
+        for (final snapshot in snapshots)
+          if (snapshot.asset is PropertyAsset &&
+              snapshot.asset.archivedAt == null)
+            snapshot.asset as PropertyAsset,
       ];
     } on Exception {
       // Справочники не блокируют журнал.
@@ -229,6 +245,7 @@ class CashflowFormViewModel {
   final Signal<List<CashflowCategory>> categories = signal(const []);
   final Signal<Map<String, Currency>> currencies = signal(const {});
   final Signal<List<AccountAsset>> accounts = signal(const []);
+  final Signal<List<PropertyAsset>> properties = signal(const []);
   final Signal<CashflowEntry?> entry = signal(null);
   final Signal<bool> busy = signal(false);
 

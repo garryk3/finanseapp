@@ -16,6 +16,7 @@ import 'package:finanseapp/core/presentation/money_formatter.dart';
 import 'package:finanseapp/core/presentation/view_state.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
 import 'package:finanseapp/uikit/app_date_header.dart';
+import 'package:finanseapp/uikit/app_dialog.dart';
 import 'package:finanseapp/uikit/app_empty_state.dart';
 import 'package:finanseapp/uikit/app_error_state.dart';
 import 'package:finanseapp/uikit/app_button.dart';
@@ -28,6 +29,7 @@ import 'package:finanseapp/uikit/app_scaffold.dart';
 import 'package:finanseapp/uikit/app_search_field.dart';
 import 'package:finanseapp/uikit/app_select.dart';
 import 'package:finanseapp/uikit/app_skeleton.dart';
+import 'package:finanseapp/uikit/app_text.dart';
 import 'package:finanseapp/uikit/app_cashflow_summary.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
@@ -51,7 +53,6 @@ class CashflowScreen extends StatefulWidget {
 class _CashflowScreenState extends State<CashflowScreen> {
   late CashflowViewModel _viewModel = widget.viewModel;
   final _search = TextEditingController();
-  bool _advanced = false;
 
   @override
   void initState() {
@@ -80,6 +81,76 @@ class _CashflowScreenState extends State<CashflowScreen> {
     _search.clear();
     FocusScope.of(context).unfocus();
     _viewModel.resetFilters();
+  }
+
+  Future<void> _openAdvancedFilters() async {
+    final l10n = AppLocalizations.of(context);
+    await showAppDialog<void>(
+      context: context,
+      builder: (context) => AppDialog(
+        title: AppText(l10n.cashflowFilters),
+        content: SignalBuilder(
+          builder: (context) {
+            final vm = _viewModel;
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AppSelect<int>(
+                  label: l10n.cashflowCategoryLabel,
+                  value: vm.categoryId.value,
+                  hint: l10n.cashflowAllCategories,
+                  items: [
+                    for (final category in vm.categories.value)
+                      AppSelectItem(value: category.id, label: category.name),
+                  ],
+                  onChanged: (value) => vm.setCategory(value),
+                ),
+                AppSelect<int>(
+                  label: l10n.propertyCashflowTitle,
+                  value: vm.propertyId.value,
+                  hint: l10n.cashflowAllCategories,
+                  items: [
+                    for (final property in vm.properties.value)
+                      AppSelectItem(value: property.id, label: property.name),
+                  ],
+                  onChanged: (value) => vm.setProperty(value),
+                ),
+                AppSelect<int>(
+                  label: l10n.cashflowAccountLabel,
+                  value: vm.accountId.value,
+                  hint: l10n.cashflowAllAccounts,
+                  items: [
+                    for (final account in vm.accounts.value)
+                      AppSelectItem(
+                        value: account.id,
+                        label: account.name,
+                        subtitle: account.currencyCode,
+                      ),
+                  ],
+                  onChanged: (value) => vm.setAccount(value),
+                ),
+                AppSelect<String>(
+                  label: l10n.cashflowCurrencyLabel,
+                  value: vm.currencyCode.value,
+                  hint: l10n.cashflowAllCurrencies,
+                  items: [
+                    for (final code in vm.currencies.value.keys)
+                      AppSelectItem(value: code, label: code),
+                  ],
+                  onChanged: (value) => vm.setCurrency(value),
+                ),
+              ],
+            );
+          },
+        ),
+        actions: [
+          AppButton(
+            label: l10n.commonDone,
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _add() async {
@@ -153,7 +224,11 @@ class _CashflowScreenState extends State<CashflowScreen> {
                           (vm.kind.value == null ? 0 : 1) +
                           (vm.period.value == CashflowJournalPeriod.all
                               ? 0
-                              : 1),
+                              : 1) +
+                          (vm.categoryId.value == null ? 0 : 1) +
+                          (vm.accountId.value == null ? 0 : 1) +
+                          (vm.currencyCode.value == null ? 0 : 1) +
+                          (vm.propertyId.value == null ? 0 : 1),
                       onReset: vm.filtersActive ? _resetFilters : null,
                       resetLabel: l10n.cashflowResetFilters,
                       children: [
@@ -196,51 +271,10 @@ class _CashflowScreenState extends State<CashflowScreen> {
                       ],
                     ),
                     AppButton(
-                      label: _advanced
-                          ? l10n.cashflowFiltersHide
-                          : l10n.cashflowFilters,
+                      label: l10n.cashflowFilters,
                       variant: AppButtonVariant.text,
-                      onPressed: () => setState(() => _advanced = !_advanced),
+                      onPressed: _openAdvancedFilters,
                     ),
-                    if (_advanced) ...[
-                      AppSelect<int>(
-                        label: l10n.cashflowCategoryLabel,
-                        value: vm.categoryId.value,
-                        hint: l10n.cashflowAllCategories,
-                        items: [
-                          for (final category in vm.categories.value)
-                            AppSelectItem(
-                              value: category.id,
-                              label: category.name,
-                            ),
-                        ],
-                        onChanged: (value) => vm.setCategory(value),
-                      ),
-                      AppSelect<int>(
-                        label: l10n.cashflowAccountLabel,
-                        value: vm.accountId.value,
-                        hint: l10n.cashflowAllAccounts,
-                        items: [
-                          for (final account in vm.accounts.value)
-                            AppSelectItem(
-                              value: account.id,
-                              label: account.name,
-                              subtitle: account.currencyCode,
-                            ),
-                        ],
-                        onChanged: (value) => vm.setAccount(value),
-                      ),
-                      AppSelect<String>(
-                        label: l10n.cashflowCurrencyLabel,
-                        value: vm.currencyCode.value,
-                        hint: l10n.cashflowAllCurrencies,
-                        items: [
-                          for (final code in vm.currencies.value.keys)
-                            AppSelectItem(value: code, label: code),
-                        ],
-                        onChanged: (value) => vm.setCurrency(value),
-                      ),
-                    ],
                   ],
                 ),
               );
@@ -273,13 +307,22 @@ class _CashflowScreenState extends State<CashflowScreen> {
                     value.isEmpty
                         ? AppListView(
                             children: [
-                              AppEmptyState(
-                                icon: Icons.receipt_long_outlined,
-                                title: l10n.cashflowEmptyTitle,
-                                message: l10n.cashflowEmptyMessage,
-                                actionLabel: l10n.cashflowAdd,
-                                onAction: _add,
-                              ),
+                              if (vm.filtersActive)
+                                AppEmptyState(
+                                  icon: Icons.search_off,
+                                  title: l10n.cashflowFilteredEmptyTitle,
+                                  message: l10n.cashflowFilteredEmptyMessage,
+                                  actionLabel: l10n.cashflowResetFilters,
+                                  onAction: _resetFilters,
+                                )
+                              else
+                                AppEmptyState(
+                                  icon: Icons.receipt_long_outlined,
+                                  title: l10n.cashflowEmptyTitle,
+                                  message: l10n.cashflowEmptyMessage,
+                                  actionLabel: l10n.cashflowAdd,
+                                  onAction: _add,
+                                ),
                             ],
                           )
                         : _journal(context, l10n, vm, value),
@@ -319,7 +362,13 @@ class _CashflowScreenState extends State<CashflowScreen> {
               incomeText: _rub(totals.income),
               expenseText: _rub(totals.expense),
               netText: _rub(totals.net),
-              periodLabel: l10n.cashflowPeriodAll,
+              periodLabel:
+                  '${l10n.cashflowSummaryInRub} · '
+                  '${switch (vm.period.value) {
+                    CashflowJournalPeriod.month => l10n.cashflowPeriodMonth,
+                    CashflowJournalPeriod.year => l10n.cashflowPeriodYear,
+                    CashflowJournalPeriod.all => l10n.cashflowPeriodAll,
+                  }}',
               incomeLabel: l10n.cashflowTotalsIncome,
               expenseLabel: l10n.cashflowTotalsExpense,
               netLabel: l10n.cashflowTotalsNet,
