@@ -74,12 +74,27 @@ class _CashflowDetailsScreenState extends State<CashflowDetailsScreen> {
             if (vm.state.value case ViewError(
               errorCode: DomainErrorCode.notFound,
             )) {
-              return AppEmptyState(
-                icon: Icons.search_off,
-                title: l10n.notFoundTitle,
-                message: l10n.notFoundMessage,
-                actionLabel: l10n.notFoundHome,
-                onAction: () => context.go(AppRoutes.dashboard),
+              return AppListView(
+                children: [
+                  AppEmptyState(
+                    icon: Icons.search_off,
+                    title: l10n.notFoundTitle,
+                    message: l10n.notFoundMessage,
+                    actionLabel: l10n.notFoundHome,
+                    onAction: () => context.go(AppRoutes.dashboard),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md,
+                    ),
+                    child: AppButton(
+                      label: l10n.transactionAuditAction,
+                      variant: AppButtonVariant.text,
+                      onPressed: () =>
+                          context.push(AppRoutes.auditCashflowPath(vm.entryId)),
+                    ),
+                  ),
+                ],
               );
             }
             return AppErrorState(

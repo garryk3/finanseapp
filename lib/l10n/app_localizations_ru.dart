@@ -1186,4 +1186,44 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get cashflowErrorCurrencyMismatch =>
       'Валюта записи не совпадает с валютой счёта.';
+
+  @override
+  String get cashflowSearchLabel => 'Поиск записей';
+
+  @override
+  String get cashflowSearchHint => 'Комментарий';
+
+  @override
+  String get cashflowSearchClear => 'Очистить поиск';
+
+  @override
+  String get cashflowFilterAll => 'Все';
+
+  @override
+  String get cashflowFilteredEmptyTitle => 'Записей не найдено';
+
+  @override
+  String get cashflowFilteredEmptyMessage =>
+      'Измените фильтры или сбросьте их.';
+
+  @override
+  String get cashflowResetFilters => 'Сбросить фильтры';
+
+  @override
+  String get cashflowFilters => 'Фильтры';
+
+  @override
+  String get cashflowFiltersHide => 'Скрыть фильтры';
+
+  @override
+  String get cashflowAllCategories => 'Все категории';
+
+  @override
+  String get cashflowAllAccounts => 'Все счета';
+
+  @override
+  String get cashflowAllCurrencies => 'Все валюты';
+
+  @override
+  String get cashflowAuditTitle => 'Аудит записи';
 }

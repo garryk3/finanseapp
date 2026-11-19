@@ -2276,6 +2276,84 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Валюта записи не совпадает с валютой счёта.'**
   String get cashflowErrorCurrencyMismatch;
+
+  /// Поиск по комментарию cashflow.
+  ///
+  /// In ru, this message translates to:
+  /// **'Поиск записей'**
+  String get cashflowSearchLabel;
+
+  /// Подсказка поиска.
+  ///
+  /// In ru, this message translates to:
+  /// **'Комментарий'**
+  String get cashflowSearchHint;
+
+  /// Очистка поиска.
+  ///
+  /// In ru, this message translates to:
+  /// **'Очистить поиск'**
+  String get cashflowSearchClear;
+
+  /// Все виды записей.
+  ///
+  /// In ru, this message translates to:
+  /// **'Все'**
+  String get cashflowFilterAll;
+
+  /// Пустой фильтр.
+  ///
+  /// In ru, this message translates to:
+  /// **'Записей не найдено'**
+  String get cashflowFilteredEmptyTitle;
+
+  /// Пояснение пустого фильтра.
+  ///
+  /// In ru, this message translates to:
+  /// **'Измените фильтры или сбросьте их.'**
+  String get cashflowFilteredEmptyMessage;
+
+  /// Сброс фильтров.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сбросить фильтры'**
+  String get cashflowResetFilters;
+
+  /// Открыть дополнительные фильтры.
+  ///
+  /// In ru, this message translates to:
+  /// **'Фильтры'**
+  String get cashflowFilters;
+
+  /// Скрыть дополнительные фильтры.
+  ///
+  /// In ru, this message translates to:
+  /// **'Скрыть фильтры'**
+  String get cashflowFiltersHide;
+
+  /// Сброс фильтра категории.
+  ///
+  /// In ru, this message translates to:
+  /// **'Все категории'**
+  String get cashflowAllCategories;
+
+  /// Сброс фильтра счёта.
+  ///
+  /// In ru, this message translates to:
+  /// **'Все счета'**
+  String get cashflowAllAccounts;
+
+  /// Сброс фильтра валюты.
+  ///
+  /// In ru, this message translates to:
+  /// **'Все валюты'**
+  String get cashflowAllCurrencies;
+
+  /// Заголовок аудита денежного потока.
+  ///
+  /// In ru, this message translates to:
+  /// **'Аудит записи'**
+  String get cashflowAuditTitle;
 }
 
 class _AppLocalizationsDelegate

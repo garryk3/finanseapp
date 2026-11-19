@@ -26,6 +26,8 @@ import 'package:finanseapp/core/features/transactions/domain/asset_transaction_r
 import 'package:finanseapp/core/features/audit/domain/audit_repository.dart';
 import 'package:finanseapp/core/features/audit/ui/audit_asset_transaction_screen.dart';
 import 'package:finanseapp/core/features/audit/ui/audit_asset_transaction_view_model.dart';
+import 'package:finanseapp/core/features/audit/ui/audit_cashflow_screen.dart';
+import 'package:finanseapp/core/features/audit/ui/audit_cashflow_view_model.dart';
 import 'package:finanseapp/core/features/transactions/ui/transaction_details_screen.dart';
 import 'package:finanseapp/core/features/transactions/ui/transaction_details_view_model.dart';
 import 'package:finanseapp/core/features/transactions/ui/transaction_form_screen.dart';
@@ -557,10 +559,17 @@ GoRouter buildRouter({required ServiceLocator locator}) {
       GoRoute(
         path: AppRoutes.auditCashflow,
         name: 'audit-cashflow',
-        builder: (context, state) =>
-            AppRoutes.parseId(state.pathParameters['id']) == null
-            ? _notFound(locator)
-            : ComingSoonScreen(title: l10nOf(context).navMore),
+        builder: (context, state) {
+          final id = AppRoutes.parseId(state.pathParameters['id']);
+          return id == null
+              ? _notFound(locator)
+              : AuditCashflowScreen(
+                  viewModel: AuditCashflowViewModel(
+                    auditRepository: locator.get<AuditRepository>(),
+                    entryId: id,
+                  ),
+                );
+        },
       ),
       GoRoute(
         path: AppRoutes.cashflowEdit,
