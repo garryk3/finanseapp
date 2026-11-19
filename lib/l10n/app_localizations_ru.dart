@@ -1182,4 +1182,8 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get cashflowAccountHint => 'Выберите счёт';
+
+  @override
+  String get cashflowErrorCurrencyMismatch =>
+      'Валюта записи не совпадает с валютой счёта.';
 }

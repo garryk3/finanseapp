@@ -2270,6 +2270,12 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Выберите счёт'**
   String get cashflowAccountHint;
+
+  /// Ошибка валюты при связи со счётом.
+  ///
+  /// In ru, this message translates to:
+  /// **'Валюта записи не совпадает с валютой счёта.'**
+  String get cashflowErrorCurrencyMismatch;
 }
 
 class _AppLocalizationsDelegate

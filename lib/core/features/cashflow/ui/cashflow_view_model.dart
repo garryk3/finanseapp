@@ -199,7 +199,7 @@ class CashflowFormViewModel {
     manualRate: manualRate,
     comment: comment,
     propertyId: propertyId ?? entry.value?.propertyId,
-    accountId: accountId ?? entry.value?.accountId,
+    accountId: accountId,
     affectsBalance: affectsBalance,
   );
 

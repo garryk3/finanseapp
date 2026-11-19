@@ -1583,5 +1583,9 @@
   "cashflowAccountHint": "Выберите счёт",
   "@cashflowAccountHint": {
     "description": "Подсказка выбора счёта."
+  },
+  "cashflowErrorCurrencyMismatch": "Валюта записи не совпадает с валютой счёта.",
+  "@cashflowErrorCurrencyMismatch": {
+    "description": "Ошибка валюты при связи со счётом."
   }
 }
