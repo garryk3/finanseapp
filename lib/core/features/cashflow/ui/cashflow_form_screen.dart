@@ -244,6 +244,7 @@ class _CashflowFormScreenState extends State<CashflowFormScreen> {
                           code: item.code,
                           name: item.name,
                           fractionDigits: item.fractionDigits,
+                          enabled: item.isEnabled,
                         ),
                     ],
                     onChanged: (code) => setState(() {
