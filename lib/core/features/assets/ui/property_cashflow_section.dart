@@ -50,6 +50,7 @@ class _PropertyCashflowSectionState extends State<PropertyCashflowSection> {
   StreamSubscription<List<CashflowEntry>>? _subscription;
   bool _loading = true;
   bool _failed = false;
+  bool _hasLoaded = false;
 
   @override
   void initState() {
@@ -102,6 +103,7 @@ class _PropertyCashflowSectionState extends State<PropertyCashflowSection> {
             setState(() {
               _entries = entries;
               _loading = false;
+              _hasLoaded = true;
             });
           },
           onError: (Object _) {
@@ -160,7 +162,7 @@ class _PropertyCashflowSectionState extends State<PropertyCashflowSection> {
             ],
           ),
           const SizedBox(height: AppSpacing.sm),
-          if (_loading)
+          if (_loading && !_hasLoaded)
             AppSpinner(semanticLabel: l10n.commonLoading)
           else if (_failed)
             Column(

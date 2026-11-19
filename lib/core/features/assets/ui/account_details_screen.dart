@@ -134,11 +134,21 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                 ),
               ],
               if (asset is PropertyAsset) ...[
-                if (asset.address != null) AppText(asset.address!),
+                const SizedBox(height: AppSpacing.xs),
+                if (asset.address != null)
+                  AppText(
+                    asset.address!,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                if (asset.address != null && asset.purchasePrice != null)
+                  const SizedBox(height: AppSpacing.xs),
                 if (asset.purchasePrice != null)
                   AppText(
                     '${l10n.propertyPurchasePriceLabel}: '
                     '${_money(asset.purchasePrice)}',
+                    style: Theme.of(context).textTheme.bodySmall,
                   ),
               ],
               if (showBase) ...[
