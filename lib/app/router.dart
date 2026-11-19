@@ -298,6 +298,9 @@ GoRouter buildRouter({required ServiceLocator locator}) {
                                 assetRepository: locator.get<AssetRepository>(),
                                 currencyRepository: locator
                                     .get<CurrencyRepository>(),
+                                rateRepository: locator
+                                    .get<ExchangeRateRepository>(),
+                                today: LocalDate.fromDateTime(DateTime.now()),
                                 goalId: id,
                               ),
                             );

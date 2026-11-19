@@ -1042,8 +1042,40 @@
   retry-путь формы после ошибки загрузки (системный паттерн 5.2/7.1); VM-тесты;
   widget-тесты формы/деталей; визуальный QA.
 
-### 8.2 Автоматический прогресс и monthly contribution — [ ]
+### 8.2 Автоматический прогресс и monthly contribution — [x] (2026-11-19)
 
+- **Рабочий план:**
+  - **Logic:** `GoalCalculator.calculate(goal, assetValues, today)` — сумма в валюте цели,
+    deficit/surplus, `completionRatio` (без clamp), monthly contribution по календарным
+    месяцам (включая текущий; `null` при отсутствии даты, нулевом дефиците и просрочке);
+    `GoalCalculator.resolveStatus` — achieved при `progress >= target`, обратно active при
+    снижении, `closed` не меняется вручную/автоматически. `CalculateGoalProgress` конвертирует
+    стоимости связанных активов в валюту цели через `CurrencyConverter`; нет курса — прогресс
+    не считается (не показываем частичную сумму и не меняем статус).
+  - **VM:** `GoalsViewModel` подписан на goals + assets + currencies и пересчитывает прогресс,
+    авто-синхронизирует статус (guarded, без циклов); `GoalDetailsViewModel` считает прогресс
+    при загрузке и тоже синхронизирует статус. Список сортируется active → achieved → closed.
+  - **UI:** список — `AppGoalCard` по секциям статусов (ratio clamp 1, точные суммы,
+    дедлайн/дефицит/сверх цели), fallback `AppListTile` с «Курс недоступен»; детали —
+    `AppProgress` + `AppMetric` (накоплено, осталось/сверх цели, в месяц, «Срок истёк»);
+    ручная кнопка «Отметить достигнутой» убирается — статус автоматический.
+  - **TDD:** CALC-026 (50 000 из 100 000 → deficit 50 000, ratio 0.5), CALC-027 (120 000 →
+    surplus 20 000, achieved, ratio >1), CALC-028 (12 000 / 6 мес → 2 000; 9 500 / 5 → 1 900),
+    CALC-029 (просрочка → monthly null), closed остаётся closed, смешанные валюты только
+    после конверсии, отсутствие курса → progress null, asset stream обновляет прогресс и статус.
+  - **Генерация:** gen-l10n; схема БД не меняется.
+  - **commit:** `task/08.2: рассчитать прогресс целей`.
+- **Итог:** `GoalCalculator` (CALC-026…029) и `CalculateGoalProgress` (конверсия в валюту
+  цели, нет курса → progress null без частичной суммы); `GoalsViewModel` реактивно считает
+  прогресс по goals+assets, пересчитывает `today` на init/reload, защищён токеном эмиссии,
+  авто-синхронизирует статус (achieved/active, closed неизменен), сортирует по группам;
+  детали показывают AppProgress + AppMetric (накоплено/осталось/сверх/в месяц, «Срок истёк»,
+  процент в semantics) и синхронизируют статус при загрузке; список — AppGoalCard по секциям
+  «Активные/Достигнутые/Закрытые», ручная кнопка «Отметить достигнутой» удалена. `AppProgress`
+  получил `semanticsValue`. Тесты: 13 logic + 7 VM.
+- **Отложено:** реактивный прогресс на экране деталей (считается при загрузке); widget/screen
+  тесты целей и тест авто-синка деталей; единый хелпер «нужных курсов» (естественно в 9.1);
+  fallback-карточка при отсутствии курса; caption «В месяц»; высота skeleton; визуальный QA.
 - **Приоритет/зависимости:** P1; после 8.1. **BR:** G-2…6, C-5…6.
 - **Files:** Create `goal_calculator.dart`, `calculate_goal_progress.dart`, goals state и
   details progress widgets; Modify goals screen/VM, asset value conversion/DI/ARB;

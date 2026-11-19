@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:decimal/decimal.dart';
 import 'package:finanseapp/core/domain/common/currency.dart';
 import 'package:finanseapp/core/domain/common/local_date.dart';
 import 'package:finanseapp/core/domain/common/money.dart';
@@ -7,41 +8,107 @@ import 'package:finanseapp/core/domain/common/result.dart';
 import 'package:finanseapp/core/features/assets/domain/asset.dart';
 import 'package:finanseapp/core/features/assets/domain/asset_repository.dart';
 import 'package:finanseapp/core/features/currencies/domain/currency_repository.dart';
+import 'package:finanseapp/core/features/currencies/domain/exchange_rate_repository.dart';
 import 'package:finanseapp/core/features/goals/domain/financial_goal.dart';
+import 'package:finanseapp/core/features/goals/domain/goal_progress.dart';
 import 'package:finanseapp/core/features/goals/domain/goal_repository.dart';
+import 'package:finanseapp/core/features/goals/logic/calculate_goal_progress.dart';
+import 'package:finanseapp/core/features/goals/logic/goal_calculator.dart';
 import 'package:finanseapp/core/presentation/money_formatter.dart';
 import 'package:finanseapp/core/presentation/view_state.dart';
 import 'package:signals/signals.dart';
 
-/// Список финансовых целей (8.1).
+/// Цель с рассчитанным прогрессом; `progress == null` — не хватает курса.
+final class GoalView {
+  const GoalView({required this.goal, this.progress});
+
+  final FinancialGoal goal;
+  final GoalProgress? progress;
+
+  bool get hasProgress => progress != null;
+}
+
+/// Список финансовых целей с автоматическим прогрессом (8.2).
 class GoalsViewModel {
-  GoalsViewModel({required this.repository, required this.currencyRepository});
+  GoalsViewModel({
+    required this.repository,
+    required this.currencyRepository,
+    required this.assetRepository,
+    required this.rateRepository,
+    required this.now,
+  });
 
   final GoalRepository repository;
   final CurrencyRepository currencyRepository;
+  final AssetRepository assetRepository;
+  final ExchangeRateRepository rateRepository;
 
-  final Signal<ViewState<List<FinancialGoal>>> state = signal(
-    const ViewLoading(),
-  );
+  /// Провайдер текущей даты; [today] пересчитывается при [init]/[reload],
+  /// потому что вкладка целей живёт в shell дольше суток.
+  final LocalDate Function() now;
+  late LocalDate _today = now();
+
+  LocalDate get today => _today;
+
+  final Signal<ViewState<List<GoalView>>> state = signal(const ViewLoading());
   final Signal<Map<String, Currency>> currencies = signal(const {});
 
-  StreamSubscription<List<FinancialGoal>>? _subscription;
+  final CalculateGoalProgress _calculator = const CalculateGoalProgress();
+  final Map<String, Decimal> _rateCache = {};
+  final Set<int> _statusWrites = {};
+  List<FinancialGoal> _goals = const [];
+  Map<int, AssetSnapshot> _snapshots = const {};
+
+  StreamSubscription<List<FinancialGoal>>? _goalsSubscription;
+  StreamSubscription<List<AssetSnapshot>>? _assetsSubscription;
+  bool _referencesReady = false;
+  bool _assetsReady = false;
+  bool _assetsFailed = false;
   bool _disposed = false;
+  int _emitToken = 0;
 
   void init() {
     state.value = const ViewLoading();
-    _loadCurrencies();
-    _subscribe();
+    _emitToken++;
+    _today = now();
+    _referencesReady = false;
+    _assetsReady = false;
+    _assetsFailed = false;
+    _loadReferences();
+    _subscribeGoals();
+    _assetsSubscription?.cancel();
+    _assetsSubscription = assetRepository
+        .watchAll(includeArchived: true)
+        .listen(
+          (snapshots) {
+            _snapshots = {
+              for (final snapshot in snapshots) snapshot.asset.id: snapshot,
+            };
+            _assetsReady = true;
+            _assetsFailed = false;
+            _emit();
+          },
+          onError: (Object _) {
+            // Список целей остаётся доступным, но без прогресса: нулевая сумма
+            // не должна приниматься за реальный прогресс.
+            _assetsFailed = true;
+            _assetsReady = true;
+            _emit();
+          },
+        );
   }
 
-  void reload() => _subscribe();
+  void reload() {
+    _today = now();
+    _subscribeGoals();
+  }
 
-  void _subscribe() {
-    _subscription?.cancel();
-    _subscription = repository.watchAll().listen(
+  void _subscribeGoals() {
+    _goalsSubscription?.cancel();
+    _goalsSubscription = repository.watchAll().listen(
       (goals) {
-        if (_disposed) return;
-        state.value = ViewData(goals);
+        _goals = goals;
+        _emit();
       },
       onError: (Object _) {
         if (_disposed) return;
@@ -50,30 +117,105 @@ class GoalsViewModel {
     );
   }
 
-  Future<void> _loadCurrencies() async {
+  Future<void> _loadReferences() async {
     try {
       final list = await currencyRepository.watchAll().first;
       currencies.value = {for (final currency in list) currency.code: currency};
     } on Exception {
-      // Валюты не блокируют список.
+      // Валюты не блокируют список: прогресс покажется без суммы.
+    } finally {
+      _referencesReady = true;
+      _emit();
     }
   }
 
-  String formatTarget(FinancialGoal goal) => const MoneyFormatter().format(
-    goal.targetAmount,
-    currencies.value[goal.targetAmount.currencyCode] ??
-        Currency(
-          code: goal.targetAmount.currencyCode,
-          name: goal.targetAmount.currencyCode,
-          fractionDigits: 2,
-          isPreset: true,
-          isEnabled: true,
-        ),
-  );
+  Future<void> _emit() async {
+    if (_disposed) return;
+    // Пустой список показываем сразу; непустой — после справочников и
+    // стоимостей, иначе прогресс 0 мог бы ложно сбросить achieved.
+    if (_goals.isNotEmpty && (!_referencesReady || !_assetsReady)) return;
+    // Перекрывающиеся эмиссии (цели/активы) завершаются не в порядке старта;
+    // проигравшая не должна перезаписывать state и статус устаревшими данными.
+    final token = ++_emitToken;
+    final views = <GoalView>[];
+    for (final goal in _goals) {
+      final values = <int, Money>{};
+      for (final assetId in goal.assetIds) {
+        final snapshot = _snapshots[assetId];
+        if (snapshot != null) values[assetId] = snapshot.currentValue;
+      }
+      final progress = _assetsFailed
+          ? null
+          : await _calculator.load(
+              goal: goal,
+              assetValues: values,
+              currencies: currencies.value,
+              rateRepository: rateRepository,
+              today: _today,
+              rateCache: _rateCache,
+            );
+      if (_disposed || token != _emitToken) return;
+      views.add(GoalView(goal: goal, progress: progress));
+      if (progress != null) {
+        final resolved = GoalCalculator.resolveStatus(
+          current: goal.status,
+          progress: progress,
+        );
+        if (resolved != goal.status) {
+          unawaited(_syncStatus(goal.id, resolved));
+        }
+      }
+    }
+    if (_disposed || token != _emitToken) return;
+    views.sort(_compare);
+    state.value = ViewData(views);
+  }
+
+  /// Автоматический статус пишется один раз на цель; эмиссия после записи
+  /// увидит согласованный статус и не зациклится.
+  Future<void> _syncStatus(int id, GoalStatus status) async {
+    if (_statusWrites.contains(id)) return;
+    _statusWrites.add(id);
+    try {
+      await repository.setStatus(id, status);
+    } on DomainException {
+      // Оставляем прежний статус; следующий поток данных повторит попытку.
+    } finally {
+      _statusWrites.remove(id);
+    }
+  }
+
+  static int _statusRank(GoalStatus status) => switch (status) {
+    GoalStatus.active => 0,
+    GoalStatus.achieved => 1,
+    GoalStatus.closed => 2,
+  };
+
+  static int _compare(GoalView left, GoalView right) {
+    final byStatus = _statusRank(left.goal.status)
+        .compareTo(_statusRank(right.goal.status));
+    return byStatus != 0 ? byStatus : left.goal.name.compareTo(right.goal.name);
+  }
+
+  Currency currencyOf(String code) =>
+      currencies.value[code] ??
+      Currency(
+        code: code,
+        name: code,
+        fractionDigits: 2,
+        isPreset: true,
+        isEnabled: true,
+      );
+
+  String formatMoney(Money money) =>
+      const MoneyFormatter().format(money, currencyOf(money.currencyCode));
+
+  String formatTarget(FinancialGoal goal) => formatMoney(goal.targetAmount);
 
   void dispose() {
     _disposed = true;
-    _subscription?.cancel();
+    _goalsSubscription?.cancel();
+    _assetsSubscription?.cancel();
   }
 }
 
