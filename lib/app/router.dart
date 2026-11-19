@@ -524,6 +524,7 @@ GoRouter buildRouter({required ServiceLocator locator}) {
                     auditRepository: locator.get<AuditRepository>(),
                     currencyRepository: locator.get<CurrencyRepository>(),
                     commands: _cashflowCommands(locator),
+                    assetRepository: locator.get<AssetRepository>(),
                     entryId: id,
                   ),
                 );

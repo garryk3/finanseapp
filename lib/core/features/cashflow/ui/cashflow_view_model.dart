@@ -148,6 +148,14 @@ class CashflowFormViewModel {
       } else if (kind != null) {
         await loadCategories(kind);
       }
+      final snapshots = await assetRepository.watchAll().first;
+      accounts.value = [
+        for (final snapshot in snapshots)
+          if (snapshot.asset is AccountAsset &&
+              (snapshot.asset.archivedAt == null ||
+                  snapshot.asset.id == entry.value?.accountId))
+            snapshot.asset as AccountAsset,
+      ];
       state.value = const ViewData(null);
     } on DomainException catch (error) {
       state.value = ViewError(error.code);

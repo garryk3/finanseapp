@@ -1,5 +1,6 @@
 import 'package:finanseapp/core/domain/common/currency.dart';
 import 'package:finanseapp/core/domain/common/result.dart';
+import 'package:finanseapp/core/features/assets/domain/asset_repository.dart';
 import 'package:finanseapp/core/features/audit/domain/audit_repository.dart';
 import 'package:finanseapp/core/features/cashflow/domain/cashflow_entry.dart';
 import 'package:finanseapp/core/features/cashflow/domain/cashflow_entry_revision.dart';
@@ -20,6 +21,7 @@ class CashflowDetailsViewModel {
     required this.auditRepository,
     required this.currencyRepository,
     required this.commands,
+    this.assetRepository,
     required this.entryId,
   });
 
@@ -28,6 +30,7 @@ class CashflowDetailsViewModel {
   final AuditRepository auditRepository;
   final CurrencyRepository currencyRepository;
   final CashflowCommands commands;
+  final AssetRepository? assetRepository;
   final int entryId;
 
   final Signal<ViewState<void>> state = signal(const ViewLoading());
@@ -37,6 +40,7 @@ class CashflowDetailsViewModel {
   final Signal<bool> busy = signal(false);
   final Signal<String?> deleteError = signal(null);
   final Signal<Map<String, Currency>> currencies = signal(const {});
+  final Signal<String?> accountName = signal(null);
 
   Future<void> load() async {
     try {
@@ -46,6 +50,15 @@ class CashflowDetailsViewModel {
         return;
       }
       entry.value = current;
+      if (current.accountId != null && assetRepository != null) {
+        try {
+          accountName.value = (await assetRepository!.getById(
+            current.accountId!,
+          )).asset.name;
+        } on Exception {
+          accountName.value = null;
+        }
+      }
       final currencyList = await currencyRepository.watchAll().first;
       currencies.value = {
         for (final currency in currencyList) currency.code: currency,

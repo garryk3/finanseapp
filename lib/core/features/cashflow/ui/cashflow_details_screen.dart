@@ -121,6 +121,11 @@ class _CashflowDetailsScreenState extends State<CashflowDetailsScreen> {
                       '${l10n.transactionCommentLabel}: '
                       '${entry.comment ?? l10n.transactionCommentEmpty}',
                     ),
+                    if (vm.accountName.value != null)
+                      AppText(
+                        '${l10n.cashflowAccountLabel}: '
+                        '${vm.accountName.value}',
+                      ),
                     if (vm.deleteError.value != null)
                       AppText(
                         l10n.cashflowDeleteError,

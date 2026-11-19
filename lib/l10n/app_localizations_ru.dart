@@ -1173,4 +1173,13 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get cashflowErrorAccount =>
       'Выберите счёт или отключите влияние на баланс.';
+
+  @override
+  String get cashflowNoAccounts => 'Сначала добавьте счёт.';
+
+  @override
+  String get cashflowCurrencyFromAccount => 'Валюта берётся из счёта';
+
+  @override
+  String get cashflowAccountHint => 'Выберите счёт';
 }

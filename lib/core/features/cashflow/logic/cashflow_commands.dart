@@ -92,6 +92,7 @@ class CashflowCommands {
           rateToRub: rate.rateToRub,
           comment: normalizedComment,
           accountId: accountId,
+          propertyId: propertyId,
         );
       }
       final draft = CashflowEntryDraft(
@@ -128,6 +129,7 @@ class CashflowCommands {
     required Decimal rateToRub,
     required String? comment,
     required int accountId,
+    required int? propertyId,
   }) async {
     final database = db;
     if (database == null) {
@@ -156,6 +158,7 @@ class CashflowCommands {
       affectsBalance: true,
       comment: comment,
       accountId: accountId,
+      propertyId: propertyId,
     );
     return database.transaction(() async {
       int transactionId;

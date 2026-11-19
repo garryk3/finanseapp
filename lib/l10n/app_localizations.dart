@@ -2252,6 +2252,24 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Выберите счёт или отключите влияние на баланс.'**
   String get cashflowErrorAccount;
+
+  /// Нет счетов для связи.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сначала добавьте счёт.'**
+  String get cashflowNoAccounts;
+
+  /// Причина блокировки валюты.
+  ///
+  /// In ru, this message translates to:
+  /// **'Валюта берётся из счёта'**
+  String get cashflowCurrencyFromAccount;
+
+  /// Подсказка выбора счёта.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выберите счёт'**
+  String get cashflowAccountHint;
 }
 
 class _AppLocalizationsDelegate

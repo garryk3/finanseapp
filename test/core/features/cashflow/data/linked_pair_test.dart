@@ -152,6 +152,27 @@ void main() {
     expect(await db.transactionsDao.allRows(), hasLength(1));
   });
 
+  test('правка связанной пары обновляет обе стороны', () async {
+    final created = await save(amount: 5000, account: accountId, affects: true);
+    final entryId = (created as Success<int>).value;
+    final txId = (await repository.getById(entryId)).assetTransactionId!;
+
+    final result = await save(
+      id: entryId,
+      amount: 7000,
+      account: accountId,
+      affects: true,
+    );
+    expect(result, isA<Success<int>>());
+
+    final entry = await repository.getById(entryId);
+    expect(entry.amount.minorUnits, 7000);
+    expect(entry.revisionNo, 2);
+    final tx = await db.transactionsDao.getById(txId);
+    expect(tx.amountMinor, 7000);
+    expect(tx.revisionNo, 2);
+  });
+
   test('on→off мягко удаляет операцию и снимает связь', () async {
     final created = await save(amount: 5000, account: accountId, affects: true);
     final entryId = (created as Success<int>).value;

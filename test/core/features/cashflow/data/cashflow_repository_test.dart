@@ -61,7 +61,21 @@ final class FakeCurrencies implements CurrencyRepository {
 final class FakeAssets implements AssetRepository {
   @override
   Stream<List<AssetSnapshot>> watchAll({bool includeArchived = false}) =>
-      Stream.value(const []);
+      Stream.value([
+        AssetSnapshot(
+          asset: AccountAsset(
+            id: 1,
+            name: 'Счёт',
+            currencyCode: 'RUB',
+            openingValue: const Money(minorUnits: 0, currencyCode: 'RUB'),
+            createdAt: DateTime.utc(2026),
+            bankId: 1,
+            annualRate: Decimal.zero,
+            startDate: LocalDate(2026, 1, 1),
+          ),
+          currentValue: const Money(minorUnits: 0, currencyCode: 'RUB'),
+        ),
+      ]);
 
   @override
   Stream<AssetSnapshot?> watchById(int id) => const Stream.empty();
@@ -269,6 +283,7 @@ void main() {
       editingId: id,
     );
     await form.load();
+    expect(form.accounts.value, hasLength(1));
 
     final result = await form.save(
       kind: CashflowKind.expense,
