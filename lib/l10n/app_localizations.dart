@@ -2989,6 +2989,54 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'По неделям'**
   String get dashboardCashflowDynamics;
+
+  /// Секция справочников в «Ещё».
+  ///
+  /// In ru, this message translates to:
+  /// **'Справочники'**
+  String get moreReferencesSection;
+
+  /// Секция приложения в «Ещё».
+  ///
+  /// In ru, this message translates to:
+  /// **'Приложение'**
+  String get moreAppSection;
+
+  /// Заголовок экрана настроек.
+  ///
+  /// In ru, this message translates to:
+  /// **'Настройки'**
+  String get settingsTitle;
+
+  /// Секция отчётов в настройках.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отчёты'**
+  String get settingsReportsSection;
+
+  /// Заголовок экрана о приложении.
+  ///
+  /// In ru, this message translates to:
+  /// **'О приложении'**
+  String get aboutTitle;
+
+  /// Описание приложения.
+  ///
+  /// In ru, this message translates to:
+  /// **'Локальный учёт финансов. Данные хранятся на устройстве.'**
+  String get aboutDescription;
+
+  /// Секция «О приложении» в настройках.
+  ///
+  /// In ru, this message translates to:
+  /// **'О приложении'**
+  String get settingsAboutSection;
+
+  /// Переход на экран About из настроек.
+  ///
+  /// In ru, this message translates to:
+  /// **'Подробнее'**
+  String get settingsAboutDetails;
 }
 
 class _AppLocalizationsDelegate

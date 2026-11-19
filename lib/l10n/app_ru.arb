@@ -2137,5 +2137,37 @@
   "dashboardCashflowDynamics": "По неделям",
   "@dashboardCashflowDynamics": {
     "description": "Подзаголовок недельного графика cashflow на главной."
+  },
+  "moreReferencesSection": "Справочники",
+  "@moreReferencesSection": {
+    "description": "Секция справочников в «Ещё»."
+  },
+  "moreAppSection": "Приложение",
+  "@moreAppSection": {
+    "description": "Секция приложения в «Ещё»."
+  },
+  "settingsTitle": "Настройки",
+  "@settingsTitle": {
+    "description": "Заголовок экрана настроек."
+  },
+  "settingsReportsSection": "Отчёты",
+  "@settingsReportsSection": {
+    "description": "Секция отчётов в настройках."
+  },
+  "aboutTitle": "О приложении",
+  "@aboutTitle": {
+    "description": "Заголовок экрана о приложении."
+  },
+  "aboutDescription": "Локальный учёт финансов. Данные хранятся на устройстве.",
+  "@aboutDescription": {
+    "description": "Описание приложения."
+  },
+  "settingsAboutSection": "О приложении",
+  "@settingsAboutSection": {
+    "description": "Секция «О приложении» в настройках."
+  },
+  "settingsAboutDetails": "Подробнее",
+  "@settingsAboutDetails": {
+    "description": "Переход на экран About из настроек."
   }
 }

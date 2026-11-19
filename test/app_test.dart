@@ -42,7 +42,7 @@ void main() {
 
     await tester.tap(find.text(l10n.navMore));
     await tester.pumpAndSettle();
-    expect(find.text(l10n.moreSecuritySection), findsOneWidget);
+    expect(find.text(l10n.categoriesTitle), findsOneWidget);
 
     await tester.tap(find.text(l10n.navGoals));
     await tester.pumpAndSettle();
@@ -121,6 +121,11 @@ void main() {
 
     await tester.tap(find.text(l10n.navMore));
     await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text(l10n.appLockTitle),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.tap(find.text(l10n.appLockTitle));
     await tester.pumpAndSettle();
     expect(find.text(l10n.appLockStatusOff), findsOneWidget);

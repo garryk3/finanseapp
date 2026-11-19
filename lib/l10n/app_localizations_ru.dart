@@ -1575,4 +1575,29 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get dashboardCashflowDynamics => 'По неделям';
+
+  @override
+  String get moreReferencesSection => 'Справочники';
+
+  @override
+  String get moreAppSection => 'Приложение';
+
+  @override
+  String get settingsTitle => 'Настройки';
+
+  @override
+  String get settingsReportsSection => 'Отчёты';
+
+  @override
+  String get aboutTitle => 'О приложении';
+
+  @override
+  String get aboutDescription =>
+      'Локальный учёт финансов. Данные хранятся на устройстве.';
+
+  @override
+  String get settingsAboutSection => 'О приложении';
+
+  @override
+  String get settingsAboutDetails => 'Подробнее';
 }

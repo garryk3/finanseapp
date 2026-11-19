@@ -40,6 +40,10 @@ import 'package:finanseapp/core/features/transactions/ui/transfer_form_view_mode
 import 'package:finanseapp/core/features/currencies/domain/currency_repository.dart';
 import 'package:finanseapp/core/features/currencies/domain/exchange_rate_repository.dart';
 import 'package:finanseapp/core/features/settings/domain/settings_repository.dart';
+import 'package:finanseapp/core/features/settings/ui/about_screen.dart';
+import 'package:finanseapp/core/features/settings/ui/about_view_model.dart';
+import 'package:finanseapp/core/features/settings/ui/settings_screen.dart';
+import 'package:finanseapp/core/features/settings/ui/settings_view_model.dart';
 import 'package:finanseapp/core/features/categories/domain/category.dart';
 import 'package:finanseapp/core/features/categories/domain/category_repository.dart';
 import 'package:finanseapp/core/features/categories/ui/categories_screen.dart';
@@ -445,6 +449,19 @@ GoRouter buildRouter({required ServiceLocator locator}) {
                       return AnalyticsScreen(viewModel: viewModel);
                     },
                   ),
+                  GoRoute(
+                    path: 'settings',
+                    name: 'settings',
+                    builder: (context, state) => SettingsScreen(
+                      viewModel: locator.get<SettingsViewModel>(),
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'about',
+                    name: 'about',
+                    builder: (context, state) =>
+                        AboutScreen(viewModel: locator.get<AboutViewModel>()),
+                  ),
                   for (final entry in _morePlaceholders)
                     _placeholderRoute(
                       entry.path,
@@ -730,7 +747,5 @@ AnalyticsPeriod? _analyticsPeriod(String? value) => switch (value) {
 };
 
 const _morePlaceholders = <({String path, String name})>[
-  (path: 'settings', name: 'settings'),
   (path: 'audit', name: 'audit'),
-  (path: 'about', name: 'about'),
 ];

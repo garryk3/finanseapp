@@ -1,4 +1,5 @@
 import 'package:finanseapp/app/routes.dart';
+import 'package:finanseapp/app/theme/app_spacing.dart';
 import 'package:finanseapp/core/features/settings/ui/more_view_model.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
 import 'package:finanseapp/uikit/app_icon.dart';
@@ -46,6 +47,7 @@ class _MoreScreenState extends State<MoreScreen> {
       title: l10n.navMore,
       body: SignalBuilder(
         builder: (context) => AppListView(
+          padding: const EdgeInsets.only(bottom: AppSpacing.xl),
           children: [
             AppSection(
               header: l10n.moreOverviewSection,
@@ -53,6 +55,46 @@ class _MoreScreenState extends State<MoreScreen> {
                 title: l10n.analyticsTitle,
                 leading: const AppIcon(Icons.show_chart),
                 onTap: () => context.push(AppRoutes.analytics),
+              ),
+            ),
+            AppSection(
+              header: l10n.moreReferencesSection,
+              child: Column(
+                children: [
+                  AppListTile(
+                    title: l10n.categoriesTitle,
+                    leading: const AppIcon(Icons.category_outlined),
+                    onTap: () =>
+                        context.push(AppRoutes.categoriesPath('expense')),
+                  ),
+                  AppListTile(
+                    title: l10n.subgroupsTitle,
+                    leading: const AppIcon(Icons.account_balance_outlined),
+                    onTap: () => context.push(AppRoutes.subgroupsPath('bank')),
+                  ),
+                  AppListTile(
+                    title: l10n.currenciesTitle,
+                    leading: const AppIcon(Icons.currency_exchange),
+                    onTap: () => context.push(AppRoutes.currencies),
+                  ),
+                ],
+              ),
+            ),
+            AppSection(
+              header: l10n.moreAppSection,
+              child: Column(
+                children: [
+                  AppListTile(
+                    title: l10n.settingsTitle,
+                    leading: const AppIcon(Icons.settings_outlined),
+                    onTap: () => context.push(AppRoutes.settings),
+                  ),
+                  AppListTile(
+                    title: l10n.aboutTitle,
+                    leading: const AppIcon(Icons.info_outline),
+                    onTap: () => context.push(AppRoutes.about),
+                  ),
+                ],
               ),
             ),
             AppSection(

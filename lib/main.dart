@@ -17,6 +17,8 @@ import 'package:finanseapp/core/features/cashflow/ui/cashflow_view_model.dart';
 import 'package:finanseapp/core/features/dashboard/ui/dashboard_view_model.dart';
 import 'package:finanseapp/core/features/currencies/domain/exchange_rate_repository.dart';
 import 'package:finanseapp/core/features/settings/domain/settings_repository.dart';
+import 'package:finanseapp/core/features/settings/ui/about_view_model.dart';
+import 'package:finanseapp/core/features/settings/ui/settings_view_model.dart';
 import 'package:finanseapp/core/features/goals/domain/goal_repository.dart';
 import 'package:finanseapp/core/features/goals/ui/goals_view_model.dart';
 import 'package:finanseapp/core/features/settings/ui/more_view_model.dart';
@@ -88,6 +90,10 @@ Future<void> main() async {
         now: () => LocalDate.fromDateTime(DateTime.now()),
       ),
     )
+    ..registerFactory<SettingsViewModel>(
+      () => SettingsViewModel(repository: locator.get<SettingsRepository>()),
+    )
+    ..registerFactory<AboutViewModel>(AboutViewModel.new)
     ..registerFactory<MoreViewModel>(MoreViewModel.new)
     ..registerFactory<NotFoundViewModel>(NotFoundViewModel.new)
     ..register<ApplockService>(service)
