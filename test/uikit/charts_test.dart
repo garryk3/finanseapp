@@ -148,6 +148,51 @@ void main() {
         findsOneWidget,
       );
     });
+
+    testWidgets('много групп в узкой ширине — горизонтальный скролл', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          SizedBox(
+            width: 320,
+            height: 240,
+            child: AppCashflowChart(
+              groups: [
+                for (var i = 0; i < 30; i++)
+                  AppCashflowBarGroup(
+                    label: '$i',
+                    income: 100,
+                    expense: 50,
+                    incomeText: '100,00 ₽',
+                    expenseText: '50,00 ₽',
+                    netText: '50,00 ₽',
+                  ),
+              ],
+              accessibleSummary: '30 периодов.',
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      final scroll = tester.widgetList<SingleChildScrollView>(
+        find.byType(SingleChildScrollView),
+      );
+      expect(
+        scroll.any((widget) => widget.scrollDirection == Axis.horizontal),
+        isTrue,
+      );
+      expect(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is SizedBox &&
+              widget.width != null &&
+              widget.width! >= 30 * 36,
+        ),
+        findsOneWidget,
+      );
+    });
   });
 
   group('AppChartFrame', () {

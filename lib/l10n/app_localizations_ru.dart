@@ -1412,7 +1412,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get analyticsEmptyMessage => 'Измените период или вид активов.';
 
   @override
-  String get analyticsPointsTitle => 'Точки графика';
+  String get analyticsPointsTitle => 'Значения по датам';
 
   @override
   String get analyticsTrendUp => 'Рост';
@@ -1481,4 +1481,35 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get analyticsKindEmptyMessage => 'Нет активов выбранного вида.';
+
+  @override
+  String get analyticsCashflowTitle => 'Денежный поток';
+
+  @override
+  String get analyticsPeriodsTitle => 'Значения по периодам';
+
+  @override
+  String analyticsCashflowChartSummary(
+    String period,
+    String income,
+    String expense,
+    String net,
+  ) {
+    return 'Период: $period. Доход: $income. Расход: $expense. Итог: $net.';
+  }
+
+  @override
+  String get analyticsCashflowEmptyTitle => 'Нет операций за период';
+
+  @override
+  String get analyticsCashflowEmptyMessage =>
+      'Измените период или добавьте операцию.';
+
+  @override
+  String analyticsShowAllPeriods(int count) {
+    return 'Показать все периоды ($count)';
+  }
+
+  @override
+  String get analyticsCollapsePeriods => 'Свернуть периоды';
 }

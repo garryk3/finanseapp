@@ -52,97 +52,117 @@ class AppCashflowChart extends StatelessWidget {
     return Semantics(
       label: accessibleSummary,
       child: ExcludeSemantics(
-        child: BarChart(
-          duration: disableAnimations
-              ? Duration.zero
-              : const Duration(milliseconds: 250),
-          BarChartData(
-            maxY: top,
-            gridData: FlGridData(
-              show: true,
-              drawVerticalLine: false,
-              getDrawingHorizontalLine: (value) =>
-                  FlLine(color: scheme.outlineVariant, strokeWidth: 1),
-            ),
-            borderData: FlBorderData(show: false),
-            titlesData: FlTitlesData(
-              topTitles: const AxisTitles(),
-              rightTitles: const AxisTitles(),
-              leftTitles: const AxisTitles(),
-              bottomTitles: AxisTitles(
-                sideTitles: SideTitles(
-                  showTitles: true,
-                  interval: labelInterval,
-                  reservedSize: 28,
-                  getTitlesWidget: (value, meta) {
-                    final index = value.round();
-                    final label = (index >= 0 && index < groups.length)
-                        ? groups[index].label
-                        : '';
-                    return SideTitleWidget(
-                      meta: meta,
-                      child: Text(
-                        label,
-                        style: Theme.of(context).textTheme.labelSmall
-                            ?.copyWith(color: scheme.onSurfaceVariant),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ),
-            barTouchData: BarTouchData(
-              touchTooltipData: BarTouchTooltipData(
-                getTooltipColor: (_) => scheme.inverseSurface,
-                getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                  final g = groups[groupIndex];
-                  final text = switch (rodIndex) {
-                    0 => '$incomeLabel: ${g.incomeText}',
-                    1 => '$expenseLabel: ${g.expenseText}',
-                    _ => '${g.netText}',
-                  };
-                  return BarTooltipItem(
-                    '${g.label}\n$text',
-                    TextStyle(
-                      color: Theme.of(context).colorScheme.onInverseSurface,
-                      fontSize: 12,
-                    ),
-                  );
-                },
-              ),
-              touchCallback: (event, response) {
-                if (onGroupTap == null) return;
-                if (!event.isInterestedForInteractions) return;
-                final touched = response?.spot?.touchedBarGroupIndex;
-                if (touched == null || touched >= groups.length) return;
-                onGroupTap!(groups[touched]);
-              },
-            ),
-            barGroups: <BarChartGroupData>[
-              for (var i = 0; i < groups.length; i++)
-                BarChartGroupData(
-                  x: i,
-                  barRods: <BarChartRodData>[
-                    BarChartRodData(
-                      toY: groups[i].income,
-                      color: semantic.income,
-                      width: 10,
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(4),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            // Много периодов: минимальная ширина группы + горизонтальный
+            // скролл вместо слипшихся столбцов (charts.md §3).
+            final contentWidth = math.max(
+              constraints.maxWidth,
+              groups.length * 36.0 + 24,
+            );
+            final chart = SizedBox(
+              width: contentWidth,
+              child: BarChart(
+                duration: disableAnimations
+                    ? Duration.zero
+                    : const Duration(milliseconds: 250),
+                BarChartData(
+                  maxY: top,
+                  gridData: FlGridData(
+                    show: true,
+                    drawVerticalLine: false,
+                    getDrawingHorizontalLine: (value) =>
+                        FlLine(color: scheme.outlineVariant, strokeWidth: 1),
+                  ),
+                  borderData: FlBorderData(show: false),
+                  titlesData: FlTitlesData(
+                    topTitles: const AxisTitles(),
+                    rightTitles: const AxisTitles(),
+                    leftTitles: const AxisTitles(),
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        interval: labelInterval,
+                        reservedSize: 28,
+                        getTitlesWidget: (value, meta) {
+                          final index = value.round();
+                          final label = (index >= 0 && index < groups.length)
+                              ? groups[index].label
+                              : '';
+                          return SideTitleWidget(
+                            meta: meta,
+                            child: Text(
+                              label,
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(color: scheme.onSurfaceVariant),
+                            ),
+                          );
+                        },
                       ),
                     ),
-                    BarChartRodData(
-                      toY: groups[i].expense,
-                      color: semantic.expense,
-                      width: 10,
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(4),
-                      ),
+                  ),
+                  barTouchData: BarTouchData(
+                    touchTooltipData: BarTouchTooltipData(
+                      getTooltipColor: (_) => scheme.inverseSurface,
+                      getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                        final g = groups[groupIndex];
+                        final text = switch (rodIndex) {
+                          0 => '$incomeLabel: ${g.incomeText}',
+                          1 => '$expenseLabel: ${g.expenseText}',
+                          _ => '${g.netText}',
+                        };
+                        return BarTooltipItem(
+                          '${g.label}\n$text',
+                          TextStyle(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onInverseSurface,
+                            fontSize: 12,
+                          ),
+                        );
+                      },
                     ),
+                    touchCallback: (event, response) {
+                      if (onGroupTap == null) return;
+                      if (!event.isInterestedForInteractions) return;
+                      final touched = response?.spot?.touchedBarGroupIndex;
+                      if (touched == null || touched >= groups.length) return;
+                      onGroupTap!(groups[touched]);
+                    },
+                  ),
+                  barGroups: <BarChartGroupData>[
+                    for (var i = 0; i < groups.length; i++)
+                      BarChartGroupData(
+                        x: i,
+                        barRods: <BarChartRodData>[
+                          BarChartRodData(
+                            toY: groups[i].income,
+                            color: semantic.income,
+                            width: 10,
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(4),
+                            ),
+                          ),
+                          BarChartRodData(
+                            toY: groups[i].expense,
+                            color: semantic.expense,
+                            width: 10,
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(4),
+                            ),
+                          ),
+                        ],
+                      ),
                   ],
                 ),
-            ],
-          ),
+              ),
+            );
+            if (contentWidth <= constraints.maxWidth) return chart;
+            return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: chart,
+            );
+          },
         ),
       ),
     );
