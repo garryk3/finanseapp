@@ -1361,8 +1361,32 @@
   общий DoD. Перед PR спросить о e2e.
 - **Предлагаемый commit:** `task/10.2: добавить виджет денежного потока`.
 
-### 10.3 Настройки, справочники и базовая валюта — [ ]
+### 10.3 Настройки, справочники и базовая валюта — [x] (2026-11-19)
 
+- **Рабочий план:**
+  - **More:** tiles «Аналитика», «Категории», «Банки и брокеры», «Валюты»,
+    «Настройки», «О приложении», «Защита»; реальные routes вместо плейсхолдеров
+    settings/about; общий экран аудита остаётся вне 10.3 (его список ещё не реализован —
+    записать в «Отложено»).
+  - **Settings:** секция «Отчёты» с текущей базовой валютой → BaseCurrencyScreen;
+    секция «О приложении» → About; VM на `SettingsRepository` (base currency), без
+    backup/update (10.4/10.5).
+  - **About:** отдельный экран с назначением/offline-дисклеймером; версия и проверка
+    обновления подключаются в 10.5 (без служебной заглушки на витрине).
+  - **TDD:** More-переходы; base currency меняется и читается; disabled/used conflict в
+    repository; About показывает описание без служебной заглушки; Settings/About 320dp/dark
+    (визуальный QA отложен).
+  - **Генерация:** gen-l10n; схема не меняется.
+  - **commit:** `task/10.3: реализовать экран настроек`.
+- **Итог:** More получил секции «Справочники» (категории, банки/брокеры, валюты) и
+  «Приложение» (настройки, о приложении) в дополнение к аналитике и защите; `SettingsScreen`
+  (`SettingsViewModel` на watch/get base currency) показывает текущую базовую валюту и ведёт
+  в BaseCurrencyScreen, плюс About; `AboutScreen` — назначение/offline-дисклеймер (версия
+  подключается в 10.5, без служебной заглушки);
+  settings/about routes вместо плейсхолдеров, DI обеих VM. Тесты: settings repository
+  (смена/disabled conflict) + More/Settings/About widget (5); всего 525.
+- **Отложено:** общий экран аудита (списка ревизий ещё нет — вне 10.3), backup/update
+  секции (10.4/10.5), проверка «used base» вне repository-валидации, визуальный QA.
 - **Приоритет/зависимости:** P1; после 10.2. **BR:** C-4…6.
 - **Files:** Create settings repository impl/domain/logic, `settings_screen.dart`,
   `settings_view_model.dart`, `about_screen.dart`, `about_view_model.dart`;
@@ -1371,10 +1395,11 @@
 - **Consumes:** `SettingsRepository.watchBaseCurrency/getBaseCurrency/setBaseCurrency`,
   CurrencyRepository, named routes.
 - **Produces:** More tiles, Settings «Отчёты», выбранная base currency, app info;
-  секции backup/update добавляются 10.4/10.5 в этот же screen без переписывания VM.
+  секции backup/update добавляются 10.4/10.5 в этот же screen без переписывания VM;
+  версия About — в 10.5.
 - **TDD:** set USD enabled обновляет Dashboard/Analytics, RUB audit snapshots unchanged;
   used/disabled base conflict; More ведёт categories/subgroups/currencies/audit/about;
-  About показывает «Версия появится после подключения сведений о пакете» до 10.5.
+  About показывает назначение/offline-дисклеймер без служебной заглушки (версия — 10.5).
 - **Генерация:** gen-l10n.
 - **DoD:** offline settings доступны, font 1.3/dark/long text pass; общий DoD/design review.
   Перед PR спросить о e2e.
