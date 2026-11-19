@@ -33,6 +33,7 @@ class CashflowCommands {
     required LocalDate occurredOn,
     Decimal? manualRate,
     String? comment,
+    int? propertyId,
   }) async {
     if (amount.minorUnits <= 0) {
       return const Failure(
@@ -64,6 +65,7 @@ class CashflowCommands {
         occurredOn: occurredOn,
         rateToRub: rate.rateToRub,
         affectsBalance: false,
+        propertyId: propertyId,
         comment: (comment?.trim().isEmpty ?? true) ? null : comment!.trim(),
       );
       if (id == null) return Success(await repository.create(draft));

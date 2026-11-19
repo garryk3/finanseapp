@@ -262,13 +262,19 @@ class _AssetsScreenState extends State<AssetsScreen> {
             label: l10n.assetsAddInvestment,
             onPressed: () => Navigator.of(context).pop('investment'),
           ),
+          AppButton(
+            label: l10n.assetsAddProperty,
+            onPressed: () => Navigator.of(context).pop('property'),
+          ),
         ],
       ),
     );
     if (!mounted || kind == null) return;
-    context.push(
-      kind == 'account' ? AppRoutes.accountNew : AppRoutes.investmentNew,
-    );
+    context.push(switch (kind) {
+      'account' => AppRoutes.accountNew,
+      'investment' => AppRoutes.investmentNew,
+      _ => AppRoutes.propertyNew,
+    });
   }
 
   static String _kindLabel(AppLocalizations l10n, AssetKind kind) =>

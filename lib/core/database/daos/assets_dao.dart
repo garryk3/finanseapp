@@ -48,6 +48,9 @@ class AssetsDao extends DatabaseAccessor<AppDatabase> with _$AssetsDaoMixin {
   Future<List<InvestmentDetailRow>> allInvestmentDetails() =>
       select(investmentDetails).get();
 
+  Future<List<PropertyDetailRow>> allPropertyDetails() =>
+      select(propertyDetails).get();
+
   Future<AssetRow?> findById(int id) =>
       (select(assets)..where((a) => a.id.equals(id))).getSingleOrNull();
 
@@ -96,6 +99,10 @@ class AssetsDao extends DatabaseAccessor<AppDatabase> with _$AssetsDaoMixin {
     }
     return assetId;
   });
+
+  Future<PropertyDetailRow?> propertyDetailsFor(int assetId) => (select(
+    propertyDetails,
+  )..where((d) => d.assetId.equals(assetId))).getSingleOrNull();
 
   Future<InvestmentDetailRow?> investmentDetailsFor(int assetId) => (select(
     investmentDetails,
@@ -223,6 +230,54 @@ class AssetsDao extends DatabaseAccessor<AppDatabase> with _$AssetsDaoMixin {
     );
     await (update(investmentDetails)..where((d) => d.assetId.equals(assetId)))
         .write(InvestmentDetailsCompanion(brokerId: Value(brokerId)));
+  });
+
+  /// Обновляет квартиру; смена валюты запрещена при связях (BR-VAL-8).
+  Future<void> updateProperty({
+    required int assetId,
+    required String name,
+    required String currencyCode,
+    required int openingValueMinor,
+    String? address,
+    int? purchasePriceMinor,
+  }) => transaction(() async {
+    final asset = await getById(assetId);
+    if (asset.kind != AssetKind.property) {
+      throw const DomainException(
+        DomainErrorCode.validation,
+        fieldErrors: {'kind': 'validationAssetKindImmutable'},
+      );
+    }
+    if (openingValueMinor < 0 ||
+        (purchasePriceMinor != null && purchasePriceMinor < 0)) {
+      throw const DomainException(
+        DomainErrorCode.validation,
+        fieldErrors: {'openingValue': 'validationAmountNegative'},
+      );
+    }
+    if (currencyCode != asset.currencyCode &&
+        await countReferences(assetId) > 0) {
+      throw const DomainException(
+        DomainErrorCode.validation,
+        fieldErrors: {'currencyCode': 'validationCurrencyLocked'},
+      );
+    }
+    final trimmed = address?.trim();
+    await (update(assets)..where((a) => a.id.equals(assetId))).write(
+      AssetsCompanion(
+        name: Value(name.trim()),
+        currencyCode: Value(currencyCode),
+        openingValueMinor: Value(openingValueMinor),
+      ),
+    );
+    await (update(
+      propertyDetails,
+    )..where((d) => d.assetId.equals(assetId))).write(
+      PropertyDetailsCompanion(
+        address: Value(trimmed == null || trimmed.isEmpty ? null : trimmed),
+        purchasePriceMinor: Value(purchasePriceMinor),
+      ),
+    );
   });
 
   Future<int> countReferences(int assetId) async {

@@ -15,6 +15,8 @@ import 'package:finanseapp/core/features/assets/ui/account_form_screen.dart';
 import 'package:finanseapp/core/features/assets/ui/account_form_view_model.dart';
 import 'package:finanseapp/core/features/assets/ui/assets_screen.dart';
 import 'package:finanseapp/core/features/assets/ui/investment_form_screen.dart';
+import 'package:finanseapp/core/features/assets/ui/property_form_screen.dart';
+import 'package:finanseapp/core/features/assets/ui/property_form_view_model.dart';
 import 'package:finanseapp/core/features/assets/ui/investment_form_view_model.dart';
 import 'package:finanseapp/core/features/assets/ui/valuation_form_screen.dart';
 import 'package:finanseapp/core/features/assets/ui/valuation_form_view_model.dart';
@@ -132,10 +134,15 @@ GoRouter buildRouter({required ServiceLocator locator}) {
                       ),
                     ),
                   ),
-                  _placeholderRoute(
-                    'new/property',
-                    'property-new',
-                    (l10n) => l10n.navAssets,
+                  GoRoute(
+                    path: 'new/property',
+                    name: 'property-new',
+                    builder: (context, state) => PropertyFormScreen(
+                      viewModel: PropertyFormViewModel(
+                        repository: locator.get<AssetRepository>(),
+                        currencyRepository: locator.get<CurrencyRepository>(),
+                      ),
+                    ),
                   ),
                   GoRoute(
                     path: ':id',
@@ -155,6 +162,8 @@ GoRouter buildRouter({required ServiceLocator locator}) {
                                     .get<CurrencyRepository>(),
                                 rateRepository: locator
                                     .get<ExchangeRateRepository>(),
+                                cashflowRepository: locator
+                                    .get<CashflowRepository>(),
                               ),
                             );
                     },
@@ -201,10 +210,24 @@ GoRouter buildRouter({required ServiceLocator locator}) {
                                 );
                         },
                       ),
-                      _placeholderRoute(
-                        'edit/property',
-                        'property-edit',
-                        (l10n) => l10n.navAssets,
+                      GoRoute(
+                        path: 'edit/property',
+                        name: 'property-edit',
+                        builder: (context, state) {
+                          final id = AppRoutes.parseId(
+                            state.pathParameters['id'],
+                          );
+                          return id == null
+                              ? _notFound(locator)
+                              : PropertyFormScreen(
+                                  viewModel: PropertyFormViewModel(
+                                    repository: locator.get<AssetRepository>(),
+                                    currencyRepository: locator
+                                        .get<CurrencyRepository>(),
+                                    editingId: id,
+                                  ),
+                                );
+                        },
                       ),
                       GoRoute(
                         path: 'valuations/new',
@@ -471,11 +494,17 @@ GoRouter buildRouter({required ServiceLocator locator}) {
         path: AppRoutes.cashflowNew,
         name: 'cashflow-new',
         builder: (context, state) => CashflowFormScreen(
+          propertyId: int.tryParse(
+            state.uri.queryParameters['propertyId'] ?? '',
+          ),
           viewModel: CashflowFormViewModel(
             repository: locator.get<CashflowRepository>(),
             categoryRepository: locator.get<CategoryRepository>(),
             currencyRepository: locator.get<CurrencyRepository>(),
             commands: _cashflowCommands(locator),
+            initialKind: state.uri.queryParameters['kind'] == 'income'
+                ? CashflowKind.income
+                : CashflowKind.expense,
           ),
         ),
       ),

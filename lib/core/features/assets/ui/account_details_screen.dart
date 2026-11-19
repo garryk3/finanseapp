@@ -6,6 +6,7 @@ import 'package:finanseapp/core/domain/common/result.dart';
 import 'package:finanseapp/core/features/assets/domain/asset.dart';
 import 'package:finanseapp/core/features/assets/domain/asset_valuation.dart';
 import 'package:finanseapp/core/features/assets/ui/account_details_view_model.dart';
+import 'package:finanseapp/core/features/assets/ui/property_cashflow_section.dart';
 import 'package:finanseapp/core/presentation/date_formatter.dart';
 import 'package:finanseapp/core/presentation/money_formatter.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
@@ -203,6 +204,12 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
             ],
           ),
         ),
+        if (asset is PropertyAsset && vm.cashflowRepository != null)
+          PropertyCashflowSection(
+            repository: vm.cashflowRepository!,
+            propertyId: asset.id,
+            today: vm.today,
+          ),
         if (!isAccount)
           AppSection(
             header: l10n.valuationHistory,
@@ -261,9 +268,11 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
   );
 
   Future<void> _edit(Asset asset) async {
-    final path = asset is AccountAsset
-        ? AppRoutes.accountEditPath(asset.id)
-        : AppRoutes.investmentEditPath(asset.id);
+    final path = switch (asset) {
+      AccountAsset() => AppRoutes.accountEditPath(asset.id),
+      InvestmentAsset() => AppRoutes.investmentEditPath(asset.id),
+      PropertyAsset() => AppRoutes.propertyEditPath(asset.id),
+    };
     await context.push(path);
     if (!mounted) return;
     await _viewModel.load();

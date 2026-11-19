@@ -112,6 +112,7 @@ class CashflowFormViewModel {
     required this.currencyRepository,
     required this.commands,
     this.editingId,
+    this.initialKind = CashflowKind.expense,
   });
 
   final CashflowRepository repository;
@@ -119,6 +120,7 @@ class CashflowFormViewModel {
   final CurrencyRepository currencyRepository;
   final CashflowCommands commands;
   final int? editingId;
+  final CashflowKind initialKind;
 
   final Signal<ViewState<void>> state = signal(const ViewLoading());
   final Signal<List<CashflowCategory>> categories = signal(const []);
@@ -172,6 +174,7 @@ class CashflowFormViewModel {
     required LocalDate occurredOn,
     Decimal? manualRate,
     String? comment,
+    int? propertyId,
   }) => commands.save(
     id: editingId,
     kind: kind,
@@ -180,6 +183,7 @@ class CashflowFormViewModel {
     occurredOn: occurredOn,
     manualRate: manualRate,
     comment: comment,
+    propertyId: propertyId,
   );
 
   void dispose() {}
