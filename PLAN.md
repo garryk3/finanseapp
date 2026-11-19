@@ -1010,10 +1010,9 @@
   глобального журнала уже покрыты 7.3. Тесты: income/expense квартиры в общем итоге и
   неизменность стоимости, invalid property id → ViewError NotFound (с проверкой errorCode).
   Контекст «Квартира: имя · Не влияет на баланс счёта» показан в форме (в т.ч. для edit
-  по entry.propertyId); NotFound-CTA ведёт на dashboard. Виджет-тест формы (нет account
-  switch / inline NotFound) — отложен.
-- **Отложено:** integration_test cashflow_flow (e2e сценарий квартиры), diff в audit,
-  badge связи, визуальный QA.
+  по entry.propertyId); NotFound-CTA ведёт на dashboard.
+- **Отложено:** integration_test cashflow_flow (e2e сценарий квартиры), виджет-тест формы
+  (нет account switch / inline NotFound), diff в audit, badge связи, визуальный QA.
 
 ## Этап 8 — Финансовые цели
 

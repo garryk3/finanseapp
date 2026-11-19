@@ -209,8 +209,14 @@ class _CashflowFormScreenState extends State<CashflowFormScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final vm = widget.viewModel;
+    final notFound = switch (vm.state.value) {
+      ViewError(errorCode: DomainErrorCode.notFound) => true,
+      _ => false,
+    };
     return AppScaffold(
-      title: vm.isEditing ? l10n.cashflowFormEdit : l10n.cashflowFormNew,
+      title: notFound
+          ? l10n.cashflowDetailsTitle
+          : (vm.isEditing ? l10n.cashflowFormEdit : l10n.cashflowFormNew),
       body: SignalBuilder(
         builder: (context) {
           if (vm.state.value case ViewError(
@@ -260,17 +266,25 @@ class _CashflowFormScreenState extends State<CashflowFormScreen> {
                     : l10n.cashflowFormNew,
                 errorText: _formError,
                 children: [
-                  if (vm.property.value != null) ...[
-                    AppText(
-                      l10n.cashflowPropertyContext(vm.property.value!.name),
+                  if (vm.property.value != null)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        AppText(
+                          l10n.cashflowPropertyContext(vm.property.value!.name),
+                        ),
+                        const SizedBox(height: AppSpacing.xxs),
+                        AppText(
+                          l10n.cashflowPropertyNoAccount,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant,
+                              ),
+                        ),
+                      ],
                     ),
-                    AppText(
-                      l10n.cashflowPropertyNoAccount,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
                   AppSegmentedControl<CashflowKind>(
                     segments: [
                       AppSegment(
