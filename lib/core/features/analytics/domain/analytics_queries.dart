@@ -10,6 +10,10 @@ import 'package:finanseapp/core/features/cashflow/domain/cashflow_summary.dart';
 abstract interface class AnalyticsQueries {
   Future<NetWorthSummary> netWorth(LocalDate onDate);
 
+  /// Самая ранняя дата активности (создание актива, операция, оценка) —
+  /// начало периода «всё время» (calculations §10).
+  Future<LocalDate?> earliestActivityDate({AssetKind? assetKind});
+
   Future<List<NetWorthPoint>> netWorthSeries({
     required DateRange period,
     AssetKind? assetKind,

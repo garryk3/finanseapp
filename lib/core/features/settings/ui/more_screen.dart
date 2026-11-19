@@ -48,6 +48,14 @@ class _MoreScreenState extends State<MoreScreen> {
         builder: (context) => AppListView(
           children: [
             AppSection(
+              header: l10n.moreOverviewSection,
+              child: AppListTile(
+                title: l10n.analyticsTitle,
+                leading: const AppIcon(Icons.show_chart),
+                onTap: () => context.push(AppRoutes.analytics),
+              ),
+            ),
+            AppSection(
               header: l10n.moreSecuritySection,
               child: AppListTile(
                 title: l10n.appLockTitle,

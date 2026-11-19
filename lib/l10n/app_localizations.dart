@@ -2636,6 +2636,186 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Накоплено {progress} из {target}'**
   String goalProgressSemantics(String progress, String target);
+
+  /// Заголовок экрана аналитики.
+  ///
+  /// In ru, this message translates to:
+  /// **'Аналитика'**
+  String get analyticsTitle;
+
+  /// Заголовок графика net worth.
+  ///
+  /// In ru, this message translates to:
+  /// **'Чистый капитал'**
+  String get analyticsNetWorthTitle;
+
+  /// Период аналитики — текущий месяц.
+  ///
+  /// In ru, this message translates to:
+  /// **'Месяц'**
+  String get analyticsPeriodMonth;
+
+  /// Период аналитики — 3 месяца.
+  ///
+  /// In ru, this message translates to:
+  /// **'3 месяца'**
+  String get analyticsPeriodThreeMonths;
+
+  /// Период аналитики — 6 месяцев.
+  ///
+  /// In ru, this message translates to:
+  /// **'6 месяцев'**
+  String get analyticsPeriodSixMonths;
+
+  /// Период аналитики — текущий год.
+  ///
+  /// In ru, this message translates to:
+  /// **'Год'**
+  String get analyticsPeriodYear;
+
+  /// Период аналитики — всё время.
+  ///
+  /// In ru, this message translates to:
+  /// **'Всё время'**
+  String get analyticsPeriodAll;
+
+  /// Фильтр видов активов — все.
+  ///
+  /// In ru, this message translates to:
+  /// **'Все активы'**
+  String get analyticsKindAll;
+
+  /// Пустая серия net worth.
+  ///
+  /// In ru, this message translates to:
+  /// **'Нет данных за период'**
+  String get analyticsEmptyTitle;
+
+  /// Пояснение пустой серии.
+  ///
+  /// In ru, this message translates to:
+  /// **'Измените период или вид активов.'**
+  String get analyticsEmptyMessage;
+
+  /// Доступный список точек графика.
+  ///
+  /// In ru, this message translates to:
+  /// **'Точки графика'**
+  String get analyticsPointsTitle;
+
+  /// Направление серии.
+  ///
+  /// In ru, this message translates to:
+  /// **'Рост'**
+  String get analyticsTrendUp;
+
+  /// Направление серии.
+  ///
+  /// In ru, this message translates to:
+  /// **'Снижение'**
+  String get analyticsTrendDown;
+
+  /// Направление серии.
+  ///
+  /// In ru, this message translates to:
+  /// **'Без изменений'**
+  String get analyticsTrendFlat;
+
+  /// Доступное описание графика.
+  ///
+  /// In ru, this message translates to:
+  /// **'Период: {period}. Последнее: {last}. Минимум: {min}. Максимум: {max}. {trend}.'**
+  String analyticsChartSummary(
+    String period,
+    String last,
+    String min,
+    String max,
+    String trend,
+  );
+
+  /// Секция «Ещё» с обзорными экранами.
+  ///
+  /// In ru, this message translates to:
+  /// **'Обзор'**
+  String get moreOverviewSection;
+
+  /// Ошибка отсутствующего курса в аналитике.
+  ///
+  /// In ru, this message translates to:
+  /// **'Нет курса валюты'**
+  String get analyticsRateErrorTitle;
+
+  /// Ошибка отсутствующего курса с датой.
+  ///
+  /// In ru, this message translates to:
+  /// **'Курс {currency} на {date} не найден. Введите его вручную, чтобы построить график.'**
+  String analyticsRateErrorMessage(String currency, String date);
+
+  /// Действие ручного ввода курса.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ввести курс'**
+  String get analyticsEnterRate;
+
+  /// Пустая аналитика без активов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Нет активов'**
+  String get analyticsNoAssetsTitle;
+
+  /// Пояснение пустой аналитики без активов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Добавьте счёт, инвестицию или квартиру, чтобы увидеть динамику.'**
+  String get analyticsNoAssetsMessage;
+
+  /// Минимум серии net worth.
+  ///
+  /// In ru, this message translates to:
+  /// **'Минимум'**
+  String get analyticsMinLabel;
+
+  /// Максимум серии net worth.
+  ///
+  /// In ru, this message translates to:
+  /// **'Максимум'**
+  String get analyticsMaxLabel;
+
+  /// Серия из одной точки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Нет изменений за период'**
+  String get analyticsNoChangesTitle;
+
+  /// Пояснение к одной точке.
+  ///
+  /// In ru, this message translates to:
+  /// **'За выбранный период стоимость не менялась.'**
+  String get analyticsNoChangesMessage;
+
+  /// Развернуть доступный список точек.
+  ///
+  /// In ru, this message translates to:
+  /// **'Показать все точки ({count})'**
+  String analyticsShowAllPoints(int count);
+
+  /// Свернуть доступный список точек.
+  ///
+  /// In ru, this message translates to:
+  /// **'Свернуть точки'**
+  String get analyticsCollapsePoints;
+
+  /// Короткий заголовок графика net worth.
+  ///
+  /// In ru, this message translates to:
+  /// **'Динамика за период'**
+  String get analyticsDynamicsTitle;
+
+  /// Пустая аналитика по фильтру вида.
+  ///
+  /// In ru, this message translates to:
+  /// **'Нет активов выбранного вида.'**
+  String get analyticsKindEmptyMessage;
 }
 
 class _AppLocalizationsDelegate

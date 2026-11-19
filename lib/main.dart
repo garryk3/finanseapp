@@ -5,6 +5,8 @@ import 'package:finanseapp/core/features/applock/data/local_auth_biometric_gatew
 import 'package:finanseapp/core/features/applock/data/secure_storage_applock_storage.dart';
 import 'package:finanseapp/core/features/applock/domain/applock_service.dart';
 import 'package:finanseapp/core/features/applock/logic/applock_controller.dart';
+import 'package:finanseapp/core/features/analytics/domain/analytics_queries.dart';
+import 'package:finanseapp/core/features/analytics/ui/analytics_view_model.dart';
 import 'package:finanseapp/core/features/applock/logic/applock_settings_view_model.dart';
 import 'package:finanseapp/core/features/applock/logic/applock_view_model.dart';
 import 'package:finanseapp/core/features/app_info/ui/not_found_view_model.dart';
@@ -14,6 +16,7 @@ import 'package:finanseapp/core/features/currencies/domain/currency_repository.d
 import 'package:finanseapp/core/features/cashflow/ui/cashflow_view_model.dart';
 import 'package:finanseapp/core/features/dashboard/ui/dashboard_view_model.dart';
 import 'package:finanseapp/core/features/currencies/domain/exchange_rate_repository.dart';
+import 'package:finanseapp/core/features/settings/domain/settings_repository.dart';
 import 'package:finanseapp/core/features/goals/domain/goal_repository.dart';
 import 'package:finanseapp/core/features/goals/ui/goals_view_model.dart';
 import 'package:finanseapp/core/features/settings/ui/more_view_model.dart';
@@ -59,6 +62,15 @@ Future<void> main() async {
         repository: locator.get<GoalRepository>(),
         currencyRepository: locator.get<CurrencyRepository>(),
         assetRepository: locator.get<AssetRepository>(),
+        rateRepository: locator.get<ExchangeRateRepository>(),
+        now: () => LocalDate.fromDateTime(DateTime.now()),
+      ),
+    )
+    ..registerFactory<AnalyticsViewModel>(
+      () => AnalyticsViewModel(
+        queries: locator.get<AnalyticsQueries>(),
+        settingsRepository: locator.get<SettingsRepository>(),
+        currencyRepository: locator.get<CurrencyRepository>(),
         rateRepository: locator.get<ExchangeRateRepository>(),
         now: () => LocalDate.fromDateTime(DateTime.now()),
       ),

@@ -1860,5 +1860,151 @@
         "type": "String"
       }
     }
+  },
+  "analyticsTitle": "Аналитика",
+  "@analyticsTitle": {
+    "description": "Заголовок экрана аналитики."
+  },
+  "analyticsNetWorthTitle": "Чистый капитал",
+  "@analyticsNetWorthTitle": {
+    "description": "Заголовок графика net worth."
+  },
+  "analyticsPeriodMonth": "Месяц",
+  "@analyticsPeriodMonth": {
+    "description": "Период аналитики — текущий месяц."
+  },
+  "analyticsPeriodThreeMonths": "3 месяца",
+  "@analyticsPeriodThreeMonths": {
+    "description": "Период аналитики — 3 месяца."
+  },
+  "analyticsPeriodSixMonths": "6 месяцев",
+  "@analyticsPeriodSixMonths": {
+    "description": "Период аналитики — 6 месяцев."
+  },
+  "analyticsPeriodYear": "Год",
+  "@analyticsPeriodYear": {
+    "description": "Период аналитики — текущий год."
+  },
+  "analyticsPeriodAll": "Всё время",
+  "@analyticsPeriodAll": {
+    "description": "Период аналитики — всё время."
+  },
+  "analyticsKindAll": "Все активы",
+  "@analyticsKindAll": {
+    "description": "Фильтр видов активов — все."
+  },
+  "analyticsEmptyTitle": "Нет данных за период",
+  "@analyticsEmptyTitle": {
+    "description": "Пустая серия net worth."
+  },
+  "analyticsEmptyMessage": "Измените период или вид активов.",
+  "@analyticsEmptyMessage": {
+    "description": "Пояснение пустой серии."
+  },
+  "analyticsPointsTitle": "Точки графика",
+  "@analyticsPointsTitle": {
+    "description": "Доступный список точек графика."
+  },
+  "analyticsTrendUp": "Рост",
+  "@analyticsTrendUp": {
+    "description": "Направление серии."
+  },
+  "analyticsTrendDown": "Снижение",
+  "@analyticsTrendDown": {
+    "description": "Направление серии."
+  },
+  "analyticsTrendFlat": "Без изменений",
+  "@analyticsTrendFlat": {
+    "description": "Направление серии."
+  },
+  "analyticsChartSummary": "Период: {period}. Последнее: {last}. Минимум: {min}. Максимум: {max}. {trend}.",
+  "@analyticsChartSummary": {
+    "description": "Доступное описание графика.",
+    "placeholders": {
+      "period": {
+        "type": "String"
+      },
+      "last": {
+        "type": "String"
+      },
+      "min": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      },
+      "trend": {
+        "type": "String"
+      }
+    }
+  },
+  "moreOverviewSection": "Обзор",
+  "@moreOverviewSection": {
+    "description": "Секция «Ещё» с обзорными экранами."
+  },
+  "analyticsRateErrorTitle": "Нет курса валюты",
+  "@analyticsRateErrorTitle": {
+    "description": "Ошибка отсутствующего курса в аналитике."
+  },
+  "analyticsRateErrorMessage": "Курс {currency} на {date} не найден. Введите его вручную, чтобы построить график.",
+  "@analyticsRateErrorMessage": {
+    "description": "Ошибка отсутствующего курса с датой.",
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "analyticsEnterRate": "Ввести курс",
+  "@analyticsEnterRate": {
+    "description": "Действие ручного ввода курса."
+  },
+  "analyticsNoAssetsTitle": "Нет активов",
+  "@analyticsNoAssetsTitle": {
+    "description": "Пустая аналитика без активов."
+  },
+  "analyticsNoAssetsMessage": "Добавьте счёт, инвестицию или квартиру, чтобы увидеть динамику.",
+  "@analyticsNoAssetsMessage": {
+    "description": "Пояснение пустой аналитики без активов."
+  },
+  "analyticsMinLabel": "Минимум",
+  "@analyticsMinLabel": {
+    "description": "Минимум серии net worth."
+  },
+  "analyticsMaxLabel": "Максимум",
+  "@analyticsMaxLabel": {
+    "description": "Максимум серии net worth."
+  },
+  "analyticsNoChangesTitle": "Нет изменений за период",
+  "@analyticsNoChangesTitle": {
+    "description": "Серия из одной точки."
+  },
+  "analyticsNoChangesMessage": "За выбранный период стоимость не менялась.",
+  "@analyticsNoChangesMessage": {
+    "description": "Пояснение к одной точке."
+  },
+  "analyticsShowAllPoints": "Показать все точки ({count})",
+  "@analyticsShowAllPoints": {
+    "description": "Развернуть доступный список точек.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "analyticsCollapsePoints": "Свернуть точки",
+  "@analyticsCollapsePoints": {
+    "description": "Свернуть доступный список точек."
+  },
+  "analyticsDynamicsTitle": "Динамика за период",
+  "@analyticsDynamicsTitle": {
+    "description": "Короткий заголовок графика net worth."
+  },
+  "analyticsKindEmptyMessage": "Нет активов выбранного вида.",
+  "@analyticsKindEmptyMessage": {
+    "description": "Пустая аналитика по фильтру вида."
   }
 }
