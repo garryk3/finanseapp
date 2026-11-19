@@ -135,6 +135,12 @@ class GoalsDao extends DatabaseAccessor<AppDatabase> with _$GoalsDaoMixin {
     GoalCategory category,
     Set<int> assetIds,
   ) async {
+    if (assetIds.isEmpty) {
+      throw const DomainException(
+        DomainErrorCode.validation,
+        fieldErrors: {'assetIds': 'validationGoalAssetsRequired'},
+      );
+    }
     for (final assetId in assetIds) {
       final asset = await (select(
         assets,

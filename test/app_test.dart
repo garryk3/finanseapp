@@ -46,11 +46,7 @@ void main() {
     expect(find.text(l10n.goalsEmptyTitle), findsOneWidget);
     // Гасим drift-стрим экрана активов до проверки инвариантов.
     await tester.pumpWidget(const SizedBox());
-    await tester.pump();
-    await tester.runAsync(
-      () => Future<void>.delayed(const Duration(milliseconds: 20)),
-    );
-    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 20));
   });
 
   testWidgets('smoke: все пять разделов открываются', (tester) async {
@@ -105,18 +101,14 @@ void main() {
     final context = tester.element(find.text(l10n.goalsEmptyTitle));
     GoRouter.of(context).push('/goals/new');
     await tester.pumpAndSettle();
-    expect(find.text(l10n.comingSoonTitle), findsOneWidget);
+    expect(find.text(l10n.goalFormNew), findsWidgets);
 
     await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
     expect(find.text(l10n.goalsEmptyTitle), findsOneWidget);
     // Гасим drift-стрим экрана активов до проверки инвариантов.
     await tester.pumpWidget(const SizedBox());
-    await tester.pump();
-    await tester.runAsync(
-      () => Future<void>.delayed(const Duration(milliseconds: 20)),
-    );
-    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 20));
   });
 
   testWidgets('вход в защиту приложения и возврат на главную', (tester) async {

@@ -1248,4 +1248,80 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get cashflowPropertyNoAccount => 'Не влияет на баланс счёта';
+
+  @override
+  String get goalsAdd => 'Добавить цель';
+
+  @override
+  String get goalFormNew => 'Новая цель';
+
+  @override
+  String get goalFormEdit => 'Изменить цель';
+
+  @override
+  String get goalDetailsTitle => 'Цель';
+
+  @override
+  String get goalNameLabel => 'Название цели';
+
+  @override
+  String get goalTargetAmountLabel => 'Целевая сумма';
+
+  @override
+  String get goalTargetDateLabel => 'Дата цели';
+
+  @override
+  String get goalCategoryLabel => 'Категория цели';
+
+  @override
+  String get goalCategoryAccounts => 'Счета';
+
+  @override
+  String get goalCategoryInvestments => 'Инвестиции';
+
+  @override
+  String get goalAssetsLabel => 'Активы цели';
+
+  @override
+  String get goalNoAssets => 'Нет подходящих активов.';
+
+  @override
+  String get goalErrorName => 'Введите название цели.';
+
+  @override
+  String get goalErrorAmount => 'Введите положительную целевую сумму.';
+
+  @override
+  String get goalErrorAssets => 'Выберите хотя бы один актив.';
+
+  @override
+  String get goalStatusActive => 'Активна';
+
+  @override
+  String get goalStatusAchieved => 'Достигнута';
+
+  @override
+  String get goalStatusClosed => 'Закрыта';
+
+  @override
+  String get goalSaved => 'Цель сохранена.';
+
+  @override
+  String get goalDeleted => 'Цель удалена.';
+
+  @override
+  String get goalDeleteTitle => 'Удалить цель?';
+
+  @override
+  String get goalDeleteMessage =>
+      'Цель будет скрыта; связи с активами сохранятся в истории.';
+
+  @override
+  String get goalMarkAchieved => 'Отметить достигнутой';
+
+  @override
+  String get goalClose => 'Закрыть цель';
+
+  @override
+  String get goalActivate => 'Вернуть в работу';
 }

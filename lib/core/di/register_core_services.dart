@@ -22,6 +22,8 @@ import 'package:finanseapp/core/features/assets/domain/subgroup_repository.dart'
 import 'package:finanseapp/core/features/cashflow/data/cashflow_repository_impl.dart';
 import 'package:finanseapp/core/features/cashflow/domain/cashflow_repository.dart';
 import 'package:finanseapp/core/features/categories/data/category_repository_impl.dart';
+import 'package:finanseapp/core/features/goals/data/goal_repository_impl.dart';
+import 'package:finanseapp/core/features/goals/domain/goal_repository.dart';
 import 'package:finanseapp/core/features/categories/domain/category_repository.dart';
 import 'package:finanseapp/core/features/categories/ui/categories_view_model.dart';
 import 'package:finanseapp/core/features/currencies/data/cbr_exchange_rate_client.dart';
@@ -112,6 +114,7 @@ Future<ServiceLocator> registerCoreServices(
   locator.register<CashflowRepository>(
     CashflowRepositoryImpl(db.cashflowDao, db.currenciesDao),
   );
+  locator.register<GoalRepository>(GoalRepositoryImpl(db.goalsDao));
   locator.registerFactory<CategoriesViewModel>(
     () => CategoriesViewModel(repository: locator.get<CategoryRepository>()),
   );

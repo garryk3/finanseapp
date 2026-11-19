@@ -2390,6 +2390,156 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Не влияет на баланс счёта'**
   String get cashflowPropertyNoAccount;
+
+  /// Создание цели.
+  ///
+  /// In ru, this message translates to:
+  /// **'Добавить цель'**
+  String get goalsAdd;
+
+  /// Заголовок новой цели.
+  ///
+  /// In ru, this message translates to:
+  /// **'Новая цель'**
+  String get goalFormNew;
+
+  /// Заголовок редактирования цели.
+  ///
+  /// In ru, this message translates to:
+  /// **'Изменить цель'**
+  String get goalFormEdit;
+
+  /// Заголовок деталей цели.
+  ///
+  /// In ru, this message translates to:
+  /// **'Цель'**
+  String get goalDetailsTitle;
+
+  /// Поле названия.
+  ///
+  /// In ru, this message translates to:
+  /// **'Название цели'**
+  String get goalNameLabel;
+
+  /// Поле целевой суммы.
+  ///
+  /// In ru, this message translates to:
+  /// **'Целевая сумма'**
+  String get goalTargetAmountLabel;
+
+  /// Необязательная дата цели.
+  ///
+  /// In ru, this message translates to:
+  /// **'Дата цели'**
+  String get goalTargetDateLabel;
+
+  /// Категория цели.
+  ///
+  /// In ru, this message translates to:
+  /// **'Категория цели'**
+  String get goalCategoryLabel;
+
+  /// Цель по счетам.
+  ///
+  /// In ru, this message translates to:
+  /// **'Счета'**
+  String get goalCategoryAccounts;
+
+  /// Цель по инвестициям.
+  ///
+  /// In ru, this message translates to:
+  /// **'Инвестиции'**
+  String get goalCategoryInvestments;
+
+  /// Список привязанных активов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Активы цели'**
+  String get goalAssetsLabel;
+
+  /// Пустой список активов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Нет подходящих активов.'**
+  String get goalNoAssets;
+
+  /// Ошибка названия.
+  ///
+  /// In ru, this message translates to:
+  /// **'Введите название цели.'**
+  String get goalErrorName;
+
+  /// Ошибка суммы.
+  ///
+  /// In ru, this message translates to:
+  /// **'Введите положительную целевую сумму.'**
+  String get goalErrorAmount;
+
+  /// Ошибка активов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выберите хотя бы один актив.'**
+  String get goalErrorAssets;
+
+  /// Статус цели.
+  ///
+  /// In ru, this message translates to:
+  /// **'Активна'**
+  String get goalStatusActive;
+
+  /// Статус цели.
+  ///
+  /// In ru, this message translates to:
+  /// **'Достигнута'**
+  String get goalStatusAchieved;
+
+  /// Статус цели.
+  ///
+  /// In ru, this message translates to:
+  /// **'Закрыта'**
+  String get goalStatusClosed;
+
+  /// Подтверждение сохранения.
+  ///
+  /// In ru, this message translates to:
+  /// **'Цель сохранена.'**
+  String get goalSaved;
+
+  /// Подтверждение удаления.
+  ///
+  /// In ru, this message translates to:
+  /// **'Цель удалена.'**
+  String get goalDeleted;
+
+  /// Подтверждение удаления.
+  ///
+  /// In ru, this message translates to:
+  /// **'Удалить цель?'**
+  String get goalDeleteTitle;
+
+  /// Пояснение удаления.
+  ///
+  /// In ru, this message translates to:
+  /// **'Цель будет скрыта; связи с активами сохранятся в истории.'**
+  String get goalDeleteMessage;
+
+  /// Действие статуса.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отметить достигнутой'**
+  String get goalMarkAchieved;
+
+  /// Действие статуса.
+  ///
+  /// In ru, this message translates to:
+  /// **'Закрыть цель'**
+  String get goalClose;
+
+  /// Действие статуса.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вернуть в работу'**
+  String get goalActivate;
 }
 
 class _AppLocalizationsDelegate

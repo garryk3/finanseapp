@@ -59,6 +59,10 @@ import 'package:finanseapp/core/features/cashflow/ui/cashflow_screen.dart';
 import 'package:finanseapp/core/features/cashflow/ui/cashflow_view_model.dart';
 import 'package:finanseapp/core/features/dashboard/ui/dashboard_screen.dart';
 import 'package:finanseapp/core/features/dashboard/ui/dashboard_view_model.dart';
+import 'package:finanseapp/core/features/goals/domain/goal_repository.dart';
+import 'package:finanseapp/core/features/goals/ui/goal_details_screen.dart';
+import 'package:finanseapp/core/features/goals/ui/goal_details_view_model.dart';
+import 'package:finanseapp/core/features/goals/ui/goal_form_screen.dart';
 import 'package:finanseapp/core/features/goals/ui/goals_screen.dart';
 import 'package:finanseapp/core/features/goals/ui/goals_view_model.dart';
 import 'package:finanseapp/core/features/references/ui/subgroups_screen.dart';
@@ -270,7 +274,17 @@ GoRouter buildRouter({required ServiceLocator locator}) {
                 builder: (context, state) =>
                     GoalsScreen(viewModel: locator.get<GoalsViewModel>()),
                 routes: [
-                  _placeholderRoute('new', 'goal-new', (l10n) => l10n.navGoals),
+                  GoRoute(
+                    path: 'new',
+                    name: 'goal-new',
+                    builder: (context, state) => GoalFormScreen(
+                      viewModel: GoalFormViewModel(
+                        repository: locator.get<GoalRepository>(),
+                        assetRepository: locator.get<AssetRepository>(),
+                        currencyRepository: locator.get<CurrencyRepository>(),
+                      ),
+                    ),
+                  ),
                   GoRoute(
                     path: ':id',
                     name: 'goal-details',
@@ -278,13 +292,35 @@ GoRouter buildRouter({required ServiceLocator locator}) {
                       final id = AppRoutes.parseId(state.pathParameters['id']);
                       return id == null
                           ? _notFound(locator)
-                          : ComingSoonScreen(title: l10nOf(context).navGoals);
+                          : GoalDetailsScreen(
+                              viewModel: GoalDetailsViewModel(
+                                repository: locator.get<GoalRepository>(),
+                                assetRepository: locator.get<AssetRepository>(),
+                                goalId: id,
+                              ),
+                            );
                     },
                     routes: [
-                      _placeholderRoute(
-                        'edit',
-                        'goal-edit',
-                        (l10n) => l10n.navGoals,
+                      GoRoute(
+                        path: 'edit',
+                        name: 'goal-edit',
+                        builder: (context, state) {
+                          final id = AppRoutes.parseId(
+                            state.pathParameters['id'],
+                          );
+                          return id == null
+                              ? _notFound(locator)
+                              : GoalFormScreen(
+                                  viewModel: GoalFormViewModel(
+                                    repository: locator.get<GoalRepository>(),
+                                    assetRepository: locator
+                                        .get<AssetRepository>(),
+                                    currencyRepository: locator
+                                        .get<CurrencyRepository>(),
+                                    editingId: id,
+                                  ),
+                                );
+                        },
                       ),
                     ],
                   ),
