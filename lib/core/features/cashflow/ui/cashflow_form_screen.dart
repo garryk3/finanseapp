@@ -149,6 +149,7 @@ class _CashflowFormScreenState extends State<CashflowFormScreen> {
       final message = switch (key) {
         'validationAmountPositive' => l10n.cashflowErrorAmount,
         'validationCategoryKindMismatch' => l10n.cashflowErrorKindMismatch,
+        'validationCategoryArchived' => l10n.cashflowErrorCategoryArchived,
         'validationDateInFuture' => l10n.transactionErrorDate,
         _ when result.error.code == DomainErrorCode.rateUnavailable =>
           l10n.valuationErrorRate,
@@ -159,6 +160,7 @@ class _CashflowFormScreenState extends State<CashflowFormScreen> {
           case 'validationAmountPositive':
             _amountError = message;
           case 'validationCategoryKindMismatch':
+          case 'validationCategoryArchived':
             _categoryError = message;
           default:
             _formError = message;

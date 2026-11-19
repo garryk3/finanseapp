@@ -491,6 +491,7 @@ GoRouter buildRouter({required ServiceLocator locator}) {
                     repository: locator.get<CashflowRepository>(),
                     categoryRepository: locator.get<CategoryRepository>(),
                     auditRepository: locator.get<AuditRepository>(),
+                    currencyRepository: locator.get<CurrencyRepository>(),
                     commands: _cashflowCommands(locator),
                     entryId: id,
                   ),

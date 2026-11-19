@@ -219,14 +219,15 @@ class _CashflowDetailsScreenState extends State<CashflowDetailsScreen> {
         RevisionAction.restore => l10n.revisionActionEdit,
       };
 
-  static String _money(Money money) => const MoneyFormatter().format(
+  String _money(Money money) => const MoneyFormatter().format(
     money,
-    Currency(
-      code: money.currencyCode,
-      name: money.currencyCode,
-      fractionDigits: 2,
-      isPreset: true,
-      isEnabled: true,
-    ),
+    _viewModel.currency.value ??
+        Currency(
+          code: money.currencyCode,
+          name: money.currencyCode,
+          fractionDigits: 2,
+          isPreset: true,
+          isEnabled: true,
+        ),
   );
 }

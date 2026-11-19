@@ -65,10 +65,10 @@ class CashflowViewModel {
   Future<void> _loadReferences() async {
     try {
       final income = await categoryRepository
-          .watchByKind(CashflowKind.income)
+          .watchByKind(CashflowKind.income, includeArchived: true)
           .first;
       final expense = await categoryRepository
-          .watchByKind(CashflowKind.expense)
+          .watchByKind(CashflowKind.expense, includeArchived: true)
           .first;
       categoryNames.value = {
         for (final category in [...income, ...expense])
@@ -150,7 +150,9 @@ class CashflowFormViewModel {
   }
 
   Future<void> loadCategories(CashflowKind kind) async {
-    categories.value = await categoryRepository.watchByKind(kind).first;
+    categories.value = await categoryRepository
+        .watchByKind(kind, includeArchived: true)
+        .first;
   }
 
   Currency currencyOf(String code) =>

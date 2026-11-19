@@ -1,3 +1,4 @@
+import 'package:finanseapp/core/domain/common/currency.dart';
 import 'package:finanseapp/core/domain/common/result.dart';
 import 'package:finanseapp/core/features/audit/domain/audit_repository.dart';
 import 'package:finanseapp/core/features/cashflow/domain/cashflow_entry.dart';
@@ -7,6 +8,7 @@ import 'package:finanseapp/core/features/cashflow/logic/cashflow_commands.dart';
 import 'package:finanseapp/core/features/categories/domain/cashflow_category.dart';
 import 'package:finanseapp/core/features/categories/domain/category.dart';
 import 'package:finanseapp/core/features/categories/domain/category_repository.dart';
+import 'package:finanseapp/core/features/currencies/domain/currency_repository.dart';
 import 'package:finanseapp/core/presentation/view_state.dart';
 import 'package:signals/signals.dart';
 
@@ -16,6 +18,7 @@ class CashflowDetailsViewModel {
     required this.repository,
     required this.categoryRepository,
     required this.auditRepository,
+    required this.currencyRepository,
     required this.commands,
     required this.entryId,
   });
@@ -23,6 +26,7 @@ class CashflowDetailsViewModel {
   final CashflowRepository repository;
   final CategoryRepository categoryRepository;
   final AuditRepository auditRepository;
+  final CurrencyRepository currencyRepository;
   final CashflowCommands commands;
   final int entryId;
 
@@ -32,6 +36,7 @@ class CashflowDetailsViewModel {
   final Signal<List<CashflowEntryRevision>> revisions = signal(const []);
   final Signal<bool> busy = signal(false);
   final Signal<String?> deleteError = signal(null);
+  final Signal<Currency?> currency = signal(null);
 
   Future<void> load() async {
     try {
@@ -41,9 +46,24 @@ class CashflowDetailsViewModel {
         return;
       }
       entry.value = current;
+      final currencies = await currencyRepository.watchAll().first;
+      currency.value = currencies.firstWhere(
+        (item) => item.code == current.amount.currencyCode,
+        orElse: () => Currency(
+          code: current.amount.currencyCode,
+          name: current.amount.currencyCode,
+          fractionDigits: 2,
+          isPreset: true,
+          isEnabled: true,
+        ),
+      );
       final all = [
-        ...await categoryRepository.watchByKind(CashflowKind.income).first,
-        ...await categoryRepository.watchByKind(CashflowKind.expense).first,
+        ...await categoryRepository
+            .watchByKind(CashflowKind.income, includeArchived: true)
+            .first,
+        ...await categoryRepository
+            .watchByKind(CashflowKind.expense, includeArchived: true)
+            .first,
       ];
       category.value = all
           .where((item) => item.id == current.categoryId)

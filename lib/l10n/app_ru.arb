@@ -1491,5 +1491,9 @@
   "cashflowDeleteError": "Не удалось удалить запись.",
   "@cashflowDeleteError": {
     "description": "Ошибка удаления записи."
+  },
+  "cashflowErrorCategoryArchived": "Категория в архиве. Выберите активную.",
+  "@cashflowErrorCategoryArchived": {
+    "description": "Ошибка архивной категории."
   }
 }

@@ -1111,4 +1111,8 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get cashflowDeleteError => 'Не удалось удалить запись.';
+
+  @override
+  String get cashflowErrorCategoryArchived =>
+      'Категория в архиве. Выберите активную.';
 }

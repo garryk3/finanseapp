@@ -2132,6 +2132,12 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Не удалось удалить запись.'**
   String get cashflowDeleteError;
+
+  /// Ошибка архивной категории.
+  ///
+  /// In ru, this message translates to:
+  /// **'Категория в архиве. Выберите активную.'**
+  String get cashflowErrorCategoryArchived;
 }
 
 class _AppLocalizationsDelegate
