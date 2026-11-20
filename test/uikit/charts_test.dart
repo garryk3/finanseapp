@@ -144,6 +144,66 @@ void main() {
       expect(await maxYFor(2.0, 0.5), closeTo(2.3, 1e-9));
     });
 
+    testWidgets('320dp/1.3: подписи недель не пересекаются, последняя видна', (
+      tester,
+    ) async {
+      const labels = [
+        '01–07.11',
+        '08–14.11',
+        '15–21.11',
+        '22–28.11',
+        '29–30.11',
+      ];
+      Future<void> pump(double width, double scale) async {
+        await tester.pumpWidget(
+          testApp(
+            MediaQuery(
+              data: MediaQueryData(textScaler: TextScaler.linear(scale)),
+              child: SizedBox(
+                width: width,
+                height: 160,
+                child: AppCashflowChart(
+                  groups: [
+                    for (final label in labels)
+                      AppCashflowBarGroup(
+                        label: label,
+                        income: 1,
+                        expense: 0.5,
+                        incomeText: '1,00 €',
+                        expenseText: '0,50 €',
+                        netText: '0,50 €',
+                      ),
+                  ],
+                  accessibleSummary: '5 недель.',
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+      }
+
+      await pump(234, 1.3);
+      final visible = [
+        for (final label in labels)
+          if (find.text(label).evaluate().isNotEmpty) label,
+      ];
+      expect(visible.length, greaterThanOrEqualTo(2));
+      expect(visible.length, lessThan(labels.length));
+      expect(visible.last, labels.last);
+      final rects = [
+        for (final label in visible) tester.getRect(find.text(label)),
+      ]..sort((left, right) => left.left.compareTo(right.left));
+      for (var i = 1; i < rects.length; i++) {
+        expect(rects[i].left, greaterThanOrEqualTo(rects[i - 1].right - 0.5));
+      }
+
+      await pump(1000, 1);
+      for (final label in labels) {
+        expect(find.text(label), findsOneWidget);
+      }
+    });
+
     testWidgets('группы рендерятся, summary доступен', (tester) async {
       await tester.pumpWidget(
         testApp(

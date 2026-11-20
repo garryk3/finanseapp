@@ -118,7 +118,11 @@ list тех же точек; `AppChartFrame` сам данные не дубли
 - Axis labels берутся из `AppChartPoint.label`; density подбирается по width, но все labels
   доступны в text alternative. Horizontal scroll используется для большого числа periods,
   а не микроскопические подписи. Минимальная ширина группы cashflow-графика — 36dp;
-  при переполнении контейнера включается горизонтальный скролл.
+  при переполнении контейнера включается горизонтальный скролл. Шаг подписей считается
+  по фактической ширине `labelSmall` (text scale) и ширине слота, пропуск применяется
+  в `getTitlesWidget` (fl_chart BarChart рисует подпись на каждую группу и `interval`
+  не фильтрует), шаг якорится на последний период — текущая дата всегда подписана.
+  Поэтому на 320dp/1.3 подписи недель не пересекаются.
 - Tooltip содержит exact formatted values, не raw double. Tap/focus tooltip не единственный
   способ получить значение.
 - Line income/expense отличаются label + dash/marker, не только цветом. Zero baseline и
