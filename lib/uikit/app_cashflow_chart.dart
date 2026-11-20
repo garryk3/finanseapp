@@ -39,11 +39,7 @@ class AppCashflowChart extends StatelessWidget {
 
     final maxValue = groups.fold<double>(
       0,
-      (max, g) => g.income > max
-          ? g.income
-          : g.expense > max
-          ? g.expense
-          : max,
+      (max, group) => math.max(max, math.max(group.income, group.expense)),
     );
     final top = maxValue <= 0 ? 1.0 : maxValue * 1.15;
 
