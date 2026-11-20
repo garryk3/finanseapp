@@ -18,7 +18,7 @@
 - Защита доступа (12.5): `local_auth` (биометрия, graceful fallback на PIN),
   `flutter_secure_storage` (хэш PIN и флаги вне БД — backup их не переносит),
   `crypto` (PBKDF2-HMAC-SHA256 для salted hash PIN).
-- CI: format, оба analyze-гейта, unit/widget tests и debug APK; releases по тегам `v*`.
+- CI: format, оба analyze-гейта, unit/widget tests и release APK; releases по тегам `v*`.
 
 ## Архитектурные контракты
 
@@ -48,11 +48,16 @@
   восстанавливает старые данные при любой ошибке replace/reopen/rebuild.
 - Импорт/обновления находятся в Settings; backup не является облачной синхронизацией.
 
-## Текущая структура
+## Текущее состояние (v1)
 
-Этап 1 содержит только каркас `main.dart`, app/router/theme, demo Home и минимальный UIKit.
-Целевое дерево — `architecture/file_structure.md`; пустые Dart-заглушки заранее не создаются.
-Этап 2 содержит проектные документы без реализации продукта. Демо Home удаляется задачей 3.5.
+Реализованы этапы 1–10 и задачи 11.1–11.8, 11.10–11.11: доменные деньги/даты, Drift v1
+(17 таблиц, ревизии и триггеры), активы/счета/инвестиции/квартиры, операции/переводы,
+денежный поток, цели, аналитика, Dashboard, backup/restore, обновления GitHub, app lock,
+golden/BR-тесты, Linux e2e и Android QA. 11.4 закрывает release readiness, 11.9 — ручные
+проверки на устройстве (v1 не блокирует). Целевое дерево — `architecture/file_structure.md`.
+
+Ключевые ограничения v1: только Android (Linux — для e2e), backup не зашифрован,
+временный `TEMP_KEY` для подписи, нет облачной синхронизации, курсы ЦБ требуют сети.
 
 ## Окружение
 

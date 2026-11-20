@@ -14,7 +14,7 @@
 4. Все UI-строки — `lib/l10n/app_ru.arb`, raw Material wrappers — только `lib/uikit/`.
    Domain не импортирует Flutter/Drift/signals; ViewModel получает зависимости конструктором.
 5. Общий DoD: format; `flutter analyze --fatal-infos`; `dart analyze lib --fatal-infos`;
-   `flutter test`; `flutter build apk --debug`; generated файлы проверены; `git diff --check`;
+   `flutter test`; `flutter build apk --release`; generated файлы проверены; `git diff --check`;
    статус задачи `[x]` + дата до PR. Перед commit/PR — `task-reviewer`, при UI — также
    `design-reviewer`; DO NOT SHIP/REDESIGN REQUIRED блокирует. После функционала —
    короткий `android-tester` с append-only обновлением `TEST_PLAN.md`.
@@ -30,16 +30,16 @@
 |---|---|---|---|---|
 | 1 | Базовый каркас приложения | 1.1–1.3 | ✅ | 2026-11-15 |
 | 2 | Архитектурный комплект и контракты | 2.1–2.5 | ✅ | 2026-11-16 |
-| 3 | Ядро, БД, UIKit и навигация | 3.1–3.5 | ⬜ | — |
-| 4 | Справочники и курсы валют | 4.1–4.3 | ⬜ | — |
-| 5 | Активы и оценки | 5.1–5.4 | ⬜ | — |
-| 6 | Транзакции, переводы и аудит | 6.1–6.3 | ⬜ | — |
-| 7 | Доходы, расходы и связь со счетами | 7.1–7.4 | ⬜ | — |
-| 8 | Финансовые цели | 8.1–8.2 | ⬜ | — |
-| 9 | Аналитика и графики | 9.1–9.4 | ⬜ | — |
-| 10 | Dashboard, настройки, backup и updates | 10.1–10.6 | ⬜ | — |
-| 11 | Сквозное качество и release readiness | 11.1–11.11 | ⬜ | — |
-| 12 | Расширения после v1 | 12.1–12.5 | P2 | — |
+| 3 | Ядро, БД, UIKit и навигация | 3.1–3.6 | ✅ | 2026-11-18 |
+| 4 | Справочники и курсы валют | 4.1–4.3 | ✅ | 2026-11-18 |
+| 5 | Активы и оценки | 5.1–5.4 | ✅ | 2026-11-19 |
+| 6 | Транзакции, переводы и аудит | 6.1–6.3 | ✅ | 2026-11-18 |
+| 7 | Доходы, расходы и связь со счетами | 7.1–7.4 | ✅ | 2026-11-19 |
+| 8 | Финансовые цели | 8.1–8.2 | ✅ | 2026-11-19 |
+| 9 | Аналитика и графики | 9.1–9.4 | ✅ | 2026-11-19 |
+| 10 | Dashboard, настройки, backup и updates | 10.1–10.6 | ✅ | 2026-11-20 |
+| 11 | Сквозное качество и release readiness | 11.1–11.11 | 🟨 | 2026-11-20: 11.9 (ручные проверки) не блокирует v1 |
+| 12 | Расширения после v1 | 12.1–12.5 | P2 | 2026-11-17: 12.5 реализована досрочно в v1 |
 
 ## Этап 1 — Базовый каркас приложения
 
@@ -1514,7 +1514,7 @@
   key.properties с фолбэком на debug при отсутствии, `signingConfigs.release`,
   `buildTypes.release.signingConfig`), `.gitignore` и `android/.gitignore` (убрать
   исключения `key.properties`/`*.jks` с комментарием об осознанном решении MVP),
-  `.github/workflows/ci.yml` (`flutter build apk --debug` → `--release`, artifact
+  `.github/workflows/ci.yml` (`flutter build apk --release` → `--release`, artifact
   `app-release.apk`).
 - **Consumes:** keystore из keytool (RSA 2048, validity 10000, alias `upload`,
   storePassword=keyPassword — ограничение PKCS12); образец — донорский проект fitnessappai
@@ -1650,11 +1650,13 @@
   о e2e.
 - **Предлагаемый commit:** `task/11.3: усилить доступность и производительность`.
 
-### 11.4 Release readiness и документация v1 — [ ]
+### 11.4 Release readiness и документация v1 — [x] (2026-11-20)
 
 - **Приоритет/зависимости:** P1; после 11.3. **BR:** все release-blocking.
-- **Files:** Modify README, docs/PROJECT, TEST_PLAN, `.github/workflows/release.yml`;
-  Test CI gates и debug/release APK по workflow.
+- **Files:** Modify README, docs/PROJECT, TEST_PLAN, AGENTS.md,
+  `docs/architecture/README.md`, `.agents/agents/release-manager.md`,
+  `.github/workflows/release.yml`, `android/app/build.gradle.kts` (minSdk 31), PLAN; Test CI
+  gates и release APK по workflow.
 - **Consumes:** фактические результаты tests/e2e/manual QA, `app-release.apk` update contract.
 - **Produces:** актуальные setup/backup/update/migration docs, известные ограничения,
   release candidate без placeholder instructions.
@@ -1662,6 +1664,18 @@
   versionName/tag/APK filename, restore backup текущей schema, update URL; plan-review перед
   релизом. Найденный дефект получает failing test до fix.
 - **Генерация:** сверить generated diff чист после повторной генерации.
+- **Рабочий план:**
+  - **README:** убрать placeholder-текст, описать возможности v1, release APK, релиз по
+    тегу, TEMP_KEY и известные ограничения (backup без шифрования, Android-only).
+  - **docs/PROJECT:** актуализировать состояние v1 и CI (release APK вместо debug).
+  - **release.yml:** валидация тега `vX.Y.Z`, format + оба analyze перед тестами и сборкой.
+  - **TEST_PLAN:** release checklist (гейты, plan-review, QA-вопрос, backup/update, тег).
+  - **plan-review** перед PR; commit `task/11.4: подготовить релизную документацию`.
+- **Итог:** README и PROJECT описывают готовый v1 и реальные команды/CI; release workflow
+  проверяет формат тега, format/analyze/tests и собирает APK из тега; TEST_PLAN получил
+  release checklist; AGENTS.md синхронизирован с release-гейтом; minSdk приведён к
+  заявленному Android 12+ (31). Placeholder-инструкций не осталось, индекс этапов
+  актуализирован; повторный plan-review пройден (LGTM). Фактический прогон: 579 тестов. 11.9 (ручные TalkBack/frame counts/биометрия/пагинация) открыта и v1 не блокирует.
 - **DoD:** plan-review пройден; перед тегом отдельно спросить владельца о полном QA
   android-tester (~час); релизный тег/публикация только по явному запросу, не молча.
   Перед PR спросить об e2e.
@@ -1751,9 +1765,9 @@
   320dp/1.3 error-ветка, revision на manual/CBR. Всего 573 теста. Android (emulator-5556,
   debug): TC-053 PASS — USD/EUR без курса → ручной курс → net worth и cashflow пересчитаны
   без force-stop; TC-054 PASS — отдельные формулировки и CTA «Ввести курс» без дубля;
-  TEST_PLAN дополнен. Наблюдение Android QA (не дефект 11.7): «Итого» в базовой валюте =
-  разность уже округлённых Доход/Расход (−0,55 вместо −0,56) — политику округления итога
-  подтвердить отдельно по CALC/BR.
+  TEST_PLAN дополнен. Наблюдение Android QA: «Итого» в базовой валюте = разность уже
+  округлённых Доход/Расход (−0,55) — соответствует CALC §6 (`netCashflow = totalIncome −
+  totalExpense` от rounded-итогов), дефекта нет.
 
 ### 11.8 Висячий разделитель «·» при пустом комментарии — [x] (2026-11-20)
 
@@ -1787,6 +1801,10 @@
   Linux e2e для дат), снять TalkBack-прогон и frame/build counts профилированием (11.3 DoD),
   зафиксировать результаты новыми `TC-*` в `TEST_PLAN.md`; при появлении дефектов завести
   отдельные задачи этапа 11.
+- **Дополнительно из 11.3/11.11:** пагинация DAO журнала (сейчас builder ограничивает
+  виджеты, но запрос читает все строки) и масштабирование `reservedSize`/крайних подписей
+  графиков при text scale > 1.3.
+- **Приоритет/зависимости:** P2; ручные проверки на реальном устройстве, **v1 не блокирует**.
 
 ### 11.10 Графики денежного потока выходят за пределы карточки — [x] (2026-11-20)
 
@@ -1819,7 +1837,7 @@
   и якорится на последний период; на 320dp/1.3 видны не все 5 недель (2–3 в зависимости
   от шрифта) без пересечений,
   последняя дата подписана, на широких экранах — все; горизонтальный скролл сохранён.
-  Всего 576 тестов. Отложено: масштабирование `reservedSize` при text scale > 1.3.
+  Всего 576 тестов. Отложено: масштабирование `reservedSize` при text scale > 1.3 — в 11.9.
 - **Приоритет/зависимости:** P2; после 11.10 / в рамках 11.3. **BR:** DESIGN/a11y.
 
 ## Этап 12 — Расширения после v1
