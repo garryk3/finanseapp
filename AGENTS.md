@@ -24,7 +24,7 @@ dart format --output=none --set-exit-if-changed lib test tool integration_test
 flutter analyze --fatal-infos
 dart analyze lib --fatal-infos   # гейт restrict_raw_flutter; таргет `lib` ОБЯЗАТЕЛЕН (Dart 3.14: плагин-диагностики отдаются только при каталоге-таргете, dart-lang/sdk#64208)
 flutter test
-flutter build apk --debug
+flutter build apk --release
 ```
 
 - Single test: `flutter test test/<path>_test.dart`. e2e (`integration_test/`) в CI не прогоняются — локально `flutter test integration_test -d linux` (долго на холодном прогоне; подробности — детали).

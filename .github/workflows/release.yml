@@ -20,6 +20,21 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Validate tag
+        run: |
+          if [[ ! "${GITHUB_REF_NAME}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-(alpha|beta|gamma))?$ ]]; then
+            echo "Tag must look like vX.Y.Z[-beta|-gamma|-alpha]" >&2
+            exit 1
+          fi
+
+      - name: Format
+        run: dart format --output=none --set-exit-if-changed lib test tool integration_test
+
+      - name: Analyze
+        run: |
+          flutter analyze --fatal-infos
+          dart analyze lib --fatal-infos
+
       - name: Run tests
         run: flutter test
 
