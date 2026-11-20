@@ -9,6 +9,7 @@ import 'package:finanseapp/core/features/analytics/domain/analytics_queries.dart
 import 'package:finanseapp/core/features/analytics/ui/analytics_view_model.dart';
 import 'package:finanseapp/core/features/applock/logic/applock_settings_view_model.dart';
 import 'package:finanseapp/core/features/backup/data/platform_backup_file_gateway.dart';
+import 'package:finanseapp/core/features/backup/domain/backup_service.dart';
 import 'package:finanseapp/core/features/backup/logic/backup_view_model.dart';
 import 'package:finanseapp/core/features/applock/logic/applock_view_model.dart';
 import 'package:finanseapp/core/features/cashflow/domain/cashflow_repository.dart';
@@ -34,7 +35,11 @@ import '../core/database/database_fixtures.dart';
 import '../core/features/applock/fakes.dart';
 
 /// Locator для widget-тестов: in-memory БД, fake-защита, factory ViewModel.
-Future<ServiceLocator> buildTestLocator({AppDatabase? database}) async {
+Future<ServiceLocator> buildTestLocator({
+  AppDatabase? database,
+  BackupServiceFactory? backupServiceFactory,
+  BackupFileGateway backupFileGateway = const PlatformBackupFileGateway(),
+}) async {
   final ServiceLocator locator = ServiceLocator();
   await registerCoreServices(locator, database: database ?? openTestDatabase());
 
@@ -104,9 +109,9 @@ Future<ServiceLocator> buildTestLocator({AppDatabase? database}) async {
     )
     ..register<BackupViewModel>(
       BackupViewModel(
-        // В widget-тестах backup-действия не вызываются.
-        () => throw UnimplementedError(),
-        const PlatformBackupFileGateway(),
+        // В widget-тестах backup-действия не вызываются; e2e передаёт реальный.
+        backupServiceFactory ?? () => throw UnimplementedError(),
+        backupFileGateway,
       ),
       dispose: (value) => value.dispose(),
     )

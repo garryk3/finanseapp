@@ -38,7 +38,7 @@
 | 8 | Финансовые цели | 8.1–8.2 | ⬜ | — |
 | 9 | Аналитика и графики | 9.1–9.4 | ⬜ | — |
 | 10 | Dashboard, настройки, backup и updates | 10.1–10.6 | ⬜ | — |
-| 11 | Сквозное качество и release readiness | 11.1–11.4 | ⬜ | — |
+| 11 | Сквозное качество и release readiness | 11.1–11.9 | ⬜ | — |
 | 12 | Расширения после v1 | 12.1–12.5 | P2 | — |
 
 ## Этап 1 — Базовый каркас приложения
@@ -1574,21 +1574,39 @@
   той же функцией; общий DoD. Перед PR спросить о e2e.
 - **Предлагаемый commit:** `task/11.1: проверить покрытие бизнес-правил`.
 
-### 11.2 End-to-end критических потоков, включая backup — [ ]
+### 11.2 End-to-end критических потоков, включая backup — [x] (2026-11-20)
 
 - **Приоритет/зависимости:** P1; после 11.1. **BR:** T/IE/G/S/BU/UP.
 - **Files:** Create `integration_test/{helpers/test_app,assets_flow_test,transactions_flow_test,
-  cashflow_flow_test,goals_flow_test,analytics_flow_test,backup_flow_test,settings_flow_test}.dart`;
-  Modify `integration_test/app_test.dart`, TEST_PLAN append через android-tester;
-  Test Linux integration после разрешения владельца + Android manual checklist.
-- **Consumes:** реальные routes/repositories, temp AppDatabase, fake CBR/GitHub/platform
-  gateways, deterministic clock.
+  cashflow_flow_test,goals_flow_test,backup_flow_test,settings_flow_test}.dart`, расширить
+  `analytics_flow_test.dart`; `app_test.dart` остаётся smoke без изменений;
+  TEST_PLAN append через android-tester; Test Linux integration + Android manual checklist.
+- **Consumes:** реальные routes/repositories, temp AppDatabase, fake GitHub/platform
+  gateways и реальные часы (детерминированные — в Отложено).
 - **Produces:** e2e create account→tx→transfer→linked expense→goal→analytics; export/change/
-  import/restart; invalid backup non-destructive; settings update states.
-- **TDD:** каждый flow сначала фиксирует воспроизводимый дефицит сценария; marker revision
-  проверяется после restart, failed import оставляет новые данные, UI не использует сеть;
-  затем исправить найденное отдельным regression unit test и повторить flow.
+  import/restart; invalid backup non-destructive; settings noReleases (upToDate/available —
+  отложены).
+- **TDD:** каждый flow фиксирует сценарий; после restart проверяются восстановленные данные,
+  failed import оставляет прежние данные, сеть не используется (ленивый CBR при RUB);
+  найденные дефекты — отдельным regression unit test и повторный flow.
 - **Генерация:** gen-l10n/build_runner по фактическим source changes.
+- **Итог:** добавлены `integration_test/helpers/test_app.dart` (in-memory/file БД,
+  desktop-вьюпорт, навигация, создание счёта через UI) и 7 flow-файлов: assets (создание
+  счёта → детали), transactions (пополнение → перевод → журнал), cashflow (расход, доход,
+  связанный расход со списанием со счёта), goals (цель с привязанным счётом), analytics
+  (пустое состояние и данные с категориями), settings (базовая валюта, версия, проверка
+  обновлений, About), backup (реальный файл БД: export → изменение → import → restart,
+  битый файл не разрушает данные). `buildTestLocator` получил инъекцию
+  `BackupServiceFactory`/`BackupFileGateway`. На Linux: 9 e2e-сценариев зелёные,
+  unit/widget suite — 561. Android QA (emulator-5556, debug): 50 сценариев — 41 PASS,
+  5 FAIL (не блокируют: устаревшие детали цели/счёта, подпись валюты, нереактивная Главная
+  после ручного курса, висячий «·») → задачи 11.5–11.8, 3 SKIP + 1 BLOCKED → 11.9;
+  TEST_PLAN дополнен, SAF/backup проверены на устройстве.
+- **Отложено:** реальная сетевая проверка GitHub update и состояния upToDate/updateAvailable,
+  revision-marker после restart отдельным ассертом (данные и FK-целостность проверяются
+  импортом), rollback-вилка после closeDatabase (покрыта unit-тестом failOn); детерминированные
+  часы e2e (сейчас real `DateTime.now()`, возможен флейк на границе месяца/полуночи);
+  ключи вместо позиционных локаторов и плейсхолдера `'—'`.
 - **DoD:** все критические flows зелёные на Linux при разрешённом запуске; Android SAF/APK
   manual результаты записаны в TEST_PLAN; недоступные проверки явно названы, не «passed»;
   общий DoD. Перед PR вопрос об e2e обязателен даже после выполнения.
@@ -1629,6 +1647,74 @@
   android-tester (~час); релизный тег/публикация только по явному запросу, не молча.
   Перед PR спросить об e2e.
 - **Предлагаемый commit:** `task/11.4: подготовить релизную документацию`.
+
+### 11.5 Детали цели и счёта показывают устаревшие данные — [ ]
+
+- **Проблема (QA, TEST_PLAN TC-019, TC-045):** экран деталей, оставленный в стеке вкладки,
+  не пересчитывается после изменения данных из другой вкладки. Шаги: открыть детали цели
+  («Накоплено 1 000,00 ₽», 50%) → таб «Активы» → пополнить счет до 2 000 → таб «Цели»:
+  детали всё ещё «Активна, 50%, 1 000,00 ₽», хотя кнопка «Назад» показывает цель в группе
+  «Достигнутые» со 100%. Аналогично для деталей счёта: открыть «Cash» (1 577,00 ₽) → таб
+  «Операции» → связанный расход 50 ₽ → таб «Активы»: детали показывают 1 577,00 ₽, список —
+  1 527,00 ₽. Доказательства: `screen_031_goal_details.png`, `screen_032_goals_achieved.png`,
+  `screen_081_stale_check.png` (прогон 2026-11-20, emulator-5556, debug APK).
+- **Предполагаемая причина:** `lib/core/features/goals/ui/goal_details_view_model.dart` и
+  `lib/core/features/assets/ui/account_details_view_model.dart` загружают снимок один раз
+  (`load()` без подписки на репозитории), а маршрут деталей остаётся смонтированным в
+  `StatefulShellBranch` при переключении вкладок.
+- **Решение/Тест:** перевести оба VM на реактивные `watch*`-подписки (ассеты, транзакции,
+  cashflow, цели) либо перезагружать данные при возврате на вкладку; widget-тест: изменить
+  баланс через репозиторий при открытом экране деталей → значения обновились; вручную
+  повторить TC-019/TC-045.
+
+### 11.6 Подпись валюты на Главной при ошибке курса — [ ]
+
+- **Проблема (QA, TEST_PLAN TC-023):** при базовой валюте USD и отсутствующем курсе Главная
+  показывает «Чистый капитал: Курс недоступен» с подписью «20.11.2026 · RUB». Шаги: Настройки
+  → Базовая валюта → USD → сохранить → Главная. Доказательство: `screen_045_dashboard_usd.png`
+  (после корректного расчёта — `screen_052_dashboard_after_restart.png` с «· USD»).
+- **Предполагаемая причина:** `lib/core/features/dashboard/ui/dashboard_screen.dart`:
+  `final currencyCode = summary?.total.currencyCode ?? base?.code ?? '';` — при
+  `netWorthError == rateUnavailable` сигнал `netWorth` хранит прошлый снимок в RUB.
+- **Решение/Тест:** брать код валюты из `vm.baseCurrency` (или очищать `netWorth` вместе с
+  ошибкой); widget-тест «rates отсутствуют → подпись = base.code»; повторить TC-023.
+
+### 11.7 Главная не пересчитывается после ввода курса — [ ]
+
+- **Проблема (QA, TEST_PLAN TC-025):** при базе USD и «Курс недоступен» ручной курс,
+  введённый из Аналитики («Ввести курс», 90 ₽ за USD), применяется на графике (20,00 $), но
+  Главная продолжает показывать «Курс недоступен» до перезапуска приложения
+  (`am force-stop` → «20,00 $»). Доказательства: `screen_051_dashboard_usd_rate.png`,
+  `screen_052_dashboard_after_restart.png`.
+- **Предполагаемая причина:** `lib/core/features/dashboard/ui/dashboard_view_model.dart`
+  подписывается на счета/цели/операции/базовую валюту, но не на `ExchangeRateRepository`,
+  поэтому `_reloadNetWorth()` не вызывается при создании/изменении курса.
+- **Решение/Тест:** подписаться на изменения курсов (или инвалидировать кэш при возврате на
+  вкладку) и перезапускать `_reloadNetWorth()`; widget-тест «добавить курс → netWorth
+  пересчитан»; повторить TC-025.
+
+### 11.8 Висячий разделитель «·» при пустом комментарии — [ ]
+
+- **Проблема (QA, TEST_PLAN TC-030):** в журналах «Операции по активам» и «Доходы и расходы»
+  подпись записи без комментария отрисовывается как «Пополнение ·», «Снятие ·»,
+  «Перевод (исходящий) ·» (то же в `content-desc`). Доказательство:
+  `screen_084_search_state.png`.
+- **Предполагаемая причина:** конкатенация `kindLabel + ' · ' + comment` без проверки пустого
+  комментария в элементах журналов (`lib/core/features/transactions/ui/`,
+  `lib/core/features/cashflow/ui/`).
+- **Решение/Тест:** собирать подпись через разделитель только при непустом комментарии;
+  widget-тест «пустой комментарий → нет хвоста „ · “»; повторить TC-030.
+
+### 11.9 Ручные проверки, недоступные adb-автоматизации — [ ]
+
+- **Проблема (QA, TEST_PLAN TC-047…TC-050):** в прогоне 11.2 не проверены: биометрия в защите
+  приложения (в эмуляторе нет зарегистрированных отпечатков), ввод кириллицы в текстовые поля
+  (`adb shell input text` падает с NPE, сторонняя IME запрещена владельцем), валидация будущей
+  даты через date picker, адаптивность (размер экрана/масштаб шрифта).
+- **Предполагаемая причина:** ограничения окружения adb/uiautomator, не дефект приложения.
+- **Решение/Тест:** выполнить вручную на устройстве с биометрией и штатной клавиатурой (или на
+  Linux e2e для дат), зафиксировать результаты новыми `TC-*` в `TEST_PLAN.md`; при появлении
+  дефектов завести отдельные задачи этапа 11.
 
 ## Этап 12 — Расширения после v1
 
