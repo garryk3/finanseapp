@@ -1612,8 +1612,19 @@
   общий DoD. Перед PR вопрос об e2e обязателен даже после выполнения.
 - **Предлагаемый commit:** `task/11.2: добавить сквозные финансовые сценарии`.
 
-### 11.3 Accessibility, производительность и устойчивость — [ ]
+### 11.3 Accessibility, производительность и устойчивость — [x] (2026-11-20)
 
+- **Рабочий план:**
+  - **Route-матрица:** `test/accessibility/app_accessibility_test.dart` — 320dp + text 1.3
+    для Главной, журналов, активов/детали, целей/формы, аналитики, настроек, About,
+    форм счёта/операции/перевода/цели; после каждого экрана `takeException == null`.
+  - **Semantics:** проверить labels icon-actions (FAB/toolbar), chart summary, error/
+    import-действий; при находках — точечные `Semantics`.
+  - **Performance:** `test/performance/journal_performance_test.dart` — 10k операций,
+    журнал использует builder и создаёт ограниченное число tile; запросы не N+1,
+    агрегаты не зависят от числа виджетов.
+  - **Устойчивость:** повторные init/dispose/reload журналов не пишут после dispose.
+  - **commit:** `task/11.3: усилить доступность и производительность`.
 - **Приоритет/зависимости:** P1; после 11.2. **BR:** VAL-7, DESIGN/a11y, S-1…5.
 - **Files:** Create `test/accessibility/app_accessibility_test.dart`,
   `test/performance/journal_performance_test.dart`, profiling fixtures;
@@ -1626,6 +1637,14 @@
   charts/import; 10k transactions list builder не создаёт 10k widgets, aggregate query bounded;
   repeated edit/delete не вызывает setState after dispose; animations disabled.
 - **Генерация:** по изменённым источникам; profiling output не коммитить.
+- **Итог:** `test/accessibility/app_accessibility_test.dart` — 320dp/1.3, 18 routes из
+  `AppRoutes` с проверкой типа экрана (не NotFound) и `takeException`; semantics: tooltip
+  FAB активов/операций/cashflow, строки импорта/обновления в настройках, chart summaries
+  покрыты uikit-тестами. `journal_performance_test.dart` — 10k строк, itemCount > 10000,
+  AppListView.builder, <100 tile. `transactions_view_model_test` — после dispose события БД
+  не меняют state. Всего 579 тестов. Отложено: пагинация DAO (builder ограничивает виджеты,
+  но запрос читает все строки), `reservedSize`/крайние подписи при text scale > 1.3,
+  замеры frame/build counts на устройстве и полный TalkBack-прогон — в 11.9.
 - **DoD:** нет overflow/critical semantics findings, замеры и устройство записаны, baseline
   и фактические frame/build counts приложены к PR; общий DoD/design review. Перед PR спросить
   о e2e.
@@ -1765,8 +1784,9 @@
   даты через date picker, адаптивность (размер экрана/масштаб шрифта).
 - **Предполагаемая причина:** ограничения окружения adb/uiautomator, не дефект приложения.
 - **Решение/Тест:** выполнить вручную на устройстве с биометрией и штатной клавиатурой (или на
-  Linux e2e для дат), зафиксировать результаты новыми `TC-*` в `TEST_PLAN.md`; при появлении
-  дефектов завести отдельные задачи этапа 11.
+  Linux e2e для дат), снять TalkBack-прогон и frame/build counts профилированием (11.3 DoD),
+  зафиксировать результаты новыми `TC-*` в `TEST_PLAN.md`; при появлении дефектов завести
+  отдельные задачи этапа 11.
 
 ### 11.10 Графики денежного потока выходят за пределы карточки — [x] (2026-11-20)
 
