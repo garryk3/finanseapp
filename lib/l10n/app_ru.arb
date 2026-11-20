@@ -186,7 +186,7 @@
   "@assetsEmptyTitle": {
     "description": "Заголовок пустого списка активов."
   },
-  "assetsEmptyMessage": "Добавьте счёт, инвестицию или квартиру.",
+  "assetsEmptyMessage": "Добавьте счёт, инвестицию или недвижимость.",
   "@assetsEmptyMessage": {
     "description": "Пояснение пустого списка активов."
   },
@@ -1003,9 +1003,9 @@
   "@assetKindInvestment": {
     "description": "Вид актива: инвестиция."
   },
-  "assetKindProperty": "Квартира",
+  "assetKindProperty": "Недвижимость",
   "@assetKindProperty": {
-    "description": "Вид актива: квартира."
+    "description": "Вид актива: недвижимость."
   },
   "assetActions": "Действия с активом",
   "@assetActions": {
@@ -1496,17 +1496,17 @@
   "@cashflowErrorCategoryArchived": {
     "description": "Ошибка архивной категории."
   },
-  "propertyFormNew": "Новая квартира",
+  "propertyFormNew": "Новая недвижимость",
   "@propertyFormNew": {
-    "description": "Заголовок формы новой квартиры."
+    "description": "Заголовок формы новой недвижимости."
   },
-  "propertyFormEdit": "Изменить квартиру",
+  "propertyFormEdit": "Изменить недвижимость",
   "@propertyFormEdit": {
-    "description": "Заголовок редактирования квартиры."
+    "description": "Заголовок редактирования недвижимости."
   },
-  "propertyNameLabel": "Название квартиры",
+  "propertyNameLabel": "Название недвижимости",
   "@propertyNameLabel": {
-    "description": "Поле названия квартиры."
+    "description": "Поле названия недвижимости."
   },
   "propertyAddressLabel": "Адрес",
   "@propertyAddressLabel": {
@@ -1518,35 +1518,35 @@
   },
   "propertyValueLabel": "Начальная стоимость",
   "@propertyValueLabel": {
-    "description": "Начальная стоимость квартиры."
+    "description": "Начальная стоимость недвижимости."
   },
-  "propertyCurrencyLabel": "Валюта квартиры",
+  "propertyCurrencyLabel": "Валюта недвижимости",
   "@propertyCurrencyLabel": {
-    "description": "Валюта стоимости квартиры."
+    "description": "Валюта стоимости недвижимости."
   },
-  "propertySectionTitle": "Квартира",
+  "propertySectionTitle": "Недвижимость",
   "@propertySectionTitle": {
-    "description": "Заголовок секции формы квартиры."
+    "description": "Заголовок секции формы недвижимости."
   },
-  "propertyErrorName": "Введите название квартиры.",
+  "propertyErrorName": "Введите название недвижимости.",
   "@propertyErrorName": {
-    "description": "Ошибка названия квартиры."
+    "description": "Ошибка названия недвижимости."
   },
-  "propertyCashflowTitle": "Денежный поток по квартире",
+  "propertyCashflowTitle": "Денежный поток по недвижимости",
   "@propertyCashflowTitle": {
-    "description": "Секция cashflow квартиры."
+    "description": "Секция cashflow недвижимости."
   },
   "propertyCashflowEmpty": "Записей за период нет.",
   "@propertyCashflowEmpty": {
-    "description": "Пустой поток квартиры."
+    "description": "Пустой поток недвижимости."
   },
   "propertyAddIncome": "Добавить доход",
   "@propertyAddIncome": {
-    "description": "Добавить доход по квартире."
+    "description": "Добавить доход по недвижимости."
   },
   "propertyAddExpense": "Добавить расход",
   "@propertyAddExpense": {
-    "description": "Добавить расход по квартире."
+    "description": "Добавить расход по недвижимости."
   },
   "cashflowPeriodMonth": "Месяц",
   "@cashflowPeriodMonth": {
@@ -1556,9 +1556,9 @@
   "@cashflowPeriodYear": {
     "description": "Период: год."
   },
-  "assetsAddProperty": "Добавить квартиру",
+  "assetsAddProperty": "Добавить недвижимость",
   "@assetsAddProperty": {
-    "description": "Действие создания квартиры."
+    "description": "Действие создания недвижимости."
   },
   "cashflowAccountLabel": "Счёт",
   "@cashflowAccountLabel": {
@@ -1644,13 +1644,13 @@
   "@cashflowSummaryInRub": {
     "description": "Пометка рублёвых итогов."
   },
-  "cashflowAllProperties": "Все квартиры",
+  "cashflowAllProperties": "Вся недвижимость",
   "@cashflowAllProperties": {
-    "description": "Сброс фильтра квартиры."
+    "description": "Сброс фильтра недвижимости."
   },
-  "cashflowPropertyLabel": "Квартира",
+  "cashflowPropertyLabel": "Недвижимость",
   "@cashflowPropertyLabel": {
-    "description": "Поле фильтра по квартире."
+    "description": "Поле фильтра по недвижимости."
   },
   "cashflowFiltersWithCount": "Фильтры · {count}",
   "@cashflowFiltersWithCount": {
@@ -1661,9 +1661,9 @@
       }
     }
   },
-  "cashflowPropertyContext": "Квартира: {name}",
+  "cashflowPropertyContext": "Недвижимость: {name}",
   "@cashflowPropertyContext": {
-    "description": "Контекст квартиры в форме.",
+    "description": "Контекст недвижимости в форме.",
     "placeholders": {
       "name": {
         "type": "String"
@@ -1966,7 +1966,7 @@
   "@analyticsNoAssetsTitle": {
     "description": "Пустая аналитика без активов."
   },
-  "analyticsNoAssetsMessage": "Добавьте счёт, инвестицию или квартиру, чтобы увидеть динамику.",
+  "analyticsNoAssetsMessage": "Добавьте счёт, инвестицию или недвижимость, чтобы увидеть динамику.",
   "@analyticsNoAssetsMessage": {
     "description": "Пояснение пустой аналитики без активов."
   },

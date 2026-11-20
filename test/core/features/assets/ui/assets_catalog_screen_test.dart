@@ -193,7 +193,7 @@ AssetSnapshot _archivedInvestment() => AssetSnapshot(
 AssetSnapshot _property() => AssetSnapshot(
   asset: PropertyAsset(
     id: 4,
-    name: 'Квартира',
+    name: 'Дом на Ленина',
     currencyCode: 'RUB',
     openingValue: const Money(minorUnits: 500000000, currencyCode: 'RUB'),
     createdAt: DateTime.utc(2026),
@@ -243,7 +243,8 @@ void main() {
 
     expect(find.text('Вклад'), findsOneWidget);
     expect(find.text('Брокерский портфель'), findsOneWidget);
-    expect(find.text('Квартира'), findsWidgets);
+    expect(find.text('Дом на Ленина'), findsOneWidget);
+    expect(find.text(l10n.assetKindProperty), findsWidgets);
     expect(find.text(l10n.assetKindAccount), findsWidgets);
     expect(find.text(l10n.assetKindInvestment), findsWidgets);
     expect(find.textContaining('90\u00A0000'), findsOneWidget);
