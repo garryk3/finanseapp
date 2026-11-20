@@ -89,7 +89,7 @@ void main() {
       db.transactionsDao,
       db.valuationsDao,
     );
-    cashflow = CashflowRepositoryImpl(db.cashflowDao, db.currenciesDao);
+    cashflow = CashflowRepositoryImpl(db.cashflowDao, db.currenciesDao, db);
     expenseCategoryId = (await db.select(db.categories).get())
         .firstWhere((row) => row.kind == CashflowKind.expense)
         .id;

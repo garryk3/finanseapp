@@ -258,6 +258,73 @@ void main() {
     expect(limited, hasLength(2));
   });
 
+  test('restore возвращает операцию и пишет restore-ревизию', () async {
+    final assetId = await createAccount(db, currencyCode: 'USD');
+    final id = await repository.create(draft(assetId));
+    await repository.softDelete(id);
+
+    await repository.restore(id);
+
+    final restored = await repository.getById(id);
+    expect(restored.deletedAt, isNull);
+    final revisions = await db.transactionsDao.revisions(id);
+    expect(revisions.last.action.name, 'restore');
+  });
+
+  test('повторный restore отклоняется', () async {
+    final assetId = await createAccount(db, currencyCode: 'USD');
+    final id = await repository.create(draft(assetId));
+    await repository.softDelete(id);
+    await repository.restore(id);
+
+    await expectLater(repository.restore(id), throwsA(isA<DomainException>()));
+  });
+
+  test('restore отклоняет восстановление при отрицательном балансе', () async {
+    final assetId = await createAccount(db, currencyCode: 'USD');
+    await repository.create(draft(assetId, amount: 10000));
+    final first = await repository.create(
+      draft(assetId, kind: AssetTransactionKind.withdrawal, amount: 6000),
+    );
+    await repository.softDelete(first);
+    await repository.create(
+      draft(assetId, kind: AssetTransactionKind.withdrawal, amount: 8000),
+    );
+
+    await expectLater(
+      repository.restore(first),
+      throwsA(
+        isA<DomainException>().having(
+          (error) => error.code,
+          'code',
+          DomainErrorCode.negativeBalance,
+        ),
+      ),
+    );
+  });
+
+  test('restore операции восстанавливает связанный cashflow', () async {
+    final assetId = await createAccount(db, currencyCode: 'USD');
+    final id = await repository.create(
+      draft(
+        assetId,
+        classification: TransactionClassification(
+          kind: CashflowKind.income,
+          categoryId: incomeCategoryId,
+        ),
+      ),
+    );
+    final linked = await db.cashflowDao.findLinked(id);
+    await repository.softDelete(id);
+    expect(await db.cashflowDao.findLinked(id), isNull);
+
+    await repository.restore(id);
+
+    expect(await db.cashflowDao.findLinked(id), isNotNull);
+    final revisions = await db.cashflowDao.revisions(linked!.id);
+    expect(revisions.last.action.name, 'restore');
+  });
+
   test('CALC-011: правка суммы сохраняет revision 1 и даёт +950 RUB', () async {
     final assetId = await createAccount(db, currencyCode: 'EUR');
     final occurredOn = LocalDate(2026, 1, 1);

@@ -131,7 +131,7 @@ void main() {
 
   setUp(() async {
     db = openTestDatabase();
-    repository = CashflowRepositoryImpl(db.cashflowDao, db.currenciesDao);
+    repository = CashflowRepositoryImpl(db.cashflowDao, db.currenciesDao, db);
     commands = CashflowCommands(
       repository: repository,
       currencyRepository: FakeCurrencies(),
@@ -251,6 +251,21 @@ void main() {
     expect(entry.comment, 'Обновлено');
     expect(await db.cashflowDao.revisions(id), hasLength(2));
   });
+
+  test(
+    'standalone restore возвращает запись и пишет restore-ревизию',
+    () async {
+      final id = await saveIncome();
+      await commands.delete(id);
+
+      await repository.restore(id);
+
+      final entry = await repository.getById(id);
+      expect(entry.deletedAt, isNull);
+      final revisions = await db.cashflowDao.revisions(id);
+      expect(revisions.last.action.name, 'restore');
+    },
+  );
 
   test('удалённая запись исчезает из журнала, ревизия остаётся', () async {
     final id = await saveIncome();

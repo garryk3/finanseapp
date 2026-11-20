@@ -106,6 +106,9 @@ final class FakeCashflow implements CashflowRepository {
 
   @override
   Future<void> softDelete(int id) async {}
+
+  @override
+  Future<void> restore(int id) async {}
 }
 
 final class FakeCurrencies implements CurrencyRepository {

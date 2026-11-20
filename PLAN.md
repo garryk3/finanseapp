@@ -1558,7 +1558,7 @@
   затем восстановить mapping и прогнать suite.
 - **Генерация:** не требуется, если contracts не менялись; любое изменение поведения начинается
   с BR doc и отдельного failing regression test.
-- **Итог:** `test/architecture/business_rule_coverage_test.dart` парсит 98 BR (включая
+- **Итог:** `test/architecture/business_rule_coverage_test.dart` парсит 100 BR (включая
   диапазоны `BR-CAT-1…3`, `BR-P-1…2`, `BR-RE-1…2`) и 36 CALC из docs, требует явную запись
   для каждого ID, наличие конкретных тестовых файлов (CALC) и хотя бы одного `*_test.dart`
   в каталогах BR-группы, ловит устаревшие/одновременно отложенные записи; новый BR без
@@ -1858,7 +1858,7 @@
 
 ## Этап 12 — Расширения после v1
 
-### 12.1 Восстановление soft-deleted операций — [ ]
+### 12.1 Восстановление soft-deleted операций — [x] (2026-11-20)
 
 - **Приоритет/зависимости:** P2; после 11.4, отдельное согласование UX. **BR:** T-3…4,
   IE-15, S-4.
@@ -1870,6 +1870,19 @@
 - **TDD:** restore delete revision создаёт новую restore, не изменяет историю; insufficient
   balance/archived asset отклоняет; transfer восстанавливает две ноги, cashflow pair обе
   записи; повторный restore conflict.
+- **Рабочий план:**
+  - **DAO:** `TransactionsDao.restore` (deposit/withdrawal с проверкой баланса; обе ноги
+    перевода), `CashflowDao.restore`/`restoreFromAsset`; restore-ревизии.
+  - **Repositories:** `restore`/`restoreTransfer`; связанная пара восстанавливается через
+    операцию; standalone cashflow — отдельно.
+  - **UI:** кнопка «Восстановить» в аудите операции/cashflow, если последняя ревизия delete;
+    pending и ошибка.
+  - **BR:** BR-T-11, BR-IE-18; architecture-карта 100 BR.
+  - **commit:** `task/12.1: восстановить удалённые операции`.
+- **Итог:** restore возвращает операцию/перевод/связанную пару с новыми restore-ревизиями,
+  повторной проверкой баланса и атомарностью; аудит показывает «Восстановить» и ошибку
+  restore. Тесты: restore + повторный conflict + баланс + перевод + linked pair + standalone cashflow.
+  589 тестов.
 - **DoD:** до согласования не реализовывать; при реализации BR docs обновлены, migrations/
   generated и общий DoD pass. Перед PR спросить о e2e.
 - **Предлагаемый commit:** `task/12.1: восстановить удалённые операции`.

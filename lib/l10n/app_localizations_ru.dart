@@ -1739,4 +1739,13 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get journalLoadMore => 'Показать ещё';
+
+  @override
+  String get revisionActionRestore => 'Восстановлена';
+
+  @override
+  String get auditRestore => 'Восстановить';
+
+  @override
+  String get auditRestoreFailed => 'Не удалось восстановить запись.';
 }

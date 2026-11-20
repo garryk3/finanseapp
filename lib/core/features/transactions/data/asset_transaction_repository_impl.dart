@@ -95,6 +95,13 @@ final class AssetTransactionRepositoryImpl
       });
 
   @override
+  Future<void> restore(int id) => _db.transactionsDao.restore(id);
+
+  @override
+  Future<void> restoreTransfer(int transferId) =>
+      _db.transactionsDao.restoreTransfer(transferId);
+
+  @override
   Future<void> softDelete(int id) => _db.transaction(() async {
     final linked = await _db.cashflowDao.findLinked(id);
     await _db.transactionsDao.softDelete(id);

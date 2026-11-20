@@ -91,7 +91,7 @@ class AssetRevisionList extends StatelessWidget {
     RevisionAction.create => l10n.revisionActionCreate,
     RevisionAction.edit => l10n.revisionActionEdit,
     RevisionAction.delete => l10n.revisionActionDelete,
-    RevisionAction.restore => l10n.revisionActionEdit,
+    RevisionAction.restore => l10n.revisionActionRestore,
   };
 
   static String _fieldLabel(AppLocalizations l10n, String field) =>

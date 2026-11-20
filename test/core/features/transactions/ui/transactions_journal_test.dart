@@ -110,6 +110,9 @@ final class FakeTransactions implements AssetTransactionRepository {
   }
 
   @override
+  Future<void> restore(int id) async {}
+
+  @override
   Future<int> transfer(TransferDraft draft) => throw UnimplementedError();
 
   @override
@@ -117,6 +120,9 @@ final class FakeTransactions implements AssetTransactionRepository {
 
   @override
   Future<void> softDeleteTransfer(int transferId) async {}
+
+  @override
+  Future<void> restoreTransfer(int transferId) async {}
 }
 
 const _rub = Currency(
@@ -338,12 +344,14 @@ void main() {
         ),
       ]),
       assetRepository: FakeAssets([_account(1, 'Счёт')]),
+      transactionRepository: FakeTransactions(const []),
       transactionId: 1,
     );
     await _pump(tester, AuditAssetTransactionScreen(viewModel: vm));
 
     expect(find.text(l10n.auditAssetTransactionTitle), findsOneWidget);
     expect(find.textContaining(l10n.revisionActionDelete), findsOneWidget);
+    expect(find.text(l10n.auditRestore), findsOneWidget);
   });
 
   testWidgets('нога перевода не предлагает удаление', (tester) async {

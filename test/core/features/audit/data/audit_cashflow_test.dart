@@ -23,7 +23,7 @@ void main() {
 
   setUp(() async {
     db = openTestDatabase();
-    repository = CashflowRepositoryImpl(db.cashflowDao, db.currenciesDao);
+    repository = CashflowRepositoryImpl(db.cashflowDao, db.currenciesDao, db);
     audit = AuditRepositoryImpl(db.auditDao, db.assetsDao);
     expenseCategoryId = (await db.select(db.categories).get())
         .firstWhere((row) => row.kind == CashflowKind.expense)
