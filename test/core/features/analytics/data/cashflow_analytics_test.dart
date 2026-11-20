@@ -8,6 +8,8 @@ import 'package:finanseapp/core/domain/common/local_date.dart';
 import 'package:finanseapp/core/domain/common/money.dart';
 import 'package:finanseapp/core/domain/common/result.dart';
 import 'package:finanseapp/core/features/analytics/data/analytics_queries_impl.dart';
+import 'package:finanseapp/core/features/cashflow/data/cashflow_repository_impl.dart';
+import 'package:finanseapp/core/features/cashflow/domain/cashflow_entry.dart';
 import 'package:finanseapp/core/features/cashflow/domain/cashflow_filter.dart';
 import 'package:finanseapp/core/features/categories/domain/category.dart';
 import 'package:finanseapp/core/features/currencies/data/cbr_exchange_rate_client.dart';
@@ -150,6 +152,38 @@ void main() {
     expect(summary.expense, const Money(minorUnits: 5000, currencyCode: 'EUR'));
     expect(summary.net, const Money(minorUnits: 4000, currencyCode: 'EUR'));
   });
+
+  test(
+    'CALC-025: 1000 USD@90 → 900 EUR при базе 100, snapshot 90 000 RUB',
+    () async {
+      final repository = CashflowRepositoryImpl(
+        db.cashflowDao,
+        db.currenciesDao,
+      );
+      final id = await repository.create(
+        CashflowEntryDraft(
+          kind: CashflowKind.income,
+          categoryId: await categoryId(db, CashflowKind.income),
+          amount: const Money(minorUnits: 100000, currencyCode: 'USD'),
+          occurredOn: today,
+          rateToRub: Decimal.fromInt(90),
+          affectsBalance: false,
+        ),
+      );
+      expect((await repository.getById(id)).amountRub.minorUnits, 9000000);
+
+      await saveRate('USD', today, 90);
+      await saveRate('EUR', today, 100);
+      await db.settingsDao.setBaseCurrency('EUR');
+      final summary = await queries.cashflow(const CashflowFilter());
+
+      expect(
+        summary.income,
+        const Money(minorUnits: 90000, currencyCode: 'EUR'),
+      );
+      expect(summary.net, const Money(minorUnits: 90000, currencyCode: 'EUR'));
+    },
+  );
 
   test('property-фильтр совпадает с деталями', () async {
     final first = await createProperty(db, name: 'Первая');

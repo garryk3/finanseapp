@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:decimal/decimal.dart';
 import 'package:finanseapp/core/database/app_database.dart';
 import 'package:finanseapp/core/domain/common/local_date.dart';
@@ -37,18 +39,24 @@ void main() {
     int assetId, {
     AssetTransactionKind kind = AssetTransactionKind.deposit,
     int amount = 10000,
+    String rate = '90',
+    String currency = 'USD',
     LocalDate? occurredOn,
     TransactionClassification? classification,
     String? comment,
   }) => AssetTransactionDraft(
     assetId: assetId,
     kind: kind,
-    amount: Money(minorUnits: amount, currencyCode: 'USD'),
+    amount: Money(minorUnits: amount, currencyCode: currency),
     occurredOn: occurredOn ?? LocalDate(2026, 1, 2),
-    rateToRub: Decimal.fromInt(90),
+    rateToRub: Decimal.parse(rate),
     comment: comment,
     classification: classification,
   );
+
+  int snapshotAmountRub(AssetTransactionRevisionRow row) =>
+      (jsonDecode(row.snapshotJson) as Map<String, dynamic>)['amountRubMinor']
+          as int;
 
   test('deposit 100 USD создаёт RUB snapshot и связанный доход', () async {
     final assetId = await createAccount(db, currencyCode: 'USD');
@@ -221,6 +229,81 @@ void main() {
       db.cashflowEntries,
     )..where((e) => e.id.equals(linked!.id))).getSingle();
     expect(rows.deletedAt, isNotNull);
+  });
+
+  test('CALC-011: правка суммы сохраняет revision 1 и даёт +950 RUB', () async {
+    final assetId = await createAccount(db, currencyCode: 'EUR');
+    final occurredOn = LocalDate(2026, 1, 1);
+    final id = await repository.create(
+      draft(
+        assetId,
+        amount: 10000,
+        rate: '95',
+        currency: 'EUR',
+        occurredOn: occurredOn,
+      ),
+    );
+
+    await repository.revise(
+      id,
+      draft(
+        assetId,
+        amount: 11000,
+        rate: '95',
+        currency: 'EUR',
+        occurredOn: occurredOn,
+      ),
+    );
+
+    final current = await repository.getById(id);
+    expect(current.amount.minorUnits, 11000);
+    expect(current.amountRub.minorUnits, 1045000);
+    final revisions = await db.transactionsDao.revisions(id);
+    expect(revisions, hasLength(2));
+    expect(snapshotAmountRub(revisions[0]), 950000);
+    expect(snapshotAmountRub(revisions[1]), 1045000);
+    expect(current.amountRub.minorUnits - 950000, 95000);
+  });
+
+  test('CALC-012: правка даты сохраняет курс каждой ревизии', () async {
+    final assetId = await createAccount(db, currencyCode: 'EUR');
+    final id = await repository.create(
+      draft(
+        assetId,
+        amount: 10000,
+        rate: '95',
+        currency: 'EUR',
+        occurredOn: LocalDate(2026, 1, 1),
+      ),
+    );
+
+    await repository.revise(
+      id,
+      draft(
+        assetId,
+        amount: 10000,
+        rate: '100',
+        currency: 'EUR',
+        occurredOn: LocalDate(2026, 2, 1),
+      ),
+    );
+
+    final current = await repository.getById(id);
+    expect(current.occurredOn, LocalDate(2026, 2, 1));
+    expect(current.amountRub.minorUnits, 1000000);
+    final revisions = await db.transactionsDao.revisions(id);
+    expect(revisions, hasLength(2));
+    expect(snapshotAmountRub(revisions[0]), 950000);
+    expect(snapshotAmountRub(revisions[1]), 1000000);
+  });
+
+  test('CALC-033: deposit без классификации не создаёт доход', () async {
+    final assetId = await createAccount(db, currencyCode: 'USD');
+    final id = await repository.create(draft(assetId));
+
+    expect((await repository.getById(id)).amount.minorUnits, 10000);
+    expect(await db.select(db.cashflowEntries).get(), isEmpty);
+    expect(await db.cashflowDao.findLinked(id), isNull);
   });
 
   test('property запрещён', () async {

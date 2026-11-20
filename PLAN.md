@@ -1534,8 +1534,17 @@
 
 ## Этап 11 — Сквозное качество и release readiness
 
-### 11.1 Golden calculations и проверка покрытия каждого BR — [ ]
+### 11.1 Golden calculations и проверка покрытия каждого BR — [x] (2026-11-20)
 
+- **Рабочий план:**
+  - **Architecture tests:** разбор BR ID из `business_rules.md` и CALC ID из `calculations.md`;
+    явная карта ID→тестовые файлы для каждого правила/расчёта, проверка существования файлов
+    и что каждый ID из документа покрыт (временное удаление записи → падение с ID).
+  - **Golden:** независимые literal-assertions для недостающих формул (rateUnavailable,
+    cashflow net, property net, RUB snapshot, category shares; yield — отложен до 12.3);
+    revision/transfer history проверяются существующими repository-тестами и включаются в карту.
+  - **Docs:** business_rules/calculations менять только при найденном расхождении.
+  - **commit:** `task/11.1: проверить покрытие бизнес-правил`.
 - **Приоритет/зависимости:** P1; после 10.5. **BR:** все.
 - **Files:** Create дополнения `test/core/domain/common/golden_calculations_test.dart`,
   `test/architecture/business_rule_coverage_test.dart`, fixtures для rollback/audit;
@@ -1549,6 +1558,18 @@
   затем восстановить mapping и прогнать suite.
 - **Генерация:** не требуется, если contracts не менялись; любое изменение поведения начинается
   с BR doc и отдельного failing regression test.
+- **Итог:** `test/architecture/business_rule_coverage_test.dart` парсит 98 BR (включая
+  диапазоны `BR-CAT-1…3`, `BR-P-1…2`, `BR-RE-1…2`) и 36 CALC из docs, требует явную запись
+  для каждого ID, наличие конкретных тестовых файлов (CALC) и хотя бы одного `*_test.dart`
+  в каталогах BR-группы, ловит устаревшие/одновременно отложенные записи; новый BR без
+  карты падает с именем ID. CALC-008 проверяется CBR-тестами «ответ другой даты →
+  rateUnavailable»; добавлены literal-кейсы CALC-023/024 (net/property net) и CALC-025
+  (1000 USD@90 → 900 EUR, RUB-snapshot 90 000 через production-репозиторий), CALC-035
+  (доли 25%/75%, нулевой итог → 0), CALC-009/011/012 (точные суммы/ревизии) и CALC-033
+  (deposit без классификации). Остальные CALC привязаны к конкретным repository/calculator
+  тестам с буквальными expected. CALC-036 (yield) — документированный defer до 12.3.
+  Всего 561 тест.
+- **Отложено:** yield/CALC-036 до 12.3; ручная сверка docs с продуктом (вне automated QA).
 - **DoD:** self-review подтверждает каждый BR кодом+тестом, нет тестов, вычисляющих expected
   той же функцией; общий DoD. Перед PR спросить о e2e.
 - **Предлагаемый commit:** `task/11.1: проверить покрытие бизнес-правил`.
