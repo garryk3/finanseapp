@@ -43,8 +43,6 @@ class AppCashflowChart extends StatelessWidget {
     );
     final top = maxValue <= 0 ? 1.0 : maxValue * 1.15;
 
-    final labelInterval = math.max(1, (groups.length / 6).ceil()).toDouble();
-
     return Semantics(
       label: accessibleSummary,
       child: ExcludeSemantics(
@@ -56,6 +54,33 @@ class AppCashflowChart extends StatelessWidget {
               constraints.maxWidth,
               groups.length * 36.0 + 24,
             );
+            // Шаг подписей считаем по фактической ширине текста и слоту:
+            // fl_chart для BarChart рисует подпись на каждую группу и interval
+            // не фильтрует, поэтому пропуск делается в getTitlesWidget.
+            final labelStyle = Theme.of(context).textTheme.labelSmall
+                ?.copyWith(color: scheme.onSurfaceVariant);
+            final textScaler = MediaQuery.textScalerOf(context);
+            var labelWidth = 0.0;
+            for (final group in groups) {
+              final painter = TextPainter(
+                text: TextSpan(text: group.label, style: labelStyle),
+                textDirection: TextDirection.ltr,
+                textScaler: textScaler,
+              )..layout();
+              labelWidth = math.max(labelWidth, painter.width);
+              painter.dispose();
+            }
+            final slotWidth = contentWidth <= constraints.maxWidth
+                ? constraints.maxWidth / math.max(1, groups.length)
+                : 36.0;
+            final labelStep = math.max(
+              1,
+              ((labelWidth + 8) / math.max(1, slotWidth)).ceil(),
+            );
+            // Якорь на последний период: текущая/последняя дата всегда видна.
+            final labelStart = groups.isEmpty
+                ? 0
+                : (groups.length - 1) % labelStep;
             final chart = SizedBox(
               width: contentWidth,
               child: BarChart(
@@ -78,20 +103,19 @@ class AppCashflowChart extends StatelessWidget {
                     bottomTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
-                        interval: labelInterval,
+                        interval: labelStep.toDouble(),
                         reservedSize: 28,
                         getTitlesWidget: (value, meta) {
                           final index = value.round();
-                          final label = (index >= 0 && index < groups.length)
-                              ? groups[index].label
-                              : '';
+                          if (index < 0 ||
+                              index >= groups.length ||
+                              (index - labelStart) % labelStep != 0) {
+                            return const SizedBox.shrink();
+                          }
+                          final label = groups[index].label;
                           return SideTitleWidget(
                             meta: meta,
-                            child: Text(
-                              label,
-                              style: Theme.of(context).textTheme.labelSmall
-                                  ?.copyWith(color: scheme.onSurfaceVariant),
-                            ),
+                            child: Text(label, style: labelStyle),
                           );
                         },
                       ),
