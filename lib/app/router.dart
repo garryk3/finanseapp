@@ -6,8 +6,11 @@ import 'package:finanseapp/app/shell_screen.dart';
 import 'package:finanseapp/core/di/service_locator.dart';
 import 'package:finanseapp/core/features/app_info/ui/not_found_screen.dart';
 import 'package:finanseapp/core/features/app_info/ui/not_found_view_model.dart';
+import 'package:finanseapp/core/features/analytics/domain/analytics_queries.dart';
 import 'package:finanseapp/core/features/analytics/logic/analytics_periods.dart';
 import 'package:finanseapp/core/features/analytics/ui/analytics_screen.dart';
+import 'package:finanseapp/core/features/analytics/ui/asset_comparison_screen.dart';
+import 'package:finanseapp/core/features/analytics/ui/asset_comparison_view_model.dart';
 import 'package:finanseapp/core/features/analytics/ui/analytics_view_model.dart';
 import 'package:finanseapp/core/features/applock/logic/applock_settings_view_model.dart';
 import 'package:finanseapp/core/features/applock/ui/applock_manage_screen.dart';
@@ -435,6 +438,18 @@ GoRouter buildRouter({required ServiceLocator locator}) {
                     name: 'base-currency',
                     builder: (context, state) => BaseCurrencyScreen(
                       viewModel: locator.get<BaseCurrencyViewModel>(),
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'compare',
+                    name: 'comparison',
+                    builder: (context, state) => AssetComparisonScreen(
+                      viewModel: AssetComparisonViewModel(
+                        queries: locator.get<AnalyticsQueries>(),
+                        assetRepository: locator.get<AssetRepository>(),
+                        settingsRepository: locator.get<SettingsRepository>(),
+                        now: () => LocalDate.fromDateTime(DateTime.now()),
+                      ),
                     ),
                   ),
                   GoRoute(

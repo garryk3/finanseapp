@@ -57,14 +57,15 @@ class _Marker extends StatelessWidget {
       return Icon(item.markerIcon, size: 14, color: scheme.onSurfaceVariant);
     }
     if (item.dashed) {
-      return Container(
-        width: 16,
-        height: 0,
-        decoration: BoxDecoration(
-          border: Border(
-            top: BorderSide(color: scheme.onSurfaceVariant, width: 2),
-          ),
-        ),
+      final color = ChartSeriesColors.resolve(context, item.colorKey);
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (var i = 0; i < 3; i++) ...[
+            if (i > 0) const SizedBox(width: 2),
+            Container(width: 4, height: 2, color: color),
+          ],
+        ],
       );
     }
     return Container(

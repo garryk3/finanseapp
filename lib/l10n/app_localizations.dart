@@ -3301,6 +3301,83 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Не удалось восстановить запись.'**
   String get auditRestoreFailed;
+
+  /// Экран сравнения активов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сравнение активов'**
+  String get comparisonTitle;
+
+  /// Подсказка выбора.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выберите от 2 до 5 активов.'**
+  String get comparisonSelectHint;
+
+  /// Режим absolute.
+  ///
+  /// In ru, this message translates to:
+  /// **'Суммы'**
+  String get comparisonModeAbsolute;
+
+  /// Режим normalized.
+  ///
+  /// In ru, this message translates to:
+  /// **'Индекс (100)'**
+  String get comparisonModeNormalized;
+
+  /// Меньше 2 активов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Недостаточно активов для сравнения.'**
+  String get comparisonNoAssets;
+
+  /// Пустые серии.
+  ///
+  /// In ru, this message translates to:
+  /// **'Нет данных за выбранный период.'**
+  String get comparisonEmpty;
+
+  /// Таблица сравнения.
+  ///
+  /// In ru, this message translates to:
+  /// **'Активы'**
+  String get comparisonTableTitle;
+
+  /// Заголовок выбора активов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Активы для сравнения'**
+  String get comparisonSelectTitle;
+
+  /// Заголовок графика сравнения.
+  ///
+  /// In ru, this message translates to:
+  /// **'Динамика стоимости'**
+  String get comparisonChartTitle;
+
+  /// Короткое пояснение normalized.
+  ///
+  /// In ru, this message translates to:
+  /// **'База: 100% на старте'**
+  String get comparisonChartBase;
+
+  /// Строка summary сравнения.
+  ///
+  /// In ru, this message translates to:
+  /// **'{name}: последнее {last}, минимум {min}, максимум {max}'**
+  String comparisonSummaryLine(
+    String name,
+    String last,
+    String min,
+    String max,
+  );
+
+  /// CTA пустого сравнения.
+  ///
+  /// In ru, this message translates to:
+  /// **'Перейти к активам'**
+  String get comparisonGoAssets;
 }
 
 class _AppLocalizationsDelegate

@@ -9,6 +9,7 @@ import 'package:finanseapp/core/features/goals/domain/financial_goal.dart';
 import 'package:finanseapp/core/features/transactions/domain/asset_transaction.dart';
 import 'package:finanseapp/app/routes.dart';
 import 'package:finanseapp/core/features/analytics/ui/analytics_screen.dart';
+import 'package:finanseapp/core/features/analytics/ui/asset_comparison_screen.dart';
 import 'package:finanseapp/core/features/assets/ui/account_details_screen.dart';
 import 'package:finanseapp/core/features/assets/ui/account_form_screen.dart';
 import 'package:finanseapp/core/features/assets/ui/assets_screen.dart';
@@ -109,6 +110,7 @@ void main() {
       (path: AppRoutes.goalNew, screen: GoalFormScreen),
       (path: AppRoutes.more, screen: MoreScreen),
       (path: AppRoutes.analytics, screen: AnalyticsScreen),
+      (path: AppRoutes.comparison, screen: AssetComparisonScreen),
       (path: AppRoutes.settings, screen: SettingsScreen),
       (path: AppRoutes.about, screen: AboutScreen),
       (path: AppRoutes.cashflowNew, screen: CashflowFormScreen),
