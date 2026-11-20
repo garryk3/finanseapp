@@ -122,7 +122,7 @@ Future<ServiceLocator> registerCoreServices(
     CategoryRepositoryImpl(db.referencesDao),
   );
   locator.register<CashflowRepository>(
-    CashflowRepositoryImpl(db.cashflowDao, db.currenciesDao),
+    CashflowRepositoryImpl(db.cashflowDao, db.currenciesDao, db),
   );
   locator.register<GoalRepository>(GoalRepositoryImpl(db.goalsDao));
   locator.registerFactory<CategoriesViewModel>(

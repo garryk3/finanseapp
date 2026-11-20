@@ -159,6 +159,7 @@ void main() {
       final repository = CashflowRepositoryImpl(
         db.cashflowDao,
         db.currenciesDao,
+        db,
       );
       final id = await repository.create(
         CashflowEntryDraft(

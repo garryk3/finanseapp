@@ -3283,6 +3283,24 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Показать ещё'**
   String get journalLoadMore;
+
+  /// Действие ревизии restore.
+  ///
+  /// In ru, this message translates to:
+  /// **'Восстановлена'**
+  String get revisionActionRestore;
+
+  /// Кнопка восстановления удалённой записи.
+  ///
+  /// In ru, this message translates to:
+  /// **'Восстановить'**
+  String get auditRestore;
+
+  /// Ошибка restore.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось восстановить запись.'**
+  String get auditRestoreFailed;
 }
 
 class _AppLocalizationsDelegate

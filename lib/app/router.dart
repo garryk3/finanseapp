@@ -633,6 +633,8 @@ GoRouter buildRouter({required ServiceLocator locator}) {
                   viewModel: AuditAssetTransactionViewModel(
                     auditRepository: locator.get<AuditRepository>(),
                     assetRepository: locator.get<AssetRepository>(),
+                    transactionRepository: locator
+                        .get<AssetTransactionRepository>(),
                     transactionId: id,
                   ),
                 );
@@ -648,6 +650,7 @@ GoRouter buildRouter({required ServiceLocator locator}) {
               : AuditCashflowScreen(
                   viewModel: AuditCashflowViewModel(
                     auditRepository: locator.get<AuditRepository>(),
+                    cashflowRepository: locator.get<CashflowRepository>(),
                     entryId: id,
                   ),
                 );

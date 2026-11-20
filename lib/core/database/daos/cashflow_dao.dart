@@ -185,6 +185,48 @@ class CashflowDao extends DatabaseAccessor<AppDatabase>
     await _writeRevision(await _requireEntry(id), RevisionAction.delete, now);
   });
 
+  /// Восстанавливает soft-deleted cashflow-запись с restore-ревизией.
+  Future<void> restore(int id) => transaction(() async {
+    final current = await _requireEntry(id);
+    _requireUnlinked(current);
+    if (current.deletedAt == null) {
+      throw _conflict('validationEntryAlreadyActive');
+    }
+    final now = attachedDatabase.clock();
+    await (update(cashflowEntries)..where((e) => e.id.equals(id))).write(
+      CashflowEntriesCompanion(
+        revisionNo: Value(current.revisionNo + 1),
+        updatedAt: Value(now),
+        deletedAt: const Value(null),
+      ),
+    );
+    await _writeRevision(await _requireEntry(id), RevisionAction.restore, now);
+  });
+
+  /// Восстанавливает связанную с операцией запись при restore пары.
+  Future<void> restoreFromAsset(int assetTransactionId) => transaction(
+    () async {
+      final row =
+          await (select(cashflowEntries)
+                ..where((e) => e.assetTransactionId.equals(assetTransactionId)))
+              .getSingleOrNull();
+      if (row == null || row.deletedAt == null) return;
+      final now = attachedDatabase.clock();
+      await (update(cashflowEntries)..where((e) => e.id.equals(row.id))).write(
+        CashflowEntriesCompanion(
+          revisionNo: Value(row.revisionNo + 1),
+          updatedAt: Value(now),
+          deletedAt: const Value(null),
+        ),
+      );
+      await _writeRevision(
+        await _requireEntry(row.id),
+        RevisionAction.restore,
+        now,
+      );
+    },
+  );
+
   /// Активная запись, связанная с операцией по активу (BR-IE-9).
   Future<CashflowEntryRow?> findLinked(int assetTransactionId) =>
       (select(cashflowEntries)..where(

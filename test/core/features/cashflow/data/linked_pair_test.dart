@@ -75,7 +75,7 @@ void main() {
 
   setUp(() async {
     db = openTestDatabase();
-    repository = CashflowRepositoryImpl(db.cashflowDao, db.currenciesDao);
+    repository = CashflowRepositoryImpl(db.cashflowDao, db.currenciesDao, db);
     commands = CashflowCommands(
       repository: repository,
       currencyRepository: FakeCurrencies(),
@@ -188,6 +188,21 @@ void main() {
     expect(active, isEmpty);
     final all = await db.transactionsDao.allRows();
     expect(all.single.deletedAt, isNotNull);
+  });
+
+  test('restore связанной пары восстанавливает обе записи', () async {
+    final created = await save(amount: 5000, account: accountId, affects: true);
+    final entryId = (created as Success<int>).value;
+    final txId = (await repository.getById(entryId)).assetTransactionId!;
+    await commands.delete(entryId);
+
+    await repository.restore(entryId);
+
+    expect((await repository.getById(entryId)).deletedAt, isNull);
+    final cashflowRevisions = await db.cashflowDao.revisions(entryId);
+    expect(cashflowRevisions.last.action.name, 'restore');
+    final txRevisions = await db.transactionsDao.revisions(txId);
+    expect(txRevisions.last.action.name, 'restore');
   });
 
   test('удаление пары создаёт delete-ревизии обеим', () async {

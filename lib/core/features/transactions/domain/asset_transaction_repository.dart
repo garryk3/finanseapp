@@ -13,6 +13,10 @@ abstract interface class AssetTransactionRepository {
 
   Future<void> softDelete(int id);
 
+  Future<void> restore(int id);
+
+  Future<void> restoreTransfer(int transferId);
+
   Future<int> transfer(TransferDraft draft);
 
   Future<void> reviseTransfer(int transferId, TransferDraft draft);

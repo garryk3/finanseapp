@@ -236,7 +236,7 @@ class _CashflowDetailsScreenState extends State<CashflowDetailsScreen> {
         RevisionAction.create => l10n.revisionActionCreate,
         RevisionAction.edit => l10n.revisionActionEdit,
         RevisionAction.delete => l10n.revisionActionDelete,
-        RevisionAction.restore => l10n.revisionActionEdit,
+        RevisionAction.restore => l10n.revisionActionRestore,
       };
 
   String _money(Money money) => const MoneyFormatter().format(

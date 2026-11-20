@@ -1,7 +1,9 @@
 import 'package:finanseapp/core/features/audit/ui/asset_revision_list.dart';
 import 'package:finanseapp/core/features/audit/ui/audit_asset_transaction_view_model.dart';
+import 'package:finanseapp/app/theme/app_spacing.dart';
 import 'package:finanseapp/core/presentation/view_state.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
+import 'package:finanseapp/uikit/app_button.dart';
 import 'package:finanseapp/uikit/app_error_state.dart';
 import 'package:finanseapp/uikit/app_list_view.dart';
 import 'package:finanseapp/uikit/app_scaffold.dart';
@@ -72,6 +74,15 @@ class _AuditAssetTransactionScreenState
                 header: vm.asset.value?.name ?? l10n.auditAssetTransactionTitle,
                 child: AssetRevisionList(revisions: vm.revisions.value),
               ),
+              if (vm.canRestore) ...[
+                const SizedBox(height: AppSpacing.md),
+                AppButton(
+                  label: l10n.auditRestore,
+                  pending: vm.restoreBusy.value,
+                  onPressed: vm.restoreBusy.value ? null : vm.restore,
+                ),
+              ],
+              if (vm.restoreFailed.value) AppText(l10n.auditRestoreFailed),
             ],
           );
         },

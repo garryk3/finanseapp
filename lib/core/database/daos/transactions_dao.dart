@@ -271,6 +271,80 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase>
     );
   });
 
+  /// Восстанавливает soft-deleted операцию (или обе ноги перевода) с
+  /// restore-ревизией и повторной проверкой баланса/связей.
+  Future<void> restore(int id) => transaction(() async {
+    final current = await _requireTransaction(id);
+    if (current.deletedAt == null) {
+      throw _conflict('validationTransactionAlreadyActive');
+    }
+    if (current.transferId != null) {
+      await _restoreTransfer(current.transferId!);
+      return;
+    }
+    final asset = await _requireAsset(current.assetId);
+    await _assertProjectedBalance(
+      asset: asset,
+      occurredOn: current.occurredOn,
+      kind: current.kind,
+      amountMinor: current.amountMinor,
+      excludeTransactionId: id,
+    );
+    final now = attachedDatabase.clock();
+    await (update(assetTransactions)..where((t) => t.id.equals(id))).write(
+      AssetTransactionsCompanion(
+        revisionNo: Value(current.revisionNo + 1),
+        updatedAt: Value(now),
+        deletedAt: const Value(null),
+      ),
+    );
+    await _writeRevision(
+      await _requireTransaction(id),
+      RevisionAction.restore,
+      now,
+    );
+    await attachedDatabase.cashflowDao.restoreFromAsset(id);
+  });
+
+  Future<void> restoreTransfer(int transferId) => _restoreTransfer(transferId);
+
+  Future<void> _restoreTransfer(int transferId) async {
+    final legs = await _transferLegs(transferId, includeDeleted: true);
+    if (legs.length != 2) throw _conflict('validationTransferCorrupted');
+    if (legs.every((leg) => leg.deletedAt == null)) {
+      throw _conflict('validationTransactionAlreadyActive');
+    }
+    if (legs.any((leg) => leg.deletedAt == null)) {
+      throw _conflict('validationTransferCorrupted');
+    }
+    final outLeg = _legOfKind(legs, AssetTransactionKind.transferOut);
+    await _assertProjectedBalance(
+      asset: await _requireAsset(outLeg.assetId),
+      occurredOn: outLeg.occurredOn,
+      kind: outLeg.kind,
+      amountMinor: outLeg.amountMinor,
+      excludeTransactionId: outLeg.id,
+    );
+    final now = attachedDatabase.clock();
+    for (final leg in legs) {
+      await (update(
+        assetTransactions,
+      )..where((t) => t.id.equals(leg.id))).write(
+        AssetTransactionsCompanion(
+          revisionNo: Value(leg.revisionNo + 1),
+          updatedAt: Value(now),
+          deletedAt: const Value(null),
+        ),
+      );
+    }
+    await (update(assetTransfers)..where((t) => t.id.equals(transferId))).write(
+      AssetTransfersCompanion(updatedAt: Value(now)),
+    );
+    for (final leg in await _transferLegs(transferId, includeDeleted: true)) {
+      await _writeRevision(leg, RevisionAction.restore, now);
+    }
+  }
+
   /// Создаёт группу перевода и обе ноги с create-ревизиями.
   Future<int> createTransfer(TransferInput input) => transaction(() async {
     await _validateTransfer(input);

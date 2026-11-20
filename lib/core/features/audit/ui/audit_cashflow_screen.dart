@@ -5,9 +5,11 @@ import 'package:finanseapp/core/domain/common/revision.dart';
 import 'package:finanseapp/core/features/audit/ui/audit_cashflow_view_model.dart';
 import 'package:finanseapp/core/presentation/date_formatter.dart';
 import 'package:finanseapp/core/presentation/money_formatter.dart';
+import 'package:finanseapp/app/theme/app_spacing.dart';
 import 'package:finanseapp/core/presentation/view_state.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
 import 'package:finanseapp/uikit/app_divider.dart';
+import 'package:finanseapp/uikit/app_button.dart';
 import 'package:finanseapp/uikit/app_error_state.dart';
 import 'package:finanseapp/uikit/app_list_view.dart';
 import 'package:finanseapp/uikit/app_scaffold.dart';
@@ -98,6 +100,15 @@ class _AuditCashflowScreenState extends State<AuditCashflowScreen> {
                         ],
                       ),
               ),
+              if (vm.canRestore) ...[
+                const SizedBox(height: AppSpacing.md),
+                AppButton(
+                  label: l10n.auditRestore,
+                  pending: vm.restoreBusy.value,
+                  onPressed: vm.restoreBusy.value ? null : vm.restore,
+                ),
+              ],
+              if (vm.restoreFailed.value) AppText(l10n.auditRestoreFailed),
             ],
           );
         },
@@ -110,7 +121,7 @@ class _AuditCashflowScreenState extends State<AuditCashflowScreen> {
         RevisionAction.create => l10n.revisionActionCreate,
         RevisionAction.edit => l10n.revisionActionEdit,
         RevisionAction.delete => l10n.revisionActionDelete,
-        RevisionAction.restore => l10n.revisionActionEdit,
+        RevisionAction.restore => l10n.revisionActionRestore,
       };
 
   static String _money(Money money) => const MoneyFormatter().format(

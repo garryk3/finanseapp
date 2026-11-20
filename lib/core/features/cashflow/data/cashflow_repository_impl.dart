@@ -11,10 +11,11 @@ import 'package:finanseapp/core/features/cashflow/domain/cashflow_repository.dar
 
 /// Доходы и расходы: original+RUB snapshot, ревизии и поиск (7.1).
 final class CashflowRepositoryImpl implements CashflowRepository {
-  const CashflowRepositoryImpl(this._dao, this._currenciesDao);
+  const CashflowRepositoryImpl(this._dao, this._currenciesDao, this._db);
 
   final CashflowDao _dao;
   final CurrenciesDao _currenciesDao;
+  final AppDatabase _db;
 
   @override
   Stream<List<CashflowEntry>> watch(CashflowFilter filter) {
@@ -60,6 +61,17 @@ final class CashflowRepositoryImpl implements CashflowRepository {
 
   @override
   Future<void> softDelete(int id) => _dao.softDelete(id);
+
+  @override
+  Future<void> restore(int id) async {
+    final entry = await _dao.getById(id);
+    final assetTransactionId = entry.assetTransactionId;
+    if (assetTransactionId != null) {
+      await _db.transactionsDao.restore(assetTransactionId);
+      return;
+    }
+    await _dao.restore(id);
+  }
 
   Future<CashflowEntryInput> _input(
     CashflowEntryDraft draft, {

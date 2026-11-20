@@ -100,6 +100,17 @@ void main() {
     expect((await assets.getById(eurId)).currentValue.minorUnits, 900);
   });
 
+  test('restore перевода восстанавливает обе ноги', () async {
+    final transferId = await repository.transfer(draft());
+    await repository.softDeleteTransfer(transferId);
+
+    await repository.restoreTransfer(transferId);
+
+    final legs = await db.select(db.assetTransactions).get();
+    expect(legs.where((leg) => leg.transferId == transferId), hasLength(2));
+    expect(legs.every((leg) => leg.deletedAt == null), isTrue);
+  });
+
   test('одинаковые счета и нехватка средств отклоняются без следов', () async {
     await expectLater(
       repository.transfer(

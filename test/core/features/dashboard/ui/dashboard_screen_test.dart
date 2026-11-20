@@ -209,6 +209,9 @@ final class _Transactions implements AssetTransactionRepository {
   Future<void> softDelete(int id) => throw UnimplementedError();
 
   @override
+  Future<void> restore(int id) => throw UnimplementedError();
+
+  @override
   Future<int> transfer(TransferDraft draft) => throw UnimplementedError();
 
   @override
@@ -217,6 +220,9 @@ final class _Transactions implements AssetTransactionRepository {
 
   @override
   Future<void> softDeleteTransfer(int transferId) => throw UnimplementedError();
+
+  @override
+  Future<void> restoreTransfer(int transferId) => throw UnimplementedError();
 }
 
 final class _Cashflows implements CashflowRepository {
@@ -246,6 +252,9 @@ final class _Cashflows implements CashflowRepository {
 
   @override
   Future<void> softDelete(int id) => throw UnimplementedError();
+
+  @override
+  Future<void> restore(int id) => throw UnimplementedError();
 }
 
 final class _Settings implements SettingsRepository {

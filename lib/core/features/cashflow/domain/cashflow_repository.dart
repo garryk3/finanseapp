@@ -17,4 +17,6 @@ abstract interface class CashflowRepository {
   Future<void> revise(int id, CashflowEntryDraft draft);
 
   Future<void> softDelete(int id);
+
+  Future<void> restore(int id);
 }

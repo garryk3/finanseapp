@@ -119,10 +119,16 @@ final class FakeTransactions implements AssetTransactionRepository {
   Future<void> softDelete(int id) async {}
 
   @override
+  Future<void> restore(int id) async {}
+
+  @override
   Future<void> reviseTransfer(int transferId, TransferDraft draft) async {}
 
   @override
   Future<void> softDeleteTransfer(int transferId) async {}
+
+  @override
+  Future<void> restoreTransfer(int transferId) async {}
 }
 
 final class FakeCurrencies implements CurrencyRepository {

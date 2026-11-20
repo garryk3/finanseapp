@@ -2351,5 +2351,17 @@
   "journalLoadMore": "Показать ещё",
   "@journalLoadMore": {
     "description": "Пагинация журналов."
+  },
+  "revisionActionRestore": "Восстановлена",
+  "@revisionActionRestore": {
+    "description": "Действие ревизии restore."
+  },
+  "auditRestore": "Восстановить",
+  "@auditRestore": {
+    "description": "Кнопка восстановления удалённой записи."
+  },
+  "auditRestoreFailed": "Не удалось восстановить запись.",
+  "@auditRestoreFailed": {
+    "description": "Ошибка restore."
   }
 }
