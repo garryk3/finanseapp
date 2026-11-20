@@ -80,7 +80,13 @@ void main() {
     expect(tiles, lessThan(100), reason: 'builder не должен строить 10k tile');
     final list = tester.widget<AppListView>(find.byType(AppListView));
     expect(list.itemBuilder, isNotNull);
-    expect(list.itemCount, greaterThan(total));
+    expect(list.itemCount, lessThan(TransactionsViewModel.pageSize * 2 + 2));
+    expect(await db.select(db.assetTransactions).get(), hasLength(total));
+
+    vm.loadMore();
+    await tester.pumpAndSettle();
+    final expanded = tester.widget<AppListView>(find.byType(AppListView));
+    expect(expanded.itemCount, greaterThan(TransactionsViewModel.pageSize));
 
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(milliseconds: 20));

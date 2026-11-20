@@ -25,19 +25,27 @@ class TransactionsViewModel {
   final AssetRepository assetRepository;
   final LocalDate today;
 
+  static const pageSize = 200;
+
   final Signal<ViewState<List<AssetTransaction>>> state = signal(
     const ViewLoading(),
   );
   final Signal<String> query = signal('');
   final Signal<AssetTransactionKind?> kind = signal(null);
   final Signal<bool> monthOnly = signal(false);
+  final Signal<bool> hasMore = signal(false);
+  final Signal<bool> loadingMore = signal(false);
 
   final Map<int, Asset> _assets = {};
   StreamSubscription<List<AssetTransaction>>? _subscription;
   StreamSubscription<List<AssetSnapshot>>? _assetSubscription;
   bool _disposed = false;
+  int _limit = pageSize;
 
   void init() {
+    _limit = pageSize;
+    hasMore.value = false;
+    loadingMore.value = false;
     state.value = const ViewLoading();
     _assetSubscription?.cancel();
     _assetSubscription = assetRepository.watchAll(includeArchived: true).listen(
@@ -66,15 +74,19 @@ class TransactionsViewModel {
             period: monthOnly.value ? _currentMonth() : null,
             kind: kind.value,
             query: query.value,
+            limit: _limit + 1,
           ),
         )
         .listen(
           (transactions) {
             if (_disposed) return;
-            state.value = ViewData(transactions);
+            hasMore.value = transactions.length > _limit;
+            loadingMore.value = false;
+            state.value = ViewData(transactions.take(_limit).toList());
           },
           onError: (Object _) {
             if (_disposed) return;
+            loadingMore.value = false;
             state.value = const ViewError(DomainErrorCode.storageFailure);
           },
         );
@@ -90,16 +102,29 @@ class TransactionsViewModel {
 
   void setQuery(String value) {
     query.value = value;
+    _limit = pageSize;
+    hasMore.value = false;
     _subscribe();
   }
 
   void setKind(AssetTransactionKind? value) {
     kind.value = value;
+    _limit = pageSize;
+    hasMore.value = false;
     _subscribe();
   }
 
   void setMonthOnly(bool value) {
     monthOnly.value = value;
+    _limit = pageSize;
+    hasMore.value = false;
+    _subscribe();
+  }
+
+  void loadMore() {
+    if (!hasMore.value || loadingMore.value) return;
+    loadingMore.value = true;
+    _limit += pageSize;
     _subscribe();
   }
 
@@ -110,6 +135,8 @@ class TransactionsViewModel {
     query.value = '';
     kind.value = null;
     monthOnly.value = false;
+    _limit = pageSize;
+    hasMore.value = false;
     _subscribe();
   }
 

@@ -11,6 +11,7 @@ final class TransactionFilter {
     this.assetKind,
     this.currencyCode,
     this.query = '',
+    this.limit,
   });
 
   final DateRange? period;
@@ -19,4 +20,5 @@ final class TransactionFilter {
   final AssetKind? assetKind;
   final String? currencyCode;
   final String query;
+  final int? limit;
 }

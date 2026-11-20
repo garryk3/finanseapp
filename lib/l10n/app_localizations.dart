@@ -3277,6 +3277,12 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Не удалось рассчитать итоги месяца.'**
   String get dashboardCashflowUnavailable;
+
+  /// Пагинация журналов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Показать ещё'**
+  String get journalLoadMore;
 }
 
 class _AppLocalizationsDelegate

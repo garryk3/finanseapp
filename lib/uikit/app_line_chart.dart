@@ -35,6 +35,7 @@ class AppLineChart extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final disableAnimations = MediaQuery.of(context).disableAnimations;
+    final textScaler = MediaQuery.textScalerOf(context);
 
     // Диапазон Y: finite padding, нулевой диапазон не даёт division by zero.
     final allY = series.expand((s) => s.points.map((p) => p.y)).toList();
@@ -89,7 +90,7 @@ class AppLineChart extends StatelessWidget {
                 sideTitles: SideTitles(
                   showTitles: true,
                   interval: labelInterval,
-                  reservedSize: 28,
+                  reservedSize: 8 + textScaler.scale(20),
                   getTitlesWidget: (value, meta) {
                     final index = value.round();
                     final label =

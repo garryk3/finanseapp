@@ -2347,5 +2347,9 @@
   "dashboardCashflowUnavailable": "Не удалось рассчитать итоги месяца.",
   "@dashboardCashflowUnavailable": {
     "description": "Ошибка расчёта денежного потока."
+  },
+  "journalLoadMore": "Показать ещё",
+  "@journalLoadMore": {
+    "description": "Пагинация журналов."
   }
 }

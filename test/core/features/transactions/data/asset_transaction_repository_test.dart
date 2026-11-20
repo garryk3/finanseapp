@@ -8,6 +8,7 @@ import 'package:finanseapp/core/domain/common/result.dart';
 import 'package:finanseapp/core/features/categories/domain/category.dart';
 import 'package:finanseapp/core/features/transactions/data/asset_transaction_repository_impl.dart';
 import 'package:finanseapp/core/features/transactions/domain/asset_transaction.dart';
+import 'package:finanseapp/core/features/transactions/domain/transaction_filter.dart';
 import 'package:finanseapp/core/features/transactions/domain/transaction_classification.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -229,6 +230,32 @@ void main() {
       db.cashflowEntries,
     )..where((e) => e.id.equals(linked!.id))).getSingle();
     expect(rows.deletedAt, isNotNull);
+  });
+
+  test('поиск по комментарию применяется до limit', () async {
+    final assetId = await createAccount(db, currencyCode: 'USD');
+    await repository.create(draft(assetId, comment: 'старый target'));
+    await repository.create(draft(assetId));
+    await repository.create(draft(assetId));
+
+    final found = await repository
+        .watch(const TransactionFilter(query: 'target', limit: 2))
+        .first;
+
+    expect(found, hasLength(1));
+  });
+
+  test('limit ограничивает журнал на уровне запроса', () async {
+    final assetId = await createAccount(db, currencyCode: 'USD');
+    for (var i = 0; i < 3; i++) {
+      await repository.create(draft(assetId));
+    }
+
+    final limited = await repository
+        .watch(const TransactionFilter(limit: 2))
+        .first;
+
+    expect(limited, hasLength(2));
   });
 
   test('CALC-011: правка суммы сохраняет revision 1 и даёт +950 RUB', () async {

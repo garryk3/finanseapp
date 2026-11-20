@@ -184,6 +184,11 @@ void main() {
       }
 
       await pump(234, 1.3);
+      final data = tester.widget<BarChart>(find.byType(BarChart)).data;
+      expect(
+        data.titlesData.bottomTitles.sideTitles.reservedSize,
+        greaterThan(28),
+      );
       final visible = [
         for (final label in labels)
           if (find.text(label).evaluate().isNotEmpty) label,
