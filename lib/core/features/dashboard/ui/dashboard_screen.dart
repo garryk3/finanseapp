@@ -97,7 +97,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final summary = vm.netWorth.value;
     final base = vm.baseCurrency.value;
     final value = summary == null ? '—' : vm.formatMoney(summary.total);
-    final currencyCode = summary?.total.currencyCode ?? base?.code ?? '';
+    final currencyCode = vm.netWorthError.value != null
+        ? base?.code ?? ''
+        : summary?.total.currencyCode ?? base?.code ?? '';
     final subtitle =
         '${const DateFormatter().format(vm.today.value)} · $currencyCode';
     return SingleChildScrollView(
