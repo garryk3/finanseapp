@@ -1,5 +1,6 @@
 // ignore_for_file: type=lint
 // Тестовая фикстура: raw Material-виджеты разрешены (зона test/**, CI-гард проверяет только lib/).
+import 'package:fl_chart/fl_chart.dart';
 import 'package:finanseapp/app/theme/app_semantic_colors.dart';
 import 'package:finanseapp/app/theme/chart_series_colors.dart';
 import 'package:finanseapp/app/theme/app_theme.dart';
@@ -112,6 +113,37 @@ void main() {
   });
 
   group('AppCashflowChart', () {
+    testWidgets('maxY покрывает больший столбец в обе стороны', (tester) async {
+      Future<double> maxYFor(double income, double expense) async {
+        await tester.pumpWidget(
+          testApp(
+            SizedBox(
+              width: 320,
+              height: 160,
+              child: AppCashflowChart(
+                groups: [
+                  AppCashflowBarGroup(
+                    label: '15–21.11',
+                    income: income,
+                    expense: expense,
+                    incomeText: '$income €',
+                    expenseText: '$expense €',
+                    netText: '0,00 €',
+                  ),
+                ],
+                accessibleSummary: 'Неделя.',
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+        return tester.widget<BarChart>(find.byType(BarChart)).data.maxY;
+      }
+
+      expect(await maxYFor(0.5, 1.0), closeTo(1.15, 1e-9));
+      expect(await maxYFor(2.0, 0.5), closeTo(2.3, 1e-9));
+    });
+
     testWidgets('группы рендерятся, summary доступен', (tester) async {
       await tester.pumpWidget(
         testApp(
