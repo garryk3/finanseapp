@@ -13,8 +13,8 @@ import 'package:finanseapp/uikit/app_text.dart';
 /// только цветом. Связанная запись — badge [linkedLabel] без второй суммы
 /// в aggregate (finance.md §2).
 ///
-/// Экраны: журналы Операции (cashflow + транзакции), Dashboard (последние
-/// операции), AuditScreen (revision lists), детали (связанные записи).
+/// Экраны: журналы Операции (cashflow + транзакции). Пустые части meta-строки
+/// опускаются, чтобы не оставлять висячий разделитель.
 class AppOperationListTile extends StatelessWidget {
   const AppOperationListTile({
     super.key,
@@ -52,8 +52,14 @@ class AppOperationListTile extends StatelessWidget {
       if (categoryLabel != null) categoryLabel!,
       if (accountLabel != null) accountLabel!,
     ];
+    final semanticLabel = <String>[
+      typeLabel,
+      title,
+      amountText,
+      if (dateText.trim().isNotEmpty) dateText,
+    ].where((part) => part.trim().isNotEmpty).join(', ');
     return Semantics(
-      label: '$typeLabel, $title, $amountText, $dateText',
+      label: semanticLabel,
       child: AppInkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppRadii.md),
@@ -104,7 +110,10 @@ class AppOperationListTile extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     AppText(
-                      <String>[typeLabel, dateText, ...metaParts].join(' · '),
+                      <String>[typeLabel, dateText, ...metaParts]
+                          .map((part) => part.trim())
+                          .where((part) => part.isNotEmpty)
+                          .join(' · '),
                       style: textTheme.bodySmall?.copyWith(color: secondary),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,

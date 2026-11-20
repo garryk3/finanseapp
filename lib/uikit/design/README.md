@@ -75,7 +75,7 @@ public API). Экраны — из матрицы `docs/architecture/navigation_
 | AppMoneyText, AppMoneyDelta, AppExchangeRateText | Dashboard, детали, TransactionDetails, CashflowDetails, Аналитика |
 | AppMetric, AppSummaryCard, AppCashflowSummary | Dashboard, Аналитика, GoalDetails, Операции |
 | AppAssetListTile | AssetsScreen, Dashboard, GoalForm |
-| AppOperationListTile, AppDateHeader | Журналы Операции, Dashboard, Аудит |
+| AppOperationListTile, AppDateHeader | Журналы Операции |
 | AppCategoryChip | CashflowForm, фильтры Аналитики/Операций, Categories |
 | AppGoalCard | GoalsScreen, Dashboard |
 | AppEmptyState, AppErrorState | Все списки/экраны; compact — offline курсы/обновления |

@@ -90,6 +90,27 @@ void main() {
       expect(semantics.label, contains('Расход'));
       expect(semantics.label, contains('−1 250,00 ₽'));
       expect(semantics.label, contains('15 ноября 2026'));
+      expect(find.text('Расход · 15 ноября 2026 · Еда'), findsOneWidget);
+    });
+
+    testWidgets('пустые date/meta не оставляют висячий разделитель', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          const AppOperationListTile(
+            title: 'Продукты',
+            typeLabel: 'Расход',
+            icon: Icons.arrow_downward,
+            amountText: '−1 250,00 ₽',
+            dateText: '',
+            tone: AppMoneyTone.expense,
+          ),
+        ),
+      );
+
+      expect(find.text('Расход'), findsOneWidget);
+      expect(find.textContaining('·'), findsNothing);
     });
 
     testWidgets('deleted без deletedLabel падает assert', (tester) async {

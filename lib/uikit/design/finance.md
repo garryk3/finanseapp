@@ -138,7 +138,8 @@ surfaceContainerHighest`), resolver находится в UIKit theme layer. П�
 neutral fallback, не Color.parse. `iconKey` из domain заранее преобразован View в IconData
 через закрытый mapper feature presentation; arbitrary code point запрещён.
 
-Operation tile обязательно содержит `typeLabel` + `icon` и включает их в Semantics:
+Operation tile обязательно содержит `typeLabel` + `icon` и включает их в Semantics;
+пустые части meta-строки (`dateText`, category/account) опускаются перед `join(' · ')`:
 «Доход», «Расход», «Пополнение», «Снятие», «Перевод»; знак суммы также сохраняется.
 Archived/deleted labels приходят из feature View и показываются визуально + в Semantics.
 Linked label поясняет «Влияет на баланс»/«Связано со счётом», но не создаёт вторую сумму

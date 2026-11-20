@@ -100,8 +100,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final currencyCode = vm.netWorthError.value != null
         ? base?.code ?? ''
         : summary?.total.currencyCode ?? base?.code ?? '';
-    final subtitle =
-        '${const DateFormatter().format(vm.today.value)} · $currencyCode';
+    final subtitle = <String>[
+      const DateFormatter().format(vm.today.value),
+      if (currencyCode.isNotEmpty) currencyCode,
+    ].join(' · ');
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
       child: AppAdaptiveGrid(
