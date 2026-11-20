@@ -45,6 +45,14 @@ const _rub = Currency(
   isEnabled: true,
 );
 
+const _usd = Currency(
+  code: 'USD',
+  name: 'Доллар США',
+  fractionDigits: 2,
+  isPreset: true,
+  isEnabled: true,
+);
+
 final _today = LocalDate(2026, 11, 19);
 
 Money _rubles(int major) => Money(minorUnits: major * 100, currencyCode: 'RUB');
@@ -64,7 +72,7 @@ final class _Queries implements AnalyticsQueries {
   });
 
   Money total;
-  final Object? error;
+  Object? error;
   CashflowSummary cashflowResult;
   CashflowFilter? lastCashflowFilter;
   final List<CashflowPeriodPoint> cashflowPoints;
@@ -240,16 +248,17 @@ final class _Cashflows implements CashflowRepository {
 }
 
 final class _Settings implements SettingsRepository {
-  _Settings({this.controller});
+  _Settings({this.controller, this.base = _rub});
 
   final StreamController<Currency>? controller;
+  final Currency base;
 
   @override
   Stream<Currency> watchBaseCurrency() =>
-      controller?.stream ?? Stream.value(_rub);
+      controller?.stream ?? Stream.value(base);
 
   @override
-  Future<Currency> getBaseCurrency() async => _rub;
+  Future<Currency> getBaseCurrency() async => base;
 
   @override
   Future<void> setBaseCurrency(String code) async {}
@@ -354,21 +363,26 @@ void main() {
     CashflowSummary? cashflowResult,
     List<CashflowPeriodPoint> cashflowPoints = const [],
     Object? cashflowError,
+    Currency base = _rub,
+    _Queries? queries,
+    StreamController<Currency>? settingsController,
   }) => DashboardViewModel(
-    queries: _Queries(
-      total ?? _rubles(0),
-      error: error,
-      cashflowResult:
-          cashflowResult ??
-          const CashflowSummary(
-            income: Money(minorUnits: 0, currencyCode: 'RUB'),
-            expense: Money(minorUnits: 0, currencyCode: 'RUB'),
-            net: Money(minorUnits: 0, currencyCode: 'RUB'),
-            currencyCode: 'RUB',
-          ),
-      cashflowPoints: cashflowPoints,
-      cashflowError: cashflowError,
-    ),
+    queries:
+        queries ??
+        _Queries(
+          total ?? _rubles(0),
+          error: error,
+          cashflowResult:
+              cashflowResult ??
+              const CashflowSummary(
+                income: Money(minorUnits: 0, currencyCode: 'RUB'),
+                expense: Money(minorUnits: 0, currencyCode: 'RUB'),
+                net: Money(minorUnits: 0, currencyCode: 'RUB'),
+                currencyCode: 'RUB',
+              ),
+          cashflowPoints: cashflowPoints,
+          cashflowError: cashflowError,
+        ),
     goalRepository: _Goals(goals),
     assetRepository: _Assets(snapshots, controller: assetController),
     transactionRepository: _Transactions(
@@ -376,7 +390,7 @@ void main() {
       controller: transactionController,
     ),
     cashflowRepository: _Cashflows(),
-    settingsRepository: _Settings(),
+    settingsRepository: _Settings(controller: settingsController, base: base),
     currencyRepository: _Currencies(),
     rateRepository: _Rates(),
     now: () => _today,
@@ -390,6 +404,9 @@ void main() {
     List<AssetSnapshot> snapshots = const [],
     List<AssetTransaction> operations = const [],
     Object? cashflowError,
+    Currency base = _rub,
+    _Queries? queries,
+    StreamController<Currency>? settingsController,
     double width = 1000,
     bool dark = false,
     bool largeText = false,
@@ -401,6 +418,9 @@ void main() {
       snapshots: snapshots,
       operations: operations,
       cashflowError: cashflowError,
+      base: base,
+      queries: queries,
+      settingsController: settingsController,
     );
     tester.view.physicalSize = Size(width, 2000);
     tester.view.devicePixelRatio = 1;
@@ -474,6 +494,29 @@ void main() {
     expect(find.text(l10n.dashboardGoalsEmpty), findsOneWidget);
     expect(find.text(l10n.dashboardRecentEmpty), findsOneWidget);
     expect(find.text(l10n.errorStateTitle), findsNothing);
+  });
+
+  testWidgets('ошибка курса: устаревший RUB-снимок не протекает в подпись', (
+    tester,
+  ) async {
+    final queries = _Queries(_rubles(1500));
+    final settings = StreamController<Currency>.broadcast();
+    addTearDown(settings.close);
+    final vm = await pump(
+      tester,
+      queries: queries,
+      settingsController: settings,
+    );
+    expect(vm.netWorth.value, isNotNull);
+    expect(find.textContaining('· RUB'), findsOneWidget);
+
+    queries.error = const DomainException(DomainErrorCode.rateUnavailable);
+    settings.add(_usd);
+    await tester.pumpAndSettle();
+
+    expect(find.text(l10n.assetBaseUnavailable), findsOneWidget);
+    expect(find.textContaining('· USD'), findsOneWidget);
+    expect(find.textContaining('· RUB'), findsNothing);
   });
 
   testWidgets('320dp, font 1.3, тёмная тема — без overflow', (tester) async {
