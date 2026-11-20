@@ -1684,4 +1684,47 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get backupRestartOk => 'Перезапустить';
+
+  @override
+  String settingsUpdateVersion(String version) {
+    return 'Установленная версия: $version';
+  }
+
+  @override
+  String get updateCheck => 'Проверить обновление';
+
+  @override
+  String get updateChecking => 'Проверка обновлений…';
+
+  @override
+  String get updateUpToDate => 'Установлена последняя версия.';
+
+  @override
+  String updateAvailable(String version) {
+    return 'Доступна версия $version.';
+  }
+
+  @override
+  String get updateOpen => 'Открыть обновление';
+
+  @override
+  String get updateOpenFailed => 'Не удалось открыть страницу обновления.';
+
+  @override
+  String get updateNoReleases => 'Релизы не найдены.';
+
+  @override
+  String get updateCheckError => 'Не удалось проверить обновления.';
+
+  @override
+  String get updateNetworkError => 'Нет соединения или сервер недоступен.';
+
+  @override
+  String get updateInvalidResponse => 'Некорректный ответ сервера обновлений.';
+
+  @override
+  String get updateVersionUnavailable => 'Версия недоступна';
+
+  @override
+  String get updateAvailableSimple => 'Доступно обновление.';
 }

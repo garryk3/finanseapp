@@ -3187,6 +3187,84 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Перезапустить'**
   String get backupRestartOk;
+
+  /// Версия приложения.
+  ///
+  /// In ru, this message translates to:
+  /// **'Установленная версия: {version}'**
+  String settingsUpdateVersion(String version);
+
+  /// Кнопка проверки обновлений.
+  ///
+  /// In ru, this message translates to:
+  /// **'Проверить обновление'**
+  String get updateCheck;
+
+  /// Статус проверки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Проверка обновлений…'**
+  String get updateChecking;
+
+  /// Статус up-to-date.
+  ///
+  /// In ru, this message translates to:
+  /// **'Установлена последняя версия.'**
+  String get updateUpToDate;
+
+  /// Статус доступного обновления.
+  ///
+  /// In ru, this message translates to:
+  /// **'Доступна версия {version}.'**
+  String updateAvailable(String version);
+
+  /// Открыть APK/release page.
+  ///
+  /// In ru, this message translates to:
+  /// **'Открыть обновление'**
+  String get updateOpen;
+
+  /// Ошибка запуска ссылки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось открыть страницу обновления.'**
+  String get updateOpenFailed;
+
+  /// 404 latest release.
+  ///
+  /// In ru, this message translates to:
+  /// **'Релизы не найдены.'**
+  String get updateNoReleases;
+
+  /// Сетевая/форматная ошибка.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось проверить обновления.'**
+  String get updateCheckError;
+
+  /// Offline/HTTP ошибка обновлений.
+  ///
+  /// In ru, this message translates to:
+  /// **'Нет соединения или сервер недоступен.'**
+  String get updateNetworkError;
+
+  /// Malformed release.
+  ///
+  /// In ru, this message translates to:
+  /// **'Некорректный ответ сервера обновлений.'**
+  String get updateInvalidResponse;
+
+  /// Не удалось получить версию.
+  ///
+  /// In ru, this message translates to:
+  /// **'Версия недоступна'**
+  String get updateVersionUnavailable;
+
+  /// Обновление без тега версии.
+  ///
+  /// In ru, this message translates to:
+  /// **'Доступно обновление.'**
+  String get updateAvailableSimple;
 }
 
 class _AppLocalizationsDelegate

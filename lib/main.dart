@@ -4,6 +4,8 @@ import 'package:finanseapp/core/features/backup/data/local_database_backup_servi
 import 'package:finanseapp/core/features/backup/data/platform_backup_file_gateway.dart';
 import 'package:finanseapp/core/features/backup/domain/backup_service.dart';
 import 'package:finanseapp/core/features/backup/logic/backup_view_model.dart';
+import 'package:finanseapp/core/features/settings/data/github_update_service.dart';
+import 'package:finanseapp/core/features/settings/logic/update_check_view_model.dart';
 import 'package:finanseapp/core/database/app_database.dart';
 import 'package:finanseapp/core/di/register_core_services.dart';
 import 'package:finanseapp/core/di/service_locator.dart';
@@ -33,6 +35,8 @@ import 'package:finanseapp/core/features/assets/domain/asset_repository.dart';
 import 'package:finanseapp/core/features/transactions/domain/asset_transaction_repository.dart';
 import 'package:finanseapp/core/features/transactions/ui/transactions_view_model.dart';
 import 'package:flutter/widgets.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -101,6 +105,15 @@ Future<ServiceLocator> buildAppLocator() async {
     )
     ..registerFactory<SettingsViewModel>(
       () => SettingsViewModel(repository: locator.get<SettingsRepository>()),
+    )
+    ..registerFactory<UpdateCheckViewModel>(
+      () => UpdateCheckViewModel(
+        service: GithubUpdateService(),
+        installedVersionProvider: () async =>
+            (await PackageInfo.fromPlatform()).version,
+        opener: (url) =>
+            launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication),
+      ),
     )
     ..registerFactory<AboutViewModel>(AboutViewModel.new)
     ..registerFactory<MoreViewModel>(MoreViewModel.new)
