@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:decimal/decimal.dart';
 import 'package:finanseapp/core/domain/common/currency.dart';
 import 'package:finanseapp/core/domain/common/local_date.dart';
@@ -45,9 +47,64 @@ class GoalDetailsViewModel {
   final CalculateGoalProgress _calculator = const CalculateGoalProgress();
   final Map<String, Decimal> _rateCache = {};
 
+  StreamSubscription<List<FinancialGoal>>? _goalsSubscription;
+  StreamSubscription<List<AssetSnapshot>>? _assetsSubscription;
+  bool _reloading = false;
+  bool _reloadQueued = false;
+  bool _disposed = false;
+  bool _firstGoalsEvent = true;
+  bool _firstAssetsEvent = true;
+
+  /// Подписывается на цель и связанные активы и загружает снимок.
   Future<void> load() async {
+    _subscribe();
+    if (_reloading) {
+      _reloadQueued = true;
+      return;
+    }
+    await _reload();
+  }
+
+  void _subscribe() {
+    if (_disposed || _goalsSubscription != null) return;
+    _goalsSubscription = repository.watchAll().listen((_) {
+      if (_firstGoalsEvent) {
+        _firstGoalsEvent = false;
+        return;
+      }
+      _scheduleReload();
+    }, onError: (Object _) => _onStreamError());
+    _assetsSubscription = assetRepository
+        .watchAll(includeArchived: true)
+        .listen((_) {
+          if (_firstAssetsEvent) {
+            _firstAssetsEvent = false;
+            return;
+          }
+          _scheduleReload();
+        }, onError: (Object _) => _onStreamError());
+  }
+
+  void _onStreamError() {
+    if (_disposed) return;
+    state.value = const ViewError(DomainErrorCode.storageFailure);
+  }
+
+  void _scheduleReload() {
+    if (_disposed) return;
+    if (_reloading) {
+      _reloadQueued = true;
+      return;
+    }
+    unawaited(_reload());
+  }
+
+  Future<void> _reload() async {
+    if (_disposed) return;
+    _reloading = true;
     try {
       var current = await repository.getById(goalId);
+      if (_disposed) return;
       if (current.deletedAt != null) {
         state.value = const ViewError(DomainErrorCode.notFound);
         return;
@@ -61,6 +118,7 @@ class GoalDetailsViewModel {
       final snapshots = await assetRepository
           .watchAll(includeArchived: true)
           .first;
+      if (_disposed) return;
       final byId = {
         for (final snapshot in snapshots) snapshot.asset.id: snapshot,
       };
@@ -82,6 +140,7 @@ class GoalDetailsViewModel {
         today: today,
         rateCache: _rateCache,
       );
+      if (_disposed) return;
       if (computed != null) {
         final resolved = GoalCalculator.resolveStatus(
           current: current.status,
@@ -89,7 +148,9 @@ class GoalDetailsViewModel {
         );
         if (resolved != current.status) {
           await repository.setStatus(goalId, resolved);
+          if (_disposed) return;
           current = await repository.getById(goalId);
+          if (_disposed) return;
         }
       }
       progress.value = computed;
@@ -99,6 +160,12 @@ class GoalDetailsViewModel {
       state.value = ViewError(error.code);
     } on Exception {
       state.value = const ViewError(DomainErrorCode.storageFailure);
+    } finally {
+      _reloading = false;
+      if (_reloadQueued) {
+        _reloadQueued = false;
+        _scheduleReload();
+      }
     }
   }
 
@@ -135,5 +202,11 @@ class GoalDetailsViewModel {
     }
   }
 
-  void dispose() {}
+  void dispose() {
+    _disposed = true;
+    unawaited(_goalsSubscription?.cancel());
+    unawaited(_assetsSubscription?.cancel());
+    _goalsSubscription = null;
+    _assetsSubscription = null;
+  }
 }
