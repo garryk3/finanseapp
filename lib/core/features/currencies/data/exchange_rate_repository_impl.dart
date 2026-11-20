@@ -5,6 +5,7 @@ import 'package:finanseapp/core/domain/common/exchange_rate.dart';
 import 'package:finanseapp/core/domain/common/local_date.dart';
 import 'package:finanseapp/core/domain/common/result.dart';
 import 'package:finanseapp/core/features/currencies/data/cbr_exchange_rate_client.dart';
+import 'package:finanseapp/core/features/currencies/logic/exchange_rate_events.dart';
 import 'package:finanseapp/core/features/currencies/domain/exchange_rate_repository.dart';
 
 /// Реализация кэша курсов: точная дата, ЦБ и ручной fallback (BR-C-2/3/7).
@@ -39,6 +40,7 @@ final class ExchangeRateRepositoryImpl implements ExchangeRateRepository {
       rateToRub: quote.rateToRub,
       source: ExchangeRateSource.cbr,
     );
+    markExchangeRateChanged();
     return _map(row);
   }
 
@@ -49,6 +51,7 @@ final class ExchangeRateRepositoryImpl implements ExchangeRateRepository {
     Decimal rateToRub,
   ) async {
     final row = await _dao.saveManualRate(currencyCode, date, rateToRub);
+    markExchangeRateChanged();
     return _map(row);
   }
 

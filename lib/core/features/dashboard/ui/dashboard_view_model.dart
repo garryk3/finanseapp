@@ -18,6 +18,7 @@ import 'package:finanseapp/core/features/cashflow/domain/cashflow_repository.dar
 import 'package:finanseapp/core/features/cashflow/domain/cashflow_summary.dart';
 import 'package:finanseapp/core/features/currencies/domain/currency_repository.dart';
 import 'package:finanseapp/core/features/currencies/domain/exchange_rate_repository.dart';
+import 'package:finanseapp/core/features/currencies/logic/exchange_rate_events.dart';
 import 'package:finanseapp/core/features/goals/domain/financial_goal.dart';
 import 'package:finanseapp/core/features/goals/domain/goal_progress.dart';
 import 'package:finanseapp/core/features/goals/domain/goal_repository.dart';
@@ -106,6 +107,7 @@ class DashboardViewModel {
   StreamSubscription<List<AssetTransaction>>? _transactionsSubscription;
   StreamSubscription<Currency>? _baseSubscription;
   StreamSubscription<List<CashflowEntry>>? _cashflowSubscription;
+  EffectCleanup? _rateCleanup;
 
   void init() {
     today.value = now();
@@ -121,6 +123,16 @@ class DashboardViewModel {
     _loadCurrencies();
     _subscribeBaseCurrency();
     cashflowError.value = null;
+    _rateCleanup?.call();
+    var seenRateRevision = exchangeRateRevision.value;
+    _rateCleanup = exchangeRateRevision.subscribe((revision) {
+      if (_disposed || revision == seenRateRevision) return;
+      seenRateRevision = revision;
+      _rateCache.clear();
+      unawaited(_reloadNetWorth());
+      unawaited(_reloadCashflow());
+      unawaited(_recomputeGoals());
+    });
     _cashflowSubscription?.cancel();
     _cashflowSubscription = cashflowRepository
         .watch(CashflowFilter(period: _monthRange))
@@ -321,5 +333,7 @@ class DashboardViewModel {
     _transactionsSubscription?.cancel();
     _cashflowSubscription?.cancel();
     _baseSubscription?.cancel();
+    _rateCleanup?.call();
+    _rateCleanup = null;
   }
 }

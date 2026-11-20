@@ -2339,5 +2339,13 @@
   "updateAvailableSimple": "Доступно обновление.",
   "@updateAvailableSimple": {
     "description": "Обновление без тега версии."
+  },
+  "dashboardCashflowRateUnavailable": "Итоги месяца недоступны без курса.",
+  "@dashboardCashflowRateUnavailable": {
+    "description": "Ошибка курса в блоке денежного потока."
+  },
+  "dashboardCashflowUnavailable": "Не удалось рассчитать итоги месяца.",
+  "@dashboardCashflowUnavailable": {
+    "description": "Ошибка расчёта денежного потока."
   }
 }

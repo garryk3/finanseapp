@@ -120,7 +120,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
           _quickActions(context, l10n),
-          if (vm.cashflowSummary.value != null)
+          if (vm.cashflowError.value != null)
+            AppSection(
+              header: l10n.dashboardCashflowTitle,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  AppText(
+                    vm.cashflowError.value == DomainErrorCode.rateUnavailable
+                        ? l10n.dashboardCashflowRateUnavailable
+                        : l10n.dashboardCashflowUnavailable,
+                  ),
+                  if (vm.cashflowError.value ==
+                      DomainErrorCode.rateUnavailable) ...[
+                    const SizedBox(height: AppSpacing.xs),
+                    AppButton(
+                      label: l10n.analyticsEnterRate,
+                      variant: AppButtonVariant.text,
+                      onPressed: () =>
+                          context.push('${AppRoutes.analytics}?period=month'),
+                    ),
+                  ],
+                ],
+              ),
+            )
+          else if (vm.cashflowSummary.value != null)
             DashboardCashflow(
               summary: vm.cashflowSummary.value!,
               points: vm.cashflowPoints.value,
@@ -136,15 +160,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   context.push('${AppRoutes.analytics}?period=month'),
               onAddExpense: () =>
                   context.push('${AppRoutes.cashflowNew}?kind=expense'),
-            )
-          else if (vm.cashflowError.value != null)
-            AppSection(
-              header: l10n.dashboardCashflowTitle,
-              child: AppText(
-                vm.cashflowError.value == DomainErrorCode.rateUnavailable
-                    ? l10n.assetBaseUnavailable
-                    : l10n.dashboardNetWorthUnavailable,
-              ),
             ),
           DashboardGoals(
             goals: vm.goals.value,
