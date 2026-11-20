@@ -2363,5 +2363,67 @@
   "auditRestoreFailed": "Не удалось восстановить запись.",
   "@auditRestoreFailed": {
     "description": "Ошибка restore."
+  },
+  "comparisonTitle": "Сравнение активов",
+  "@comparisonTitle": {
+    "description": "Экран сравнения активов."
+  },
+  "comparisonSelectHint": "Выберите от 2 до 5 активов.",
+  "@comparisonSelectHint": {
+    "description": "Подсказка выбора."
+  },
+  "comparisonModeAbsolute": "Суммы",
+  "@comparisonModeAbsolute": {
+    "description": "Режим absolute."
+  },
+  "comparisonModeNormalized": "Индекс (100)",
+  "@comparisonModeNormalized": {
+    "description": "Режим normalized."
+  },
+  "comparisonNoAssets": "Недостаточно активов для сравнения.",
+  "@comparisonNoAssets": {
+    "description": "Меньше 2 активов."
+  },
+  "comparisonEmpty": "Нет данных за выбранный период.",
+  "@comparisonEmpty": {
+    "description": "Пустые серии."
+  },
+  "comparisonTableTitle": "Активы",
+  "@comparisonTableTitle": {
+    "description": "Таблица сравнения."
+  },
+  "comparisonSelectTitle": "Активы для сравнения",
+  "@comparisonSelectTitle": {
+    "description": "Заголовок выбора активов."
+  },
+  "comparisonChartTitle": "Динамика стоимости",
+  "@comparisonChartTitle": {
+    "description": "Заголовок графика сравнения."
+  },
+  "comparisonChartBase": "База: 100% на старте",
+  "@comparisonChartBase": {
+    "description": "Короткое пояснение normalized."
+  },
+  "comparisonSummaryLine": "{name}: последнее {last}, минимум {min}, максимум {max}",
+  "@comparisonSummaryLine": {
+    "description": "Строка summary сравнения.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "last": {
+        "type": "String"
+      },
+      "min": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "comparisonGoAssets": "Перейти к активам",
+  "@comparisonGoAssets": {
+    "description": "CTA пустого сравнения."
   }
 }

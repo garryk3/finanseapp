@@ -51,10 +51,19 @@ class _MoreScreenState extends State<MoreScreen> {
           children: [
             AppSection(
               header: l10n.moreOverviewSection,
-              child: AppListTile(
-                title: l10n.analyticsTitle,
-                leading: const AppIcon(Icons.show_chart),
-                onTap: () => context.push(AppRoutes.analytics),
+              child: Column(
+                children: [
+                  AppListTile(
+                    title: l10n.analyticsTitle,
+                    leading: const AppIcon(Icons.show_chart),
+                    onTap: () => context.push(AppRoutes.analytics),
+                  ),
+                  AppListTile(
+                    title: l10n.comparisonTitle,
+                    leading: const AppIcon(Icons.compare_arrows),
+                    onTap: () => context.push(AppRoutes.comparison),
+                  ),
+                ],
               ),
             ),
             AppSection(

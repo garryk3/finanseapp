@@ -1748,4 +1748,47 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get auditRestoreFailed => 'Не удалось восстановить запись.';
+
+  @override
+  String get comparisonTitle => 'Сравнение активов';
+
+  @override
+  String get comparisonSelectHint => 'Выберите от 2 до 5 активов.';
+
+  @override
+  String get comparisonModeAbsolute => 'Суммы';
+
+  @override
+  String get comparisonModeNormalized => 'Индекс (100)';
+
+  @override
+  String get comparisonNoAssets => 'Недостаточно активов для сравнения.';
+
+  @override
+  String get comparisonEmpty => 'Нет данных за выбранный период.';
+
+  @override
+  String get comparisonTableTitle => 'Активы';
+
+  @override
+  String get comparisonSelectTitle => 'Активы для сравнения';
+
+  @override
+  String get comparisonChartTitle => 'Динамика стоимости';
+
+  @override
+  String get comparisonChartBase => 'База: 100% на старте';
+
+  @override
+  String comparisonSummaryLine(
+    String name,
+    String last,
+    String min,
+    String max,
+  ) {
+    return '$name: последнее $last, минимум $min, максимум $max';
+  }
+
+  @override
+  String get comparisonGoAssets => 'Перейти к активам';
 }

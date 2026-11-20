@@ -80,11 +80,14 @@ final class AnalyticsQueriesImpl implements AnalyticsQueries {
   Future<List<NetWorthPoint>> netWorthSeries({
     required DateRange period,
     AssetKind? assetKind,
+    int? assetId,
   }) async {
     final data = await _load();
     final selected = [
       for (final asset in data.assets)
-        if (assetKind == null || asset.kind == assetKind) asset,
+        if ((assetKind == null || asset.kind == assetKind) &&
+            (assetId == null || asset.id == assetId))
+          asset,
     ];
     if (selected.isEmpty) return const [];
     final assetIds = {for (final asset in selected) asset.id};
@@ -121,6 +124,7 @@ final class AnalyticsQueriesImpl implements AnalyticsQueries {
         data: data,
         onDate: date,
         assetKind: assetKind,
+        assetId: assetId,
         rateCache: rateCache,
       );
       points.add(NetWorthPoint(date: date, value: summary.total));
@@ -133,11 +137,13 @@ final class AnalyticsQueriesImpl implements AnalyticsQueries {
     required LocalDate onDate,
     required Map<String, Decimal> rateCache,
     AssetKind? assetKind,
+    int? assetId,
   }) async {
     final rates = <String, Decimal>{};
     final values = <NetWorthAssetValue>[];
     for (final asset in data.assets) {
       if (assetKind != null && asset.kind != assetKind) continue;
+      if (assetId != null && asset.id != assetId) continue;
       if (!AnalyticsMappers.isIncluded(asset, onDate)) continue;
       final currency = data.currencies[asset.currencyCode];
       if (currency == null) {
