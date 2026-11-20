@@ -147,7 +147,8 @@ class AppLocalizationsRu extends AppLocalizations {
   String get assetsEmptyTitle => 'Нет активов';
 
   @override
-  String get assetsEmptyMessage => 'Добавьте счёт, инвестицию или квартиру.';
+  String get assetsEmptyMessage =>
+      'Добавьте счёт, инвестицию или недвижимость.';
 
   @override
   String get goalsEmptyTitle => 'Нет целей';
@@ -747,7 +748,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get assetKindInvestment => 'Инвестиция';
 
   @override
-  String get assetKindProperty => 'Квартира';
+  String get assetKindProperty => 'Недвижимость';
 
   @override
   String get assetActions => 'Действия с активом';
@@ -1117,13 +1118,13 @@ class AppLocalizationsRu extends AppLocalizations {
       'Категория в архиве. Выберите активную.';
 
   @override
-  String get propertyFormNew => 'Новая квартира';
+  String get propertyFormNew => 'Новая недвижимость';
 
   @override
-  String get propertyFormEdit => 'Изменить квартиру';
+  String get propertyFormEdit => 'Изменить недвижимость';
 
   @override
-  String get propertyNameLabel => 'Название квартиры';
+  String get propertyNameLabel => 'Название недвижимости';
 
   @override
   String get propertyAddressLabel => 'Адрес';
@@ -1135,16 +1136,16 @@ class AppLocalizationsRu extends AppLocalizations {
   String get propertyValueLabel => 'Начальная стоимость';
 
   @override
-  String get propertyCurrencyLabel => 'Валюта квартиры';
+  String get propertyCurrencyLabel => 'Валюта недвижимости';
 
   @override
-  String get propertySectionTitle => 'Квартира';
+  String get propertySectionTitle => 'Недвижимость';
 
   @override
-  String get propertyErrorName => 'Введите название квартиры.';
+  String get propertyErrorName => 'Введите название недвижимости.';
 
   @override
-  String get propertyCashflowTitle => 'Денежный поток по квартире';
+  String get propertyCashflowTitle => 'Денежный поток по недвижимости';
 
   @override
   String get propertyCashflowEmpty => 'Записей за период нет.';
@@ -1162,7 +1163,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get cashflowPeriodYear => 'Год';
 
   @override
-  String get assetsAddProperty => 'Добавить квартиру';
+  String get assetsAddProperty => 'Добавить недвижимость';
 
   @override
   String get cashflowAccountLabel => 'Счёт';
@@ -1231,10 +1232,10 @@ class AppLocalizationsRu extends AppLocalizations {
   String get cashflowSummaryInRub => 'Итоги в ₽';
 
   @override
-  String get cashflowAllProperties => 'Все квартиры';
+  String get cashflowAllProperties => 'Вся недвижимость';
 
   @override
-  String get cashflowPropertyLabel => 'Квартира';
+  String get cashflowPropertyLabel => 'Недвижимость';
 
   @override
   String cashflowFiltersWithCount(int count) {
@@ -1243,7 +1244,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String cashflowPropertyContext(String name) {
-    return 'Квартира: $name';
+    return 'Недвижимость: $name';
   }
 
   @override
@@ -1453,7 +1454,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get analyticsNoAssetsMessage =>
-      'Добавьте счёт, инвестицию или квартиру, чтобы увидеть динамику.';
+      'Добавьте счёт, инвестицию или недвижимость, чтобы увидеть динамику.';
 
   @override
   String get analyticsMinLabel => 'Минимум';

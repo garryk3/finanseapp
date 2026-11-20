@@ -92,7 +92,7 @@ bodySmall. Главная сумма headlineSmall с tabular figures, сумм�
 
 ### Активы
 
-Единый список/segments счетов, инвестиций, квартир. Tile: icon, name, subgroup/kind,
+Единый список/segments счетов, инвестиций, недвижимости. Tile: icon, name, subgroup/kind,
 исходная стоимость; base equivalent secondary. Details объясняет состав стоимости и даёт
 операции/оценки. Прогноз вклада визуально отделён от фактического баланса словом «Прогноз».
 

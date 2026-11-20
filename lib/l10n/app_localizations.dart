@@ -349,7 +349,7 @@ abstract class AppLocalizations {
   /// Пояснение пустого списка активов.
   ///
   /// In ru, this message translates to:
-  /// **'Добавьте счёт, инвестицию или квартиру.'**
+  /// **'Добавьте счёт, инвестицию или недвижимость.'**
   String get assetsEmptyMessage;
 
   /// Заголовок пустого списка целей.
@@ -1443,10 +1443,10 @@ abstract class AppLocalizations {
   /// **'Инвестиция'**
   String get assetKindInvestment;
 
-  /// Вид актива: квартира.
+  /// Вид актива: недвижимость.
   ///
   /// In ru, this message translates to:
-  /// **'Квартира'**
+  /// **'Недвижимость'**
   String get assetKindProperty;
 
   /// Меню редких действий на деталях актива.
@@ -2139,22 +2139,22 @@ abstract class AppLocalizations {
   /// **'Категория в архиве. Выберите активную.'**
   String get cashflowErrorCategoryArchived;
 
-  /// Заголовок формы новой квартиры.
+  /// Заголовок формы новой недвижимости.
   ///
   /// In ru, this message translates to:
-  /// **'Новая квартира'**
+  /// **'Новая недвижимость'**
   String get propertyFormNew;
 
-  /// Заголовок редактирования квартиры.
+  /// Заголовок редактирования недвижимости.
   ///
   /// In ru, this message translates to:
-  /// **'Изменить квартиру'**
+  /// **'Изменить недвижимость'**
   String get propertyFormEdit;
 
-  /// Поле названия квартиры.
+  /// Поле названия недвижимости.
   ///
   /// In ru, this message translates to:
-  /// **'Название квартиры'**
+  /// **'Название недвижимости'**
   String get propertyNameLabel;
 
   /// Необязательный адрес.
@@ -2169,49 +2169,49 @@ abstract class AppLocalizations {
   /// **'Цена покупки'**
   String get propertyPurchasePriceLabel;
 
-  /// Начальная стоимость квартиры.
+  /// Начальная стоимость недвижимости.
   ///
   /// In ru, this message translates to:
   /// **'Начальная стоимость'**
   String get propertyValueLabel;
 
-  /// Валюта стоимости квартиры.
+  /// Валюта стоимости недвижимости.
   ///
   /// In ru, this message translates to:
-  /// **'Валюта квартиры'**
+  /// **'Валюта недвижимости'**
   String get propertyCurrencyLabel;
 
-  /// Заголовок секции формы квартиры.
+  /// Заголовок секции формы недвижимости.
   ///
   /// In ru, this message translates to:
-  /// **'Квартира'**
+  /// **'Недвижимость'**
   String get propertySectionTitle;
 
-  /// Ошибка названия квартиры.
+  /// Ошибка названия недвижимости.
   ///
   /// In ru, this message translates to:
-  /// **'Введите название квартиры.'**
+  /// **'Введите название недвижимости.'**
   String get propertyErrorName;
 
-  /// Секция cashflow квартиры.
+  /// Секция cashflow недвижимости.
   ///
   /// In ru, this message translates to:
-  /// **'Денежный поток по квартире'**
+  /// **'Денежный поток по недвижимости'**
   String get propertyCashflowTitle;
 
-  /// Пустой поток квартиры.
+  /// Пустой поток недвижимости.
   ///
   /// In ru, this message translates to:
   /// **'Записей за период нет.'**
   String get propertyCashflowEmpty;
 
-  /// Добавить доход по квартире.
+  /// Добавить доход по недвижимости.
   ///
   /// In ru, this message translates to:
   /// **'Добавить доход'**
   String get propertyAddIncome;
 
-  /// Добавить расход по квартире.
+  /// Добавить расход по недвижимости.
   ///
   /// In ru, this message translates to:
   /// **'Добавить расход'**
@@ -2229,10 +2229,10 @@ abstract class AppLocalizations {
   /// **'Год'**
   String get cashflowPeriodYear;
 
-  /// Действие создания квартиры.
+  /// Действие создания недвижимости.
   ///
   /// In ru, this message translates to:
-  /// **'Добавить квартиру'**
+  /// **'Добавить недвижимость'**
   String get assetsAddProperty;
 
   /// Необязательный счёт для дохода/расхода.
@@ -2361,16 +2361,16 @@ abstract class AppLocalizations {
   /// **'Итоги в ₽'**
   String get cashflowSummaryInRub;
 
-  /// Сброс фильтра квартиры.
+  /// Сброс фильтра недвижимости.
   ///
   /// In ru, this message translates to:
-  /// **'Все квартиры'**
+  /// **'Вся недвижимость'**
   String get cashflowAllProperties;
 
-  /// Поле фильтра по квартире.
+  /// Поле фильтра по недвижимости.
   ///
   /// In ru, this message translates to:
-  /// **'Квартира'**
+  /// **'Недвижимость'**
   String get cashflowPropertyLabel;
 
   /// Кнопка фильтров со счётчиком.
@@ -2379,10 +2379,10 @@ abstract class AppLocalizations {
   /// **'Фильтры · {count}'**
   String cashflowFiltersWithCount(int count);
 
-  /// Контекст квартиры в форме.
+  /// Контекст недвижимости в форме.
   ///
   /// In ru, this message translates to:
-  /// **'Квартира: {name}'**
+  /// **'Недвижимость: {name}'**
   String cashflowPropertyContext(String name);
 
   /// Пояснение отсутствия счёта.
@@ -2766,7 +2766,7 @@ abstract class AppLocalizations {
   /// Пояснение пустой аналитики без активов.
   ///
   /// In ru, this message translates to:
-  /// **'Добавьте счёт, инвестицию или квартиру, чтобы увидеть динамику.'**
+  /// **'Добавьте счёт, инвестицию или недвижимость, чтобы увидеть динамику.'**
   String get analyticsNoAssetsMessage;
 
   /// Минимум серии net worth.
