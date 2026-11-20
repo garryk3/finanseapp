@@ -19,6 +19,8 @@ import 'package:finanseapp/core/features/dashboard/ui/dashboard_view_model.dart'
 import 'package:finanseapp/core/features/currencies/domain/exchange_rate_repository.dart';
 import 'package:finanseapp/core/features/settings/domain/settings_repository.dart';
 import 'package:finanseapp/core/features/settings/ui/about_view_model.dart';
+import 'package:finanseapp/core/features/settings/logic/update_check_view_model.dart';
+import 'package:finanseapp/core/features/settings/domain/update_service.dart';
 import 'package:finanseapp/core/features/settings/ui/settings_view_model.dart';
 import 'package:finanseapp/core/features/goals/domain/goal_repository.dart';
 import 'package:finanseapp/core/features/goals/ui/goals_view_model.dart';
@@ -94,6 +96,12 @@ Future<ServiceLocator> buildTestLocator({AppDatabase? database}) async {
     ..registerFactory<SettingsViewModel>(
       () => SettingsViewModel(repository: locator.get<SettingsRepository>()),
     )
+    ..registerFactory<UpdateCheckViewModel>(
+      () => UpdateCheckViewModel(
+        service: _FakeUpdateService(),
+        installedVersionProvider: () async => '0.1.0',
+      ),
+    )
     ..register<BackupViewModel>(
       BackupViewModel(
         // В widget-тестах backup-действия не вызываются.
@@ -118,4 +126,9 @@ Future<ServiceLocator> buildTestLocator({AppDatabase? database}) async {
       ApplockSettingsViewModel(service: service, biometrics: biometrics),
     );
   return locator;
+}
+
+final class _FakeUpdateService implements UpdateService {
+  @override
+  Future<ReleaseInfo?> fetchLatestRelease() async => null;
 }

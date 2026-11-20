@@ -1457,8 +1457,33 @@
   share edge-cases, визуальный QA.
 - **Приоритет/зависимости:** P1; после 10.3 и 3.2. **BR:** BU-1…6.
 
-### 10.5 Проверка обновлений через GitHub Releases — [ ]
+### 10.5 Проверка обновлений через GitHub Releases — [x] (2026-11-20)
 
+- **Рабочий план:**
+  - **Domain:** `AppVersion` (v-prefix/beta/build-metadata, missing parts→0, строго 1–3 numeric
+    components, numeric core compare), `ReleaseInfo`, `UpdateService`.
+  - **Data:** `GithubUpdateService` через `dart:io` HttpClient, timeout, latest release JSON,
+    HTTPS-only APK/html, 404→noReleases, invalid JSON/tag/version→error.
+  - **VM/UI:** installed version через `package_info_plus`; ручная проверка (double-check —
+    один вызов), статусы upToDate/updateAvailable/error; `UpdateSection` в Settings и версия
+    в About; диалог обновления: APK через `url_launcher`, при неудаче — release page,
+    обе неудачи — openFailed; HTTPS-only, `javascript:` отклоняется.
+  - **TDD:** 1.0.10>1.0.9, same/older/beta/malformed; 404/500/timeout/invalid; double check
+    один call; APK launch failure→page, обе failure→openFailed.
+  - **Генерация:** pub get, gen-l10n; Manifest получает VIEW https (INTERNET уже есть), без
+    REQUEST_INSTALL_PACKAGES; release workflow asset `app-release.apk`.
+  - **commit:** `task/10.5: добавить проверку обновлений`.
+- **Итог:** `AppVersion` (v/beta/build, numeric core), `ReleaseInfo`/`UpdateService`,
+  `GithubUpdateService` (dart:io, timeout, 404→noReleases, HTTPS-only APK/page, invalid),
+  `UpdateCheckViewModel` (installed version, ручная проверка, double-check один вызов,
+  upToDate/updateAvailable/error/openFailed, APK→page fallback) и `UpdateSection` в Settings
+  (версия с авто-init, проверка, статус с error-иконкой/разными сетевыми и invalid текстами, повтор
+  «Открыть обновление» после openFailed, About); Manifest получил VIEW https,
+  release workflow уже публикует `app-release.apk`. Тесты: AppVersion (2), VM (3), UpdateSection (5), GithubUpdateService (4: включая timeout/offline), openUpdate fallback
+  (1); всего 552.
+- **Отложено:** версия в About (сейчас в Settings), установка APK/unknown sources (Android),
+  e2e/ручной прогон обновления, скрытие beta/prerelease nuances; inline «Открыть обновление»
+  вместо диалога «Скачать/Позже» — осознанное отклонение от spec §6.
 - **Приоритет/зависимости:** P1; после 10.3. **BR:** UP-1…3.
 - **Files:** Create settings `domain/{update_service,app_version}.dart`,
   `data/github_update_service.dart`, `logic/update_check_view_model.dart`,

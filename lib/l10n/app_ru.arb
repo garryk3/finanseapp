@@ -2277,5 +2277,67 @@
   "backupRestartOk": "Перезапустить",
   "@backupRestartOk": {
     "description": "Restart action."
+  },
+  "settingsUpdateVersion": "Установленная версия: {version}",
+  "@settingsUpdateVersion": {
+    "description": "Версия приложения.",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateCheck": "Проверить обновление",
+  "@updateCheck": {
+    "description": "Кнопка проверки обновлений."
+  },
+  "updateChecking": "Проверка обновлений…",
+  "@updateChecking": {
+    "description": "Статус проверки."
+  },
+  "updateUpToDate": "Установлена последняя версия.",
+  "@updateUpToDate": {
+    "description": "Статус up-to-date."
+  },
+  "updateAvailable": "Доступна версия {version}.",
+  "@updateAvailable": {
+    "description": "Статус доступного обновления.",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateOpen": "Открыть обновление",
+  "@updateOpen": {
+    "description": "Открыть APK/release page."
+  },
+  "updateOpenFailed": "Не удалось открыть страницу обновления.",
+  "@updateOpenFailed": {
+    "description": "Ошибка запуска ссылки."
+  },
+  "updateNoReleases": "Релизы не найдены.",
+  "@updateNoReleases": {
+    "description": "404 latest release."
+  },
+  "updateCheckError": "Не удалось проверить обновления.",
+  "@updateCheckError": {
+    "description": "Сетевая/форматная ошибка."
+  },
+  "updateNetworkError": "Нет соединения или сервер недоступен.",
+  "@updateNetworkError": {
+    "description": "Offline/HTTP ошибка обновлений."
+  },
+  "updateInvalidResponse": "Некорректный ответ сервера обновлений.",
+  "@updateInvalidResponse": {
+    "description": "Malformed release."
+  },
+  "updateVersionUnavailable": "Версия недоступна",
+  "@updateVersionUnavailable": {
+    "description": "Не удалось получить версию."
+  },
+  "updateAvailableSimple": "Доступно обновление.",
+  "@updateAvailableSimple": {
+    "description": "Обновление без тега версии."
   }
 }

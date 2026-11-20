@@ -3,6 +3,8 @@ import 'package:finanseapp/core/domain/common/currency.dart';
 import 'package:finanseapp/core/features/backup/domain/backup_service.dart';
 import 'package:finanseapp/core/features/backup/logic/backup_view_model.dart';
 import 'package:finanseapp/core/features/settings/domain/settings_repository.dart';
+import 'package:finanseapp/core/features/settings/domain/update_service.dart';
+import 'package:finanseapp/core/features/settings/logic/update_check_view_model.dart';
 import 'package:finanseapp/core/features/settings/ui/about_screen.dart';
 import 'package:finanseapp/core/features/settings/ui/about_view_model.dart';
 import 'package:finanseapp/core/features/settings/ui/more_screen.dart';
@@ -34,6 +36,11 @@ final class _Gateway implements BackupFileGateway {
   @override
   Future<bool> save(BackupFile file, {required String dialogTitle}) async =>
       false;
+}
+
+final class _Updates implements UpdateService {
+  @override
+  Future<ReleaseInfo?> fetchLatestRelease() async => null;
 }
 
 final class _Settings implements SettingsRepository {
@@ -132,6 +139,10 @@ void main() {
           () => throw UnimplementedError(),
           _Gateway(),
         ),
+        updateViewModel: UpdateCheckViewModel(
+          service: _Updates(),
+          installedVersionProvider: () async => '0.1.0',
+        ),
       ),
       routes: [
         GoRoute(
@@ -147,6 +158,7 @@ void main() {
 
     expect(find.text(l10n.baseCurrencyTitle), findsOneWidget);
     expect(find.text('USD · Доллар'), findsOneWidget);
+    expect(find.text(l10n.settingsUpdateVersion('0.1.0')), findsOneWidget);
 
     await tester.tap(find.text(l10n.baseCurrencyTitle));
     await tester.pumpAndSettle();

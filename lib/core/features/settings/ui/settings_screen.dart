@@ -2,8 +2,10 @@ import 'package:finanseapp/app/app_restart.dart';
 import 'package:finanseapp/app/routes.dart';
 import 'package:finanseapp/app/theme/app_spacing.dart';
 import 'package:finanseapp/core/features/backup/logic/backup_view_model.dart';
+import 'package:finanseapp/core/features/settings/logic/update_check_view_model.dart';
 import 'package:finanseapp/core/features/settings/ui/settings_view_model.dart';
 import 'package:finanseapp/core/features/settings/ui/widgets/backup_section.dart';
+import 'package:finanseapp/core/features/settings/ui/widgets/update_section.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
 import 'package:finanseapp/uikit/app_icon.dart';
 import 'package:finanseapp/uikit/app_list_tile.dart';
@@ -20,10 +22,12 @@ class SettingsScreen extends StatefulWidget {
     super.key,
     required this.viewModel,
     required this.backupViewModel,
+    required this.updateViewModel,
   });
 
   final SettingsViewModel viewModel;
   final BackupViewModel backupViewModel;
+  final UpdateCheckViewModel updateViewModel;
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -36,6 +40,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void initState() {
     super.initState();
     _viewModel.init();
+    widget.updateViewModel.init();
   }
 
   @override
@@ -45,11 +50,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
       oldWidget.viewModel.dispose();
       _viewModel = widget.viewModel..init();
     }
+    if (!identical(oldWidget.updateViewModel, widget.updateViewModel)) {
+      oldWidget.updateViewModel.dispose();
+      widget.updateViewModel.init();
+    }
   }
 
   @override
   void dispose() {
     _viewModel.dispose();
+    widget.updateViewModel.dispose();
     super.dispose();
   }
 
@@ -77,13 +87,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 viewModel: widget.backupViewModel,
                 onRestart: restartApp,
               ),
-              AppSection(
-                header: l10n.settingsAboutSection,
-                child: AppListTile(
-                  title: l10n.settingsAboutDetails,
-                  leading: const AppIcon(Icons.info_outline),
-                  onTap: () => context.push(AppRoutes.about),
-                ),
+              UpdateSection(
+                viewModel: widget.updateViewModel,
+                onOpenAbout: () => context.push(AppRoutes.about),
               ),
             ],
           );
