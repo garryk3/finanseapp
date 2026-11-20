@@ -114,8 +114,10 @@ class _PropertyCashflowSectionState extends State<PropertyCashflowSection> {
 
   void _loadYield() {
     _yieldSubscription?.cancel();
-    _yieldLoading = true;
-    _yieldFailed = false;
+    setState(() {
+      _yieldLoading = true;
+      _yieldFailed = false;
+    });
     final filter = CashflowFilter(
       period: PropertyYieldCalculator.trailingYear(widget.today),
       propertyId: widget.propertyId,
