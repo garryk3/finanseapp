@@ -372,6 +372,57 @@ void main() {
     expect(vm.categoryShare(vm.categoryTotals.value.single), 0.5);
   });
 
+  test('CALC-035: доли 25%/75%, при нулевом итоге — 0', () async {
+    const summary = CashflowSummary(
+      income: Money(minorUnits: 0, currencyCode: 'RUB'),
+      expense: Money(minorUnits: 100000, currencyCode: 'RUB'),
+      net: Money(minorUnits: -100000, currencyCode: 'RUB'),
+      currencyCode: 'RUB',
+    );
+    final categories = [
+      const CashflowCategory(
+        id: 1,
+        kind: CashflowKind.expense,
+        name: 'Дом',
+        isPreset: false,
+      ),
+      const CashflowCategory(
+        id: 2,
+        kind: CashflowKind.expense,
+        name: 'Транспорт',
+        isPreset: false,
+      ),
+    ];
+    final queries = _Queries(points)
+      ..cashflowResult = summary
+      ..categoryTotalsResult = const [
+        CategoryTotal(
+          categoryId: 1,
+          total: Money(minorUnits: 25000, currencyCode: 'RUB'),
+        ),
+        CategoryTotal(
+          categoryId: 2,
+          total: Money(minorUnits: 75000, currencyCode: 'RUB'),
+        ),
+      ];
+    final vm = build(queries, categories: categories)..init();
+    await pumpEventQueue();
+
+    final totals = vm.categoryTotals.value;
+    expect(vm.categoryShare(totals[0]), 0.25);
+    expect(vm.categoryShare(totals[1]), 0.75);
+
+    queries.cashflowResult = const CashflowSummary(
+      income: Money(minorUnits: 0, currencyCode: 'RUB'),
+      expense: Money(minorUnits: 0, currencyCode: 'RUB'),
+      net: Money(minorUnits: 0, currencyCode: 'RUB'),
+      currencyCode: 'RUB',
+    );
+    vm.reload();
+    await pumpEventQueue();
+    expect(vm.categoryShare(totals[0]), 0);
+  });
+
   test(
     'смена cashflow kind сохраняет период и сбрасывает чужую категорию',
     () async {

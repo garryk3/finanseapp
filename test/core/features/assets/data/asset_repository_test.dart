@@ -50,33 +50,33 @@ void main() {
     endDate: end,
   );
 
-  test('создаёт счёт, считает баланс и отдаёт snapshot', () async {
-    final id = await repository.create(draft());
+  test('CALC-009: opening 1 000 + 250,50 − 100 = 1 150,50', () async {
+    final id = await repository.create(draft(opening: 100000));
     await db.transactionsDao.create(
       AssetTransactionInput(
         assetId: id,
         kind: AssetTransactionKind.deposit,
-        amountMinor: 250000,
+        amountMinor: 25050,
         occurredOn: LocalDate(2026, 1, 10),
         rateToRub: Decimal.one,
-        amountRubMinor: 250000,
+        amountRubMinor: 25050,
       ),
     );
     await db.transactionsDao.create(
       AssetTransactionInput(
         assetId: id,
         kind: AssetTransactionKind.withdrawal,
-        amountMinor: 100000,
+        amountMinor: 10000,
         occurredOn: LocalDate(2026, 1, 11),
         rateToRub: Decimal.one,
-        amountRubMinor: 100000,
+        amountRubMinor: 10000,
       ),
     );
 
     final snapshot = await repository.getById(id);
 
     expect(snapshot.asset, isA<AccountAsset>());
-    expect(snapshot.currentValue.minorUnits, 10150000);
+    expect(snapshot.currentValue.minorUnits, 115050);
   });
 
   test('update меняет счёт и проверяет диапазоны', () async {
