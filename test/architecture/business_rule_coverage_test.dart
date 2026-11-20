@@ -95,12 +95,13 @@ const _calcCoverage = <String, List<String>>{
   'CALC-035': [
     'test/core/features/analytics/ui/analytics_view_model_test.dart',
   ],
+  'CALC-036': [
+    'test/core/features/assets/logic/property_yield_calculator_test.dart',
+  ],
 };
 
 /// Расчёты, которые ещё не реализованы; запись обязана объяснить причину.
-const _deferredCalc = <String, String>{
-  'CALC-036': 'yield не реализован до задачи 12.3',
-};
+const _deferredCalc = <String, String>{};
 
 Set<String> _idsIn(String path, String pattern) {
   final text = File(path).readAsStringSync();

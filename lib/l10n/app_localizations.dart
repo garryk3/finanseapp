@@ -3378,6 +3378,48 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Перейти к активам'**
   String get comparisonGoAssets;
+
+  /// Секция доходности недвижимости.
+  ///
+  /// In ru, this message translates to:
+  /// **'Доходность за 12 месяцев'**
+  String get propertyYieldTitle;
+
+  /// Gross yield.
+  ///
+  /// In ru, this message translates to:
+  /// **'Валовая доходность'**
+  String get propertyYieldGross;
+
+  /// Net yield.
+  ///
+  /// In ru, this message translates to:
+  /// **'Чистая доходность'**
+  String get propertyYieldNet;
+
+  /// Пояснение доходности.
+  ///
+  /// In ru, this message translates to:
+  /// **'Оценочно: все доходы и расходы объекта за последние 12 месяцев к текущей стоимости. Валовая — без расходов, чистая — за вычетом расходов.'**
+  String get propertyYieldHint;
+
+  /// Нет стоимости/дохода.
+  ///
+  /// In ru, this message translates to:
+  /// **'Недостаточно данных для расчёта.'**
+  String get propertyYieldUnavailable;
+
+  /// Нет cashflow для доходности.
+  ///
+  /// In ru, this message translates to:
+  /// **'Нет операций за последние 12 месяцев.'**
+  String get propertyYieldNoOperations;
+
+  /// Ошибка расчёта доходности.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось рассчитать доходность.'**
+  String get propertyYieldError;
 }
 
 class _AppLocalizationsDelegate

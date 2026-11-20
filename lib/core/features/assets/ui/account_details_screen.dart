@@ -226,7 +226,12 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
         if (asset is PropertyAsset && vm.cashflowRepository != null)
           PropertyCashflowSection(
             repository: vm.cashflowRepository!,
+            assetRepository: vm.repository,
             propertyId: asset.id,
+            currentValue:
+                vm.balance.value ??
+                Money(minorUnits: 0, currencyCode: asset.currencyCode),
+            currencyCode: asset.currencyCode,
             today: vm.today,
             readOnly: isArchived,
           ),

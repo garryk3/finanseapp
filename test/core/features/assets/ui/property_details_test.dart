@@ -208,6 +208,6 @@ void main() {
     );
     expect(find.text(l10n.accountEdit), findsOneWidget);
     expect(find.text(l10n.propertyCashflowTitle), findsOneWidget);
-    expect(find.text(l10n.propertyCashflowEmpty), findsOneWidget);
+    expect(find.text(l10n.propertyYieldNoOperations), findsOneWidget);
   });
 }

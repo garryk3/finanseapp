@@ -175,13 +175,13 @@ monthlyContribution = deficit / calendarMonthsRemaining
 ## 8. Доходность недвижимости (P2)
 
 ```text
-grossYield = annualRentIncome / currentMarketValue × 100%
+grossYield = annualIncome / currentMarketValue × 100%
 netYield = (annualIncome - annualExpense) / currentMarketValue × 100%
 ```
 
-Период — последние 365 дней включая today. В gross numerator входит только категория
-«Аренда» типа income по объекту; в net — все доходы и расходы объекта. При
-`currentMarketValue <=0` результат `null`. Показатели оценочные и не меняют стоимость.
+Период — последние 12 календарных месяцев, включая today. В numerator входят все доходы
+объекта (propertyId), в net — все доходы минус все расходы. При `currentMarketValue <=0`
+результат `null`. Показатели оценочные и не меняют стоимость; не инвестиционная рекомендация.
 
 ## 9. Эталонные кейсы
 
@@ -233,3 +233,5 @@ netYield = (annualIncome - annualExpense) / currentMarketValue × 100%
   а не фиктивную нулевую линию.
 - Поиск по комментарию: `trim`, case-insensitive, без учёта повторных пробелов; пустой
   запрос не фильтрует. Денежные итоги всегда соответствуют тем же активным фильтрам.
+
+

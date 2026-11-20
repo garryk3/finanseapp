@@ -1791,4 +1791,27 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get comparisonGoAssets => 'Перейти к активам';
+
+  @override
+  String get propertyYieldTitle => 'Доходность за 12 месяцев';
+
+  @override
+  String get propertyYieldGross => 'Валовая доходность';
+
+  @override
+  String get propertyYieldNet => 'Чистая доходность';
+
+  @override
+  String get propertyYieldHint =>
+      'Оценочно: все доходы и расходы объекта за последние 12 месяцев к текущей стоимости. Валовая — без расходов, чистая — за вычетом расходов.';
+
+  @override
+  String get propertyYieldUnavailable => 'Недостаточно данных для расчёта.';
+
+  @override
+  String get propertyYieldNoOperations =>
+      'Нет операций за последние 12 месяцев.';
+
+  @override
+  String get propertyYieldError => 'Не удалось рассчитать доходность.';
 }
