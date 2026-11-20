@@ -1727,4 +1727,12 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get updateAvailableSimple => 'Доступно обновление.';
+
+  @override
+  String get dashboardCashflowRateUnavailable =>
+      'Итоги месяца недоступны без курса.';
+
+  @override
+  String get dashboardCashflowUnavailable =>
+      'Не удалось рассчитать итоги месяца.';
 }

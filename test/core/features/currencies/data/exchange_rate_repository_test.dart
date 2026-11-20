@@ -10,6 +10,7 @@ import 'package:finanseapp/core/domain/common/result.dart';
 import 'package:finanseapp/core/features/currencies/data/cbr_exchange_rate_client.dart';
 import 'package:finanseapp/core/features/currencies/data/exchange_rate_repository_impl.dart';
 import 'package:finanseapp/core/features/currencies/domain/exchange_rate_repository.dart';
+import 'package:finanseapp/core/features/currencies/logic/exchange_rate_events.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -41,6 +42,16 @@ void main() {
 
   tearDown(() async {
     await db.close();
+  });
+
+  test('сохранение курса инкрементирует revision', () async {
+    final before = exchangeRateRevision.value;
+    await repository.saveManual('USD', date, Decimal.parse('90.5'));
+    expect(exchangeRateRevision.value, before + 1);
+
+    final afterManual = exchangeRateRevision.value;
+    await repository.fetchFromCbr('HKD', date);
+    expect(exchangeRateRevision.value, afterManual + 1);
   });
 
   test('find возвращает null до сохранения', () async {

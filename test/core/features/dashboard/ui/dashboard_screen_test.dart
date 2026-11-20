@@ -22,6 +22,7 @@ import 'package:finanseapp/core/features/cashflow/domain/cashflow_repository.dar
 import 'package:finanseapp/core/features/cashflow/domain/cashflow_summary.dart';
 import 'package:finanseapp/core/features/currencies/domain/currency_repository.dart';
 import 'package:finanseapp/core/features/currencies/domain/exchange_rate_repository.dart';
+import 'package:finanseapp/core/features/currencies/logic/exchange_rate_events.dart';
 import 'package:finanseapp/core/features/dashboard/ui/dashboard_screen.dart';
 import 'package:finanseapp/core/features/dashboard/ui/dashboard_view_model.dart';
 import 'package:finanseapp/core/features/goals/domain/financial_goal.dart';
@@ -76,7 +77,7 @@ final class _Queries implements AnalyticsQueries {
   CashflowSummary cashflowResult;
   CashflowFilter? lastCashflowFilter;
   final List<CashflowPeriodPoint> cashflowPoints;
-  final Object? cashflowError;
+  Object? cashflowError;
 
   @override
   Future<NetWorthSummary> netWorth(LocalDate onDate) async {
@@ -519,6 +520,73 @@ void main() {
     expect(find.textContaining('· RUB'), findsNothing);
   });
 
+  testWidgets('событие изменения курса пересчитывает Главную', (tester) async {
+    final queries = _Queries(_rubles(1500));
+    final vm = await pump(tester, queries: queries);
+    expect(find.text(vm.formatMoney(_rubles(1500))), findsWidgets);
+
+    queries.total = _rubles(2000);
+    markExchangeRateChanged();
+    await tester.pumpAndSettle();
+
+    expect(find.text(vm.formatMoney(_rubles(2000))), findsWidgets);
+  });
+
+  testWidgets('ошибка курса скрывает stale cashflow-суммы', (tester) async {
+    final queries = _Queries(
+      _rubles(1500),
+      cashflowResult: const CashflowSummary(
+        income: Money(minorUnits: 100000, currencyCode: 'RUB'),
+        expense: Money(minorUnits: 0, currencyCode: 'RUB'),
+        net: Money(minorUnits: 100000, currencyCode: 'RUB'),
+        currencyCode: 'RUB',
+      ),
+    );
+    final vm = await pump(tester, queries: queries);
+    expect(find.text(vm.formatMoney(_rubles(1000))), findsWidgets);
+
+    queries.cashflowError = const DomainException(
+      DomainErrorCode.rateUnavailable,
+    );
+    markExchangeRateChanged();
+    await tester.pumpAndSettle();
+
+    expect(find.text(l10n.dashboardCashflowRateUnavailable), findsOneWidget);
+    expect(find.text(l10n.analyticsEnterRate), findsOneWidget);
+    expect(find.text(l10n.dashboardCashflowTitle), findsOneWidget);
+    expect(find.text(vm.formatMoney(_rubles(1000))), findsNothing);
+  });
+
+  testWidgets('ошибка курса в обоих блоках не дублирует сообщение', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      error: const DomainException(DomainErrorCode.rateUnavailable),
+      cashflowError: const DomainException(DomainErrorCode.rateUnavailable),
+    );
+
+    expect(find.text(l10n.assetBaseUnavailable), findsOneWidget);
+    expect(find.text(l10n.dashboardCashflowRateUnavailable), findsOneWidget);
+    expect(find.text(l10n.analyticsEnterRate), findsOneWidget);
+  });
+
+  testWidgets('ошибка курса: 320dp, 1.3, тёмная тема — без overflow', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      error: const DomainException(DomainErrorCode.rateUnavailable),
+      cashflowError: const DomainException(DomainErrorCode.rateUnavailable),
+      width: 320,
+      dark: true,
+      largeText: true,
+    );
+
+    expect(tester.takeException(), isNull);
+    expect(find.text(l10n.dashboardCashflowRateUnavailable), findsOneWidget);
+  });
+
   testWidgets('320dp, font 1.3, тёмная тема — без overflow', (tester) async {
     await pump(tester, width: 320, dark: true, largeText: true);
 
@@ -733,7 +801,8 @@ void main() {
     );
 
     expect(find.text(l10n.dashboardCashflowTitle), findsOneWidget);
-    expect(find.text(l10n.assetBaseUnavailable), findsOneWidget);
+    expect(find.text(l10n.dashboardCashflowRateUnavailable), findsOneWidget);
+    expect(find.text(l10n.analyticsEnterRate), findsOneWidget);
     expect(find.text(l10n.dashboardGoalsEmpty), findsOneWidget);
   });
 

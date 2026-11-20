@@ -3265,6 +3265,18 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Доступно обновление.'**
   String get updateAvailableSimple;
+
+  /// Ошибка курса в блоке денежного потока.
+  ///
+  /// In ru, this message translates to:
+  /// **'Итоги месяца недоступны без курса.'**
+  String get dashboardCashflowRateUnavailable;
+
+  /// Ошибка расчёта денежного потока.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось рассчитать итоги месяца.'**
+  String get dashboardCashflowUnavailable;
 }
 
 class _AppLocalizationsDelegate
