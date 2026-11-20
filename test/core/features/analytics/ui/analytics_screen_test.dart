@@ -83,6 +83,7 @@ final class _Queries implements AnalyticsQueries {
   Future<List<NetWorthPoint>> netWorthSeries({
     required DateRange period,
     AssetKind? assetKind,
+    int? assetId,
   }) async {
     lastKind = assetKind;
     final failure = error;

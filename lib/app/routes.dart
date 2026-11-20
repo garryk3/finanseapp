@@ -34,6 +34,7 @@ abstract final class AppRoutes {
   static const goalEdit = '/goals/:id/edit';
 
   static const analytics = '/more/analytics';
+  static const comparison = '/more/compare';
   static const settings = '/more/settings';
   static const categories = '/more/categories';
   static const categoryNew = '/more/categories/new';

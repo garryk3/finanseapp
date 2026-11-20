@@ -1887,7 +1887,7 @@
   generated и общий DoD pass. Перед PR спросить о e2e.
 - **Предлагаемый commit:** `task/12.1: восстановить удалённые операции`.
 
-### 12.2 Сравнение активов — [ ]
+### 12.2 Сравнение активов — [x] (2026-11-20)
 
 - **Приоритет/зависимости:** P2; после 11.4. **BR:** S-2…5, C-5.
 - **Files:** Create comparison domain/query/screen/VM/chart section и unit/widget/integration
@@ -1897,6 +1897,17 @@
   accessible comparison table.
 - **TDD:** разные валюты/даты, missing valuation, archived asset, empty overlap, >5 reject;
   line labels и text values совпадают.
+- **Рабочий план:**
+  - **Query:** `AnalyticsQueries.netWorthSeries(assetId)` — серия одного актива в base.
+  - **VM:** выбор 2–5, period month/3/6/year/all, absolute/normalized (первый ненулевой = 100),
+    лимит >5 игнорируется, пустые серии.
+  - **UI:** экран `/more/compare` (выбор, чипы периода, segmented режим, line chart с summary,
+    доступная таблица); вход из «Ещё».
+  - **commit:** `task/12.2: добавить сравнение активов`.
+- **Итог:** доступно сравнение 2–5 активов в base currency за общий период; absolute — суммы,
+  normalized — индекс 100 от первого ненулевого; график + таблица, 320dp/1.3 route покрыт.
+  Тесты VM: absolute/normalized, лимит 5, zero-start, union дат, пустая серия, архивные.
+  Всего 594 теста.
 - **DoD:** normalized режим явно подписан и не смешан с Money totals; общий DoD/design review.
   Перед PR спросить о e2e.
 - **Предлагаемый commit:** `task/12.2: добавить сравнение активов`.

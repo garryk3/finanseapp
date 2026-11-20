@@ -20,6 +20,7 @@ abstract interface class AnalyticsQueries {
   Future<List<NetWorthPoint>> netWorthSeries({
     required DateRange period,
     AssetKind? assetKind,
+    int? assetId,
   });
 
   Future<CashflowSummary> cashflow(CashflowFilter filter);
