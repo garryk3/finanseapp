@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:decimal/decimal.dart';
 import 'package:finanseapp/core/domain/common/currency.dart';
 import 'package:finanseapp/core/domain/common/currency_converter.dart';
@@ -47,12 +49,58 @@ class AccountDetailsViewModel {
   final Signal<bool> baseRateUnavailable = signal(false);
   final Signal<AssetReferenceCounts?> referenceCounts = signal(null);
 
+  StreamSubscription<AssetSnapshot?>? _subscription;
+  bool _reloading = false;
+  bool _reloadQueued = false;
+  bool _disposed = false;
+  bool _firstEvent = true;
+
+  /// Подписывается на снимок актива и загружает детали.
   Future<void> load() async {
+    _subscribe();
+    if (_reloading) {
+      _reloadQueued = true;
+      return;
+    }
+    await _reload();
+  }
+
+  void _subscribe() {
+    if (_disposed || _subscription != null) return;
+    _subscription = repository.watchById(assetId).listen((_) {
+      if (_firstEvent) {
+        _firstEvent = false;
+        return;
+      }
+      _scheduleReload();
+    }, onError: (Object _) => _onStreamError());
+  }
+
+  void _onStreamError() {
+    if (_disposed) return;
+    error.value = 'storageFailure';
+  }
+
+  void _scheduleReload() {
+    if (_disposed) return;
+    if (_reloading) {
+      _reloadQueued = true;
+      return;
+    }
+    unawaited(_reload());
+  }
+
+  Future<void> _reload() async {
+    if (_disposed) return;
+    _reloading = true;
     try {
       final snapshot = await repository.getById(assetId);
+      if (_disposed) return;
       final loaded = snapshot.asset;
+      final loadedCurrency = await _currencyOf(loaded.currencyCode);
+      if (_disposed) return;
       asset.value = loaded;
-      currency.value = await _currencyOf(loaded.currencyCode);
+      currency.value = loadedCurrency;
       balance.value = snapshot.currentValue;
       if (loaded is AccountAsset) {
         account.value = loaded;
@@ -60,25 +108,35 @@ class AccountDetailsViewModel {
           account: loaded,
           currentBalance: snapshot.currentValue,
           asOf: today,
-          currency: await _currencyOf(loaded.currencyCode),
+          currency: loadedCurrency,
         );
       } else {
         account.value = null;
         forecast.value = null;
         valuationHistory.value = await repository.valuations(assetId);
       }
-      referenceCounts.value = await repository.referenceCounts(assetId);
+      final counts = await repository.referenceCounts(assetId);
+      if (_disposed) return;
+      referenceCounts.value = counts;
       await _loadBaseEquivalent(snapshot.currentValue, loaded.currencyCode);
     } on DomainException catch (exception) {
       error.value = exception.code.name;
     } on Exception {
       error.value = 'storageFailure';
+    } finally {
+      _reloading = false;
+      if (_reloadQueued) {
+        _reloadQueued = false;
+        _scheduleReload();
+      }
     }
   }
 
   Future<void> _loadBaseEquivalent(Money value, String sourceCode) async {
+    if (_disposed) return;
     try {
       final base = await settingsRepository.getBaseCurrency();
+      if (_disposed) return;
       baseCurrency.value = base;
       if (base.code == sourceCode) {
         baseEquivalent.value = value;
@@ -154,5 +212,9 @@ class AccountDetailsViewModel {
     }
   }
 
-  void dispose() {}
+  void dispose() {
+    _disposed = true;
+    unawaited(_subscription?.cancel());
+    _subscription = null;
+  }
 }
