@@ -501,3 +501,19 @@
 - [ ] Обновление: версия в Settings совпадает с тегом `vX.Y.Z`; latest release доступен.
 - [ ] Patch-версия поднята, тег `vX.Y.Z` поставлен, release workflow собрал APK.
 - [ ] В GitHub Release приложен `app-release.apk`; известные ограничения указаны в README.
+
+## Повторный прогон 2026-11-20 — задача 11.9 (TalkBack / frame counts / pagination)
+
+**Устройство:** emulator-5556, Pixel_10_Pro, Android 16 (API 36), debug APK ветки `task/11.9-manual-checks`,
+TalkBack включён через `enabled_accessibility_services`. Кириллица/IME не использовались.
+
+| TC | Сценарий | Статус | Факт |
+|----|----------|--------|------|
+| TC-056 | TalkBack: FAB, навигация, chart summary | PASS | `content-desc`: «Добавить актив», «Главная/Операции/Активы/Цели/Ещё — вкладка N из 5», «Чистый капитал, 1 500,00 ₽… Минимум/Максимум»; немых ключевых действий не найдено. |
+| TC-057 | Frame counts журнала/Аналитики | BLOCKED | `dumpsys gfxinfo com.example.finanseapp` после `reset` и трёх swipe вернул `Total frames: 0` (счётчик не работает под Impeller/TalkBack) — числа недоступны, дефект приложения не подтверждён. Производительность списка покрыта `test/performance/journal_performance_test.dart` (10k, builder, <100 tile). |
+| TC-058 | Пагинация журнала «Показать ещё» | PASS (unit/perf) | 10k операций: первая страница ≤200 + footer, `itemCount` растёт после `loadMore`, повтор блокируется `loadingMore`; вручную на устройстве датасет >200 не создавался. |
+| TC-059 | 320dp + font 1.3 | PASS (ранее) | Матрица 11.3/11.10: 320dp/1.3 без overflow; повторно в этом прогоне не снималась. |
+| TC-060 | Биометрия | SKIP | В эмуляторе нет зарегистрированных отпечатков. |
+| TC-061 | Кириллица в текстовых полях | BLOCKED | `adb shell input text` не поддерживает кириллицу; сторонняя IME запрещена владельцем. |
+
+**Proof:** `/tmp/opencode/ui_tb_assets.xml`, `ui_more.xml`, `ui_an.xml`, `gfx.txt`.

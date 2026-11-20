@@ -104,7 +104,7 @@ class AppCashflowChart extends StatelessWidget {
                       sideTitles: SideTitles(
                         showTitles: true,
                         interval: labelStep.toDouble(),
-                        reservedSize: 28,
+                        reservedSize: 8 + textScaler.scale(20),
                         getTitlesWidget: (value, meta) {
                           final index = value.round();
                           if (index < 0 ||

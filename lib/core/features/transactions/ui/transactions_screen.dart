@@ -10,6 +10,7 @@ import 'package:finanseapp/core/presentation/date_formatter.dart';
 import 'package:finanseapp/core/presentation/view_state.dart';
 import 'package:finanseapp/app/theme/app_semantic_colors.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
+import 'package:finanseapp/uikit/app_button.dart';
 import 'package:finanseapp/uikit/app_date_header.dart';
 import 'package:finanseapp/uikit/app_empty_state.dart';
 import 'package:finanseapp/uikit/app_error_state.dart';
@@ -276,10 +277,23 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
       }
       items.add(transaction);
     }
+    final showMore = vm.hasMore.value;
+    final loadingMore = vm.loadingMore.value;
     return AppListView.builder(
       padding: const EdgeInsets.only(bottom: 88),
-      itemCount: items.length,
+      itemCount: items.length + (showMore ? 1 : 0),
       itemBuilder: (context, index) {
+        if (showMore && index == items.length) {
+          return Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: AppButton(
+              label: l10n.journalLoadMore,
+              variant: AppButtonVariant.outlined,
+              pending: loadingMore,
+              onPressed: loadingMore ? null : vm.loadMore,
+            ),
+          );
+        }
         final item = items[index];
         if (item is LocalDate) {
           return AppDateHeader(const DateFormatter().format(item));

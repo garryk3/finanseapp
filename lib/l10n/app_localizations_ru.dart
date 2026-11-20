@@ -1736,4 +1736,7 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get dashboardCashflowUnavailable =>
       'Не удалось рассчитать итоги месяца.';
+
+  @override
+  String get journalLoadMore => 'Показать ещё';
 }

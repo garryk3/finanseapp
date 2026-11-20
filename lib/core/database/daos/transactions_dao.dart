@@ -120,6 +120,7 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase>
     if (filter.currencyCode != null) {
       query.where(assets.currencyCode.equals(filter.currencyCode!));
     }
+    if (filter.limit != null) query.limit(filter.limit!);
     return query.watch().map(
       (rows) => [for (final row in rows) row.readTable(assetTransactions)],
     );

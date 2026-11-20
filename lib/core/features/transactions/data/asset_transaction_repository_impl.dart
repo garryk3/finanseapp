@@ -32,6 +32,9 @@ final class AssetTransactionRepositoryImpl
             kind: filter.kind,
             assetKind: filter.assetKind,
             currencyCode: filter.currencyCode,
+            // Поиск по комментарию — Unicode (кириллица), SQLite LOWER не
+            // умеет; при поиске читаем набор целиком и фильтруем в Dart.
+            limit: search.isEmpty ? filter.limit : null,
           ),
         )
         .asyncMap((rows) async {
