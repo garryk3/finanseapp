@@ -31,6 +31,7 @@ class AccountFormScreen extends StatefulWidget {
 }
 
 class _AccountFormScreenState extends State<AccountFormScreen> {
+  late AccountFormViewModel _viewModel = widget.viewModel;
   final _name = TextEditingController();
   final _opening = TextEditingController();
   final _rate = TextEditingController(text: '0');
@@ -41,40 +42,25 @@ class _AccountFormScreenState extends State<AccountFormScreen> {
   LocalDate? _endDate;
   String? _error;
   bool _loaded = false;
+  int _loadSeq = 0;
 
   @override
   void initState() {
     super.initState();
-    widget.viewModel.load().then((_) {
-      if (!mounted) return;
-      final account = widget.viewModel.account.value;
-      _bankId ??= widget.viewModel.banks.value.isEmpty
-          ? null
-          : widget.viewModel.banks.value.first.id;
-      if (account != null) {
-        _name.text = account.name;
-        _opening.text = MoneyMath.toDecimal(
-          account.openingValue,
-          widget.viewModel.currencies.value.firstWhere(
-            (currency) => currency.code == account.currencyCode,
-            orElse: () => Currency(
-              code: account.currencyCode,
-              name: account.currencyCode,
-              fractionDigits: 2,
-              isPreset: true,
-              isEnabled: true,
-            ),
-          ),
-        ).toString();
-        _rate.text = account.annualRate.toString();
-        _bankId = account.bankId;
-        _currencyCode = account.currencyCode;
-        _startDate = account.startDate;
-        _endDate = account.endDate;
-        _hasEndDate = account.endDate != null;
-      }
-      setState(() => _loaded = true);
-    });
+    _load();
+  }
+
+  @override
+  void didUpdateWidget(covariant AccountFormScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Роутер создаёт ViewModel в builder: после возврата с другого экрана
+    // экземпляр может быть новым.
+    if (!identical(oldWidget.viewModel, widget.viewModel)) {
+      oldWidget.viewModel.dispose();
+      _viewModel = widget.viewModel;
+      _loaded = false;
+      _load();
+    }
   }
 
   @override
@@ -82,14 +68,58 @@ class _AccountFormScreenState extends State<AccountFormScreen> {
     _name.dispose();
     _opening.dispose();
     _rate.dispose();
-    widget.viewModel.dispose();
+    _viewModel.dispose();
     super.dispose();
   }
 
+  Future<void> _load() async {
+    final seq = ++_loadSeq;
+    await _viewModel.load();
+    if (!mounted || seq != _loadSeq) return;
+    final account = _viewModel.account.value;
+    if (account != null) {
+      _name.text = account.name;
+      _opening.text = MoneyMath.toDecimal(
+        account.openingValue,
+        _currencyOf(account.currencyCode),
+      ).toString();
+      _rate.text = account.annualRate.toString();
+      _currencyCode = account.currencyCode;
+      _startDate = account.startDate;
+      _endDate = account.endDate;
+      _hasEndDate = account.endDate != null;
+    }
+    setState(() {
+      _bankId = _pickBank(account?.bankId ?? _bankId);
+      _loaded = true;
+    });
+  }
+
+  /// Держит выбор в пределах актуального списка банков.
+  int? _pickBank(int? current) {
+    final banks = _viewModel.banks.value;
+    if (banks.isEmpty) return null;
+    if (current != null && banks.any((item) => item.id == current)) {
+      return current;
+    }
+    return banks.first.id;
+  }
+
+  Currency _currencyOf(String code) => _viewModel.currencies.value.firstWhere(
+    (currency) => currency.code == code,
+    orElse: () => Currency(
+      code: code,
+      name: code,
+      fractionDigits: 2,
+      isPreset: true,
+      isEnabled: true,
+    ),
+  );
+
   Future<void> _save() async {
-    if (widget.viewModel.busy.value) return;
+    if (_viewModel.busy.value) return;
     final l10n = AppLocalizations.of(context);
-    final currency = widget.viewModel.currencies.value.firstWhere(
+    final currency = _viewModel.currencies.value.firstWhere(
       (item) => item.code == _currencyCode,
       orElse: () => Currency(
         code: _currencyCode,
@@ -117,7 +147,7 @@ class _AccountFormScreenState extends State<AccountFormScreen> {
       setState(() => _error = l10n.accountErrorRate);
       return;
     }
-    final result = await widget.viewModel.save(
+    final result = await _viewModel.save(
       name: _name.text,
       bankId: _bankId!,
       currencyCode: _currencyCode,

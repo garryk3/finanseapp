@@ -35,6 +35,12 @@ class ReferencesDao extends DatabaseAccessor<AppDatabase>
     return query.watch();
   }
 
+  Future<List<SubgroupRow>> getSubgroups(SubgroupKind kind) =>
+      (select(subgroups)
+            ..where((s) => s.kind.equalsValue(kind))
+            ..orderBy([(s) => OrderingTerm.asc(s.name)]))
+          .get();
+
   Future<int> createSubgroup(SubgroupKind kind, String name) =>
       transaction(() async {
         final trimmed = _requireName(name);

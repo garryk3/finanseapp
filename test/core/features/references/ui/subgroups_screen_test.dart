@@ -40,6 +40,11 @@ final class FakeSubgroupRepository implements SubgroupRepository {
   }
 
   @override
+  Future<List<Subgroup>> getByKind(SubgroupKind kind) async =>
+      (_byId.values.where((item) => item.kind == kind).toList()
+        ..sort((a, b) => a.name.compareTo(b.name)));
+
+  @override
   Stream<List<Subgroup>> watchByKind(SubgroupKind kind) =>
       _controllers[kind]!.stream;
 

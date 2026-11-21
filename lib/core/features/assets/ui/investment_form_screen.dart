@@ -33,6 +33,7 @@ class InvestmentFormScreen extends StatefulWidget {
 }
 
 class _InvestmentFormScreenState extends State<InvestmentFormScreen> {
+  late InvestmentFormViewModel _viewModel = widget.viewModel;
   final _name = TextEditingController();
   final _opening = TextEditingController();
   int? _brokerId;
@@ -42,51 +43,77 @@ class _InvestmentFormScreenState extends State<InvestmentFormScreen> {
   String? _brokerError;
   String? _formError;
   bool _loaded = false;
+  int _loadSeq = 0;
 
   @override
   void initState() {
     super.initState();
-    widget.viewModel.load().then((_) {
-      if (!mounted) return;
-      _brokerId ??= widget.viewModel.brokers.value.isEmpty
-          ? null
-          : widget.viewModel.brokers.value.first.id;
-      final investment = widget.viewModel.investment.value;
-      if (investment != null) {
-        _name.text = investment.name;
-        _opening.text = MoneyMath.toDecimal(
-          investment.openingValue,
-          _currencyOf(investment.currencyCode),
-        ).toString();
-        _brokerId = investment.brokerId;
-        _currencyCode = investment.currencyCode;
-      }
-      setState(() => _loaded = true);
-    });
+    _load();
+  }
+
+  @override
+  void didUpdateWidget(covariant InvestmentFormScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Роутер создаёт ViewModel в builder, поэтому после push/pop экран может
+    // получить новый экземпляр — старый освобождаем и грузим актуальный.
+    if (!identical(oldWidget.viewModel, widget.viewModel)) {
+      oldWidget.viewModel.dispose();
+      _viewModel = widget.viewModel;
+      _loaded = false;
+      _load();
+    }
   }
 
   @override
   void dispose() {
     _name.dispose();
     _opening.dispose();
-    widget.viewModel.dispose();
+    _viewModel.dispose();
     super.dispose();
   }
 
-  Currency _currencyOf(String code) =>
-      widget.viewModel.currencies.value.firstWhere(
-        (currency) => currency.code == code,
-        orElse: () => Currency(
-          code: code,
-          name: code,
-          fractionDigits: 2,
-          isPreset: true,
-          isEnabled: true,
-        ),
-      );
+  Future<void> _load() async {
+    final seq = ++_loadSeq;
+    await _viewModel.load();
+    if (!mounted || seq != _loadSeq) return;
+    final investment = _viewModel.investment.value;
+    if (investment != null) {
+      _name.text = investment.name;
+      _opening.text = MoneyMath.toDecimal(
+        investment.openingValue,
+        _currencyOf(investment.currencyCode),
+      ).toString();
+      _currencyCode = investment.currencyCode;
+    }
+    setState(() {
+      _brokerId = _pickBroker(investment?.brokerId ?? _brokerId);
+      _loaded = true;
+    });
+  }
+
+  /// Держит выбор в пределах актуального списка брокеров.
+  int? _pickBroker(int? current) {
+    final brokers = _viewModel.brokers.value;
+    if (brokers.isEmpty) return null;
+    if (current != null && brokers.any((item) => item.id == current)) {
+      return current;
+    }
+    return brokers.first.id;
+  }
+
+  Currency _currencyOf(String code) => _viewModel.currencies.value.firstWhere(
+    (currency) => currency.code == code,
+    orElse: () => Currency(
+      code: code,
+      name: code,
+      fractionDigits: 2,
+      isPreset: true,
+      isEnabled: true,
+    ),
+  );
 
   Future<void> _save() async {
-    if (widget.viewModel.busy.value) return;
+    if (_viewModel.busy.value) return;
     final l10n = AppLocalizations.of(context);
     final opening = parseOpeningAmount(
       _opening.text,
@@ -111,7 +138,7 @@ class _InvestmentFormScreenState extends State<InvestmentFormScreen> {
       _brokerError = null;
       _formError = null;
     });
-    final result = await widget.viewModel.save(
+    final result = await _viewModel.save(
       name: _name.text,
       brokerId: _brokerId!,
       currencyCode: _currencyCode,
@@ -142,13 +169,10 @@ class _InvestmentFormScreenState extends State<InvestmentFormScreen> {
   Future<void> _openBrokers() async {
     await context.push(AppRoutes.subgroupsPath('broker'));
     if (!mounted) return;
-    await widget.viewModel.load();
-    if (!mounted) return;
-    setState(() {
-      _brokerId ??= widget.viewModel.brokers.value.isEmpty
-          ? null
-          : widget.viewModel.brokers.value.first.id;
-    });
+    // Перечитываем снимок справочника: если роутер уже подменил ViewModel,
+    // данные загрузит didUpdateWidget, повторный вызов безвреден.
+    setState(() => _loaded = false);
+    await _load();
   }
 
   @override

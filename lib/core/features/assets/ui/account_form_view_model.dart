@@ -40,9 +40,7 @@ class AccountFormViewModel {
 
   Future<void> load() async {
     try {
-      final bankList = await subgroupRepository
-          .watchByKind(SubgroupKind.bank)
-          .first;
+      final bankList = await subgroupRepository.getByKind(SubgroupKind.bank);
       final currencyList = await currencyRepository.getEnabled();
       banks.value = bankList;
       currencies.value = currencyList;

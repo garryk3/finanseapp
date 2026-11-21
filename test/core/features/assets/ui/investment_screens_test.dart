@@ -101,6 +101,9 @@ final class FakeSubgroups implements SubgroupRepository {
       Stream.value([...brokers]);
 
   @override
+  Future<List<Subgroup>> getByKind(SubgroupKind kind) async => [...brokers];
+
+  @override
   Future<int> create(SubgroupKind kind, String name) async => 1;
 
   @override
@@ -215,6 +218,40 @@ AssetSnapshot _snapshot({int current = 150000}) => AssetSnapshot(
   currentValue: Money(minorUnits: current, currencyCode: 'RUB'),
 );
 
+late GoRouter _router;
+
+/// Форма инвестиции внутри роутера, как в приложении: VM создаётся в builder
+/// (или переиспользуется переданная), второй маршрут — справочник брокеров.
+Widget _investmentFormApp(
+  InvestmentFormViewModel? viewModel, {
+  InvestmentFormViewModel Function()? buildViewModel,
+}) {
+  _router = GoRouter(
+    routes: [
+      GoRoute(
+        path: '/',
+        builder: (context, state) => InvestmentFormScreen(
+          viewModel: viewModel ?? buildViewModel!.call(),
+        ),
+      ),
+      GoRoute(
+        path: '/more/subgroups',
+        builder: (context, state) =>
+            AppScaffold(title: 'Брокеры', body: const SizedBox.shrink()),
+      ),
+    ],
+  );
+  return MaterialApp.router(
+    theme: AppTheme.light(),
+    routerConfig: _router,
+    localizationsDelegates: const [
+      ...GlobalMaterialLocalizations.delegates,
+      AppLocalizations.delegate,
+    ],
+    supportedLocales: const [Locale('ru')],
+  );
+}
+
 Future<void> _pump(WidgetTester tester, Widget child) async {
   tester.view.physicalSize = const Size(900, 1600);
   tester.view.devicePixelRatio = 1;
@@ -283,7 +320,9 @@ void main() {
     expect(repository.savedDraft, isNull);
   });
 
-  testWidgets('после добавления брокера форма обновляется', (tester) async {
+  testWidgets('после добавления брокера форма перезагружает данные', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(900, 1600);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -293,30 +332,7 @@ void main() {
       subgroupRepository: subgroups,
       currencyRepository: FakeCurrencies(),
     );
-    final router = GoRouter(
-      routes: [
-        GoRoute(
-          path: '/',
-          builder: (context, state) => InvestmentFormScreen(viewModel: vm),
-        ),
-        GoRoute(
-          path: '/more/subgroups',
-          builder: (context, state) =>
-              AppScaffold(title: 'Брокеры', body: const SizedBox.shrink()),
-        ),
-      ],
-    );
-    await tester.pumpWidget(
-      MaterialApp.router(
-        theme: AppTheme.light(),
-        routerConfig: router,
-        localizationsDelegates: const [
-          ...GlobalMaterialLocalizations.delegates,
-          AppLocalizations.delegate,
-        ],
-        supportedLocales: const [Locale('ru')],
-      ),
-    );
+    await tester.pumpWidget(_investmentFormApp(vm));
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.text(l10n.investmentNoBrokers), findsOneWidget);
 
@@ -326,15 +342,64 @@ void main() {
     await tester.ensureVisible(find.text(l10n.brokerAddAction));
     await tester.tap(find.text(l10n.brokerAddAction));
     await tester.pumpAndSettle();
-    router.pop();
+    _router.pop();
     await tester.pumpAndSettle();
 
     expect(find.text(l10n.investmentNoBrokers), findsNothing);
+    expect(find.text('Новый брокер'), findsOneWidget);
     final save = tester.widget<AppButton>(
       find.widgetWithText(AppButton, l10n.commonSave),
     );
     expect(save.onPressed, isNotNull);
   });
+
+  testWidgets(
+    'новый ViewModel из router builder подхватывается без потери формы',
+    (tester) async {
+      tester.view.physicalSize = const Size(900, 1600);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final subgroups = FakeSubgroups([]);
+      // Роутер создаёт VM в builder — как в app/router.dart.
+      var builds = 0;
+      await tester.pumpWidget(
+        _investmentFormApp(
+          null,
+          buildViewModel: () {
+            builds++;
+            return InvestmentFormViewModel(
+              repository: FakeAssets(_snapshot()),
+              subgroupRepository: subgroups,
+              currencyRepository: FakeCurrencies(),
+            );
+          },
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.text(l10n.investmentNoBrokers), findsOneWidget);
+
+      subgroups.brokers.add(
+        const Subgroup(
+          id: 9,
+          kind: SubgroupKind.broker,
+          name: 'Брокер из builder',
+        ),
+      );
+      await tester.ensureVisible(find.text(l10n.brokerAddAction));
+      await tester.tap(find.text(l10n.brokerAddAction));
+      await tester.pumpAndSettle();
+      _router.pop();
+      await tester.pumpAndSettle();
+
+      expect(builds, greaterThan(1));
+      expect(find.text(l10n.investmentNoBrokers), findsNothing);
+      expect(find.text('Брокер из builder'), findsOneWidget);
+      final save = tester.widget<AppButton>(
+        find.widgetWithText(AppButton, l10n.commonSave),
+      );
+      expect(save.onPressed, isNotNull);
+    },
+  );
 
   testWidgets('оценка сохраняется с курсом RUB и подтверждением', (
     tester,

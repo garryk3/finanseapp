@@ -89,6 +89,11 @@ final class FakeSubgroups implements SubgroupRepository {
   ]);
 
   @override
+  Future<List<Subgroup>> getByKind(SubgroupKind kind) async => [
+    const Subgroup(id: 1, kind: SubgroupKind.bank, name: 'Банк'),
+  ];
+
+  @override
   Future<int> create(SubgroupKind kind, String name) async => 1;
 
   @override
