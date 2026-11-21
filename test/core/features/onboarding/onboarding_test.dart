@@ -119,6 +119,35 @@ void main() {
     expect(find.byType(OnboardingScreen), findsOneWidget);
   });
 
+  testWidgets('онбординг: ошибка сохранения показывается у поля валюты', (
+    tester,
+  ) async {
+    final l10n = await AppLocalizations.delegate.load(const Locale('ru'));
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light(),
+        localizationsDelegates: const [
+          ...GlobalMaterialLocalizations.delegates,
+          AppLocalizations.delegate,
+        ],
+        supportedLocales: const [Locale('ru')],
+        builder: (context, child) => OnboardingGate(
+          repository: _Onboarding(),
+          settingsRepository: _FailingSettings(),
+          currencyRepository: _Currencies(),
+          child: child ?? const SizedBox.shrink(),
+        ),
+        home: const SizedBox.shrink(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l10n.onboardingStart));
+    await tester.pumpAndSettle();
+
+    expect(find.text(l10n.onboardingSaveError), findsOneWidget);
+    expect(find.byType(OnboardingScreen), findsOneWidget);
+  });
+
   testWidgets('онбординг: ошибка чтения валют не оставляет вечную загрузку', (
     tester,
   ) async {
@@ -229,4 +258,15 @@ final class _FailingCurrencies implements CurrencyRepository {
 
   @override
   Future<void> deleteIfUnused(String code) async {}
+}
+
+final class _FailingSettings implements SettingsRepository {
+  @override
+  Stream<Currency> watchBaseCurrency() => Stream.value(_rub);
+
+  @override
+  Future<Currency> getBaseCurrency() async => _rub;
+
+  @override
+  Future<void> setBaseCurrency(String code) async => throw StateError('db');
 }

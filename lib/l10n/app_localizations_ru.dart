@@ -1837,9 +1837,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get onboardingSkip => 'Пропустить';
 
   @override
-  String get onboardingPrivacyTitle => 'Данные и резервная копия';
-
-  @override
   String get onboardingCurrencyLabel => 'Базовая валюта';
 
   @override

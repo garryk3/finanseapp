@@ -2478,10 +2478,6 @@
   "@onboardingSkip": {
     "description": "CTA пропуск."
   },
-  "onboardingPrivacyTitle": "Данные и резервная копия",
-  "@onboardingPrivacyTitle": {
-    "description": "Заголовок секции онбординга."
-  },
   "onboardingCurrencyLabel": "Базовая валюта",
   "@onboardingCurrencyLabel": {
     "description": "Короткий label выбора валюты."

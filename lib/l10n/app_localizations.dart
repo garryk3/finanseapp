@@ -3457,12 +3457,6 @@ abstract class AppLocalizations {
   /// **'Пропустить'**
   String get onboardingSkip;
 
-  /// Заголовок секции онбординга.
-  ///
-  /// In ru, this message translates to:
-  /// **'Данные и резервная копия'**
-  String get onboardingPrivacyTitle;
-
   /// Короткий label выбора валюты.
   ///
   /// In ru, this message translates to:

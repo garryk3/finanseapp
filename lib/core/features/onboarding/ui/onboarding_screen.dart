@@ -51,9 +51,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     try {
       final currencies = await widget.currencyRepository.getEnabled();
       final base = await widget.settingsRepository.getBaseCurrency();
+      // Базовая валюта должна быть в списке, иначе AppSelect не найдёт значение.
+      final options = currencies.any((item) => item.code == base.code)
+          ? currencies
+          : <Currency>[base, ...currencies];
       if (!mounted) return;
       setState(() {
-        _currencies = currencies;
+        _currencies = options;
         _selected = base.code;
         _loadFailed = false;
       });
@@ -148,6 +152,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     label: l10n.onboardingCurrencyLabel,
                     value: _selected,
                     searchable: true,
+                    errorText: _saveFailed ? l10n.onboardingSaveError : null,
                     items: [
                       for (final currency in _currencies)
                         AppSelectItem(
@@ -156,7 +161,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           subtitle: currency.name,
                         ),
                     ],
-                    onChanged: (value) => setState(() => _selected = value),
+                    onChanged: (value) => setState(() {
+                      _selected = value;
+                      _saveFailed = false;
+                    }),
                   ),
                 if (!_loadFailed) ...[
                   const SizedBox(height: AppSpacing.xs),
@@ -166,10 +174,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
-                ],
-                if (_saveFailed) ...[
-                  const SizedBox(height: AppSpacing.xs),
-                  AppText(l10n.onboardingSaveError),
                 ],
               ],
             ),
