@@ -39,6 +39,7 @@ class AccountFormViewModel {
   bool get isEditing => editingId != null;
 
   Future<void> load() async {
+    state.value = const ViewLoading();
     try {
       final bankList = await subgroupRepository.getByKind(SubgroupKind.bank);
       final currencyList = await currencyRepository.getEnabled();

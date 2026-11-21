@@ -230,6 +230,12 @@ void main() {
 
     expect(find.text(l10n.errorStateMessage), findsOneWidget);
     expect(find.text(l10n.retry), findsOneWidget);
+
+    await tester.tap(find.text(l10n.retry));
+    await tester.pumpAndSettle();
+
+    expect(find.text(l10n.errorStateMessage), findsNothing);
+    expect(find.text(l10n.commonSave), findsOneWidget);
   });
 
   testWidgets('форма не сохраняет пустое название', (tester) async {
@@ -399,12 +405,19 @@ void main() {
 }
 
 final class _FailingCurrencies implements CurrencyRepository {
-  @override
-  Stream<List<Currency>> watchAll() => const Stream.empty();
+  int calls = 0;
 
   @override
-  Future<List<Currency>> getEnabled() async =>
+  Stream<List<Currency>> watchAll() => Stream.value(const [_rub]);
+
+  @override
+  Future<List<Currency>> getEnabled() async {
+    calls++;
+    if (calls == 1) {
       throw const DomainException(DomainErrorCode.storageFailure);
+    }
+    return const [_rub];
+  }
 
   @override
   Future<int> countReferences(String code) async => 0;
