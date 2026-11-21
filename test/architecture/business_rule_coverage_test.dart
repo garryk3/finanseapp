@@ -13,6 +13,7 @@ const _brCoverage = <String, List<String>>{
   'BR-G': ['test/core/features/goals'],
   'BR-S': ['test/core/features/analytics', 'test/core/features/dashboard'],
   'BR-IE': ['test/core/features/cashflow', 'test/core/features/transactions'],
+  'BR-RC': ['test/core/features/recurring'],
   'BR-RE': ['test/core/features/cashflow', 'test/core/features/assets'],
   'BR-CAT': ['test/core/features/categories', 'test/core/features/references'],
   'BR-BU': ['test/core/features/backup', 'test/core/features/settings'],
@@ -98,6 +99,9 @@ const _calcCoverage = <String, List<String>>{
   'CALC-036': [
     'test/core/features/assets/logic/property_yield_calculator_test.dart',
   ],
+  'CALC-042': ['test/core/features/recurring/recurring_schedule_test.dart'],
+  'CALC-043': ['test/core/features/recurring/recurring_schedule_test.dart'],
+  'CALC-044': ['test/core/features/recurring/recurring_schedule_test.dart'],
 };
 
 /// Расчёты, которые ещё не реализованы; запись обязана объяснить причину.
@@ -157,7 +161,7 @@ void _expectTestsInside(Iterable<String> directories, String owner) {
 void main() {
   test('каждый BR из business_rules.md покрыт тестовой группой', () {
     final ids = _brIds('docs/architecture/business_rules.md');
-    expect(ids, hasLength(100));
+    expect(ids, hasLength(110));
     for (final prefix in _brCoverage.keys) {
       expect(
         ids.any((id) => id.startsWith('$prefix-')),
@@ -178,7 +182,7 @@ void main() {
 
   test('каждая CALC имеет literal-тест или документированный defer', () {
     final ids = _idsIn('docs/architecture/calculations.md', r'CALC-\d{3}');
-    expect(ids, hasLength(36));
+    expect(ids, hasLength(39));
 
     final stale = {
       ..._calcCoverage.keys,

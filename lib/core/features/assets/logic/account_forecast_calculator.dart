@@ -59,22 +59,8 @@ abstract final class AccountForecastCalculator {
   }
 
   /// Anniversary-дата от исходного дня; 31 января → 28/29 февраля.
-  static LocalDate _addMonthsClamped(LocalDate date, int months) {
-    final total = date.year * 12 + (date.month - 1) + months;
-    final year = total ~/ 12;
-    final month = total % 12 + 1;
-    final day = math.min(date.day, _daysInMonth(year, month));
-    return LocalDate(year, month, day);
-  }
-
-  static int _daysInMonth(int year, int month) => switch (month) {
-    2 => _isLeapYear(year) ? 29 : 28,
-    4 || 6 || 9 || 11 => 30,
-    _ => 31,
-  };
-
-  static bool _isLeapYear(int year) =>
-      year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
+  static LocalDate _addMonthsClamped(LocalDate date, int months) =>
+      date.plusMonthsClamped(months);
 
   static int _daysBetween(LocalDate from, LocalDate to) =>
       to.toUtcDateTime().difference(from.toUtcDateTime()).inDays;

@@ -19,7 +19,7 @@ final class LocalDatabaseBackupService implements BackupService {
     required this.databaseProvider,
     required this.databasePath,
     required this.closeDatabase,
-    this.installedSchemaVersion = 1,
+    this.installedSchemaVersion = appDatabaseSchemaVersion,
     this.failOn,
     this.tempDirectory,
     DateTime Function()? clock,

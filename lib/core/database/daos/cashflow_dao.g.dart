@@ -10,6 +10,8 @@ mixin _$CashflowDaoMixin on DatabaseAccessor<AppDatabase> {
   $AssetTransfersTable get assetTransfers => attachedDatabase.assetTransfers;
   $AssetTransactionsTable get assetTransactions =>
       attachedDatabase.assetTransactions;
+  $RecurringCashflowRulesTable get recurringCashflowRules =>
+      attachedDatabase.recurringCashflowRules;
   $CashflowEntriesTable get cashflowEntries => attachedDatabase.cashflowEntries;
   $CashflowEntryRevisionsTable get cashflowEntryRevisions =>
       attachedDatabase.cashflowEntryRevisions;
@@ -34,6 +36,11 @@ class CashflowDaoManager {
       $$AssetTransactionsTableTableManager(
         _db.attachedDatabase,
         _db.assetTransactions,
+      );
+  $$RecurringCashflowRulesTableTableManager get recurringCashflowRules =>
+      $$RecurringCashflowRulesTableTableManager(
+        _db.attachedDatabase,
+        _db.recurringCashflowRules,
       );
   $$CashflowEntriesTableTableManager get cashflowEntries =>
       $$CashflowEntriesTableTableManager(

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:finanseapp/app/router.dart';
 import 'package:finanseapp/app/theme/app_theme.dart';
 import 'package:finanseapp/core/di/service_locator.dart';
@@ -7,11 +9,14 @@ import 'package:finanseapp/core/features/applock/ui/applock_back_dispatcher.dart
 import 'package:finanseapp/core/features/applock/ui/applock_gate.dart';
 import 'package:finanseapp/core/features/onboarding/domain/onboarding_repository.dart';
 import 'package:finanseapp/core/features/onboarding/ui/onboarding_gate.dart';
+import 'package:finanseapp/core/features/recurring/logic/recurring_catchup_service.dart';
 import 'package:finanseapp/core/features/settings/domain/settings_repository.dart';
 import 'package:finanseapp/core/features/currencies/domain/currency_repository.dart';
+import 'package:finanseapp/core/features/currencies/logic/exchange_rate_events.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:signals/signals.dart';
 
 /// Корневой виджет приложения: темы, локализация (ru), маршрутизация.
 class FinanseApp extends StatefulWidget {
@@ -23,8 +28,35 @@ class FinanseApp extends StatefulWidget {
   State<FinanseApp> createState() => _FinanseAppState();
 }
 
-class _FinanseAppState extends State<FinanseApp> {
+class _FinanseAppState extends State<FinanseApp> with WidgetsBindingObserver {
   late final GoRouter _router = buildRouter(locator: widget.locator);
+  late final RecurringCatchupService _catchup = widget.locator
+      .get<RecurringCatchupService>();
+  EffectCleanup? _rateCleanup;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    // После ручного курса/ответа ЦБ догоняем отложенные периоды (D5, D8).
+    _rateCleanup = exchangeRateRevision.subscribe((_) {
+      unawaited(_catchup.catchUp());
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      unawaited(_catchup.catchUp());
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _rateCleanup?.call();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

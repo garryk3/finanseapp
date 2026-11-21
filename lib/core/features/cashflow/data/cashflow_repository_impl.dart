@@ -144,6 +144,7 @@ final class CashflowRepositoryImpl implements CashflowRepository {
     propertyId: row.propertyId,
     accountId: row.accountId,
     assetTransactionId: row.assetTransactionId,
+    recurringRuleId: row.recurringRuleId,
     deletedAt: row.deletedAt,
   );
 }

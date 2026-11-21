@@ -7,6 +7,7 @@ import 'package:finanseapp/core/database/daos/cashflow_dao.dart';
 import 'package:finanseapp/core/database/daos/currencies_dao.dart';
 import 'package:finanseapp/core/database/daos/goals_dao.dart';
 import 'package:finanseapp/core/database/daos/references_dao.dart';
+import 'package:finanseapp/core/database/daos/recurring_dao.dart';
 import 'package:finanseapp/core/database/daos/settings_dao.dart';
 import 'package:finanseapp/core/database/daos/transactions_dao.dart';
 import 'package:finanseapp/core/database/daos/valuations_dao.dart';
@@ -39,6 +40,10 @@ import 'package:finanseapp/core/features/currencies/ui/base_currency_view_model.
 import 'package:finanseapp/core/features/currencies/ui/currencies_view_model.dart';
 import 'package:finanseapp/core/features/currencies/ui/currency_form_view_model.dart';
 import 'package:finanseapp/core/features/references/ui/subgroups_view_model.dart';
+import 'package:finanseapp/core/features/recurring/data/recurring_repository_impl.dart';
+import 'package:finanseapp/core/features/recurring/domain/recurring_repository.dart';
+import 'package:finanseapp/core/features/recurring/logic/recurring_catchup_service.dart';
+import 'package:finanseapp/core/features/recurring/logic/recurring_generator.dart';
 import 'package:finanseapp/core/features/settings/data/settings_repository_impl.dart';
 import 'package:finanseapp/core/features/settings/domain/settings_repository.dart';
 import 'package:finanseapp/core/di/service_locator.dart';
@@ -65,6 +70,7 @@ Future<ServiceLocator> registerCoreServices(
   locator.register<GoalsDao>(db.goalsDao);
   locator.register<SettingsDao>(db.settingsDao);
   locator.register<AuditDao>(db.auditDao);
+  locator.register<RecurringDao>(db.recurringDao);
 
   locator.register<SubgroupRepository>(
     SubgroupRepositoryImpl(db.referencesDao),
@@ -113,6 +119,19 @@ Future<ServiceLocator> registerCoreServices(
       locator.get<SettingsRepository>(),
       locator.get<CurrencyRepository>(),
     ),
+  );
+  locator.register<RecurringRepository>(
+    RecurringRepositoryImpl(db.recurringDao),
+  );
+  locator.register<RecurringGenerator>(
+    RecurringGenerator(
+      db: db,
+      rateRepository: locator.get<ExchangeRateRepository>(),
+      currencyRepository: locator.get<CurrencyRepository>(),
+    ),
+  );
+  locator.register<RecurringCatchupService>(
+    RecurringCatchupService(generator: locator.get<RecurringGenerator>()),
   );
   locator.registerFactory<CurrenciesViewModel>(
     () => CurrenciesViewModel(

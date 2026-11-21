@@ -67,6 +67,7 @@ CashflowEntry decodeCashflowSnapshot(String json) {
     propertyId: data['propertyId'] as int?,
     accountId: data['accountId'] as int?,
     assetTransactionId: data['assetTransactionId'] as int?,
+    recurringRuleId: data['recurringRuleId'] as int?,
     deletedAt: data['deletedAt'] == null
         ? null
         : _timestamp(data['deletedAt'] as String),

@@ -14,6 +14,8 @@ mixin _$ReferencesDaoMixin on DatabaseAccessor<AppDatabase> {
   $AssetTransfersTable get assetTransfers => attachedDatabase.assetTransfers;
   $AssetTransactionsTable get assetTransactions =>
       attachedDatabase.assetTransactions;
+  $RecurringCashflowRulesTable get recurringCashflowRules =>
+      attachedDatabase.recurringCashflowRules;
   $CashflowEntriesTable get cashflowEntries => attachedDatabase.cashflowEntries;
   ReferencesDaoManager get managers => ReferencesDaoManager(this);
 }
@@ -48,6 +50,11 @@ class ReferencesDaoManager {
       $$AssetTransactionsTableTableManager(
         _db.attachedDatabase,
         _db.assetTransactions,
+      );
+  $$RecurringCashflowRulesTableTableManager get recurringCashflowRules =>
+      $$RecurringCashflowRulesTableTableManager(
+        _db.attachedDatabase,
+        _db.recurringCashflowRules,
       );
   $$CashflowEntriesTableTableManager get cashflowEntries =>
       $$CashflowEntriesTableTableManager(

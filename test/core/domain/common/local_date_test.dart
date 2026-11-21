@@ -101,6 +101,68 @@ void main() {
     });
   });
 
+  group('LocalDate.plusMonthsClamped', () {
+    test('сохраняет день месяца при переходе между месяцами', () {
+      expect(
+        LocalDate(2026, 1, 15).plusMonthsClamped(1).toIsoString(),
+        '2026-02-15',
+      );
+      expect(
+        LocalDate(2026, 1, 15).plusMonthsClamped(12).toIsoString(),
+        '2027-01-15',
+      );
+      expect(
+        LocalDate(2026, 12, 31).plusMonthsClamped(1).toIsoString(),
+        '2027-01-31',
+      );
+    });
+
+    test('clamp до последнего дня короткого месяца', () {
+      expect(
+        LocalDate(2026, 1, 31).plusMonthsClamped(1).toIsoString(),
+        '2026-02-28',
+      );
+      expect(
+        LocalDate(2026, 3, 31).plusMonthsClamped(1).toIsoString(),
+        '2026-04-30',
+      );
+      expect(
+        LocalDate(2026, 5, 31).plusMonthsClamped(1).toIsoString(),
+        '2026-06-30',
+      );
+    });
+
+    test('високосный февраль и возврат к 29-му', () {
+      expect(
+        LocalDate(2024, 1, 31).plusMonthsClamped(1).toIsoString(),
+        '2024-02-29',
+      );
+      expect(
+        LocalDate(2024, 2, 29).plusMonthsClamped(12).toIsoString(),
+        '2025-02-28',
+      );
+      expect(
+        LocalDate(2024, 2, 29).plusMonthsClamped(48).toIsoString(),
+        '2028-02-29',
+      );
+    });
+
+    test('ноль и переход через год', () {
+      final date = LocalDate(2026, 11, 17);
+
+      expect(date.plusMonthsClamped(0), date);
+      expect(date.plusMonthsClamped(14).toIsoString(), '2028-01-17');
+      expect(date.plusMonthsClamped(12000).year, 2026 + 1000);
+    });
+
+    test('отрицательный сдвиг отклоняется', () {
+      expect(
+        () => LocalDate(2026, 1, 1).plusMonthsClamped(-1),
+        throwsValidation(),
+      );
+    });
+  });
+
   group('DateRange', () {
     final start = LocalDate(2026, 1, 1);
     final end = LocalDate(2026, 1, 31);

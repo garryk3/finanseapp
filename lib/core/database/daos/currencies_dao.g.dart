@@ -11,6 +11,8 @@ mixin _$CurrenciesDaoMixin on DatabaseAccessor<AppDatabase> {
   $AssetTransfersTable get assetTransfers => attachedDatabase.assetTransfers;
   $AssetTransactionsTable get assetTransactions =>
       attachedDatabase.assetTransactions;
+  $RecurringCashflowRulesTable get recurringCashflowRules =>
+      attachedDatabase.recurringCashflowRules;
   $CashflowEntriesTable get cashflowEntries => attachedDatabase.cashflowEntries;
   $GoalsTable get goals => attachedDatabase.goals;
   CurrenciesDaoManager get managers => CurrenciesDaoManager(this);
@@ -36,6 +38,11 @@ class CurrenciesDaoManager {
       $$AssetTransactionsTableTableManager(
         _db.attachedDatabase,
         _db.assetTransactions,
+      );
+  $$RecurringCashflowRulesTableTableManager get recurringCashflowRules =>
+      $$RecurringCashflowRulesTableTableManager(
+        _db.attachedDatabase,
+        _db.recurringCashflowRules,
       );
   $$CashflowEntriesTableTableManager get cashflowEntries =>
       $$CashflowEntriesTableTableManager(

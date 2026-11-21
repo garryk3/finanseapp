@@ -5,6 +5,7 @@ import 'package:finanseapp/core/features/assets/domain/asset.dart';
 import 'package:finanseapp/core/features/categories/domain/category.dart';
 import 'package:finanseapp/core/features/goals/domain/financial_goal.dart';
 import 'package:finanseapp/core/features/assets/domain/subgroup.dart';
+import 'package:finanseapp/core/features/recurring/domain/recurring_rule.dart';
 import 'package:finanseapp/core/features/transactions/domain/asset_transaction.dart';
 
 /// Стабильные TEXT-значения enum (data_schema §2).
@@ -163,5 +164,23 @@ final class GoalStatusConverter extends TypeConverter<GoalStatus, String> {
     GoalStatus.active => 'active',
     GoalStatus.achieved => 'achieved',
     GoalStatus.closed => 'closed',
+  };
+}
+
+final class RecurringStrategyConverter
+    extends TypeConverter<RecurringStrategy, String> {
+  const RecurringStrategyConverter();
+
+  @override
+  RecurringStrategy fromSql(String fromDb) => switch (fromDb) {
+    'fixed' => RecurringStrategy.fixed,
+    'deposit_interest' => RecurringStrategy.depositInterest,
+    _ => throw FormatException('Неизвестная стратегия правила: $fromDb'),
+  };
+
+  @override
+  String toSql(RecurringStrategy value) => switch (value) {
+    RecurringStrategy.fixed => 'fixed',
+    RecurringStrategy.depositInterest => 'deposit_interest',
   };
 }

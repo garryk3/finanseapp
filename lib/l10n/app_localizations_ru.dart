@@ -623,8 +623,9 @@ class AppLocalizationsRu extends AppLocalizations {
     int valuations,
     int goals,
     int cashflow,
+    int recurring,
   ) {
-    return 'Операций: $transactions, оценок: $valuations, целей: $goals, записей: $cashflow. Удаление недоступно — архивируйте актив.';
+    return 'Операций: $transactions, оценок: $valuations, целей: $goals, записей: $cashflow, правил: $recurring. Удаление недоступно — архивируйте актив.';
   }
 
   @override

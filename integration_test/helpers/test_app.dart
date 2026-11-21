@@ -49,7 +49,16 @@ Future<void> shutdownApp(WidgetTester tester, [ServiceLocator? locator]) async {
 }
 
 Future<void> tapTab(WidgetTester tester, String label) async {
-  await tester.tap(find.text(label).last);
+  final finder = find.text(label);
+  for (var attempt = 0; attempt < 100 && finder.evaluate().isEmpty; attempt++) {
+    await tester.pump(const Duration(milliseconds: 50));
+  }
+  expect(
+    finder,
+    findsWidgets,
+    reason: 'вкладка «$label» не появилась: DI ещё собирается',
+  );
+  await tester.tap(finder.last);
   await tester.pumpAndSettle();
 }
 

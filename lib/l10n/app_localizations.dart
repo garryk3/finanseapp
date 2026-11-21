@@ -1207,12 +1207,13 @@ abstract class AppLocalizations {
   /// Разбивка ссылок на актив.
   ///
   /// In ru, this message translates to:
-  /// **'Операций: {transactions}, оценок: {valuations}, целей: {goals}, записей: {cashflow}. Удаление недоступно — архивируйте актив.'**
+  /// **'Операций: {transactions}, оценок: {valuations}, целей: {goals}, записей: {cashflow}, правил: {recurring}. Удаление недоступно — архивируйте актив.'**
   String assetInUseMessage(
     int transactions,
     int valuations,
     int goals,
     int cashflow,
+    int recurring,
   );
 
   /// Поле выбора валюты счёта.

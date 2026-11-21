@@ -30,6 +30,7 @@ final class CashflowEntryInput {
     this.propertyId,
     this.accountId,
     this.assetTransactionId,
+    this.recurringRuleId,
   });
 
   final CashflowKind kind;
@@ -44,6 +45,7 @@ final class CashflowEntryInput {
   final int? propertyId;
   final int? accountId;
   final int? assetTransactionId;
+  final int? recurringRuleId;
 }
 
 /// Доходы и расходы с ревизиями; связь с операцией актива — 7.2.
@@ -144,6 +146,7 @@ class CashflowDao extends DatabaseAccessor<AppDatabase>
         propertyId: Value(input.propertyId),
         accountId: Value(input.accountId),
         assetTransactionId: Value(input.assetTransactionId),
+        recurringRuleId: Value(input.recurringRuleId),
       ),
     );
     await _writeRevision(await _requireEntry(id), RevisionAction.create, now);
@@ -476,6 +479,7 @@ class CashflowDao extends DatabaseAccessor<AppDatabase>
           propertyId: row.propertyId,
           accountId: row.accountId,
           assetTransactionId: row.assetTransactionId,
+          recurringRuleId: row.recurringRuleId,
           revisionNo: row.revisionNo,
           createdAt: row.createdAt,
           updatedAt: row.updatedAt,

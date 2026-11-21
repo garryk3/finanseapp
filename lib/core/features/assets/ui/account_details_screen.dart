@@ -368,6 +368,7 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
               counts.valuations,
               counts.goals,
               counts.cashflow,
+              counts.recurringRules,
             ),
           ),
           actions: [
