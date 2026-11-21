@@ -19,7 +19,10 @@ import 'package:finanseapp/core/features/currencies/domain/currency_repository.d
 import 'package:finanseapp/core/features/currencies/domain/exchange_rate_repository.dart';
 import 'package:finanseapp/core/features/settings/domain/settings_repository.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
+import 'package:finanseapp/uikit/app_scaffold.dart';
+import 'package:finanseapp/uikit/app_text.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:finanseapp/uikit/app_button.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -238,6 +241,67 @@ void main() {
     expect(find.text(l10n.commonSave), findsOneWidget);
   });
 
+  testWidgets('пустой справочник банков предлагает добавить банк', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 1600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final subgroups = _MutableSubgroups();
+    final snapshot = AssetSnapshot(
+      asset: _account(),
+      currentValue: const Money(minorUnits: 0, currencyCode: 'RUB'),
+    );
+    final vm = AccountFormViewModel(
+      repository: FakeAssets(snapshot),
+      subgroupRepository: subgroups,
+      currencyRepository: FakeCurrencies(),
+    );
+    String? requestedKind;
+    final router = GoRouter(
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (context, state) => AccountFormScreen(viewModel: vm),
+        ),
+        GoRoute(
+          path: '/more/subgroups',
+          builder: (context, state) {
+            requestedKind = state.uri.queryParameters['kind'];
+            return const AppScaffold(title: 'Банки', body: AppText('STUB'));
+          },
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      MaterialApp.router(
+        theme: AppTheme.light(),
+        routerConfig: router,
+        localizationsDelegates: const [
+          ...GlobalMaterialLocalizations.delegates,
+          AppLocalizations.delegate,
+        ],
+        supportedLocales: const [Locale('ru')],
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text(l10n.accountNoBanks), findsOneWidget);
+    expect(find.text(l10n.bankAddAction), findsOneWidget);
+
+    subgroups.banks.add(
+      const Subgroup(id: 9, kind: SubgroupKind.bank, name: 'Новый банк'),
+    );
+    await tester.tap(find.text(l10n.bankAddAction));
+    await tester.pumpAndSettle();
+    expect(requestedKind, 'bank');
+    router.pop();
+    await tester.pumpAndSettle();
+
+    expect(find.text(l10n.accountNoBanks), findsNothing);
+    expect(find.text('Новый банк'), findsOneWidget);
+  });
+
   testWidgets('форма не сохраняет пустое название', (tester) async {
     final snapshot = AssetSnapshot(
       asset: _account(),
@@ -437,4 +501,30 @@ final class _FailingCurrencies implements CurrencyRepository {
 
   @override
   Future<void> deleteIfUnused(String code) async {}
+}
+
+final class _MutableSubgroups implements SubgroupRepository {
+  final List<Subgroup> banks = [];
+
+  @override
+  Stream<List<Subgroup>> watchByKind(SubgroupKind kind) =>
+      Stream.value([...banks]);
+
+  @override
+  Future<List<Subgroup>> getByKind(SubgroupKind kind) async => [...banks];
+
+  @override
+  Future<int> create(SubgroupKind kind, String name) async => 1;
+
+  @override
+  Future<void> rename(int id, String name) async {}
+
+  @override
+  Future<int> countAssets(int id) async => 0;
+
+  @override
+  Future<void> deleteIfUnused(int id) async {}
+
+  @override
+  Future<void> moveAssetsAndDelete(int id, int targetId) async {}
 }

@@ -370,11 +370,19 @@ GoRouter buildRouter({required ServiceLocator locator}) {
                       return SubgroupsScreen(
                         viewModel: locator.get<SubgroupsViewModel>(),
                         initialKind: kind,
-                        onKindChanged: (next) => context.go(
-                          AppRoutes.subgroupsPath(
+                        onKindChanged: (next) {
+                          final path = AppRoutes.subgroupsPath(
                             next == SubgroupKind.broker ? 'broker' : 'bank',
-                          ),
-                        ),
+                          );
+                          // Если справочник открыт поверх формы (push), `go`
+                          // сбросил бы стек и потерял несохранённые данные.
+                          final route = ModalRoute.of(context);
+                          if (route != null && !route.isFirst) {
+                            context.pushReplacement(path);
+                          } else {
+                            context.go(path);
+                          }
+                        },
                       );
                     },
                   ),

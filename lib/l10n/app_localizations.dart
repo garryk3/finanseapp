@@ -3516,6 +3516,12 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Удалённые операции и записи попадут сюда, их можно будет восстановить.'**
   String get auditEmptyMessage;
+
+  /// CTA создания банка из формы счёта.
+  ///
+  /// In ru, this message translates to:
+  /// **'Добавить банк'**
+  String get bankAddAction;
 }
 
 class _AppLocalizationsDelegate

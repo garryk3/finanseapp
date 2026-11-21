@@ -228,19 +228,6 @@ class _InvestmentFormScreenState extends State<InvestmentFormScreen> {
                     errorText: _amountError,
                     onChanged: (_) => setState(() => _amountError = null),
                   ),
-                  AppSelect<int>(
-                    label: l10n.investmentBrokerLabel,
-                    value: _brokerId,
-                    items: [
-                      for (final broker in vm.brokers.value)
-                        AppSelectItem(value: broker.id, label: broker.name),
-                    ],
-                    onChanged: (value) => setState(() {
-                      _brokerId = value;
-                      _brokerError = null;
-                    }),
-                    errorText: _brokerError,
-                  ),
                   if (noBrokers) ...[
                     AppText(l10n.investmentNoBrokers),
                     AppButton(
@@ -248,7 +235,20 @@ class _InvestmentFormScreenState extends State<InvestmentFormScreen> {
                       variant: AppButtonVariant.text,
                       onPressed: _openBrokers,
                     ),
-                  ],
+                  ] else
+                    AppSelect<int>(
+                      label: l10n.investmentBrokerLabel,
+                      value: _brokerId,
+                      items: [
+                        for (final broker in vm.brokers.value)
+                          AppSelectItem(value: broker.id, label: broker.name),
+                      ],
+                      onChanged: (value) => setState(() {
+                        _brokerId = value;
+                        _brokerError = null;
+                      }),
+                      errorText: _brokerError,
+                    ),
                   AppCurrencySelect(
                     label: l10n.investmentCurrencyLabel,
                     valueCode: _currencyCode,
