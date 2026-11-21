@@ -3522,6 +3522,12 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Добавить банк'**
   String get bankAddAction;
+
+  /// Удаление нарушает историю баланса.
+  ///
+  /// In ru, this message translates to:
+  /// **'Нельзя удалить: после этой операции остаток счёта станет отрицательным.'**
+  String get transactionDeleteBalanceBlocked;
 }
 
 class _AppLocalizationsDelegate

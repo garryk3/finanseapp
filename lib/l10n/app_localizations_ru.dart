@@ -1870,4 +1870,8 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get bankAddAction => 'Добавить банк';
+
+  @override
+  String get transactionDeleteBalanceBlocked =>
+      'Нельзя удалить: после этой операции остаток счёта станет отрицательным.';
 }

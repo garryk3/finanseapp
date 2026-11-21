@@ -2521,5 +2521,9 @@
   "bankAddAction": "Добавить банк",
   "@bankAddAction": {
     "description": "CTA создания банка из формы счёта."
+  },
+  "transactionDeleteBalanceBlocked": "Нельзя удалить: после этой операции остаток счёта станет отрицательным.",
+  "@transactionDeleteBalanceBlocked": {
+    "description": "Удаление нарушает историю баланса."
   }
 }

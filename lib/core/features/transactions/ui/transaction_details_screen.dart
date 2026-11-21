@@ -192,16 +192,15 @@ class _TransactionDetailsScreenState extends State<TransactionDetailsScreen> {
     final result = await _viewModel.delete();
     if (!mounted) return;
     if (result is Failure<void>) {
-      final blocked = result.error.fieldErrors.values.contains(
-        'validationTransferLegDirectEdit',
-      );
-      showAppSnackBar(
-        context,
-        message: blocked
-            ? l10n.transactionDeleteBlocked
-            : l10n.errorStateMessage,
-        isError: true,
-      );
+      final message = switch (result.error) {
+        DomainException(code: DomainErrorCode.negativeBalance) =>
+          l10n.transactionDeleteBalanceBlocked,
+        DomainException(fieldErrors: final fields)
+            when fields.values.contains('validationTransferLegDirectEdit') =>
+          l10n.transactionDeleteBlocked,
+        _ => l10n.errorStateMessage,
+      };
+      showAppSnackBar(context, message: message, isError: true);
       return;
     }
     showAppSnackBar(context, message: l10n.transactionDeleted);

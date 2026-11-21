@@ -79,10 +79,11 @@ final class FakeTransactions implements AssetTransactionRepository {
   @override
   Stream<List<AssetTransaction>> watchDeleted() => const Stream.empty();
 
-  FakeTransactions(this.transactions, {this.deleted = false});
+  FakeTransactions(this.transactions, {this.deleted = false, this.deleteError});
 
   final List<AssetTransaction> transactions;
   final bool deleted;
+  final DomainException? deleteError;
   final List<TransactionFilter> filters = [];
   int deletes = 0;
 
@@ -109,6 +110,8 @@ final class FakeTransactions implements AssetTransactionRepository {
 
   @override
   Future<void> softDelete(int id) async {
+    final error = deleteError;
+    if (error != null) throw error;
     deletes++;
   }
 
@@ -385,6 +388,32 @@ void main() {
 
     expect(find.text(l10n.accountDelete), findsNothing);
     expect(find.text(l10n.transactionKindTransferOut), findsWidgets);
+  });
+
+  testWidgets('удаление с нарушением истории баланса объясняет причину', (
+    tester,
+  ) async {
+    final transaction = _transaction();
+    final vm = TransactionDetailsViewModel(
+      repository: FakeTransactions([
+        transaction,
+      ], deleteError: const DomainException(DomainErrorCode.negativeBalance)),
+      assetRepository: FakeAssets([_account(1, 'Счёт')]),
+      auditRepository: FakeAudit([]),
+      settingsRepository: FakeSettings(),
+      currencyRepository: FakeCurrencies(),
+      rateRepository: FakeRates(),
+      today: LocalDate(2026, 1, 3),
+      transactionId: 1,
+    );
+    await _pump(tester, TransactionDetailsScreen(viewModel: vm));
+
+    await tester.tap(find.text(l10n.accountDelete));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(find.text(l10n.commonDelete).last);
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text(l10n.transactionDeleteBalanceBlocked), findsOneWidget);
   });
 
   testWidgets('детали показывают ревизии и удаляют операцию', (tester) async {
