@@ -1,7 +1,7 @@
 name: finanseapp
 description: "FinanseApp — учёт личных финансов (offline-first, Android 12+, Material 3, RU)."
 publish_to: 'none'
-version: 0.1.1+2
+version: 0.1.2+3
 
 environment:
   sdk: ^3.14.0
