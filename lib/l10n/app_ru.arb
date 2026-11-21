@@ -2485,5 +2485,13 @@
   "onboardingCurrencyLabel": "Базовая валюта",
   "@onboardingCurrencyLabel": {
     "description": "Короткий label выбора валюты."
+  },
+  "onboardingSetupTitle": "Начало работы",
+  "@onboardingSetupTitle": {
+    "description": "Заголовок вводной секции онбординга."
+  },
+  "onboardingSaveError": "Не удалось сохранить выбор. Попробуйте ещё раз.",
+  "@onboardingSaveError": {
+    "description": "Ошибка сохранения настроек онбординга."
   }
 }

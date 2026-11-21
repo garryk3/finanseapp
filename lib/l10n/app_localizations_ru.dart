@@ -1841,4 +1841,11 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get onboardingCurrencyLabel => 'Базовая валюта';
+
+  @override
+  String get onboardingSetupTitle => 'Начало работы';
+
+  @override
+  String get onboardingSaveError =>
+      'Не удалось сохранить выбор. Попробуйте ещё раз.';
 }

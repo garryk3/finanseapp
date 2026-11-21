@@ -7,6 +7,7 @@ import 'package:finanseapp/core/features/onboarding/domain/onboarding_repository
 import 'package:finanseapp/core/features/settings/domain/settings_repository.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
 import 'package:finanseapp/uikit/app_button.dart';
+import 'package:finanseapp/uikit/app_error_state.dart';
 import 'package:finanseapp/uikit/app_list_view.dart';
 import 'package:finanseapp/uikit/app_scaffold.dart';
 import 'package:finanseapp/uikit/app_section.dart';
@@ -120,14 +121,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         ),
       ),
       body: AppListView(
-        padding: const EdgeInsets.only(
-          left: AppSpacing.md,
-          right: AppSpacing.md,
-          bottom: AppSpacing.xl,
-        ),
+        padding: const EdgeInsets.only(bottom: AppSpacing.xl),
         children: [
           AppSection(
-            header: l10n.onboardingPrivacyTitle,
+            header: l10n.onboardingSetupTitle,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -135,14 +132,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 const SizedBox(height: AppSpacing.sm),
                 AppText(l10n.onboardingPrivacy),
                 const SizedBox(height: AppSpacing.md),
-                if (_loadFailed) ...[
-                  AppText(l10n.errorStateMessage),
-                  AppButton(
-                    label: l10n.retry,
-                    variant: AppButtonVariant.text,
-                    onPressed: _load,
-                  ),
-                ] else if (_selected == null)
+                if (_loadFailed)
+                  AppErrorState(
+                    title: l10n.errorStateTitle,
+                    message: l10n.errorStateMessage,
+                    retryLabel: l10n.retry,
+                    onRetry: _load,
+                    errorLabel: l10n.errorLabel,
+                    compact: true,
+                  )
+                else if (_selected == null)
                   AppText(l10n.commonLoading)
                 else
                   AppSelect<String>(
@@ -159,14 +158,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ],
                     onChanged: (value) => setState(() => _selected = value),
                   ),
-                const SizedBox(height: AppSpacing.xs),
-                AppText(
-                  l10n.onboardingBaseCurrency,
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
+                if (!_loadFailed) ...[
+                  const SizedBox(height: AppSpacing.xs),
+                  AppText(
+                    l10n.onboardingBaseCurrency,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
                 if (_saveFailed) ...[
                   const SizedBox(height: AppSpacing.xs),
-                  AppText(l10n.errorStateMessage),
+                  AppText(l10n.onboardingSaveError),
                 ],
               ],
             ),

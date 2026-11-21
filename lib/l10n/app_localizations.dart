@@ -3468,6 +3468,18 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Базовая валюта'**
   String get onboardingCurrencyLabel;
+
+  /// Заголовок вводной секции онбординга.
+  ///
+  /// In ru, this message translates to:
+  /// **'Начало работы'**
+  String get onboardingSetupTitle;
+
+  /// Ошибка сохранения настроек онбординга.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось сохранить выбор. Попробуйте ещё раз.'**
+  String get onboardingSaveError;
 }
 
 class _AppLocalizationsDelegate
