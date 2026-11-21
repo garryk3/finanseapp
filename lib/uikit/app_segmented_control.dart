@@ -40,8 +40,7 @@ class AppSegmentedControl<T> extends StatefulWidget {
   final bool expanded;
 
   @override
-  State<AppSegmentedControl<T>> createState() =>
-      _AppSegmentedControlState<T>();
+  State<AppSegmentedControl<T>> createState() => _AppSegmentedControlState<T>();
 }
 
 class _AppSegmentedControlState<T> extends State<AppSegmentedControl<T>> {
