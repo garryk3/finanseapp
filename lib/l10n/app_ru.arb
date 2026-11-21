@@ -2425,5 +2425,33 @@
   "comparisonGoAssets": "Перейти к активам",
   "@comparisonGoAssets": {
     "description": "CTA пустого сравнения."
+  },
+  "propertyYieldTitle": "Доходность за 12 месяцев",
+  "@propertyYieldTitle": {
+    "description": "Секция доходности недвижимости."
+  },
+  "propertyYieldGross": "Валовая доходность",
+  "@propertyYieldGross": {
+    "description": "Gross yield."
+  },
+  "propertyYieldNet": "Чистая доходность",
+  "@propertyYieldNet": {
+    "description": "Net yield."
+  },
+  "propertyYieldHint": "Оценочно: все доходы и расходы объекта за последние 12 месяцев к текущей стоимости. Валовая — без расходов, чистая — за вычетом расходов.",
+  "@propertyYieldHint": {
+    "description": "Пояснение доходности."
+  },
+  "propertyYieldUnavailable": "Недостаточно данных для расчёта.",
+  "@propertyYieldUnavailable": {
+    "description": "Нет стоимости/дохода."
+  },
+  "propertyYieldNoOperations": "Нет операций за последние 12 месяцев.",
+  "@propertyYieldNoOperations": {
+    "description": "Нет cashflow для доходности."
+  },
+  "propertyYieldError": "Не удалось рассчитать доходность.",
+  "@propertyYieldError": {
+    "description": "Ошибка расчёта доходности."
   }
 }

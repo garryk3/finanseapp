@@ -1567,7 +1567,7 @@
   (1000 USD@90 → 900 EUR, RUB-snapshot 90 000 через production-репозиторий), CALC-035
   (доли 25%/75%, нулевой итог → 0), CALC-009/011/012 (точные суммы/ревизии) и CALC-033
   (deposit без классификации). Остальные CALC привязаны к конкретным repository/calculator
-  тестам с буквальными expected. CALC-036 (yield) — документированный defer до 12.3.
+  тестам с буквальными expected. CALC-036 (yield) реализован в 12.3 (`property_yield_calculator_test`).
   Всего 561 тест.
 - **Отложено:** yield/CALC-036 до 12.3; ручная сверка docs с продуктом (вне automated QA).
 - **DoD:** self-review подтверждает каждый BR кодом+тестом, нет тестов, вычисляющих expected
@@ -1912,7 +1912,7 @@
   Перед PR спросить о e2e.
 - **Предлагаемый commit:** `task/12.2: добавить сравнение активов`.
 
-### 12.3 Доходность недвижимости за 12 месяцев — [ ]
+### 12.3 Доходность недвижимости за 12 месяцев — [x] (2026-11-21)
 
 - **Приоритет/зависимости:** P2; после 11.4. **BR:** RE-6.
 - **Files:** Create property yield calculator/presentation section и tests; Modify property
@@ -1921,6 +1921,18 @@
 - **Produces:** gross/net yield, оценочность и null при zero current value.
 - **TDD:** annual rent 120000/value 5m → gross 2.4%; expenses 20000→net 2.0%; exact 12-month
   boundaries; zero value→null; valuation repair cashflow не меняет.
+- **Рабочий план:**
+  - **Calculator:** `PropertyYieldCalculator` — gross/net по income/expense.amountRub и
+    valueRub за 12 месяцев, null при value ≤ 0.
+  - **UI:** секция в деталях недвижимости: gross/net %, «оценочно», unavailable без данных;
+    value — последняя оценка.valueRub, иначе RUB currentValue.
+  - **Docs/tests:** CALC-036 + golden 120k/20k/5m → 2.4/2.0; границы и отрицательный net.
+  - **commit:** `task/12.3: рассчитать доходность недвижимости`.
+- **Итог:** CALC-036 реализован; доходность за последние 12 месяцев показывается в деталях
+  недвижимости, нулевая стоимость → «Недостаточно данных»; denominator — последняя оценка
+  (`valuations.first`), данные реактивны (watch 12m + пересчёт при balance/валютe), ошибки
+  показываются. Golden 2,4%/2,0%, отрицательный net, границы периода/clamp 29 февраля.
+  Architecture-карта: CALC-036 покрыт. Всего 598 тестов.
 - **DoD:** формулы и golden values добавлены до кода, нет обещания инвестиционной рекомендации;
   общий DoD. Перед PR спросить о e2e.
 - **Предлагаемый commit:** `task/12.3: рассчитать доходность недвижимости`.
