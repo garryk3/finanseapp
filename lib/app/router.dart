@@ -148,6 +148,7 @@ GoRouter buildRouter({required ServiceLocator locator}) {
                         repository: locator.get<AssetRepository>(),
                         subgroupRepository: locator.get<SubgroupRepository>(),
                         currencyRepository: locator.get<CurrencyRepository>(),
+                        catchup: locator.get<RecurringCatchupService>().catchUp,
                       ),
                     ),
                   ),
@@ -217,6 +218,9 @@ GoRouter buildRouter({required ServiceLocator locator}) {
                                     currencyRepository: locator
                                         .get<CurrencyRepository>(),
                                     editingId: id,
+                                    catchup: locator
+                                        .get<RecurringCatchupService>()
+                                        .catchUp,
                                   ),
                                 );
                         },

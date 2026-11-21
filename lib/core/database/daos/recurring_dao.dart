@@ -84,6 +84,97 @@ class RecurringDao extends DatabaseAccessor<AppDatabase>
             ..orderBy([(r) => OrderingTerm.asc(r.id)]))
           .get();
 
+  /// Автоправило процентов счёта; [includeDeleted] нужен для восстановления
+  /// после паузы со ставкой 0 (BR-RC-9).
+  Future<RecurringCashflowRuleRow?> findDepositInterestRule(
+    int accountId, {
+    bool includeDeleted = false,
+  }) {
+    final query = select(recurringCashflowRules)
+      ..where(
+        (r) =>
+            r.accountId.equals(accountId) &
+            r.strategy.equalsValue(RecurringStrategy.depositInterest),
+      )
+      ..orderBy([(r) => OrderingTerm.desc(r.id)])
+      ..limit(1);
+    if (!includeDeleted) query.where((r) => r.deletedAt.isNull());
+    return query.getSingleOrNull();
+  }
+
+  /// Создаёт или восстанавливает автоправило процентов, сохраняя маркер.
+  ///
+  /// Публичный [create] намеренно не принимает `deposit_interest`: такие
+  /// правила создаёт только генератор.
+  Future<int> upsertDepositInterestRule({
+    required int accountId,
+    required int categoryId,
+    required String currencyCode,
+    required LocalDate startDate,
+    LocalDate? endDate,
+  }) => transaction(() async {
+    final existing = await findDepositInterestRule(
+      accountId,
+      includeDeleted: true,
+    );
+    final now = attachedDatabase.clock();
+    if (existing != null) {
+      await (update(
+        recurringCashflowRules,
+      )..where((r) => r.id.equals(existing.id))).write(
+        RecurringCashflowRulesCompanion(
+          kind: const Value(CashflowKind.income),
+          categoryId: Value(categoryId),
+          amountMinor: const Value(null),
+          currencyCode: Value(currencyCode),
+          accountId: Value(accountId),
+          propertyId: const Value(null),
+          affectsBalance: const Value(true),
+          startDate: Value(startDate),
+          endDate: Value(endDate),
+          comment: const Value(null),
+          deletedAt: const Value(null),
+          updatedAt: Value(now),
+        ),
+      );
+      return existing.id;
+    }
+    return into(recurringCashflowRules).insert(
+      RecurringCashflowRulesCompanion.insert(
+        strategy: RecurringStrategy.depositInterest,
+        kind: CashflowKind.income,
+        categoryId: categoryId,
+        currencyCode: currencyCode,
+        affectsBalance: true,
+        startDate: startDate,
+        createdAt: now,
+        updatedAt: now,
+        accountId: Value(accountId),
+        endDate: Value(endDate),
+      ),
+    );
+  });
+
+  /// Останавливает проценты (ставка 0/архив), не трогая историю.
+  Future<void> softDeleteDepositInterestRule(int accountId) async {
+    final existing = await findDepositInterestRule(accountId);
+    if (existing == null) return;
+    await softDelete(existing.id);
+  }
+
+  /// Последнее начисление правила для карточки в деталях счёта.
+  Future<CashflowEntryRow?> findLastGeneratedEntry(int ruleId) =>
+      (select(cashflowEntries)
+            ..where(
+              (e) => e.recurringRuleId.equals(ruleId) & e.deletedAt.isNull(),
+            )
+            ..orderBy([
+              (e) => OrderingTerm.desc(e.occurredOn),
+              (e) => OrderingTerm.desc(e.id),
+            ])
+            ..limit(1))
+          .getSingleOrNull();
+
   Future<RecurringCashflowRuleRow> getById(int id) async {
     final row = await (select(
       recurringCashflowRules,

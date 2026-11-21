@@ -1,10 +1,13 @@
 import 'dart:async';
 import 'dart:developer' as developer;
 
+import 'package:decimal/decimal.dart';
 import 'package:finanseapp/app/routes.dart';
 import 'package:finanseapp/app/theme/app_spacing.dart';
 import 'package:finanseapp/core/domain/common/currency.dart';
 import 'package:finanseapp/core/domain/common/local_date.dart';
+import 'package:finanseapp/core/domain/common/money.dart';
+import 'package:finanseapp/core/features/assets/domain/asset.dart';
 import 'package:finanseapp/core/features/categories/domain/category.dart';
 import 'package:finanseapp/core/features/categories/domain/category_repository.dart';
 import 'package:finanseapp/core/features/currencies/domain/currency_repository.dart';
@@ -16,6 +19,8 @@ import 'package:finanseapp/core/presentation/date_formatter.dart';
 import 'package:finanseapp/core/presentation/money_formatter.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
 import 'package:finanseapp/uikit/app_button.dart';
+import 'package:finanseapp/uikit/app_card.dart';
+import 'package:finanseapp/uikit/app_chip.dart';
 import 'package:finanseapp/uikit/app_icon.dart';
 import 'package:finanseapp/uikit/app_list_tile.dart';
 import 'package:finanseapp/uikit/app_money_text.dart';
@@ -37,6 +42,7 @@ class RecurringRulesSection extends StatefulWidget {
     required this.assetId,
     required this.isAccount,
     required this.today,
+    this.account,
     this.readOnly = false,
   });
 
@@ -47,6 +53,7 @@ class RecurringRulesSection extends StatefulWidget {
   final int assetId;
   final bool isAccount;
   final LocalDate today;
+  final AccountAsset? account;
   final bool readOnly;
 
   @override
@@ -55,6 +62,8 @@ class RecurringRulesSection extends StatefulWidget {
 
 class _RecurringRulesSectionState extends State<RecurringRulesSection> {
   List<RecurringRule> _rules = const [];
+  RecurringRule? _autoRule;
+  ({Money amount, LocalDate date})? _lastAccrual;
   Map<int, String> _categoryNames = const {};
   Map<String, Currency> _currencies = const {};
   Set<int> _pending = const {};
@@ -106,12 +115,18 @@ class _RecurringRulesSectionState extends State<RecurringRulesSection> {
           for (final rule in rules)
             if (rule.strategy == RecurringStrategy.fixed) rule,
         ]..sort(_compareByNextPayment);
+        final auto = rules
+            .where((rule) => rule.strategy == RecurringStrategy.depositInterest)
+            .firstOrNull;
         setState(() {
           _rules = fixed;
+          _autoRule = auto;
+          if (auto == null) _lastAccrual = null;
           _loading = false;
           _failed = false;
         });
-        _computePending(fixed);
+        if (auto != null) unawaited(_loadLastAccrual(auto.id));
+        _computePending(rules);
       },
       onError: (Object _) {
         if (!mounted) return;
@@ -170,23 +185,13 @@ class _RecurringRulesSectionState extends State<RecurringRulesSection> {
     startDate: rule.startDate,
     endDate: rule.endDate,
     lastGeneratedPeriod: rule.lastGeneratedPeriod,
-    firstPeriodOffset: 0,
+    firstPeriodOffset: rule.strategy == RecurringStrategy.fixed ? 0 : 1,
   );
 
   String _amount(RecurringRule rule) {
     final amount = rule.amount;
     if (amount == null) return '—';
-    return const MoneyFormatter().format(
-      amount,
-      _currencies[amount.currencyCode] ??
-          Currency(
-            code: amount.currencyCode,
-            name: amount.currencyCode,
-            fractionDigits: 2,
-            isPreset: true,
-            isEnabled: true,
-          ),
-    );
+    return _money(amount);
   }
 
   int _compareByNextPayment(RecurringRule left, RecurringRule right) {
@@ -216,6 +221,140 @@ class _RecurringRulesSectionState extends State<RecurringRulesSection> {
     return l10n.recurringNextLabel(formatted);
   }
 
+  Future<void> _loadLastAccrual(int ruleId) async {
+    try {
+      final last = await widget.repository.lastGenerated(ruleId);
+      if (!mounted) return;
+      setState(() => _lastAccrual = last);
+    } on Exception catch (error, stackTrace) {
+      developer.log(
+        'Не удалось загрузить последнее начисление',
+        name: 'recurring.section',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
+  String _autoStatus(
+    AppLocalizations l10n,
+    AccountAsset account,
+    RecurringRule? rule,
+    LocalDate? next,
+    bool pending,
+  ) {
+    if (widget.readOnly) return l10n.recurringAccrualStoppedArchive;
+    if (rule == null) return l10n.recurringAccrualUnavailable;
+    if (pending) {
+      return next == null
+          ? l10n.recurringPendingRate
+          : '${l10n.recurringPendingRate} · '
+                '${const DateFormatter().format(next)}';
+    }
+    if (next == null) {
+      return account.endDate == null
+          ? l10n.recurringNextPaymentNone
+          : l10n.recurringCompleted;
+    }
+    final formatted = const DateFormatter().format(next);
+    if (next.compareTo(widget.today) < 0) {
+      return l10n.recurringOverdueAccrual(formatted);
+    }
+    return l10n.recurringNextAccrual(formatted);
+  }
+
+  Widget _autoCard(
+    AppLocalizations l10n,
+    AccountAsset account,
+    RecurringRule? rule,
+    bool pending,
+  ) {
+    final next = rule == null
+        ? RecurringSchedule.nextPayment(
+            startDate: account.startDate,
+            endDate: account.endDate,
+            lastGeneratedPeriod: null,
+            firstPeriodOffset: 1,
+          )
+        : _nextPayment(rule);
+    final rate = account.annualRate.toString().replaceAll('.', ',');
+    final last = _lastAccrual;
+    return AppCard(
+      onTap: widget.readOnly ? null : _openAccount,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const AppIcon(Icons.percent, semanticLabel: null),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: AppText(
+                  l10n.recurringAutoInterestTitle,
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+              ),
+              AppChip(label: l10n.recurringAutoChip),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          AppText(
+            l10n.recurringAutoInterestMeta(rate),
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const SizedBox(height: AppSpacing.xxs),
+          AppText(
+            _autoStatus(l10n, account, rule, next, pending),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+          if (last != null) ...[
+            const SizedBox(height: AppSpacing.xs),
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: AppSpacing.xs,
+              runSpacing: AppSpacing.xxs,
+              children: [
+                AppText(
+                  '${l10n.recurringLastAccrualLabel}:',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                AppMoneyText(
+                  '+${_money(last.amount)}',
+                  tone: AppMoneyTone.income,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                AppText(
+                  '· ${const DateFormatter().format(last.date)}',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Future<void> _openAccount() async {
+    await context.push<bool>(AppRoutes.accountEditPath(widget.assetId));
+    if (!mounted) return;
+    _subscribe();
+  }
+
+  String _money(Money money) => const MoneyFormatter().format(
+    money,
+    _currencies[money.currencyCode] ??
+        Currency(
+          code: money.currencyCode,
+          name: money.currencyCode,
+          fractionDigits: 2,
+          isPreset: true,
+          isEnabled: true,
+        ),
+  );
+
   Future<void> _add() async {
     final saved = await context.push<bool>(
       AppRoutes.recurringNewPath(
@@ -236,6 +375,8 @@ class _RecurringRulesSectionState extends State<RecurringRulesSection> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final account = widget.account;
+    final hasAutoCard = account != null && account.annualRate > Decimal.zero;
     return AppSection(
       header: l10n.recurringTitle,
       child: Column(
@@ -254,9 +395,17 @@ class _RecurringRulesSectionState extends State<RecurringRulesSection> {
                 ),
               ],
             )
-          else if (_rules.isEmpty)
-            AppText(l10n.recurringSectionEmpty)
-          else
+          else ...[
+            if (hasAutoCard)
+              _autoCard(
+                l10n,
+                account,
+                _autoRule,
+                _autoRule != null && _pending.contains(_autoRule!.id),
+              ),
+            if (hasAutoCard) const SizedBox(height: AppSpacing.sm),
+            if (_rules.isEmpty && !hasAutoCard)
+              AppText(l10n.recurringSectionEmpty),
             for (final rule in _rules)
               AppListTile(
                 leading: AppIcon(
@@ -287,6 +436,7 @@ class _RecurringRulesSectionState extends State<RecurringRulesSection> {
                     '${_amount(rule)}, ${_nextLabel(rule)}'
                     '${_pending.contains(rule.id) ? ', ${l10n.recurringPendingRate}' : ''}',
               ),
+          ],
           if (!widget.readOnly) ...[
             const SizedBox(height: AppSpacing.sm),
             AppButton(

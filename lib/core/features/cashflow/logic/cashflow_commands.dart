@@ -6,6 +6,7 @@ import 'package:finanseapp/core/domain/common/money_math.dart';
 import 'package:finanseapp/core/domain/common/result.dart';
 import 'package:finanseapp/core/features/cashflow/domain/cashflow_entry.dart';
 import 'package:finanseapp/core/features/cashflow/domain/cashflow_repository.dart';
+import 'package:finanseapp/core/features/cashflow/logic/linked_cashflow_writer.dart';
 import 'package:finanseapp/core/features/categories/domain/category.dart';
 import 'package:finanseapp/core/features/currencies/domain/currency_repository.dart';
 import 'package:finanseapp/core/features/currencies/domain/exchange_rate_repository.dart';
@@ -136,31 +137,45 @@ class CashflowCommands {
       return const Failure(DomainException(DomainErrorCode.storageFailure));
     }
     final rubMinor = await _rubMinor(amount, rateToRub);
-    final txInput = AssetTransactionInput(
-      assetId: accountId,
-      kind: kind == CashflowKind.income
-          ? AssetTransactionKind.deposit
-          : AssetTransactionKind.withdrawal,
-      amountMinor: amount.minorUnits,
-      occurredOn: occurredOn,
-      rateToRub: rateToRub,
-      amountRubMinor: rubMinor,
-      comment: comment,
-    );
-    final entryInput = CashflowEntryInput(
-      kind: kind,
-      categoryId: categoryId,
-      amountMinor: amount.minorUnits,
-      currencyCode: amount.currencyCode,
-      occurredOn: occurredOn,
-      rateToRub: rateToRub,
-      amountRubMinor: rubMinor,
-      affectsBalance: true,
-      comment: comment,
-      accountId: accountId,
-      propertyId: propertyId,
-    );
     return database.transaction(() async {
+      if (current?.assetTransactionId == null && id == null) {
+        final entryId = await LinkedCashflowWriter(database).create(
+          kind: kind,
+          categoryId: categoryId,
+          amount: amount,
+          occurredOn: occurredOn,
+          rateToRub: rateToRub,
+          amountRubMinor: rubMinor,
+          accountId: accountId,
+          propertyId: propertyId,
+          comment: comment,
+        );
+        return Success(entryId);
+      }
+      final txInput = AssetTransactionInput(
+        assetId: accountId,
+        kind: kind == CashflowKind.income
+            ? AssetTransactionKind.deposit
+            : AssetTransactionKind.withdrawal,
+        amountMinor: amount.minorUnits,
+        occurredOn: occurredOn,
+        rateToRub: rateToRub,
+        amountRubMinor: rubMinor,
+        comment: comment,
+      );
+      final entryInput = CashflowEntryInput(
+        kind: kind,
+        categoryId: categoryId,
+        amountMinor: amount.minorUnits,
+        currencyCode: amount.currencyCode,
+        occurredOn: occurredOn,
+        rateToRub: rateToRub,
+        amountRubMinor: rubMinor,
+        affectsBalance: true,
+        comment: comment,
+        accountId: accountId,
+        propertyId: propertyId,
+      );
       int transactionId;
       if (current?.assetTransactionId != null) {
         transactionId = current!.assetTransactionId!;
@@ -168,26 +183,7 @@ class CashflowCommands {
       } else {
         transactionId = await database.transactionsDao.create(txInput);
       }
-      if (id == null) {
-        return Success(
-          await database.cashflowDao.create(
-            CashflowEntryInput(
-              kind: entryInput.kind,
-              categoryId: entryInput.categoryId,
-              amountMinor: entryInput.amountMinor,
-              currencyCode: entryInput.currencyCode,
-              occurredOn: entryInput.occurredOn,
-              rateToRub: entryInput.rateToRub,
-              amountRubMinor: entryInput.amountRubMinor,
-              affectsBalance: true,
-              comment: entryInput.comment,
-              accountId: entryInput.accountId,
-              assetTransactionId: transactionId,
-            ),
-          ),
-        );
-      }
-      await database.cashflowDao.reviseWithLink(id, entryInput, transactionId);
+      await database.cashflowDao.reviseWithLink(id!, entryInput, transactionId);
       return Success(id);
     });
   }

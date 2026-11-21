@@ -2368,6 +2368,54 @@ abstract class AppLocalizations {
   /// **'Проценты по вкладу'**
   String get recurringAutoInterestTitle;
 
+  /// Параметры автоправила процентов.
+  ///
+  /// In ru, this message translates to:
+  /// **'{rate}% годовых · капитализация ежемесячно'**
+  String recurringAutoInterestMeta(String rate);
+
+  /// Ближайшее начисление процентов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Следующее начисление: {date}'**
+  String recurringNextAccrual(String date);
+
+  /// Начисление процентов не выполнено в срок.
+  ///
+  /// In ru, this message translates to:
+  /// **'Просрочено: {date}'**
+  String recurringOverdueAccrual(String date);
+
+  /// Архивный вклад не капитализируется.
+  ///
+  /// In ru, this message translates to:
+  /// **'Начисления остановлены: счёт в архиве'**
+  String get recurringAccrualStoppedArchive;
+
+  /// Автоправило процентов не создано или недоступно.
+  ///
+  /// In ru, this message translates to:
+  /// **'Начисления не выполняются: проверьте категорию'**
+  String get recurringAccrualUnavailable;
+
+  /// Подпись суммы последнего начисления.
+  ///
+  /// In ru, this message translates to:
+  /// **'Последнее начисление'**
+  String get recurringLastAccrualLabel;
+
+  /// Метка автоматического правила в карточке процентов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Авто'**
+  String get recurringAutoChip;
+
+  /// Подсказка в форме счёта при ставке больше нуля.
+  ///
+  /// In ru, this message translates to:
+  /// **'Проценты начисляются автоматически в то же число месяца, что и дата начала (для 31-го — последний день месяца). Прошедшие месяцы будут начислены при сохранении.'**
+  String get accountRateAutoHint;
+
   /// Пояснение взаимоисключающего выбора цели.
   ///
   /// In ru, this message translates to:
