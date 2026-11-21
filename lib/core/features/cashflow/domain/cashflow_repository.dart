@@ -5,6 +5,9 @@ import 'package:finanseapp/core/features/cashflow/domain/cashflow_filter.dart';
 abstract interface class CashflowRepository {
   Stream<List<CashflowEntry>> watch(CashflowFilter filter);
 
+  /// Soft-deleted записи: вход в аудит и восстановление (13.1).
+  Stream<List<CashflowEntry>> watchDeleted();
+
   Future<CashflowEntry> getById(int id);
 
   Future<int> create(CashflowEntryDraft draft);

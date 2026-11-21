@@ -187,6 +187,9 @@ final class _Assets implements AssetRepository {
 }
 
 final class _Transactions implements AssetTransactionRepository {
+  @override
+  Stream<List<AssetTransaction>> watchDeleted() => const Stream.empty();
+
   _Transactions(this.operations, {this.controller});
 
   final List<AssetTransaction> operations;
@@ -227,6 +230,9 @@ final class _Transactions implements AssetTransactionRepository {
 }
 
 final class _Cashflows implements CashflowRepository {
+  @override
+  Stream<List<CashflowEntry>> watchDeleted() => const Stream.empty();
+
   _Cashflows({this.controller});
 
   final StreamController<List<CashflowEntry>>? controller;

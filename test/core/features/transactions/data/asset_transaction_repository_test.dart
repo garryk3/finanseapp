@@ -258,6 +258,22 @@ void main() {
     expect(limited, hasLength(2));
   });
 
+  test('watchDeleted отдаёт только удалённые операции (13.1)', () async {
+    final assetId = await createAccount(db, currencyCode: 'USD');
+    final active = await repository.create(draft(assetId));
+    final deleted = await repository.create(draft(assetId));
+    await repository.softDelete(deleted);
+
+    final items = await repository.watchDeleted().first;
+
+    expect(items.map((item) => item.id), [deleted]);
+    expect(items.single.deletedAt, isNotNull);
+    expect(items.single.id, isNot(active));
+
+    await repository.restore(deleted);
+    expect(await repository.watchDeleted().first, isEmpty);
+  });
+
   test('restore возвращает операцию и пишет restore-ревизию', () async {
     final assetId = await createAccount(db, currencyCode: 'USD');
     final id = await repository.create(draft(assetId));

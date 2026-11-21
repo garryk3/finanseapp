@@ -86,6 +86,9 @@ final class FakeAssets implements AssetRepository {
 
 final class FakeCashflow implements CashflowRepository {
   @override
+  Stream<List<CashflowEntry>> watchDeleted() => const Stream.empty();
+
+  @override
   Stream<List<CashflowEntry>> watch(CashflowFilter filter) =>
       Stream.value(const []);
 

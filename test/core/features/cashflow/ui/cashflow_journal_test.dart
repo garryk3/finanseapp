@@ -31,6 +31,9 @@ const _rub = Currency(
 );
 
 final class FakeCashflow implements CashflowRepository {
+  @override
+  Stream<List<CashflowEntry>> watchDeleted() => const Stream.empty();
+
   FakeCashflow(this.entries);
 
   final List<CashflowEntry> entries;

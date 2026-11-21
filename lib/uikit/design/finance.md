@@ -141,7 +141,8 @@ neutral fallback, не Color.parse. `iconKey` из domain заранее пре�
 Operation tile обязательно содержит `typeLabel` + `icon` и включает их в Semantics;
 пустые части meta-строки (`dateText`, category/account) опускаются перед `join(' · ')`:
 «Доход», «Расход», «Пополнение», «Снятие», «Перевод»; знак суммы также сохраняется.
-Archived/deleted labels приходят из feature View и показываются визуально + в Semantics.
+Archived/deleted labels (`showDeletedBadge: false` скрывает бейдж там, где контекст
+задаёт экран, — аудит удалённых) приходят из feature View и показываются визуально + в Semantics.
 Linked label поясняет «Влияет на баланс»/«Связано со счётом», но не создаёт вторую сумму
 в aggregate.
 

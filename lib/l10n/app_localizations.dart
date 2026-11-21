@@ -3474,6 +3474,48 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Не удалось сохранить настройки. Попробуйте ещё раз.'**
   String get onboardingSaveError;
+
+  /// Заголовок аудита удалённых записей.
+  ///
+  /// In ru, this message translates to:
+  /// **'Удалённые операции'**
+  String get auditTitle;
+
+  /// Таб операций по активам.
+  ///
+  /// In ru, this message translates to:
+  /// **'Операции по активам'**
+  String get auditTabAssets;
+
+  /// Таб доходов и расходов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Доходы и расходы'**
+  String get auditTabCashflow;
+
+  /// Бейдж удалённой записи.
+  ///
+  /// In ru, this message translates to:
+  /// **'Удалено'**
+  String get auditDeletedLabel;
+
+  /// Метка даты удаления в аудите.
+  ///
+  /// In ru, this message translates to:
+  /// **'удалено'**
+  String get auditDeletedOn;
+
+  /// Заголовок пустого аудита.
+  ///
+  /// In ru, this message translates to:
+  /// **'Удалённых операций нет'**
+  String get auditEmptyTitle;
+
+  /// Пояснение пустого аудита.
+  ///
+  /// In ru, this message translates to:
+  /// **'Удалённые операции и записи попадут сюда, их можно будет восстановить.'**
+  String get auditEmptyMessage;
 }
 
 class _AppLocalizationsDelegate

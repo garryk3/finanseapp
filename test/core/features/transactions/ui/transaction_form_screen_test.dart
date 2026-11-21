@@ -93,6 +93,9 @@ final class FakeAssets implements AssetRepository {
 }
 
 final class FakeTransactions implements AssetTransactionRepository {
+  @override
+  Stream<List<AssetTransaction>> watchDeleted() => const Stream.empty();
+
   FakeTransactions({this.failure, this.gate});
 
   final DomainException? failure;
