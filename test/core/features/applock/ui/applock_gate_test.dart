@@ -58,6 +58,40 @@ void main() {
     expect(find.text(l10n.appLockLockTitle), findsNothing);
   });
 
+  testWidgets('под локом семантика содержимого скрыта (QA TC-094)', (
+    tester,
+  ) async {
+    final harness = TestApplockHarness();
+    await harness.enable('1234');
+    final controller = await lockedController(harness);
+    final viewModel = ApplockViewModel(
+      service: harness.service,
+      biometrics: FakeBiometricGateway(),
+      controller: controller,
+    );
+    final l10n = await AppLocalizations.delegate.load(const Locale('ru'));
+    final semantics = tester.ensureSemantics();
+
+    await tester.pumpWidget(
+      applockTestHost(
+        AppLockGate(
+          controller: controller,
+          lockViewModel: viewModel,
+          child: const TestChild(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.bySemanticsLabel('защищённый контент'), findsNothing);
+    expect(find.bySemanticsLabel(l10n.appLockLockTitle), findsWidgets);
+
+    controller.unlock();
+    await tester.pumpAndSettle();
+    expect(find.bySemanticsLabel('защищённый контент'), findsOneWidget);
+    semantics.dispose();
+  });
+
   testWidgets('защита выключена → гейт прозрачен', (tester) async {
     final harness = TestApplockHarness();
     await harness.init();

@@ -54,13 +54,23 @@ class _AppLockGateState extends State<AppLockGate> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return SignalBuilder(
-      builder: (context) => Stack(
-        children: <Widget>[
-          widget.child,
-          if (controller.locked.value)
-            ApplockScreen(viewModel: widget.lockViewModel),
-        ],
-      ),
+      builder: (context) {
+        final locked = controller.locked.value;
+        return Stack(
+          children: <Widget>[
+            // Под локом содержимое недоступно не только визуально:
+            // семантика, фокус и анимации выключены (BR-Sec-6, QA TC-094).
+            ExcludeSemantics(
+              excluding: locked,
+              child: ExcludeFocus(
+                excluding: locked,
+                child: TickerMode(enabled: !locked, child: widget.child),
+              ),
+            ),
+            if (locked) ApplockScreen(viewModel: widget.lockViewModel),
+          ],
+        );
+      },
     );
   }
 }
