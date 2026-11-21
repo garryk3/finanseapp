@@ -57,10 +57,17 @@ class _InvestmentFormScreenState extends State<InvestmentFormScreen> {
     // Роутер создаёт ViewModel в builder, поэтому после push/pop экран может
     // получить новый экземпляр — старый освобождаем и грузим актуальный.
     if (!identical(oldWidget.viewModel, widget.viewModel)) {
-      oldWidget.viewModel.dispose();
-      _viewModel = widget.viewModel;
-      _loaded = false;
-      _load();
+      if (widget.viewModel.editingId == _viewModel.editingId) {
+        // Тот же экран: не подменяем загруженную VM и не бланкируем форму,
+        // чтобы не терять ввод/скролл — просто перечитываем данные.
+        widget.viewModel.dispose();
+        _load();
+      } else {
+        oldWidget.viewModel.dispose();
+        _viewModel = widget.viewModel;
+        _loaded = false;
+        _load();
+      }
     }
   }
 
@@ -169,16 +176,15 @@ class _InvestmentFormScreenState extends State<InvestmentFormScreen> {
   Future<void> _openBrokers() async {
     await context.push(AppRoutes.subgroupsPath('broker'));
     if (!mounted) return;
-    // Перечитываем снимок справочника: если роутер уже подменил ViewModel,
-    // данные загрузит didUpdateWidget, повторный вызов безвреден.
-    setState(() => _loaded = false);
+    // Перечитываем снимок справочника без бланкирования формы: данные
+    // обновятся на месте, ввод и скролл сохранятся.
     await _load();
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final vm = widget.viewModel;
+    final vm = _viewModel;
     return AppScaffold(
       title: vm.isEditing ? l10n.investmentFormEdit : l10n.investmentFormNew,
       body: SignalBuilder(
@@ -189,7 +195,10 @@ class _InvestmentFormScreenState extends State<InvestmentFormScreen> {
               message: l10n.errorStateMessage,
               errorLabel: l10n.errorLabel,
               retryLabel: l10n.retry,
-              onRetry: vm.load,
+              onRetry: () {
+                setState(() => _loaded = false);
+                _load();
+              },
             );
           }
           if (!_loaded) {

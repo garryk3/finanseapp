@@ -216,6 +216,22 @@ void main() {
     expect(fields.any((field) => field.controller?.text == '100000'), isTrue);
   });
 
+  testWidgets('ошибка загрузки формы счёта даёт retry', (tester) async {
+    final snapshot = AssetSnapshot(
+      asset: _account(),
+      currentValue: const Money(minorUnits: 0, currencyCode: 'RUB'),
+    );
+    final vm = AccountFormViewModel(
+      repository: FakeAssets(snapshot),
+      subgroupRepository: FakeSubgroups(),
+      currencyRepository: _FailingCurrencies(),
+    );
+    await _pump(tester, AccountFormScreen(viewModel: vm));
+
+    expect(find.text(l10n.errorStateMessage), findsOneWidget);
+    expect(find.text(l10n.retry), findsOneWidget);
+  });
+
   testWidgets('форма не сохраняет пустое название', (tester) async {
     final snapshot = AssetSnapshot(
       asset: _account(),
@@ -380,4 +396,32 @@ void main() {
     expect(find.text(l10n.assetInUseTitle), findsOneWidget);
     expect(find.text(l10n.assetInUseMessage(2, 0, 1, 0)), findsOneWidget);
   });
+}
+
+final class _FailingCurrencies implements CurrencyRepository {
+  @override
+  Stream<List<Currency>> watchAll() => const Stream.empty();
+
+  @override
+  Future<List<Currency>> getEnabled() async =>
+      throw const DomainException(DomainErrorCode.storageFailure);
+
+  @override
+  Future<int> countReferences(String code) async => 0;
+
+  @override
+  Future<void> createCustom(
+    String code,
+    String name,
+    int fractionDigits,
+  ) async {}
+
+  @override
+  Future<void> rename(String code, String name) async {}
+
+  @override
+  Future<void> setEnabled(String code, bool value) async {}
+
+  @override
+  Future<void> deleteIfUnused(String code) async {}
 }

@@ -15,6 +15,8 @@ import 'package:finanseapp/uikit/app_form_section.dart';
 import 'package:finanseapp/uikit/app_list_view.dart';
 import 'package:finanseapp/uikit/app_scaffold.dart';
 import 'package:finanseapp/uikit/app_select.dart';
+import 'package:finanseapp/uikit/app_error_state.dart';
+import 'package:finanseapp/uikit/app_spinner.dart';
 import 'package:finanseapp/uikit/app_text.dart';
 import 'package:finanseapp/uikit/app_text_field.dart';
 import 'package:flutter/widgets.dart';
@@ -185,10 +187,19 @@ class _AccountFormScreenState extends State<AccountFormScreen> {
       body: SignalBuilder(
         builder: (context) {
           if (vm.state.value is ViewError) {
-            return AppText(l10n.errorStateMessage);
+            return AppErrorState(
+              title: l10n.errorStateTitle,
+              message: l10n.errorStateMessage,
+              errorLabel: l10n.errorLabel,
+              retryLabel: l10n.retry,
+              onRetry: () {
+                setState(() => _loaded = false);
+                _load();
+              },
+            );
           }
           if (!_loaded) {
-            return AppText(l10n.commonLoading);
+            return Center(child: AppSpinner(semanticLabel: l10n.commonLoading));
           }
           return AppListView(
             padding: const EdgeInsets.all(AppSpacing.md),
