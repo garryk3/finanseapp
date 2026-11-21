@@ -2517,5 +2517,9 @@
   "auditEmptyMessage": "Удалённые операции и записи попадут сюда, их можно будет восстановить.",
   "@auditEmptyMessage": {
     "description": "Пояснение пустого аудита."
+  },
+  "bankAddAction": "Добавить банк",
+  "@bankAddAction": {
+    "description": "CTA создания банка из формы счёта."
   }
 }

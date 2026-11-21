@@ -1,3 +1,4 @@
+import 'package:finanseapp/app/routes.dart';
 import 'package:finanseapp/app/theme/app_spacing.dart';
 import 'package:decimal/decimal.dart';
 import 'package:finanseapp/core/domain/common/currency.dart';
@@ -21,6 +22,7 @@ import 'package:finanseapp/uikit/app_spinner.dart';
 import 'package:finanseapp/uikit/app_text.dart';
 import 'package:finanseapp/uikit/app_text_field.dart';
 import 'package:flutter/widgets.dart';
+import 'package:go_router/go_router.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
 /// Создание и редактирование счёта (5.1).
@@ -118,6 +120,12 @@ class _AccountFormScreenState extends State<AccountFormScreen> {
       isEnabled: true,
     ),
   );
+
+  Future<void> _openBanks() async {
+    await context.push(AppRoutes.subgroupsPath('bank'));
+    if (!mounted) return;
+    await _load();
+  }
 
   Future<void> _save() async {
     if (_viewModel.busy.value) return;
@@ -233,18 +241,23 @@ class _AccountFormScreenState extends State<AccountFormScreen> {
                     ),
                   ),
                   const SizedBox(height: AppSpacing.md),
-                  AppSelect<int>(
-                    label: l10n.accountBankLabel,
-                    value: _bankId,
-                    items: [
-                      for (final bank in vm.banks.value)
-                        AppSelectItem(value: bank.id, label: bank.name),
-                    ],
-                    onChanged: (value) => setState(() => _bankId = value),
-                    errorText: vm.banks.value.isEmpty
-                        ? l10n.accountNoBanks
-                        : null,
-                  ),
+                  if (vm.banks.value.isEmpty) ...[
+                    AppText(l10n.accountNoBanks),
+                    AppButton(
+                      label: l10n.bankAddAction,
+                      variant: AppButtonVariant.text,
+                      onPressed: _openBanks,
+                    ),
+                  ] else
+                    AppSelect<int>(
+                      label: l10n.accountBankLabel,
+                      value: _bankId,
+                      items: [
+                        for (final bank in vm.banks.value)
+                          AppSelectItem(value: bank.id, label: bank.name),
+                      ],
+                      onChanged: (value) => setState(() => _bankId = value),
+                    ),
                   const SizedBox(height: AppSpacing.md),
                   AppCurrencySelect(
                     label: l10n.accountCurrencyLabel,

@@ -1867,4 +1867,7 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get auditEmptyMessage =>
       'Удалённые операции и записи попадут сюда, их можно будет восстановить.';
+
+  @override
+  String get bankAddAction => 'Добавить банк';
 }
