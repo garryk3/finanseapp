@@ -95,6 +95,12 @@ class AccountFormViewModel {
 }
 
 /// Ввод начального баланса — в основных единицах (BR-VAL-1).
+/// Пустое поле суммы, где ноль допустим, означает ноль (hint `0`).
+Money? parseOpeningAmountOrZero(String raw, Currency currency) =>
+    raw.trim().isEmpty
+    ? Money(minorUnits: 0, currencyCode: currency.code)
+    : parseOpeningAmount(raw, currency);
+
 Money? parseOpeningAmount(String raw, Currency currency) {
   final normalized = raw.trim().replaceAll(' ', '').replaceAll(',', '.');
   if (normalized.isEmpty) return null;

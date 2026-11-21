@@ -122,7 +122,7 @@ class _InvestmentFormScreenState extends State<InvestmentFormScreen> {
   Future<void> _save() async {
     if (_viewModel.busy.value) return;
     final l10n = AppLocalizations.of(context);
-    final opening = parseOpeningAmount(
+    final opening = parseOpeningAmountOrZero(
       _opening.text,
       _currencyOf(_currencyCode),
     );

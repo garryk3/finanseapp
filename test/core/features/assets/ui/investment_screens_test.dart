@@ -302,6 +302,29 @@ void main() {
     expect(draft.openingValue.minorUnits, 100000);
   });
 
+  testWidgets('пустой начальный баланс инвестиции сохраняется нулём', (
+    tester,
+  ) async {
+    final repository = FakeAssets(_snapshot());
+    final vm = InvestmentFormViewModel(
+      repository: repository,
+      subgroupRepository: FakeSubgroups(),
+      currencyRepository: FakeCurrencies(),
+    );
+    await _pump(tester, InvestmentFormScreen(viewModel: vm));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await tester.enterText(find.byType(TextField).at(0), 'Инвестиция');
+    await tester.ensureVisible(find.text(l10n.commonSave));
+    await tester.tap(find.text(l10n.commonSave));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    final draft = repository.savedDraft;
+    expect(draft, isA<InvestmentDraft>());
+    expect((draft! as InvestmentDraft).openingValue.minorUnits, 0);
+    expect(find.text(l10n.accountErrorAmount), findsNothing);
+  });
+
   testWidgets('форма инвестиции не сохраняет пустое название', (tester) async {
     final repository = FakeAssets(_snapshot());
     final vm = InvestmentFormViewModel(
