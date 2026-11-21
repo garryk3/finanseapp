@@ -302,6 +302,64 @@ void main() {
     expect(find.text('Новый банк'), findsOneWidget);
   });
 
+  testWidgets('пустые баланс и ставка сохраняются как нули', (tester) async {
+    tester.view.physicalSize = const Size(900, 1600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final snapshot = AssetSnapshot(
+      asset: _account(),
+      currentValue: const Money(minorUnits: 0, currencyCode: 'RUB'),
+    );
+    final assets = FakeAssets(snapshot);
+    final vm = AccountFormViewModel(
+      repository: assets,
+      subgroupRepository: FakeSubgroups(),
+      currencyRepository: FakeCurrencies(),
+    );
+    await _pump(tester, AccountFormScreen(viewModel: vm));
+
+    await tester.enterText(find.byType(TextField).first, 'Наличные');
+    await tester.enterText(find.byType(TextField).at(2), '');
+    await tester.ensureVisible(find.text(l10n.commonSave));
+    await tester.pump();
+    await tester.tap(find.text(l10n.commonSave));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    final draft = assets.createdDraft;
+    expect(draft, isA<AccountDraft>());
+    expect((draft! as AccountDraft).openingValue.minorUnits, 0);
+    expect((draft as AccountDraft).annualRate, Decimal.zero);
+    expect(find.text(l10n.accountErrorAmount), findsNothing);
+    expect(find.text(l10n.accountErrorRate), findsNothing);
+  });
+
+  testWidgets('невалидная ставка отклоняется', (tester) async {
+    tester.view.physicalSize = const Size(900, 1600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final snapshot = AssetSnapshot(
+      asset: _account(),
+      currentValue: const Money(minorUnits: 0, currencyCode: 'RUB'),
+    );
+    final assets = FakeAssets(snapshot);
+    final vm = AccountFormViewModel(
+      repository: assets,
+      subgroupRepository: FakeSubgroups(),
+      currencyRepository: FakeCurrencies(),
+    );
+    await _pump(tester, AccountFormScreen(viewModel: vm));
+
+    await tester.enterText(find.byType(TextField).first, 'Наличные');
+    await tester.enterText(find.byType(TextField).at(2), 'abc');
+    await tester.ensureVisible(find.text(l10n.commonSave));
+    await tester.pump();
+    await tester.tap(find.text(l10n.commonSave));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text(l10n.accountErrorRate), findsOneWidget);
+    expect(assets.createdDraft, isNull);
+  });
+
   testWidgets('форма не сохраняет пустое название', (tester) async {
     final snapshot = AssetSnapshot(
       asset: _account(),
