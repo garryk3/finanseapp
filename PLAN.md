@@ -38,11 +38,11 @@
 | 8 | Финансовые цели | 8.1–8.2 | ✅ | 2026-11-19 |
 | 9 | Аналитика и графики | 9.1–9.4 | ✅ | 2026-11-19 |
 | 10 | Dashboard, настройки, backup и updates | 10.1–10.6 | ✅ | 2026-11-20 |
-| 11 | Сквозное качество и release readiness | 11.1–11.11 | 🟨 | 2026-11-20: 11.9 (ручные проверки) не блокирует v1 |
+| 11 | Сквозное качество и release readiness | 11.1–11.11 | ✅ | 2026-11-20: 11.9 — ручные проверки, не блокировали v1 |
 | 12 | Расширения после v1 | 12.1–12.7 | ✅ | 2026-11-21 |
 | 13 | Исправления по полному QA-прогону v1 | 13.1–13.9 | ✅ | 2026-11-21 |
 | 14 | Инфраструктура релиза | 14.1 | ✅ | 2026-11-21 |
-| 15 | Регулярные платежи и капитализация вкладов | 15.1–15.5 | ✅ | 2026-11-22: QA recheck TC-143…145 PASS |
+| 15 | Регулярные платежи и капитализация вкладов | 15.1–15.5 | ✅ | 2026-11-22: QA recheck TC-143…145 PASS; короткий QA 10 SKIP, полный QA v0.1.2 не проводился (решение владельца) |
 
 ## Этап 14 — Инфраструктура релиза
 
@@ -55,7 +55,12 @@
   (`+N`), как у локальных сборок. В `docs/PROJECT.md` зафиксированы правило
   versionCode и одноразовая миграция с debug-подписи (экспорт → удаление
   приложения → установка release → импорт).
-- Код приложения не меняется. Статус обновляется при мерже PR #61.
+- Код приложения не меняется. PR #61 смержен; правило проверено в
+  `release.yml`/`docs/PROJECT.md`, первое фактическое применение — релиз
+  v0.1.2 (`0.1.2+3`), versionCode APK проверяется при публикации.
+- **Итог:** release workflow больше не переопределяет versionCode; debug→release
+  миграция описана; первое применение — v0.1.2 (`0.1.2+3`), versionCode APK
+  проверяется при публикации.
 
 ## Этап 15 — Регулярные платежи и капитализация вкладов
 
@@ -114,9 +119,10 @@
 - Генератор пишет через `CashflowDao`/`TransactionsDao` напрямую, НЕ через
   `CashflowCommands.save` (тот зовёт `ResolveExchangeRate` с сетью ЦБ).
   Курс: RUB → `Decimal.one`; иначе только `rateRepository.find(code, date)`.
-- Связанная пара повторяет `CashflowCommands._saveLinked`:
-  `transactionsDao.create(...)` + `cashflowDao.create(..., assetTransactionId)`
-  в одной `db.transaction`. Рублёвый эквивалент —
+- Связанную пару создаёт общий `LinkedCashflowWriter` (15.3):
+  `transactionsDao.create(...)` + `cashflowDao.create(..., assetTransactionId)`;
+  вызывающий оборачивает вызов в `db.transaction` — так делают
+  `CashflowCommands._saveLinked` и генератор. Рублёвый эквивалент —
   `CashflowCommands.rubAmount(amount, currency, rate)` (публичный static).
 - Автооперация — обычная `CashflowEntry` (revisionNo 1, ревизия create)
   с `recurringRuleId`; в журнале/аудите выглядит как обычная операция.
@@ -124,7 +130,7 @@
   `RecurringCatchupService` — в `registerCoreServices`; VM — фабрики
   в `main.dart`/`router.dart` по существующему образцу.
 
-### 15.1 Схема v2, домен и движок регулярных платежей (без UI) — [x] (2026-11-21)
+### 15.1 Схема v2, домен и движок регулярных платежей (без UI) — [x] (2026-11-21) · PR #63
 
 - **Приоритет/зависимости:** P1; базовая задача этапа, до 15.2 и 15.3.
   **BR:** новые BR-RC-1…8, 11, 13; существующие BR-VAL-5, BR-IE-6, BR-C-2.
@@ -166,6 +172,9 @@
     `lib/core/features/assets/ui/account_details_screen.dart`
     (`assetInUseMessage` — 5-й аргумент); `lib/l10n/app_ru.arb`;
     `lib/core/di/register_core_services.dart`; `lib/main.dart`; `lib/app/app.dart`;
+    `lib/core/features/backup/data/local_database_backup_service.dart`
+    (`installedSchemaVersion = appDatabaseSchemaVersion`);
+    `integration_test/helpers/test_app.dart` (ожидание DI в `tapTab`);
     `docs/architecture/data_schema.md`, `business_rules.md`, `domain_model.md`,
     `calculations.md` (§4a — расписание регулярных платежей).
   - Generated (коммитятся): `app_database.g.dart`, `cashflow_dao.g.dart`,
@@ -186,9 +195,8 @@
      null, offset 0 → 10 дат: 31.01, 28.02, 31.03, 30.04, 31.05, 30.06, 31.07,
      31.08, 30.09, 31.10 (30.11 > today — исключена).
   2. Clamp високосного года: start 31.01.2024 → 29.02.2024; start 29.02.2024,
-     +12 мес → 28.02.2025, +24 мес → 29.02.2028? (нет: 2028 високосный → 29.02;
-     проверить 2025/2026/2027 → 28.02).
-  3. Marker: marker '2026-09' → только октябрь/нобрь; marker ≥ текущий период →
+     +12 мес → 28.02.2025, +24 мес → 28.02.2026, +48 мес → 29.02.2028.
+  3. Marker: marker '2026-09' → только октябрь/ноябрь; marker ≥ текущий период →
      пусто. `endDate` 15.10.2026 → даты ≤ 15.10 включительно. Future start →
      пусто; `nextPayment` возвращает будущую дату (без фильтра today).
   4. Offset: fixed k=0 (первый платёж = startDate); depositInterest k=1.
@@ -210,8 +218,8 @@
   10. Архивный актив/архивная категория → pending, операций нет. Удалённое
      правило → не генерирует. Правка суммы → прошлые операции не тронуты,
      следующий период по новой сумме.
-  11. Долгое отсутствие: start 31.01.2020 → 83 периода до 17.11.2026, все даты
-     clamp-корректны, маркер '2026-11'.
+  11. Долгое отсутствие: start 15.01.2020 → 83 периода, маркер '2026-11';
+     start 31.01.2020 → 82 периода (последняя 31.10.2026), маркер '2026-10'.
   12. Миграция v1→v2: данные v1 целы, `user_version` = 2, новые таблица/колонка/
      индексы на месте; импорт v1-backup в v2-приложение проходит.
   13. `deleteIfUnused` актива с активным правилом → conflict `validationAssetInUse`;
@@ -405,7 +413,7 @@
   собирается.
 - **Предлагаемый commit:** `task/15.1: схема и движок регулярных платежей`.
 
-### 15.2 UI ежемесячных платежей: форма, вкладка «Регулярные», секции активов — [x] (2026-11-21)
+### 15.2 UI ежемесячных платежей: форма, вкладка «Регулярные», секции активов — [x] (2026-11-21) · PR #64
 
 - **Приоритет/зависимости:** P1; после 15.1. **BR:** BR-RC-1…8, 11, 12;
   BR-VAL-7; accessibility.
@@ -419,14 +427,13 @@
     `test/core/features/recurring/recurring_commands_test.dart`;
     `test/core/features/recurring/ui/recurring_rules_view_model_test.dart`;
     `test/core/features/recurring/ui/recurring_rule_form_screen_test.dart`;
-    `test/core/features/recurring/ui/recurring_rules_screen_test.dart`;
-    `test/core/features/recurring/ui/recurring_rules_section_test.dart`;
-    widget-тест формы cashflow (расширение существующих в
-    `test/core/features/cashflow/ui/`).
+    `test/core/features/recurring/ui/recurring_screens_test.dart`;
+    `test/core/features/cashflow/ui/cashflow_form_recurring_test.dart`.
   - Modify: `lib/core/features/cashflow/ui/cashflow_form_screen.dart`
     (чекбокс + поля правила); `lib/core/features/cashflow/ui/cashflow_view_model.dart`
-    (`CashflowFormViewModel`: зависимости recurringCommands/catchup,
-    метод saveRecurring); `lib/core/features/cashflow/ui/cashflow_details_screen.dart`
+    (`CashflowFormViewModel`: опциональная зависимость
+    `RecurringCommands? recurringCommands`, метод saveRecurring);
+    `lib/core/features/cashflow/ui/cashflow_details_screen.dart`
     (бейдж автооперации + переход к правилу);
     `lib/core/features/cashflow/ui/operations_tabs.dart` (сегмент 'recurring');
     `lib/app/routes.dart` (`operationsTabs` + 'recurring'; маршруты
@@ -437,7 +444,7 @@
     `lib/core/features/assets/ui/account_details_view_model.dart`
     (прокинуть RecurringRepository в секцию); `lib/main.dart`/DI-фабрики VM;
     `lib/l10n/app_ru.arb`; `docs/architecture/navigation_and_screens.md`,
-    `business_rules.md` (BR-RC-12), `domain_model.md`.
+    `business_rules.md` (BR-RC-12).
 - **Consumes:** 15.1 (репозиторий, расписание, catch-up, колонка
   recurringRuleId); uikit: `AppCheckbox`, `AppDatePickerField`, `AppSelect`,
   `AppSegmentedControl`, `AppAmountField`, `AppCurrencySelect`,
@@ -473,7 +480,8 @@
      required bool affectsBalance, required LocalDate startDate,
      LocalDate? endDate, String? comment})` — клиентская валидация (те же
      ключи, что DAO; сумма>0, категория выбрана, endDate≥startDate),
-     create/revise через repository, затем `await catchup.catchUp()`;
+     create/revise через repository, затем `await catchup()` (в DI —
+     tear-off `RecurringCatchupService.catchUp`);
      `Future<Result<void>> delete(int id)` → softDelete. Ошибки —
      `DomainException`/`Result` по образцу `CashflowCommands`.
   2. **Форма cashflow.** В `_CashflowFormScreenState` (только create,
@@ -484,8 +492,8 @@
      умеет clear — кнопка рядом, обнуляет `_recurringEndDate`). Сохранение
      при включённом чекбоксе → `vm.saveRecurring(...)` (startDate = выбранная
      дата, endDate, остальные поля формы как есть) вместо `vm.save`.
-     `CashflowFormViewModel`: новые опциональные зависимости
-     `RecurringCommands? recurringCommands`, `RecurringCatchupService? catchup`;
+     `CashflowFormViewModel`: новая опциональная зависимость
+     `RecurringCommands? recurringCommands` (catch-up запускается командами);
      `saveRecurring` пробрасывает в commands; router передаёт их в builder.
      Диапазон дат: firstDate DateTime(2000), lastDate DateTime(2100) —
      будущая дата начала разрешена (правило ждёт, операции не создаются).
@@ -517,7 +525,7 @@
      правки, depositInterest → детали счёта; кнопка «Добавить платёж» →
      `/recurring/new`; пустое состояние — `AppEmptyState` с CTA.
   5. **Секции активов.** `RecurringRulesSection` (образец —
-     `PropertyCashflowSection`: подписка на watchByProperty/watchByProperty,
+     `PropertyCashflowSection`: подписка на watchByAccount/watchByProperty,
      didUpdateWidget, dispose): заголовок «Ежемесячные платежи», компактные
      строки правил (сумма/категория/следующий платёж, tap → форма правки),
      кнопка «Добавить платёж» (preset цели), readOnly при архиве.
@@ -528,18 +536,11 @@
      `entry.recurringRuleId != null` — `AppChip` «Автоплатёж» и текстовая
      кнопка «Изменить правило» → `/recurring/{id}/edit`. Редактирование самой
      записи остаётся обычным (D4: правка записи не меняет правило).
-  7. **l10n** (все строки только в `app_ru.arb`, ключи camelCase):
-     `operationsRecurringTab`, `recurringTitle`, `recurringEmpty`,
-     `recurringEmptyAction`, `recurringAdd`, `recurringNew`, `recurringEdit`,
-     `recurringMonthly` («Повторять ежемесячно»), `recurringStartDate`,
-     `recurringEndDate`, `recurringEndDateOptional`, `recurringEndClear`,
-     `recurringScheduleLine` (placeholders: day, from, to),
-     `recurringNextPayment`, `recurringPendingRate`, `recurringPendingBalance`,
-     `recurringPendingCategory`, `recurringAutoBadge`, `recurringAutoInterest`,
-     `recurringRuleLink`, `recurringDeleteTitle`, `recurringDeleteMessage`,
-     `recurringDeleted`, `recurringSaved`, `recurringTargetAccount`,
-     `recurringTargetProperty`, `recurringNoTarget`, `recurringErrorDates`,
-     `recurringErrorStrategy` + плейсхолдеры/описания по образцу файла.
+  7. **l10n** (все строки только в `app_ru.arb`): вкладка/список/форма/секция;
+     статусы «Следующий/Просрочен/Завершено/Ожидает курс»; удалённое правило;
+     ключи auto/процентов добавлены в 15.3/15.5 (`recurringAutoChip`,
+     `recurringAutoInterestMeta`, `recurringNextAccrual`,
+     `recurringLastAccrualLabel`, `accountRateAutoHint`).
   8. **Docs.** `navigation_and_screens.md`: вкладка, маршруты, секции;
      `business_rules.md`: BR-RC-12 (управление, автоправило read-only);
      покрытие.
@@ -565,12 +566,16 @@
   стоит до даты и при снятии возвращает дату в today; список сортируется по
   ближайшему платежу; статусы «Следующий/Просрочен/Завершено/Ожидает курс»
   видны и в семантике. Всего 689 тестов.
-  Отложено (полировка до 15.3): skeleton вместо спиннера, единый контрол типа
-  цели вместо двух селектов, `initialDate` в uikit date picker, терминология
-  «Регулярные/Ежемесячные».
+  Отложено (полировка после этапа 15, не входит в v0.1.2): skeleton вместо
+  спиннера, единый контрол типа цели, `initialDate` в uikit date picker,
+  терминология «Регулярные/Ежемесячные», UI для `negativeBalance`/
+  `categoryUnavailable` (сейчас правило выглядит «Просроченным»).
+  **WILL ROT:** `CASE`-знак в SQL `balanceAsOfMinor` дублирует Dart
+  `_signedDelta`; копии `firstPeriodOffset`; дедуп VM-хелперов форматирования;
+  skeleton; uikit `initialDate`.
 - **Предлагаемый commit:** `task/15.2: UI ежемесячных платежей`.
 
-### 15.3 Автоматическая капитализация процентов по вкладам — [x] (2026-11-21)
+### 15.3 Автоматическая капитализация процентов по вкладам — [x] (2026-11-21) · PR #65
 
 - **Приоритет/зависимости:** P1; после 15.1 (можно параллельно с 15.2, но
   генератор общий — рекомендована последовательность 15.1 → 15.2 → 15.3).
@@ -578,20 +583,31 @@
 - **Files:**
   - Create: `test/core/features/recurring/recurring_interest_test.dart`;
     `test/core/database/transactions_balance_asof_test.dart`;
-    widget-тест секции/карточки процентов (расширение тестов деталей счёта).
+    `lib/core/features/cashflow/logic/linked_cashflow_writer.dart`.
   - Modify: `lib/core/features/recurring/logic/recurring_generator.dart`
-    (шаг reconcile + strategy depositInterest);
-    `lib/core/database/daos/transactions_dao.dart` (`balanceAsOfMinor`);
-    `lib/core/features/assets/ui/account_details_screen.dart` /
-    `account_details_view_model.dart` (карточка автоправила: ставка, следующий
-    платёж, последнее начисление);
-    `lib/core/features/assets/ui/account_form_screen.dart` (подсказка при
+    (reconcile + strategy depositInterest); `lib/core/database/daos/transactions_dao.dart`
+    (`balanceAsOfMinor`); `lib/core/database/daos/recurring_dao.dart`
+    (`upsertDepositInterestRule`, soft-delete, последнее начисление);
+    `lib/core/features/recurring/domain/recurring_repository.dart` и
+    `data/recurring_repository_impl.dart` (`lastGenerated`);
+    `lib/core/features/recurring/ui/recurring_rules_section.dart`
+    (read-only `AppCard` процентов); `lib/core/features/cashflow/logic/cashflow_commands.dart`
+    (использует `LinkedCashflowWriter`);
+    `lib/core/features/assets/ui/account_details_screen.dart`
+    (передача `AccountAsset` в секцию);
+    `lib/core/features/assets/ui/account_form_screen.dart` (helperText при
     ставке > 0); `lib/core/features/assets/ui/account_form_view_model.dart`
-    (catch-up после сохранения); `lib/core/features/recurring/ui/`
-    (read-only отображение автоправила в списке/секции, если не сделано в 15.2);
-    `lib/l10n/app_ru.arb`; `docs/architecture/calculations.md` (§4b +
-    CALC-037…041), `business_rules.md` (BR-RC-9/10 + покрытие),
-    `data_schema.md` (reconcile-контракт).
+    (`Future<void> Function()? catchup` после успешного save);
+    `lib/app/router.dart`; `lib/l10n/app_ru.arb`;
+    `docs/architecture/calculations.md` (§4b + CALC-037…041),
+    `business_rules.md` (BR-RC-9/10 + покрытие), `data_schema.md`
+    (reconcile-контракт).
+  - Test: `test/core/features/recurring/recurring_interest_test.dart`,
+    `test/core/database/transactions_balance_asof_test.dart`,
+    `test/core/features/recurring/ui/recurring_screens_test.dart` (карточка/
+    авто-строка), `test/core/features/assets/ui/account_screens_test.dart`
+    (helperText/catch-up), `test/architecture/business_rule_coverage_test.dart`
+    (BR-RC-9/10, CALC-037…041).
 - **Consumes:** 15.1 (таблица strategy deposit_interest, unique-индекс одного
   активного автоправила на счёт, генератор, маркер); `AccountDetails`
   (annualRate/startDate/endDate уже существуют — форма счёта не расширяется);
@@ -650,9 +666,9 @@
      восстанавливается (`deletedAt = null`) с сохранённым маркером, а не
      создаётся новое — иначе прошлые начисления продублируются, ведь
      unique-индекс `cashflow_recurring_period` привязан к `rule_id`.
-     Для этого добавить `RecurringDao.restoreDepositInterestRule(id)`
-     (или `restore(id)` с той же семантикой); правило ищется включая
-     soft-deleted. Новое правило создаётся только если строки не было вовсе
+     Для этого `RecurringDao.upsertDepositInterestRule` ищет правило включая
+     soft-deleted, обновляет зеркальные поля и снимает `deletedAt`, сохраняя
+     маркер; новое правило создаётся только если строки не было вовсе
      (ставка была 0 с момента создания счёта) — тогда маркер null корректен.
      Unique-индекс
      `recurring_active_deposit_interest` гарантирует одно правило на счёт.
@@ -680,8 +696,9 @@
   5. **Форма счёта.** Подсказка под полем ставки при значении > 0:
      «Проценты будут начисляться автоматически ежемесячно в дату годовщины
      начала вклада» (l10n `accountRateAutoHint`). `AccountFormViewModel`
-     получает опциональный `RecurringCatchupService? catchup`; после
-     успешного save — `unawaited(catchup.catchUp())` (router передаёт).
+     получает опциональный `Future<void> Function()? catchup`; после
+     успешного save — `unawaited(catchup!())` (router передаёт tear-off
+     `RecurringCatchupService.catchUp`).
   6. **Docs.** `calculations.md` §4b «Фактическое начисление процентов»:
      формула, offset k≥1, endDate включительно, база — фактический баланс,
      одно округление; golden CALC-037…041 (значения выше). Отличие от §4
@@ -712,7 +729,7 @@
   reconcile. Всего 709 тестов.
 - **Предлагаемый commit:** `task/15.3: капитализация процентов по вкладам`.
 
-### 15.4 Вкладка «Регулярные» обрезается до «Р» — [x] (2026-11-21)
+### 15.4 Вкладка «Регулярные» обрезается до «Р» — [x] (2026-11-22) · PR #66
 
 - **Источник:** короткий QA этапа 15, TC-122 (`/tmp/opencode/qa15_recurring.png`).
 - **Симптом:** на планшете (1280×2856, font 1.0) третий сегмент «Регулярные» шириной ~164 px
@@ -740,11 +757,13 @@
   прокручивается, показывает контрастный scrollbar с track и edge-fade,
   подводит выбранную вкладку только по горизонтали (вертикальный список не
   прыгает), reduce-motion уважается. Тест 320dp/1.3 проверяет авто-скролл
-  «Регулярных», переключение, scrollbar и отсутствие вертикального сдвига;
+  «Регулярных», переключение, scrollbar и отсутствие вертикального сдвига.
+  На 427dp/font1.0 невыбранная третья вкладка до свайпа читается как «Р» с
+  fade — это принятый владельцем scroll-дизайн (TC-143 PASS), не FAIL.
   TC-122 закрыт.
 - **Предлагаемый commit:** `task/15.4: вкладка регулярных платежей`.
 
-### 15.5 Список «Регулярные» не обновляет справочники без перезахода — [x] (2026-11-21)
+### 15.5 Список «Регулярные» не обновляет справочники без перезахода — [x] (2026-11-22) · PR #66
 
 - **Источник:** короткий QA этапа 15, TC-123.
 - **Симптом:** после холодного старта авто-правило показывает «Без привязки к активу»
@@ -769,5 +788,6 @@
 - **Итог:** `categoryNames/assets/currencies/ratePending` читаются во внешнем
   `SignalBuilder`, itemBuilder получает локальные значения; reactive-тест
   обновляет категорию/цель/pending без перезахода; auto-строка показывает
-  `AppChip` «Авто» без дубля названия. TC-123 закрыт.
+  `AppChip` «Авто» без дубля названия. TC-123 закрыт. Всего после 15.4/15.5 —
+  713 тестов.
 - **Предлагаемый commit:** `task/15.5: обновлять справочники регулярных платежей`.
