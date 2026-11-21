@@ -3420,6 +3420,54 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Не удалось рассчитать доходность.'**
   String get propertyYieldError;
+
+  /// Заголовок онбординга.
+  ///
+  /// In ru, this message translates to:
+  /// **'Добро пожаловать в FinanseApp'**
+  String get onboardingTitle;
+
+  /// Вступление.
+  ///
+  /// In ru, this message translates to:
+  /// **'Локальный учёт финансов: данные хранятся только на устройстве.'**
+  String get onboardingIntro;
+
+  /// Приватность.
+  ///
+  /// In ru, this message translates to:
+  /// **'Резервная копия не шифруется — храните файл безопасно.'**
+  String get onboardingPrivacy;
+
+  /// Валюта.
+  ///
+  /// In ru, this message translates to:
+  /// **'Базовая валюта используется для отчётов и итогов; её можно изменить позже в настройках.'**
+  String get onboardingBaseCurrency;
+
+  /// CTA старт.
+  ///
+  /// In ru, this message translates to:
+  /// **'Начать'**
+  String get onboardingStart;
+
+  /// CTA пропуск.
+  ///
+  /// In ru, this message translates to:
+  /// **'Пропустить'**
+  String get onboardingSkip;
+
+  /// Заголовок секции онбординга.
+  ///
+  /// In ru, this message translates to:
+  /// **'Данные и резервная копия'**
+  String get onboardingPrivacyTitle;
+
+  /// Короткий label выбора валюты.
+  ///
+  /// In ru, this message translates to:
+  /// **'Базовая валюта'**
+  String get onboardingCurrencyLabel;
 }
 
 class _AppLocalizationsDelegate

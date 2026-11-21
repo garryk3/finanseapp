@@ -34,6 +34,22 @@ class SettingsDao extends DatabaseAccessor<AppDatabase>
     return row.readTable(currencies);
   }
 
+  Future<String?> getValue(String key) async {
+    final row = await (select(
+      appSettings,
+    )..where((s) => s.key.equals(key))).getSingleOrNull();
+    return row?.value;
+  }
+
+  Future<void> setValue(String key, String value) =>
+      into(appSettings).insertOnConflictUpdate(
+        AppSettingsCompanion.insert(
+          key: key,
+          value: value,
+          updatedAt: attachedDatabase.clock(),
+        ),
+      );
+
   Future<void> setBaseCurrency(String code) => transaction(() async {
     final currency = await (select(
       currencies,

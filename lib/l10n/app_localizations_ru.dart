@@ -1814,4 +1814,31 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get propertyYieldError => 'Не удалось рассчитать доходность.';
+
+  @override
+  String get onboardingTitle => 'Добро пожаловать в FinanseApp';
+
+  @override
+  String get onboardingIntro =>
+      'Локальный учёт финансов: данные хранятся только на устройстве.';
+
+  @override
+  String get onboardingPrivacy =>
+      'Резервная копия не шифруется — храните файл безопасно.';
+
+  @override
+  String get onboardingBaseCurrency =>
+      'Базовая валюта используется для отчётов и итогов; её можно изменить позже в настройках.';
+
+  @override
+  String get onboardingStart => 'Начать';
+
+  @override
+  String get onboardingSkip => 'Пропустить';
+
+  @override
+  String get onboardingPrivacyTitle => 'Данные и резервная копия';
+
+  @override
+  String get onboardingCurrencyLabel => 'Базовая валюта';
 }

@@ -5,6 +5,10 @@ import 'package:finanseapp/core/features/applock/logic/applock_controller.dart';
 import 'package:finanseapp/core/features/applock/logic/applock_view_model.dart';
 import 'package:finanseapp/core/features/applock/ui/applock_back_dispatcher.dart';
 import 'package:finanseapp/core/features/applock/ui/applock_gate.dart';
+import 'package:finanseapp/core/features/onboarding/domain/onboarding_repository.dart';
+import 'package:finanseapp/core/features/onboarding/ui/onboarding_gate.dart';
+import 'package:finanseapp/core/features/settings/domain/settings_repository.dart';
+import 'package:finanseapp/core/features/currencies/domain/currency_repository.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
@@ -42,7 +46,12 @@ class _FinanseAppState extends State<FinanseApp> {
       builder: (context, child) => AppLockGate(
         controller: locator.get<ApplockController>(),
         lockViewModel: locator.get<ApplockViewModel>(),
-        child: child ?? const SizedBox.shrink(),
+        child: OnboardingGate(
+          repository: locator.get<OnboardingRepository>(),
+          settingsRepository: locator.get<SettingsRepository>(),
+          currencyRepository: locator.get<CurrencyRepository>(),
+          child: child ?? const SizedBox.shrink(),
+        ),
       ),
       // Локали Material/Cupertino/Widgets — из material_ui (Flutter 3.50):
       // делегаты flutter_localizations дают framework-типы, которые виджеты

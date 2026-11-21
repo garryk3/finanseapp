@@ -22,6 +22,7 @@ import 'package:finanseapp/core/features/settings/domain/settings_repository.dar
 import 'package:finanseapp/core/features/settings/ui/about_view_model.dart';
 import 'package:finanseapp/core/features/settings/logic/update_check_view_model.dart';
 import 'package:finanseapp/core/features/settings/domain/update_service.dart';
+import 'package:finanseapp/core/features/onboarding/domain/onboarding_repository.dart';
 import 'package:finanseapp/core/features/settings/ui/settings_view_model.dart';
 import 'package:finanseapp/core/features/goals/domain/goal_repository.dart';
 import 'package:finanseapp/core/features/goals/ui/goals_view_model.dart';
@@ -39,6 +40,7 @@ Future<ServiceLocator> buildTestLocator({
   AppDatabase? database,
   BackupServiceFactory? backupServiceFactory,
   BackupFileGateway backupFileGateway = const PlatformBackupFileGateway(),
+  bool onboardingCompleted = true,
 }) async {
   final ServiceLocator locator = ServiceLocator();
   await registerCoreServices(locator, database: database ?? openTestDatabase());
@@ -48,6 +50,10 @@ Future<ServiceLocator> buildTestLocator({
   final service = ApplockService(storage: storage);
   final controller = ApplockController(service: service);
   await controller.init();
+
+  if (onboardingCompleted) {
+    await locator.get<OnboardingRepository>().complete();
+  }
 
   locator
     ..registerFactory<DashboardViewModel>(

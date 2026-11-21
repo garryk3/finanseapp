@@ -2453,5 +2453,37 @@
   "propertyYieldError": "Не удалось рассчитать доходность.",
   "@propertyYieldError": {
     "description": "Ошибка расчёта доходности."
+  },
+  "onboardingTitle": "Добро пожаловать в FinanseApp",
+  "@onboardingTitle": {
+    "description": "Заголовок онбординга."
+  },
+  "onboardingIntro": "Локальный учёт финансов: данные хранятся только на устройстве.",
+  "@onboardingIntro": {
+    "description": "Вступление."
+  },
+  "onboardingPrivacy": "Резервная копия не шифруется — храните файл безопасно.",
+  "@onboardingPrivacy": {
+    "description": "Приватность."
+  },
+  "onboardingBaseCurrency": "Базовая валюта используется для отчётов и итогов; её можно изменить позже в настройках.",
+  "@onboardingBaseCurrency": {
+    "description": "Валюта."
+  },
+  "onboardingStart": "Начать",
+  "@onboardingStart": {
+    "description": "CTA старт."
+  },
+  "onboardingSkip": "Пропустить",
+  "@onboardingSkip": {
+    "description": "CTA пропуск."
+  },
+  "onboardingPrivacyTitle": "Данные и резервная копия",
+  "@onboardingPrivacyTitle": {
+    "description": "Заголовок секции онбординга."
+  },
+  "onboardingCurrencyLabel": "Базовая валюта",
+  "@onboardingCurrencyLabel": {
+    "description": "Короткий label выбора валюты."
   }
 }
