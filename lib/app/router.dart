@@ -81,6 +81,13 @@ import 'package:finanseapp/core/features/goals/ui/goals_screen.dart';
 import 'package:finanseapp/core/features/goals/ui/goals_view_model.dart';
 import 'package:finanseapp/core/features/references/ui/subgroups_screen.dart';
 import 'package:finanseapp/core/features/references/ui/subgroups_view_model.dart';
+import 'package:finanseapp/core/features/recurring/domain/recurring_repository.dart';
+import 'package:finanseapp/core/features/recurring/logic/recurring_catchup_service.dart';
+import 'package:finanseapp/core/features/recurring/logic/recurring_commands.dart';
+import 'package:finanseapp/core/features/recurring/ui/recurring_rule_form_screen.dart';
+import 'package:finanseapp/core/features/recurring/ui/recurring_rule_form_view_model.dart';
+import 'package:finanseapp/core/features/recurring/ui/recurring_rules_screen.dart';
+import 'package:finanseapp/core/features/recurring/ui/recurring_rules_view_model.dart';
 import 'package:finanseapp/core/features/settings/ui/more_screen.dart';
 import 'package:finanseapp/core/features/settings/ui/more_view_model.dart';
 import 'package:finanseapp/core/features/transactions/ui/transactions_screen.dart';
@@ -185,6 +192,10 @@ GoRouter buildRouter({required ServiceLocator locator}) {
                                     .get<ExchangeRateRepository>(),
                                 cashflowRepository: locator
                                     .get<CashflowRepository>(),
+                                recurringRepository: locator
+                                    .get<RecurringRepository>(),
+                                categoryRepository: locator
+                                    .get<CategoryRepository>(),
                               ),
                             );
                     },
@@ -624,8 +635,50 @@ GoRouter buildRouter({required ServiceLocator locator}) {
             propertyId: int.tryParse(
               state.uri.queryParameters['propertyId'] ?? '',
             ),
+            recurringCommands: _recurringCommands(locator),
           ),
         ),
+      ),
+      GoRoute(
+        path: AppRoutes.recurringNew,
+        name: 'recurring-new',
+        builder: (context, state) => RecurringRuleFormScreen(
+          viewModel: RecurringRuleFormViewModel(
+            repository: locator.get<RecurringRepository>(),
+            categoryRepository: locator.get<CategoryRepository>(),
+            currencyRepository: locator.get<CurrencyRepository>(),
+            assetRepository: locator.get<AssetRepository>(),
+            commands: _recurringCommands(locator),
+            initialKind: state.uri.queryParameters['kind'] == 'income'
+                ? CashflowKind.income
+                : CashflowKind.expense,
+            presetPropertyId: int.tryParse(
+              state.uri.queryParameters['propertyId'] ?? '',
+            ),
+            presetAccountId: int.tryParse(
+              state.uri.queryParameters['accountId'] ?? '',
+            ),
+          ),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.recurringEdit,
+        name: 'recurring-edit',
+        builder: (context, state) {
+          final id = AppRoutes.parseId(state.pathParameters['id']);
+          return id == null
+              ? _notFound(locator)
+              : RecurringRuleFormScreen(
+                  viewModel: RecurringRuleFormViewModel(
+                    repository: locator.get<RecurringRepository>(),
+                    categoryRepository: locator.get<CategoryRepository>(),
+                    currencyRepository: locator.get<CurrencyRepository>(),
+                    assetRepository: locator.get<AssetRepository>(),
+                    commands: _recurringCommands(locator),
+                    editingId: id,
+                  ),
+                );
+        },
       ),
       GoRoute(
         path: AppRoutes.cashflowDetails,
@@ -721,6 +774,13 @@ CashflowCommands _cashflowCommands(ServiceLocator locator) => CashflowCommands(
   db: locator.get<AppDatabase>(),
 );
 
+RecurringCommands _recurringCommands(ServiceLocator locator) =>
+    RecurringCommands(
+      repository: locator.get<RecurringRepository>(),
+      catchup: locator.get<RecurringCatchupService>().catchUp,
+      today: LocalDate.fromDateTime(DateTime.now()),
+    );
+
 /// Вкладки журнала операций с сохранением выбора в query.
 Widget _operationsScreen(
   BuildContext context,
@@ -732,6 +792,12 @@ Widget _operationsScreen(
   if (tab == 'transactions') {
     return TransactionsScreen(
       viewModel: locator.get<TransactionsViewModel>(),
+      onTabChanged: changeTab,
+    );
+  }
+  if (tab == 'recurring') {
+    return RecurringRulesScreen(
+      viewModel: locator.get<RecurringRulesViewModel>(),
       onTabChanged: changeTab,
     );
   }

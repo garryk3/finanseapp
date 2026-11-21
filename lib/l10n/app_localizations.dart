@@ -2248,6 +2248,258 @@ abstract class AppLocalizations {
   /// **'Влияет на баланс счёта'**
   String get cashflowAffectsBalance;
 
+  /// Вкладка журнала операций с правилами ежемесячных платежей.
+  ///
+  /// In ru, this message translates to:
+  /// **'Регулярные'**
+  String get operationsRecurringTab;
+
+  /// Заголовок списка и секции регулярных платежей.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ежемесячные платежи'**
+  String get recurringTitle;
+
+  /// Пустое состояние списка регулярных платежей.
+  ///
+  /// In ru, this message translates to:
+  /// **'Пока нет ежемесячных платежей.'**
+  String get recurringEmpty;
+
+  /// Как появится первое правило.
+  ///
+  /// In ru, this message translates to:
+  /// **'Создайте правило из формы дохода/расхода или кнопкой «Добавить платёж».'**
+  String get recurringEmptyHint;
+
+  /// Ссылка из истории ведёт на удалённое правило.
+  ///
+  /// In ru, this message translates to:
+  /// **'Правило удалено'**
+  String get recurringRuleDeletedTitle;
+
+  /// Пояснение к удалённому правилу.
+  ///
+  /// In ru, this message translates to:
+  /// **'Созданные операции сохранились, новые платежи не начисляются.'**
+  String get recurringRuleDeletedMessage;
+
+  /// Кнопка создания ежемесячного платежа.
+  ///
+  /// In ru, this message translates to:
+  /// **'Добавить платёж'**
+  String get recurringAdd;
+
+  /// Заголовок формы создания правила.
+  ///
+  /// In ru, this message translates to:
+  /// **'Новый ежемесячный платёж'**
+  String get recurringNew;
+
+  /// Заголовок формы редактирования правила.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ежемесячный платёж'**
+  String get recurringEdit;
+
+  /// Чекбокс создания правила из формы дохода/расхода.
+  ///
+  /// In ru, this message translates to:
+  /// **'Повторять ежемесячно'**
+  String get recurringMonthly;
+
+  /// Дата первого платежа правила.
+  ///
+  /// In ru, this message translates to:
+  /// **'Дата начала'**
+  String get recurringStartDate;
+
+  /// Необязательная дата последнего платежа.
+  ///
+  /// In ru, this message translates to:
+  /// **'Дата окончания'**
+  String get recurringEndDate;
+
+  /// Поле необязательной даты окончания.
+  ///
+  /// In ru, this message translates to:
+  /// **'Дата окончания (необязательно)'**
+  String get recurringEndDateOptional;
+
+  /// Очистка необязательной даты окончания.
+  ///
+  /// In ru, this message translates to:
+  /// **'Убрать дату окончания'**
+  String get recurringEndClear;
+
+  /// Дата окончания не задана.
+  ///
+  /// In ru, this message translates to:
+  /// **'Бессрочно'**
+  String get recurringEndNotSet;
+
+  /// Расписание правила: from — дата начала.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ежемесячно с {from}'**
+  String recurringScheduleFrom(String from);
+
+  /// Ближайший платёж правила.
+  ///
+  /// In ru, this message translates to:
+  /// **'Следующий: {date}'**
+  String recurringNextLabel(String date);
+
+  /// Платёж правила не выполнен в срок.
+  ///
+  /// In ru, this message translates to:
+  /// **'Просрочен: {date}'**
+  String recurringOverdueLabel(String date);
+
+  /// Правило дошло до даты окончания.
+  ///
+  /// In ru, this message translates to:
+  /// **'Завершено'**
+  String get recurringCompleted;
+
+  /// Название автоправила процентов в списке.
+  ///
+  /// In ru, this message translates to:
+  /// **'Проценты по вкладу'**
+  String get recurringAutoInterestTitle;
+
+  /// Пояснение взаимоисключающего выбора цели.
+  ///
+  /// In ru, this message translates to:
+  /// **'Цель — только счёт или недвижимость'**
+  String get recurringTargetHint;
+
+  /// Нет активов для цели правила.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сначала добавьте счёт или недвижимость.'**
+  String get recurringNoTargets;
+
+  /// Дата окончания правила.
+  ///
+  /// In ru, this message translates to:
+  /// **'по {to}'**
+  String recurringScheduleUntil(String to);
+
+  /// Ближайшая дата платежа правила.
+  ///
+  /// In ru, this message translates to:
+  /// **'Следующий платёж: {date}'**
+  String recurringNextPayment(String date);
+
+  /// Следующий платёж не вычисляется (нет даты начала).
+  ///
+  /// In ru, this message translates to:
+  /// **'Дата не определена'**
+  String get recurringNextPaymentNone;
+
+  /// Платёж отложен: нет курса на дату.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ожидает курс'**
+  String get recurringPendingRate;
+
+  /// Метка операции, созданной правилом.
+  ///
+  /// In ru, this message translates to:
+  /// **'Автоплатёж'**
+  String get recurringAutoBadge;
+
+  /// Переход от автооперации к её правилу.
+  ///
+  /// In ru, this message translates to:
+  /// **'Изменить правило'**
+  String get recurringRuleLink;
+
+  /// Заголовок подтверждения удаления правила.
+  ///
+  /// In ru, this message translates to:
+  /// **'Удалить правило?'**
+  String get recurringDeleteTitle;
+
+  /// Пояснение удаления правила без удаления истории.
+  ///
+  /// In ru, this message translates to:
+  /// **'Правило будет удалено. Созданные операции останутся.'**
+  String get recurringDeleteMessage;
+
+  /// Уведомление после удаления правила.
+  ///
+  /// In ru, this message translates to:
+  /// **'Правило удалено'**
+  String get recurringDeleted;
+
+  /// Уведомление после сохранения правила.
+  ///
+  /// In ru, this message translates to:
+  /// **'Правило сохранено'**
+  String get recurringSaved;
+
+  /// Кнопка удаления правила в форме.
+  ///
+  /// In ru, this message translates to:
+  /// **'Удалить правило'**
+  String get recurringDeleteAction;
+
+  /// Выбор счёта как цели правила.
+  ///
+  /// In ru, this message translates to:
+  /// **'Счёт'**
+  String get recurringTargetAccount;
+
+  /// Выбор недвижимости как цели правила.
+  ///
+  /// In ru, this message translates to:
+  /// **'Недвижимость'**
+  String get recurringTargetProperty;
+
+  /// Правило без привязки к активу.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не выбран'**
+  String get recurringNoTarget;
+
+  /// Ошибка диапазона дат правила.
+  ///
+  /// In ru, this message translates to:
+  /// **'Дата окончания не может быть раньше даты начала'**
+  String get recurringErrorDates;
+
+  /// Автоправило процентов нельзя править вручную.
+  ///
+  /// In ru, this message translates to:
+  /// **'Проценты по вкладу начисляются автоматически и настраиваются в счёте.'**
+  String get recurringReadOnlyInterest;
+
+  /// Переход из автоправила процентов к счёту.
+  ///
+  /// In ru, this message translates to:
+  /// **'Открыть счёт'**
+  String get recurringOpenAccount;
+
+  /// Какой курс использует автогенерация.
+  ///
+  /// In ru, this message translates to:
+  /// **'Курс берётся из сохранённого курса на дату платежа.'**
+  String get recurringRateHint;
+
+  /// Пустая секция на экране актива.
+  ///
+  /// In ru, this message translates to:
+  /// **'Нет ежемесячных платежей.'**
+  String get recurringSectionEmpty;
+
+  /// Правило без счёта и недвижимости.
+  ///
+  /// In ru, this message translates to:
+  /// **'Без привязки к активу'**
+  String get recurringNoTargetHint;
+
   /// Ошибка счёта при affectsBalance.
   ///
   /// In ru, this message translates to:

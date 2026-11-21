@@ -33,7 +33,7 @@
 | Name | Path | Экран |
 |---|---|---|
 | dashboard | `/` | DashboardScreen |
-| operations | `/operations?tab=cashflow` | Operations host: CashflowScreen / TransactionsScreen |
+| operations | `/operations?tab=cashflow` | Operations host: CashflowScreen / TransactionsScreen / RecurringRulesScreen |
 | assets | `/assets` | AssetsScreen |
 | account-new | `/assets/new/account` | AccountFormScreen(create) |
 | investment-new | `/assets/new/investment` | InvestmentFormScreen(create) |
@@ -51,6 +51,8 @@
 | cashflow-new | `/cashflow/new` | CashflowFormScreen(create) |
 | cashflow-details | `/cashflow/:id` | CashflowDetailsScreen |
 | cashflow-edit | `/cashflow/:id/edit` | CashflowFormScreen(edit) |
+| recurring-new | `/recurring/new` | RecurringRuleFormScreen(create) |
+| recurring-edit | `/recurring/:id/edit` | RecurringRuleFormScreen(edit; auto interest read-only) |
 | goals | `/goals` | GoalsScreen |
 | goal-new | `/goals/new` | GoalFormScreen(create) |
 | goal-details | `/goals/:id` | GoalDetailsScreen |
@@ -94,10 +96,11 @@ stack trace и сырое исключение пользователю не в�
 
 | Route | Keys | Правила |
 |---|---|---|
-| `/operations` | `tab=cashflow|transactions` | default cashflow; invalid → cashflow без crash |
+| `/operations` | `tab=cashflow|transactions|recurring` | default cashflow; invalid → cashflow без crash |
 | `/subgroups` | `kind=bank|broker` | default bank; переключатель сохраняет выбранный tab |
 | `/transactions/new` | `assetId`, `kind=deposit|withdrawal`, `cashflow=true` | только существующий account/investment; cashflow=true требует account и категорию |
-| `/cashflow/new` | `kind=income|expense`, `accountId`, `propertyId`, `affectsBalance=true|false` | accountId и propertyId взаимоисключающи; affectsBalance без accountId игнорируется с подсказкой |
+| `/cashflow/new` | `kind=income|expense`, `accountId`, `propertyId`, `affectsBalance=true|false` | accountId и propertyId взаимоисключающи; affectsBalance без accountId игнорируется с подсказкой; чекбокс «Повторять ежемесячно» создаёт правило |
+| `/recurring/new` | `kind=income|expense`, `accountId`, `propertyId` | preset-цель из экрана актива; иначе выбор счёта/недвижимости; endDate ≥ startDate |
 | `/goals/new` | `category=accounts|investments` | default accounts |
 | `/assets` | `kind=account|investment|property`, `query` | filters не попадают в journal других разделов |
 | `/more/audit` | `type=assetTransaction|cashflow`, `query` | default assetTransaction |
@@ -134,6 +137,9 @@ VM — ViewModel, создаваемая через DI. «Тест» — мин�
 | Dashboard | DashboardViewModel: net worth, цели, последние операции, cashflow месяца | Summary, charts teaser, quick add | Пустая БД показывает нули и CTA; tap ведёт в нужный prefill |
 | CashflowScreen | CashflowViewModel: watch(filter), summary | Фильтры, date groups, add income/expense | Удалённая запись скрыта; transfer отсутствует |
 | TransactionsScreen | TransactionsViewModel: watch(filter) | Deposit/withdrawal/transfer, filters | Связанный расход имеет badge, но не дублирует сумму cashflow |
+| RecurringRulesScreen | RecurringRulesViewModel: watchActive + справочники | Список правил, следующий платёж, «Ожидает курс», CTA | Автоправило процентов ведёт в детали счёта, без правки |
+| RecurringRuleForm | RecurringRuleFormViewModel: rule/categories/currencies/assets | Kind/amount/currency/category, target, affectsBalance, даты, comment | endDate ≥ startDate; авто-правило read-only; удаление с confirm |
+| RecurringRulesSection | watchByAccount/watchByProperty | Правила объекта/счёта + CTA | Архивный актив → readOnly |
 | AssetsScreen | AssetsViewModel: watchAll + filters | Три kind, архив filter, add menu | Account/investment/property имеют корректные стоимости |
 | AccountForm | AccountFormViewModel: banks, currencies, save | Name, bank, currency, opening, annualRate, start/end | 0%, end<start, used currency lock |
 | AccountDetails | AccountDetailsViewModel: snapshot, tx, forecast | Баланс, RUB/base equivalent, прогноз, history | После tx прогноз обновляется; archive read-only |

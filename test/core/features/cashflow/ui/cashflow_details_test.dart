@@ -204,5 +204,59 @@ void main() {
     expect(find.textContaining('10,00'), findsWidgets);
     expect(find.textContaining(l10n.transactionAmountRub), findsOneWidget);
     expect(find.textContaining('900,00'), findsWidgets);
+    expect(find.text(l10n.recurringAutoBadge), findsNothing);
+  });
+
+  testWidgets('автооперация показывает бейдж и ссылку на правило', (
+    tester,
+  ) async {
+    final entry = CashflowEntry(
+      id: 1,
+      kind: CashflowKind.expense,
+      categoryId: 10,
+      amount: const Money(minorUnits: 1000, currencyCode: 'RUB'),
+      occurredOn: LocalDate(2026, 1, 2),
+      rateToRub: Decimal.one,
+      amountRub: const Money(minorUnits: 1000, currencyCode: 'RUB'),
+      affectsBalance: false,
+      revisionNo: 1,
+      createdAt: DateTime.utc(2026),
+      updatedAt: DateTime.utc(2026),
+      recurringRuleId: 7,
+    );
+    final repository = FakeCashflow(entry);
+    final currencies = FakeCurrencies();
+    final vm = CashflowDetailsViewModel(
+      repository: repository,
+      categoryRepository: FakeCategories(),
+      auditRepository: FakeAudit(),
+      currencyRepository: currencies,
+      commands: CashflowCommands(
+        repository: repository,
+        currencyRepository: currencies,
+        rateRepository: FakeRates(),
+        today: LocalDate(2026, 1, 3),
+      ),
+      entryId: 1,
+    );
+    final l10n = await AppLocalizations.delegate.load(const Locale('ru'));
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light(),
+        localizationsDelegates: const [
+          ...GlobalMaterialLocalizations.delegates,
+          AppLocalizations.delegate,
+        ],
+        supportedLocales: const [Locale('ru')],
+        home: CashflowDetailsScreen(viewModel: vm),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(tester.takeException(), isNull);
+    expect(find.text(l10n.recurringAutoBadge), findsOneWidget);
+    expect(find.text(l10n.recurringRuleLink), findsOneWidget);
   });
 }

@@ -12,6 +12,7 @@ import 'package:finanseapp/core/presentation/money_formatter.dart';
 import 'package:finanseapp/core/presentation/view_state.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
 import 'package:finanseapp/uikit/app_button.dart';
+import 'package:finanseapp/uikit/app_chip.dart';
 import 'package:finanseapp/uikit/app_confirm_dialog.dart';
 import 'package:finanseapp/uikit/app_dialog.dart';
 import 'package:finanseapp/uikit/app_divider.dart';
@@ -141,6 +142,21 @@ class _CashflowDetailsScreenState extends State<CashflowDetailsScreen> {
                         '${l10n.cashflowAccountLabel}: '
                         '${vm.accountName.value}',
                       ),
+                    if (entry.recurringRuleId != null) ...[
+                      const SizedBox(height: AppSpacing.sm),
+                      Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: AppChip(label: l10n.recurringAutoBadge),
+                      ),
+                      const SizedBox(height: AppSpacing.xs),
+                      AppButton(
+                        label: l10n.recurringRuleLink,
+                        variant: AppButtonVariant.text,
+                        onPressed: () => context.push(
+                          AppRoutes.recurringEditPath(entry.recurringRuleId!),
+                        ),
+                      ),
+                    ],
                     if (vm.deleteError.value != null)
                       AppText(
                         l10n.cashflowDeleteError,

@@ -23,7 +23,9 @@ class OperationsTabs extends StatelessWidget {
           value: 'transactions',
           label: l10n.operationsTransactionsTab,
         ),
+        AppSegment(value: 'recurring', label: l10n.operationsRecurringTab),
       ],
+      expanded: false,
       selected: {current},
       onSelectionChanged: (selection) => onChanged(selection.single),
     );

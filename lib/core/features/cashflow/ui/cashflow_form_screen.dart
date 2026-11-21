@@ -14,6 +14,7 @@ import 'package:finanseapp/l10n/app_localizations.dart';
 import 'package:finanseapp/uikit/app_amount_field.dart';
 import 'package:finanseapp/uikit/app_button.dart';
 import 'package:finanseapp/uikit/app_category_select.dart';
+import 'package:finanseapp/uikit/app_checkbox.dart';
 import 'package:finanseapp/uikit/app_currency_select.dart';
 import 'package:finanseapp/uikit/app_date_picker_field.dart';
 import 'package:finanseapp/uikit/app_empty_state.dart';
@@ -54,12 +55,15 @@ class _CashflowFormScreenState extends State<CashflowFormScreen> {
   int? _categoryId;
   int? _accountId;
   bool _affectsBalance = false;
+  bool _recurring = false;
+  LocalDate? _recurringEndDate;
   String _currencyCode = 'RUB';
   LocalDate? _date;
   String? _amountError;
   String? _categoryError;
   String? _rateError;
   String? _accountError;
+  String? _endDateError;
   String? _formError;
   bool _loaded = false;
   bool _saving = false;
@@ -124,22 +128,32 @@ class _CashflowFormScreenState extends State<CashflowFormScreen> {
     final accountError = _affectsBalance && _accountId == null
         ? l10n.cashflowErrorAccount
         : null;
+    final dateError =
+        _recurring &&
+            _recurringEndDate != null &&
+            _recurringEndDate!.compareTo(_date!) < 0
+        ? l10n.recurringErrorDates
+        : null;
     final rawRate = widget.viewModel.isEditing && _currencyCode == 'RUB'
         ? ''
         : _rate.text.trim().replaceAll(',', '.');
     Decimal? manualRate;
-    if (_currencyCode != 'RUB' && rawRate.isNotEmpty) {
+    if (!_recurring && _currencyCode != 'RUB' && rawRate.isNotEmpty) {
       manualRate = Decimal.tryParse(rawRate);
       if (manualRate == null || manualRate <= Decimal.zero) {
         setState(() => _rateError = l10n.valuationErrorRate);
         return;
       }
     }
-    if (amountError != null || categoryError != null || accountError != null) {
+    if (amountError != null ||
+        categoryError != null ||
+        accountError != null ||
+        dateError != null) {
       setState(() {
         _amountError = amountError;
         _categoryError = categoryError;
         _accountError = accountError;
+        _endDateError = dateError;
       });
       return;
     }
@@ -147,24 +161,41 @@ class _CashflowFormScreenState extends State<CashflowFormScreen> {
       _amountError = null;
       _categoryError = null;
       _accountError = null;
+      _endDateError = null;
       _rateError = null;
       _formError = null;
       _saving = true;
     });
-    final result = await widget.viewModel.save(
-      kind: _kind,
-      categoryId: _categoryId!,
-      amount: Money(
-        minorUnits: amount!.minorUnits,
-        currencyCode: _currencyCode,
-      ),
-      occurredOn: _date!,
-      manualRate: manualRate,
-      comment: _comment.text,
-      propertyId: widget.propertyId,
-      accountId: _accountId,
-      affectsBalance: _affectsBalance,
-    );
+    final result = _recurring
+        ? await widget.viewModel.saveRecurring(
+            kind: _kind,
+            categoryId: _categoryId!,
+            amount: Money(
+              minorUnits: amount!.minorUnits,
+              currencyCode: _currencyCode,
+            ),
+            currencyCode: _currencyCode,
+            startDate: _date!,
+            endDate: _recurringEndDate,
+            comment: _comment.text,
+            propertyId: widget.propertyId,
+            accountId: _accountId,
+            affectsBalance: _affectsBalance,
+          )
+        : await widget.viewModel.save(
+            kind: _kind,
+            categoryId: _categoryId!,
+            amount: Money(
+              minorUnits: amount!.minorUnits,
+              currencyCode: _currencyCode,
+            ),
+            occurredOn: _date!,
+            manualRate: manualRate,
+            comment: _comment.text,
+            propertyId: widget.propertyId,
+            accountId: _accountId,
+            affectsBalance: _affectsBalance,
+          );
     if (!mounted) return;
     setState(() => _saving = false);
     if (result is Failure<int>) {
@@ -178,6 +209,7 @@ class _CashflowFormScreenState extends State<CashflowFormScreen> {
         'validationCurrencyMismatch' => l10n.cashflowErrorCurrencyMismatch,
         'validationPropertyAndAccountExclusive' => l10n.cashflowErrorAccount,
         'validationDateInFuture' => l10n.transactionErrorDate,
+        'validationRecurringDates' => l10n.recurringErrorDates,
         _ when result.error.code == DomainErrorCode.negativeBalance =>
           l10n.transactionErrorNegativeBalance,
         _ when result.error.code == DomainErrorCode.rateUnavailable =>
@@ -409,19 +441,71 @@ class _CashflowFormScreenState extends State<CashflowFormScreen> {
                     }),
                   ),
                   if (options.isEmpty) AppText(l10n.cashflowNoCategories),
+                  if (vm.canRepeat)
+                    AppCheckbox(
+                      value: _recurring,
+                      label: l10n.recurringMonthly,
+                      onChanged: (value) => setState(() {
+                        _recurring = value ?? false;
+                        _formError = null;
+                        if (!_recurring) {
+                          _recurringEndDate = null;
+                          _endDateError = null;
+                          if (_date!.compareTo(vm.today) > 0) {
+                            _date = vm.today;
+                          }
+                        }
+                      }),
+                    ),
                   AppDatePickerField(
-                    label: l10n.transactionDateLabel,
+                    label: _recurring
+                        ? l10n.recurringStartDate
+                        : l10n.transactionDateLabel,
                     valueText: const DateFormatter().format(_date!),
                     firstDate: DateTime(2000),
-                    lastDate: DateTime(
-                      vm.today.year,
-                      vm.today.month,
-                      vm.today.day,
-                    ),
-                    onChanged: (value) =>
-                        setState(() => _date = LocalDate.fromDateTime(value)),
+                    lastDate: _recurring
+                        ? DateTime(2100)
+                        : DateTime(vm.today.year, vm.today.month, vm.today.day),
+                    onChanged: (value) => setState(() {
+                      _date = LocalDate.fromDateTime(value);
+                      _formError = null;
+                      _endDateError = null;
+                    }),
                   ),
-                  if (!isRub)
+                  if (_recurring) ...[
+                    AppDatePickerField(
+                      label: l10n.recurringEndDateOptional,
+                      valueText: _recurringEndDate == null
+                          ? l10n.recurringEndNotSet
+                          : const DateFormatter().format(_recurringEndDate!),
+                      firstDate: DateTime(
+                        _date!.year,
+                        _date!.month,
+                        _date!.day,
+                      ),
+                      lastDate: DateTime(2100),
+                      errorText: _endDateError,
+                      onChanged: (value) => setState(() {
+                        _recurringEndDate = LocalDate.fromDateTime(value);
+                        _endDateError = null;
+                      }),
+                    ),
+                    if (_recurringEndDate != null)
+                      AppButton(
+                        label: l10n.recurringEndClear,
+                        variant: AppButtonVariant.text,
+                        onPressed: () =>
+                            setState(() => _recurringEndDate = null),
+                      ),
+                    if (!isRub)
+                      AppText(
+                        l10n.recurringRateHint,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                  ],
+                  if (!isRub && !_recurring)
                     AppTextField(
                       label: l10n.valuationRateLabel,
                       controller: _rate,
