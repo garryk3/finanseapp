@@ -227,21 +227,23 @@ AssetTransaction _transaction({
   deletedAt: DateTime.utc(2026, 11, 21),
 );
 
-CashflowEntry _entry({int id = 1, String? comment}) => CashflowEntry(
-  id: id,
-  kind: CashflowKind.expense,
-  categoryId: 1,
-  amount: const Money(minorUnits: 120000, currencyCode: 'RUB'),
-  occurredOn: LocalDate(2026, 11, 19),
-  rateToRub: Decimal.one,
-  amountRub: const Money(minorUnits: 120000, currencyCode: 'RUB'),
-  affectsBalance: true,
-  revisionNo: 2,
-  createdAt: DateTime.utc(2026, 11, 19),
-  updatedAt: DateTime.utc(2026, 11, 21),
-  comment: comment,
-  deletedAt: DateTime.utc(2026, 11, 21),
-);
+CashflowEntry _entry({int id = 1, String? comment, int? assetTransactionId}) =>
+    CashflowEntry(
+      id: id,
+      kind: CashflowKind.expense,
+      categoryId: 1,
+      amount: const Money(minorUnits: 120000, currencyCode: 'RUB'),
+      occurredOn: LocalDate(2026, 11, 19),
+      rateToRub: Decimal.one,
+      amountRub: const Money(minorUnits: 120000, currencyCode: 'RUB'),
+      affectsBalance: true,
+      revisionNo: 2,
+      createdAt: DateTime.utc(2026, 11, 19),
+      updatedAt: DateTime.utc(2026, 11, 21),
+      comment: comment,
+      assetTransactionId: assetTransactionId,
+      deletedAt: DateTime.utc(2026, 11, 21),
+    );
 
 Widget _app(AuditViewModel viewModel) {
   final router = GoRouter(
@@ -275,6 +277,30 @@ Widget _app(AuditViewModel viewModel) {
 
 void main() {
   late AppLocalizations l10n;
+
+  test('аудит скрывает записи, связанные с активной операцией', () async {
+    final viewModel = AuditViewModel(
+      transactionRepository: _Transactions([
+        _transaction(id: 1),
+        _transaction(id: 2),
+      ]),
+      cashflowRepository: _Cashflow([
+        _entry(id: 1, assetTransactionId: 7),
+        _entry(id: 2, assetTransactionId: 1),
+        _entry(id: 3),
+      ]),
+      currencyRepository: _Currencies(),
+      assetRepository: _Assets(),
+      categoryRepository: _Categories(),
+    );
+    addTearDown(viewModel.dispose);
+
+    await viewModel.load();
+    await Future<void>.delayed(Duration.zero);
+
+    expect(viewModel.entries.value, hasLength(3));
+    expect(viewModel.restorableEntries.map((entry) => entry.id), [2, 3]);
+  });
 
   setUp(() async {
     l10n = await AppLocalizations.delegate.load(const Locale('ru'));
@@ -322,6 +348,29 @@ void main() {
 
     expect(find.text('Коммуналка'), findsWidgets);
     expect(find.text('Счёт'), findsNothing);
+  });
+
+  testWidgets('экран не показывает запись, связанную с активной операцией', (
+    tester,
+  ) async {
+    final viewModel = AuditViewModel(
+      transactionRepository: _Transactions([_transaction(id: 1)]),
+      cashflowRepository: _Cashflow([
+        _entry(id: 1, assetTransactionId: 7, comment: 'Скрытая'),
+        _entry(id: 2, assetTransactionId: 1, comment: 'Пара'),
+      ]),
+      currencyRepository: _Currencies(),
+      assetRepository: _Assets(),
+      categoryRepository: _Categories(),
+    );
+    addTearDown(viewModel.dispose);
+
+    await tester.pumpWidget(_app(viewModel));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('${l10n.auditTabCashflow} · 1'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Коммуналка'), findsOneWidget);
   });
 
   testWidgets('пустой аудит показывает empty state', (tester) async {
