@@ -1,4 +1,5 @@
 import 'package:finanseapp/app/app.dart';
+import 'package:finanseapp/core/features/cashflow/ui/operations_tabs.dart';
 import 'package:finanseapp/core/features/dashboard/ui/dashboard_screen.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -78,7 +79,12 @@ void main() {
 
     await tester.tap(find.text(l10n.navOperations));
     await tester.pumpAndSettle();
-    await tester.tap(find.text(l10n.operationsTransactionsTab));
+    await tester.tap(
+      find.descendant(
+        of: find.byType(OperationsTabs),
+        matching: find.text(l10n.operationsTransactionsTab),
+      ),
+    );
     await tester.pumpAndSettle();
     expect(find.text(l10n.transactionsEmptyTitle), findsOneWidget);
 

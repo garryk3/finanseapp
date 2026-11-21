@@ -1,4 +1,5 @@
 import 'package:decimal/decimal.dart';
+import 'package:drift/drift.dart' show Value;
 import 'package:finanseapp/app/theme/app_theme.dart';
 import 'package:finanseapp/core/database/app_database.dart';
 import 'package:finanseapp/core/database/daos/recurring_dao.dart';
@@ -172,6 +173,68 @@ void main() {
     expect(find.text(l10n.recurringEmpty), findsNothing);
     expect(find.textContaining(l10n.recurringPendingRate), findsOneWidget);
     expect(find.textContaining('·'), findsWidgets);
+  });
+
+  testWidgets('справочники обновляют строку без перезахода', (tester) async {
+    final property = await createProperty(db);
+    final ruleId = await createRule(propertyId: property);
+    final rule = await db.recurringDao.getById(ruleId);
+    final vm = viewModel();
+
+    await pump(
+      tester,
+      RecurringRulesScreen(viewModel: vm, onTabChanged: (_) {}),
+    );
+
+    vm.categoryNames.value = {rule.categoryId: 'Новая категория'};
+    vm.assets.value = {
+      property: PropertyAsset(
+        id: property,
+        name: 'Новый объект',
+        currencyCode: 'RUB',
+        openingValue: const Money(minorUnits: 0, currencyCode: 'RUB'),
+        createdAt: DateTime.utc(2026),
+      ),
+    };
+    vm.ratePending.value = {ruleId};
+    await tester.pump();
+
+    expect(find.text('Новая категория'), findsOneWidget);
+    expect(find.textContaining('Новый объект'), findsOneWidget);
+    expect(find.textContaining(l10n.recurringPendingRate), findsOneWidget);
+  });
+
+  testWidgets('автоправило в списке показывает чип Авто без дубля названия', (
+    tester,
+  ) async {
+    final account = await createAccount(db, name: 'Вклад');
+    final category = await categoryId(db, CashflowKind.income);
+    await db
+        .into(db.recurringCashflowRules)
+        .insert(
+          RecurringCashflowRulesCompanion.insert(
+            strategy: RecurringStrategy.depositInterest,
+            kind: CashflowKind.income,
+            categoryId: category,
+            currencyCode: 'RUB',
+            accountId: Value(account),
+            affectsBalance: true,
+            startDate: LocalDate(2026, 1, 15),
+            createdAt: DateTime.utc(2026),
+            updatedAt: DateTime.utc(2026),
+          ),
+        );
+
+    await pump(
+      tester,
+      RecurringRulesScreen(viewModel: viewModel(), onTabChanged: (_) {}),
+    );
+
+    expect(
+      find.textContaining(l10n.recurringAutoInterestTitle),
+      findsOneWidget,
+    );
+    expect(find.text(l10n.recurringAutoChip), findsOneWidget);
   });
 
   testWidgets('секция актива показывает правило и CTA, архив — только чтение', (

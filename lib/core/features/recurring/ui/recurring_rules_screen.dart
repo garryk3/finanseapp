@@ -1,12 +1,15 @@
 import 'package:finanseapp/app/routes.dart';
 import 'package:finanseapp/app/theme/app_spacing.dart';
+import 'package:finanseapp/core/domain/common/currency.dart';
 import 'package:finanseapp/core/domain/common/local_date.dart';
 import 'package:finanseapp/core/features/categories/domain/category.dart';
 import 'package:finanseapp/core/features/recurring/domain/recurring_rule.dart';
 import 'package:finanseapp/core/features/recurring/ui/recurring_rules_view_model.dart';
 import 'package:finanseapp/core/presentation/date_formatter.dart';
+import 'package:finanseapp/core/presentation/money_formatter.dart';
 import 'package:finanseapp/core/presentation/view_state.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
+import 'package:finanseapp/uikit/app_chip.dart';
 import 'package:finanseapp/uikit/app_empty_state.dart';
 import 'package:finanseapp/uikit/app_error_state.dart';
 import 'package:finanseapp/uikit/app_floating_action_button.dart';
@@ -139,55 +142,61 @@ class _RecurringRulesScreenState extends State<RecurringRulesScreen> {
                     onAction: _add,
                   );
                 }
+                // Читаем справочники во внешнем SignalBuilder: itemBuilder
+                // вызывается вне зоны трекинга, и без этих чтений список не
+                // обновлялся после асинхронной загрузки (TC-123).
+                final categories = vm.categoryNames.value;
+                final assets = vm.assets.value;
+                final currencies = vm.currencies.value;
+                final pendingIds = vm.ratePending.value;
                 return AppListView.builder(
                   padding: const EdgeInsets.only(bottom: AppSpacing.xxl),
                   itemCount: rules.length,
                   itemBuilder: (context, index) {
                     final rule = rules[index];
-                    final pending = vm.ratePending.value.contains(rule.id);
+                    final pending = pendingIds.contains(rule.id);
                     final next = vm.nextPayment(rule);
-                    final target = vm.assetName(rule);
+                    final targetId = rule.accountId ?? rule.propertyId;
+                    final target = targetId == null
+                        ? ''
+                        : (assets[targetId]?.name ?? '');
                     final auto = vm.isAuto(rule);
                     final income = rule.kind == CashflowKind.income;
                     final title = auto
                         ? l10n.recurringAutoInterestTitle
-                        : vm.categoryName(rule.categoryId);
+                        : (categories[rule.categoryId] ?? '—');
                     final amount = auto
-                        ? l10n.recurringAutoBadge
-                        : '${income ? '+' : '−'}${vm.formatAmount(rule)}';
+                        ? l10n.recurringAutoChip
+                        : '${income ? '+' : '−'}'
+                              '${_amountText(rule, currencies)}';
+                    final subtitle = _subtitle(
+                      l10n,
+                      rule,
+                      target,
+                      next,
+                      auto,
+                      pending,
+                      vm.today,
+                    );
                     return AppListTile(
                       leading: AppIcon(
                         income ? Icons.trending_up : Icons.trending_down,
                         semanticLabel: null,
                       ),
                       title: title,
-                      subtitle: _subtitle(
-                        l10n,
-                        vm,
-                        rule,
-                        target,
-                        next,
-                        auto,
-                        pending,
-                      ),
+                      subtitle: subtitle,
                       trailing: ExcludeSemantics(
-                        child: AppMoneyText(
-                          amount,
-                          tone: income
-                              ? AppMoneyTone.income
-                              : AppMoneyTone.expense,
-                        ),
+                        child: auto
+                            ? AppChip(label: l10n.recurringAutoChip)
+                            : AppMoneyText(
+                                amount,
+                                tone: income
+                                    ? AppMoneyTone.income
+                                    : AppMoneyTone.expense,
+                              ),
                       ),
                       onTap: () => _open(rule),
-                      semanticLabel: _semantic(
-                        l10n,
-                        vm,
-                        rule,
-                        target,
-                        next,
-                        auto,
-                        pending,
-                      ),
+                      semanticLabel: _semantic(title, amount, subtitle),
                     );
                   },
                 );
@@ -199,20 +208,37 @@ class _RecurringRulesScreenState extends State<RecurringRulesScreen> {
     );
   }
 
+  static String _amountText(
+    RecurringRule rule,
+    Map<String, Currency> currencies,
+  ) {
+    final amount = rule.amount;
+    if (amount == null) return '—';
+    return const MoneyFormatter().format(
+      amount,
+      currencies[amount.currencyCode] ??
+          Currency(
+            code: amount.currencyCode,
+            name: amount.currencyCode,
+            fractionDigits: 2,
+            isPreset: true,
+            isEnabled: true,
+          ),
+    );
+  }
+
   static String _subtitle(
     AppLocalizations l10n,
-    RecurringRulesViewModel vm,
     RecurringRule rule,
     String target,
     LocalDate? next,
     bool auto,
     bool pending,
+    LocalDate today,
   ) {
     final formatter = const DateFormatter();
     final parts = <String>[
-      if (auto)
-        l10n.recurringAutoInterestTitle
-      else
+      if (!auto)
         (rule.kind == CashflowKind.income
             ? l10n.cashflowIncome
             : l10n.cashflowExpense),
@@ -220,7 +246,7 @@ class _RecurringRulesScreenState extends State<RecurringRulesScreen> {
       if (rule.endDate != null)
         l10n.recurringScheduleUntil(formatter.format(rule.endDate!)),
       if (target.isNotEmpty) target else l10n.recurringNoTargetHint,
-      _nextLabel(l10n, vm, rule, next),
+      _nextLabel(l10n, rule, next, today),
       if (pending) l10n.recurringPendingRate,
     ];
     return parts.join(' · ');
@@ -228,9 +254,9 @@ class _RecurringRulesScreenState extends State<RecurringRulesScreen> {
 
   static String _nextLabel(
     AppLocalizations l10n,
-    RecurringRulesViewModel vm,
     RecurringRule rule,
     LocalDate? next,
+    LocalDate today,
   ) {
     if (next == null) {
       return rule.endDate == null
@@ -238,27 +264,12 @@ class _RecurringRulesScreenState extends State<RecurringRulesScreen> {
           : l10n.recurringCompleted;
     }
     final formatted = const DateFormatter().format(next);
-    if (next.compareTo(vm.today) < 0) {
+    if (next.compareTo(today) < 0) {
       return l10n.recurringOverdueLabel(formatted);
     }
     return l10n.recurringNextLabel(formatted);
   }
 
-  static String _semantic(
-    AppLocalizations l10n,
-    RecurringRulesViewModel vm,
-    RecurringRule rule,
-    String target,
-    LocalDate? next,
-    bool auto,
-    bool pending,
-  ) {
-    final amount = auto
-        ? l10n.recurringAutoBadge
-        : '${rule.kind == CashflowKind.income ? '+' : '−'}'
-              '${vm.formatAmount(rule)}';
-    return '${auto ? l10n.recurringAutoInterestTitle : vm.categoryName(rule.categoryId)}, '
-        '$amount, '
-        '${_subtitle(l10n, vm, rule, target, next, auto, pending)}';
-  }
+  static String _semantic(String title, String amount, String subtitle) =>
+      '$title, $amount, $subtitle';
 }

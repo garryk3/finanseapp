@@ -1,3 +1,4 @@
+import 'package:finanseapp/core/features/cashflow/ui/operations_tabs.dart';
 import 'package:finanseapp/core/features/assets/domain/subgroup.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -39,7 +40,12 @@ void main() {
     await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
     await openOperations(tester, l10n);
-    await tester.tap(find.text(l10n.operationsTransactionsTab));
+    await tester.tap(
+      find.descendant(
+        of: find.byType(OperationsTabs),
+        matching: find.text(l10n.operationsTransactionsTab),
+      ),
+    );
     await tester.pumpAndSettle();
     expect(
       find.textContaining(l10n.transactionKindTransferOut),

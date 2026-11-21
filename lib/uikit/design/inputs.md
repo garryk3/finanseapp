@@ -200,7 +200,7 @@ class AppSegment<T> {
   final IconData? icon;
 }
 
-class AppSegmentedControl<T> extends StatelessWidget {
+class AppSegmentedControl<T> extends StatefulWidget {
   const AppSegmentedControl({
     super.key, required this.segments, required this.selected,
     required this.onSelectionChanged, this.expanded = true,
@@ -208,6 +208,10 @@ class AppSegmentedControl<T> extends StatelessWidget {
   final List<AppSegment<T>> segments;
   final Set<T> selected;
   final ValueChanged<Set<T>> onSelectionChanged;
+
+  /// `false` — горизонтальный скролл, контрастный scrollbar с track,
+  /// edge-fade и автоподвод выбранного сегмента только по горизонтали
+  /// (длинные подписи на узких экранах).
   final bool expanded;
 }
 
