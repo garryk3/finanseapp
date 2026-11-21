@@ -3466,7 +3466,7 @@ abstract class AppLocalizations {
   /// Заголовок вводной секции онбординга.
   ///
   /// In ru, this message translates to:
-  /// **'FinanseApp'**
+  /// **'Начало работы'**
   String get onboardingSetupTitle;
 
   /// Ошибка сохранения настроек онбординга.

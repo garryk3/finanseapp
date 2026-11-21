@@ -2482,7 +2482,7 @@
   "@onboardingCurrencyLabel": {
     "description": "Короткий label выбора валюты."
   },
-  "onboardingSetupTitle": "FinanseApp",
+  "onboardingSetupTitle": "Начало работы",
   "@onboardingSetupTitle": {
     "description": "Заголовок вводной секции онбординга."
   },

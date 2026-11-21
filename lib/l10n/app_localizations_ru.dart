@@ -1840,7 +1840,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get onboardingCurrencyLabel => 'Базовая валюта';
 
   @override
-  String get onboardingSetupTitle => 'FinanseApp';
+  String get onboardingSetupTitle => 'Начало работы';
 
   @override
   String get onboardingSaveError =>

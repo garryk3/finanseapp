@@ -9,6 +9,7 @@ import 'package:finanseapp/core/features/onboarding/ui/onboarding_gate.dart';
 import 'package:finanseapp/core/features/onboarding/ui/onboarding_screen.dart';
 import 'package:finanseapp/core/features/settings/domain/settings_repository.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
+import 'package:finanseapp/uikit/app_button.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -141,7 +142,13 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.text(l10n.onboardingStart));
+    // Без загруженного списка «Начать» недоступно — остаётся вторая CTA.
+    final start = tester.widget<AppButton>(
+      find.widgetWithText(AppButton, l10n.onboardingStart),
+    );
+    expect(start.onPressed, isNull);
+
+    await tester.tap(find.text(l10n.onboardingSkip));
     await tester.pumpAndSettle();
 
     expect(find.text(l10n.onboardingSaveError), findsOneWidget);

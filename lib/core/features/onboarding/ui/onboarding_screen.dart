@@ -134,7 +134,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             AppButton(
               label: l10n.onboardingStart,
               pending: _pendingAppliesCurrency ?? false,
-              onPressed: _busy ? null : () => _finish(applyCurrency: true),
+              onPressed: _busy || _selected == null
+                  ? null
+                  : () => _finish(applyCurrency: true),
             ),
             const SizedBox(height: AppSpacing.xs),
             AppButton(
