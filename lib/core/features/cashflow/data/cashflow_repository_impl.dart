@@ -42,6 +42,10 @@ final class CashflowRepositoryImpl implements CashflowRepository {
   }
 
   @override
+  Stream<List<CashflowEntry>> watchDeleted() =>
+      _dao.watchDeleted().map((rows) => rows.map(_map).toList(growable: false));
+
+  @override
   Future<CashflowEntry> getById(int id) async => _map(await _dao.getById(id));
 
   @override

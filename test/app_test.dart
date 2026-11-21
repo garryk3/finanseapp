@@ -121,11 +121,12 @@ void main() {
 
     await tester.tap(find.text(l10n.navMore));
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(
+    await tester.dragUntilVisible(
       find.text(l10n.appLockTitle),
-      200,
-      scrollable: find.byType(Scrollable).first,
+      find.byType(Scrollable).first,
+      const Offset(0, -200),
     );
+    await tester.pumpAndSettle();
     await tester.tap(find.text(l10n.appLockTitle));
     await tester.pumpAndSettle();
     expect(find.text(l10n.appLockStatusOff), findsOneWidget);

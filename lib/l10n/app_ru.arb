@@ -2489,5 +2489,33 @@
   "onboardingSaveError": "Не удалось сохранить настройки. Попробуйте ещё раз.",
   "@onboardingSaveError": {
     "description": "Ошибка сохранения настроек онбординга."
+  },
+  "auditTitle": "Удалённые операции",
+  "@auditTitle": {
+    "description": "Заголовок аудита удалённых записей."
+  },
+  "auditTabAssets": "Операции по активам",
+  "@auditTabAssets": {
+    "description": "Таб операций по активам."
+  },
+  "auditTabCashflow": "Доходы и расходы",
+  "@auditTabCashflow": {
+    "description": "Таб доходов и расходов."
+  },
+  "auditDeletedLabel": "Удалено",
+  "@auditDeletedLabel": {
+    "description": "Бейдж удалённой записи."
+  },
+  "auditDeletedOn": "удалено",
+  "@auditDeletedOn": {
+    "description": "Метка даты удаления в аудите."
+  },
+  "auditEmptyTitle": "Удалённых операций нет",
+  "@auditEmptyTitle": {
+    "description": "Заголовок пустого аудита."
+  },
+  "auditEmptyMessage": "Удалённые операции и записи попадут сюда, их можно будет восстановить.",
+  "@auditEmptyMessage": {
+    "description": "Пояснение пустого аудита."
   }
 }

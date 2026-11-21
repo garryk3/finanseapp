@@ -5,6 +5,9 @@ import 'package:finanseapp/core/features/transactions/domain/transaction_filter.
 abstract interface class AssetTransactionRepository {
   Stream<List<AssetTransaction>> watch(TransactionFilter filter);
 
+  /// Soft-deleted операции: вход в аудит и восстановление (13.1).
+  Stream<List<AssetTransaction>> watchDeleted();
+
   Future<AssetTransaction> getById(int id);
 
   Future<int> create(AssetTransactionDraft draft);

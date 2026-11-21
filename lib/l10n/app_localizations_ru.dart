@@ -1845,4 +1845,26 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get onboardingSaveError =>
       'Не удалось сохранить настройки. Попробуйте ещё раз.';
+
+  @override
+  String get auditTitle => 'Удалённые операции';
+
+  @override
+  String get auditTabAssets => 'Операции по активам';
+
+  @override
+  String get auditTabCashflow => 'Доходы и расходы';
+
+  @override
+  String get auditDeletedLabel => 'Удалено';
+
+  @override
+  String get auditDeletedOn => 'удалено';
+
+  @override
+  String get auditEmptyTitle => 'Удалённых операций нет';
+
+  @override
+  String get auditEmptyMessage =>
+      'Удалённые операции и записи попадут сюда, их можно будет восстановить.';
 }

@@ -108,6 +108,10 @@ void main() {
           path: '/more/currencies',
           builder: (context, state) => const AppText('CURRENCIES'),
         ),
+        GoRoute(
+          path: '/more/audit',
+          builder: (context, state) => const AppText('AUDIT'),
+        ),
       ],
     );
 
@@ -126,6 +130,12 @@ void main() {
     await tester.tap(find.text(l10n.currenciesTitle));
     await tester.pumpAndSettle();
     expect(find.text('CURRENCIES'), findsOneWidget);
+
+    router.go('/');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l10n.auditTitle));
+    await tester.pumpAndSettle();
+    expect(find.text('AUDIT'), findsOneWidget);
   });
 
   testWidgets('Settings показывает базовую валюту и ведёт в About', (

@@ -39,6 +39,9 @@ const _usd = Currency(
 );
 
 final class FakeCashflow implements CashflowRepository {
+  @override
+  Stream<List<CashflowEntry>> watchDeleted() => const Stream.empty();
+
   FakeCashflow(this.entry);
 
   final CashflowEntry entry;

@@ -32,6 +32,8 @@ import 'package:finanseapp/core/features/assets/ui/valuation_form_view_model.dar
 import 'package:finanseapp/core/features/transactions/domain/asset_transaction.dart';
 import 'package:finanseapp/core/features/transactions/domain/asset_transaction_repository.dart';
 import 'package:finanseapp/core/features/audit/domain/audit_repository.dart';
+import 'package:finanseapp/core/features/audit/ui/audit_screen.dart';
+import 'package:finanseapp/core/features/audit/ui/audit_view_model.dart';
 import 'package:finanseapp/core/features/audit/ui/audit_asset_transaction_screen.dart';
 import 'package:finanseapp/core/features/audit/ui/audit_asset_transaction_view_model.dart';
 import 'package:finanseapp/core/features/audit/ui/audit_cashflow_screen.dart';
@@ -481,12 +483,20 @@ GoRouter buildRouter({required ServiceLocator locator}) {
                     builder: (context, state) =>
                         AboutScreen(viewModel: locator.get<AboutViewModel>()),
                   ),
-                  for (final entry in _morePlaceholders)
-                    _placeholderRoute(
-                      entry.path,
-                      entry.name,
-                      (l10n) => l10n.navMore,
+                  GoRoute(
+                    path: 'audit',
+                    name: 'audit',
+                    builder: (context, state) => AuditScreen(
+                      viewModel: AuditViewModel(
+                        transactionRepository: locator
+                            .get<AssetTransactionRepository>(),
+                        cashflowRepository: locator.get<CashflowRepository>(),
+                        currencyRepository: locator.get<CurrencyRepository>(),
+                        assetRepository: locator.get<AssetRepository>(),
+                        categoryRepository: locator.get<CategoryRepository>(),
+                      ),
                     ),
+                  ),
                 ],
               ),
             ],
@@ -726,17 +736,6 @@ Widget _operationsScreen(
 Widget _notFound(ServiceLocator locator) =>
     NotFoundScreen(viewModel: locator.get<NotFoundViewModel>());
 
-GoRoute _placeholderRoute(
-  String path,
-  String name,
-  String Function(AppLocalizations l10n) sectionTitle,
-) => GoRoute(
-  path: path,
-  name: name,
-  builder: (context, state) =>
-      ComingSoonScreen(title: sectionTitle(l10nOf(context))),
-);
-
 List<AppNavigationDestination> _destinations(BuildContext context) {
   final l10n = l10nOf(context);
   return [
@@ -767,7 +766,3 @@ AnalyticsPeriod? _analyticsPeriod(String? value) => switch (value) {
   'all' => AnalyticsPeriod.all,
   _ => null,
 };
-
-const _morePlaceholders = <({String path, String name})>[
-  (path: 'audit', name: 'audit'),
-];
