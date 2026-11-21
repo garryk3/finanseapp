@@ -1814,4 +1814,35 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get propertyYieldError => 'Не удалось рассчитать доходность.';
+
+  @override
+  String get onboardingTitle => 'Добро пожаловать';
+
+  @override
+  String get onboardingIntro =>
+      'FinanseApp — локальный учёт финансов: данные хранятся только на устройстве.';
+
+  @override
+  String get onboardingPrivacy =>
+      'Резервная копия не шифруется — храните файл безопасно.';
+
+  @override
+  String get onboardingBaseCurrency =>
+      'Используется для отчётов и итогов; можно изменить позже в настройках.';
+
+  @override
+  String get onboardingStart => 'Начать';
+
+  @override
+  String get onboardingSkip => 'Не менять валюту';
+
+  @override
+  String get onboardingCurrencyLabel => 'Базовая валюта';
+
+  @override
+  String get onboardingSetupTitle => 'Начало работы';
+
+  @override
+  String get onboardingSaveError =>
+      'Не удалось сохранить настройки. Попробуйте ещё раз.';
 }

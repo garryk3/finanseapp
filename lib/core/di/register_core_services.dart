@@ -27,6 +27,8 @@ import 'package:finanseapp/core/features/categories/data/category_repository_imp
 import 'package:finanseapp/core/features/goals/data/goal_repository_impl.dart';
 import 'package:finanseapp/core/features/goals/domain/goal_repository.dart';
 import 'package:finanseapp/core/features/categories/domain/category_repository.dart';
+import 'package:finanseapp/core/features/onboarding/data/onboarding_repository_impl.dart';
+import 'package:finanseapp/core/features/onboarding/domain/onboarding_repository.dart';
 import 'package:finanseapp/core/features/categories/ui/categories_view_model.dart';
 import 'package:finanseapp/core/features/currencies/data/cbr_exchange_rate_client.dart';
 import 'package:finanseapp/core/features/currencies/data/currency_repository_impl.dart';
@@ -99,6 +101,9 @@ Future<ServiceLocator> registerCoreServices(
       db.currenciesDao,
       locator.get<CbrExchangeRateClient>(),
     ),
+  );
+  locator.register<OnboardingRepository>(
+    OnboardingRepositoryImpl(db.settingsDao),
   );
   locator.register<SettingsRepository>(SettingsRepositoryImpl(db.settingsDao));
   locator.register<AnalyticsQueries>(

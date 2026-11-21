@@ -3420,6 +3420,60 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Не удалось рассчитать доходность.'**
   String get propertyYieldError;
+
+  /// Заголовок онбординга.
+  ///
+  /// In ru, this message translates to:
+  /// **'Добро пожаловать'**
+  String get onboardingTitle;
+
+  /// Вступление.
+  ///
+  /// In ru, this message translates to:
+  /// **'FinanseApp — локальный учёт финансов: данные хранятся только на устройстве.'**
+  String get onboardingIntro;
+
+  /// Приватность.
+  ///
+  /// In ru, this message translates to:
+  /// **'Резервная копия не шифруется — храните файл безопасно.'**
+  String get onboardingPrivacy;
+
+  /// Валюта.
+  ///
+  /// In ru, this message translates to:
+  /// **'Используется для отчётов и итогов; можно изменить позже в настройках.'**
+  String get onboardingBaseCurrency;
+
+  /// CTA старт.
+  ///
+  /// In ru, this message translates to:
+  /// **'Начать'**
+  String get onboardingStart;
+
+  /// Вторая CTA: завершить онбординг, не меняя базовую валюту.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не менять валюту'**
+  String get onboardingSkip;
+
+  /// Короткий label выбора валюты.
+  ///
+  /// In ru, this message translates to:
+  /// **'Базовая валюта'**
+  String get onboardingCurrencyLabel;
+
+  /// Заголовок вводной секции онбординга.
+  ///
+  /// In ru, this message translates to:
+  /// **'Начало работы'**
+  String get onboardingSetupTitle;
+
+  /// Ошибка сохранения настроек онбординга.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось сохранить настройки. Попробуйте ещё раз.'**
+  String get onboardingSaveError;
 }
 
 class _AppLocalizationsDelegate
