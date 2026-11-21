@@ -89,6 +89,11 @@ final class FakeSubgroups implements SubgroupRepository {
   ]);
 
   @override
+  Future<List<Subgroup>> getByKind(SubgroupKind kind) async => [
+    const Subgroup(id: 1, kind: SubgroupKind.bank, name: 'Банк'),
+  ];
+
+  @override
   Future<int> create(SubgroupKind kind, String name) async => 1;
 
   @override
@@ -209,6 +214,28 @@ void main() {
 
     final fields = tester.widgetList<TextField>(find.byType(TextField));
     expect(fields.any((field) => field.controller?.text == '100000'), isTrue);
+  });
+
+  testWidgets('ошибка загрузки формы счёта даёт retry', (tester) async {
+    final snapshot = AssetSnapshot(
+      asset: _account(),
+      currentValue: const Money(minorUnits: 0, currencyCode: 'RUB'),
+    );
+    final vm = AccountFormViewModel(
+      repository: FakeAssets(snapshot),
+      subgroupRepository: FakeSubgroups(),
+      currencyRepository: _FailingCurrencies(),
+    );
+    await _pump(tester, AccountFormScreen(viewModel: vm));
+
+    expect(find.text(l10n.errorStateMessage), findsOneWidget);
+    expect(find.text(l10n.retry), findsOneWidget);
+
+    await tester.tap(find.text(l10n.retry));
+    await tester.pumpAndSettle();
+
+    expect(find.text(l10n.errorStateMessage), findsNothing);
+    expect(find.text(l10n.commonSave), findsOneWidget);
   });
 
   testWidgets('форма не сохраняет пустое название', (tester) async {
@@ -375,4 +402,39 @@ void main() {
     expect(find.text(l10n.assetInUseTitle), findsOneWidget);
     expect(find.text(l10n.assetInUseMessage(2, 0, 1, 0)), findsOneWidget);
   });
+}
+
+final class _FailingCurrencies implements CurrencyRepository {
+  int calls = 0;
+
+  @override
+  Stream<List<Currency>> watchAll() => Stream.value(const [_rub]);
+
+  @override
+  Future<List<Currency>> getEnabled() async {
+    calls++;
+    if (calls == 1) {
+      throw const DomainException(DomainErrorCode.storageFailure);
+    }
+    return const [_rub];
+  }
+
+  @override
+  Future<int> countReferences(String code) async => 0;
+
+  @override
+  Future<void> createCustom(
+    String code,
+    String name,
+    int fractionDigits,
+  ) async {}
+
+  @override
+  Future<void> rename(String code, String name) async {}
+
+  @override
+  Future<void> setEnabled(String code, bool value) async {}
+
+  @override
+  Future<void> deleteIfUnused(String code) async {}
 }

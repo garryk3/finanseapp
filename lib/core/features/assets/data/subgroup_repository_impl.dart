@@ -15,6 +15,12 @@ final class SubgroupRepositoryImpl implements SubgroupRepository {
       .map((rows) => rows.map(_map).toList(growable: false));
 
   @override
+  Future<List<Subgroup>> getByKind(SubgroupKind kind) async {
+    final rows = await _dao.getSubgroups(kind);
+    return rows.map(_map).toList(growable: false);
+  }
+
+  @override
   Future<int> create(SubgroupKind kind, String name) =>
       _dao.createSubgroup(kind, name);
 

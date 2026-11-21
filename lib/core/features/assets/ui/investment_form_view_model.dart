@@ -34,10 +34,9 @@ class InvestmentFormViewModel {
   bool get isEditing => editingId != null;
 
   Future<void> load() async {
+    state.value = const ViewLoading();
     try {
-      brokers.value = await subgroupRepository
-          .watchByKind(SubgroupKind.broker)
-          .first;
+      brokers.value = await subgroupRepository.getByKind(SubgroupKind.broker);
       currencies.value = await currencyRepository.getEnabled();
       if (editingId != null) {
         final snapshot = await repository.getById(editingId!);
