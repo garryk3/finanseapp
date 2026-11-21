@@ -2,6 +2,7 @@ import 'package:finanseapp/app/theme/app_spacing.dart';
 import 'package:decimal/decimal.dart';
 import 'package:finanseapp/core/domain/common/currency.dart';
 import 'package:finanseapp/core/domain/common/local_date.dart';
+import 'package:finanseapp/core/domain/common/money.dart';
 import 'package:finanseapp/core/domain/common/result.dart';
 import 'package:finanseapp/core/features/assets/ui/account_form_view_model.dart';
 import 'package:finanseapp/core/domain/common/money_math.dart';
@@ -131,8 +132,16 @@ class _AccountFormScreenState extends State<AccountFormScreen> {
         isEnabled: true,
       ),
     );
-    final opening = parseOpeningAmount(_opening.text, currency);
-    final rate = Decimal.tryParse(_rate.text.trim().replaceAll(',', '.'));
+    // Пустое поле означает ноль: подсказка «0» не должна превращаться
+    // в ошибку «введите сумму».
+    final openingText = _opening.text.trim();
+    final opening = openingText.isEmpty
+        ? Money(minorUnits: 0, currencyCode: currency.code)
+        : parseOpeningAmount(openingText, currency);
+    final rateText = _rate.text.trim();
+    final rate = rateText.isEmpty
+        ? Decimal.zero
+        : Decimal.tryParse(rateText.replaceAll(',', '.'));
     if (_name.text.trim().isEmpty) {
       setState(() => _error = l10n.accountErrorName);
       return;
