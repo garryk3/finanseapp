@@ -2474,7 +2474,7 @@
   "@onboardingStart": {
     "description": "CTA старт."
   },
-  "onboardingSkip": "Пропустить",
+  "onboardingSkip": "Не менять валюту",
   "@onboardingSkip": {
     "description": "CTA пропуск."
   },

@@ -3454,7 +3454,7 @@ abstract class AppLocalizations {
   /// CTA пропуск.
   ///
   /// In ru, this message translates to:
-  /// **'Пропустить'**
+  /// **'Не менять валюту'**
   String get onboardingSkip;
 
   /// Короткий label выбора валюты.

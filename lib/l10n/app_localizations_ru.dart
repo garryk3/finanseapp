@@ -1834,7 +1834,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get onboardingStart => 'Начать';
 
   @override
-  String get onboardingSkip => 'Пропустить';
+  String get onboardingSkip => 'Не менять валюту';
 
   @override
   String get onboardingCurrencyLabel => 'Базовая валюта';
