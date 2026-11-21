@@ -12,6 +12,8 @@ mixin _$AuditDaoMixin on DatabaseAccessor<AppDatabase> {
   $AssetTransactionRevisionsTable get assetTransactionRevisions =>
       attachedDatabase.assetTransactionRevisions;
   $CategoriesTable get categories => attachedDatabase.categories;
+  $RecurringCashflowRulesTable get recurringCashflowRules =>
+      attachedDatabase.recurringCashflowRules;
   $CashflowEntriesTable get cashflowEntries => attachedDatabase.cashflowEntries;
   $CashflowEntryRevisionsTable get cashflowEntryRevisions =>
       attachedDatabase.cashflowEntryRevisions;
@@ -42,6 +44,11 @@ class AuditDaoManager {
       );
   $$CategoriesTableTableManager get categories =>
       $$CategoriesTableTableManager(_db.attachedDatabase, _db.categories);
+  $$RecurringCashflowRulesTableTableManager get recurringCashflowRules =>
+      $$RecurringCashflowRulesTableTableManager(
+        _db.attachedDatabase,
+        _db.recurringCashflowRules,
+      );
   $$CashflowEntriesTableTableManager get cashflowEntries =>
       $$CashflowEntriesTableTableManager(
         _db.attachedDatabase,

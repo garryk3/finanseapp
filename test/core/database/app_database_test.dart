@@ -3,12 +3,14 @@ import 'package:drift/drift.dart';
 import 'package:finanseapp/core/database/app_database.dart';
 import 'package:finanseapp/core/database/converters/utc_timestamp_converter.dart';
 import 'package:finanseapp/core/database/daos/cashflow_dao.dart';
+import 'package:finanseapp/core/database/daos/recurring_dao.dart';
 import 'package:finanseapp/core/database/daos/transactions_dao.dart';
 import 'package:finanseapp/core/domain/common/exchange_rate.dart';
 import 'package:finanseapp/core/domain/common/local_date.dart';
 import 'package:finanseapp/core/domain/common/revision.dart';
 import 'package:finanseapp/core/domain/common/result.dart';
 import 'package:finanseapp/core/features/categories/domain/category.dart';
+import 'package:finanseapp/core/features/recurring/domain/recurring_rule.dart';
 import 'package:finanseapp/core/features/transactions/domain/asset_transaction.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -34,11 +36,11 @@ void main() {
       expect(await db.customSelect('PRAGMA foreign_key_check').get(), isEmpty);
     });
 
-    test('application_id = FNAP, schemaVersion = 1', () async {
+    test('application_id = FNAP, schemaVersion = 2', () async {
       final appId = await db.customSelect('PRAGMA application_id').getSingle();
       expect(appId.read<int>('application_id'), appDatabaseApplicationId);
       expect(appDatabaseApplicationId, 0x464E4150);
-      expect(db.schemaVersion, 1);
+      expect(db.schemaVersion, 2);
     });
 
     test('UTC timestamp хранится фиксированной ширины', () {
@@ -84,6 +86,7 @@ void main() {
           'goals',
           'goal_assets',
           'app_settings',
+          'recurring_cashflow_rules',
         ]),
       );
     });
@@ -120,6 +123,8 @@ void main() {
           'categories_active_name',
           'assets_currency',
           'cashflow_occurred',
+          'recurring_active_deposit_interest',
+          'cashflow_recurring_period',
         ]),
       );
       expect(
@@ -542,5 +547,127 @@ void main() {
       await insertEntry();
       await expectLater(insertEntry(), throwsA(isA<Exception>()));
     });
+
+    test('актив с активным правилом нельзя удалить (BR-RC-13)', () async {
+      final propertyId = await createProperty(db);
+      final category = await categoryId(db, CashflowKind.expense);
+      final ruleId = await db.recurringDao.create(
+        RecurringRuleInput(
+          strategy: RecurringStrategy.fixed,
+          kind: CashflowKind.expense,
+          categoryId: category,
+          amountMinor: 100000,
+          currencyCode: 'RUB',
+          propertyId: propertyId,
+          affectsBalance: false,
+          startDate: LocalDate(2026, 1, 15),
+        ),
+      );
+
+      expect((await db.assetsDao.referenceCounts(propertyId)).recurring, 1);
+      await expectLater(
+        db.assetsDao.deleteIfUnused(propertyId),
+        throwsA(
+          isA<DomainException>().having(
+            (error) => error.code,
+            'code',
+            DomainErrorCode.conflict,
+          ),
+        ),
+      );
+
+      await db.recurringDao.softDelete(ruleId);
+      expect((await db.assetsDao.referenceCounts(propertyId)).recurring, 0);
+      await expectLater(db.assetsDao.deleteIfUnused(propertyId), completes);
+    });
+
+    test(
+      'soft-deleted правило с автооперацией не мешает удалить актив',
+      () async {
+        final propertyId = await createProperty(db, name: 'Старая');
+        final otherProperty = await createProperty(db, name: 'Новая');
+        final category = await categoryId(db, CashflowKind.expense);
+        final ruleId = await db.recurringDao.create(
+          RecurringRuleInput(
+            strategy: RecurringStrategy.fixed,
+            kind: CashflowKind.expense,
+            categoryId: category,
+            amountMinor: 100000,
+            currencyCode: 'RUB',
+            propertyId: propertyId,
+            affectsBalance: false,
+            startDate: LocalDate(2026, 1, 15),
+          ),
+        );
+        // Операция правила перевешена на другой объект, но осталась связанной.
+        final entryId = await db.cashflowDao.create(
+          CashflowEntryInput(
+            kind: CashflowKind.expense,
+            categoryId: category,
+            amountMinor: 100000,
+            currencyCode: 'RUB',
+            occurredOn: LocalDate(2026, 1, 15),
+            rateToRub: Decimal.one,
+            amountRubMinor: 100000,
+            affectsBalance: false,
+            propertyId: otherProperty,
+            recurringRuleId: ruleId,
+          ),
+        );
+        await db.recurringDao.softDelete(ruleId);
+
+        expect((await db.assetsDao.referenceCounts(propertyId)).recurring, 0);
+        await expectLater(db.assetsDao.deleteIfUnused(propertyId), completes);
+
+        await expectLater(
+          db.recurringDao.getById(ruleId),
+          throwsA(isA<DomainException>()),
+        );
+        expect((await db.cashflowDao.getById(entryId)).recurringRuleId, null);
+      },
+    );
+
+    test(
+      'soft-deleted правило affectsBalance не мешает удалить счёт',
+      () async {
+        final accountId = await createAccount(db, name: 'Старый счёт');
+        final category = await categoryId(db, CashflowKind.income);
+        final ruleId = await db.recurringDao.create(
+          RecurringRuleInput(
+            strategy: RecurringStrategy.fixed,
+            kind: CashflowKind.income,
+            categoryId: category,
+            amountMinor: 100000,
+            currencyCode: 'RUB',
+            accountId: accountId,
+            affectsBalance: true,
+            startDate: LocalDate(2026, 1, 15),
+          ),
+        );
+        // Автооперация перевешена без счёта, но сохраняет ссылку на правило.
+        final entryId = await db.cashflowDao.create(
+          CashflowEntryInput(
+            kind: CashflowKind.income,
+            categoryId: category,
+            amountMinor: 100000,
+            currencyCode: 'RUB',
+            occurredOn: LocalDate(2026, 1, 15),
+            rateToRub: Decimal.one,
+            amountRubMinor: 100000,
+            affectsBalance: false,
+            recurringRuleId: ruleId,
+          ),
+        );
+        await db.recurringDao.softDelete(ruleId);
+
+        await expectLater(db.assetsDao.deleteIfUnused(accountId), completes);
+
+        await expectLater(
+          db.recurringDao.getById(ruleId),
+          throwsA(isA<DomainException>()),
+        );
+        expect((await db.cashflowDao.getById(entryId)).recurringRuleId, null);
+      },
+    );
   });
 }

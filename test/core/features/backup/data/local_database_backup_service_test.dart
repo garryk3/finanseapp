@@ -7,6 +7,8 @@ import 'package:finanseapp/core/features/backup/domain/backup_exception.dart';
 import 'package:sqlite3/sqlite3.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../../../generated_migrations/schema_v1.dart' as v1;
+
 void main() {
   late Directory dir;
   late String path;
@@ -49,6 +51,33 @@ void main() {
     await service(() => db2).importDatabase(backup.path);
 
     final check = open();
+    expect((await check.settingsDao.getBaseCurrency()).code, 'USD');
+    await check.close();
+  });
+
+  test('v1-копия импортируется и мигрирует до v2', () async {
+    final v1Path = '${dir.path}/v1.sqlite';
+    final old = v1.DatabaseAtV1(NativeDatabase(File(v1Path)));
+    await old.customStatement(
+      'PRAGMA application_id = $appDatabaseApplicationId',
+    );
+    await old.customStatement(
+      'INSERT INTO currencies (code, name, normalized_name, fraction_digits) '
+      "VALUES ('USD', 'Доллар США', 'доллар сша', 2)",
+    );
+    await old.customStatement(
+      'INSERT INTO app_settings (key, value, updated_at) '
+      "VALUES ('baseCurrencyCode', 'USD', '2026-01-01T00:00:00.000000Z')",
+    );
+    await old.close();
+
+    final db = open();
+    await db.customSelect('SELECT 1').get();
+    await service(() => db).importDatabase(v1Path);
+
+    final check = open();
+    final version = await check.customSelect('PRAGMA user_version').getSingle();
+    expect(version.read<int>('user_version'), 2);
     expect((await check.settingsDao.getBaseCurrency()).code, 'USD');
     await check.close();
   });

@@ -399,6 +399,7 @@ final class CashflowEntry {
     this.propertyId,
     this.accountId,
     this.assetTransactionId,
+    this.recurringRuleId,
     this.deletedAt,
   });
   final int id;
@@ -416,6 +417,7 @@ final class CashflowEntry {
   final int? propertyId;
   final int? accountId;
   final int? assetTransactionId;
+  final int? recurringRuleId;
   final DateTime? deletedAt;
 }
 
@@ -462,7 +464,57 @@ final class CashflowEntryRevision {
 
 Инварианты: категория имеет тот же `kind`; `propertyId` ссылается только на property;
 `accountId` только на account; `affectsBalance` требует account; `assetTransactionId`
-уникален среди активных связей. Удалённая связь сохраняет ID для аудита.
+уникален среди активных связей; `recurringRuleId` заполнен только у автооперации и
+не переписывается при обычной правке. Удалённая связь сохраняет ID для аудита.
+
+## 6a. Регулярные платежи
+
+```dart
+enum RecurringStrategy { fixed, depositInterest }
+
+final class RecurringRule {
+  const RecurringRule({
+    required this.id,
+    required this.strategy,
+    required this.kind,
+    required this.categoryId,
+    required this.currencyCode,
+    required this.affectsBalance,
+    required this.startDate,
+    required this.createdAt,
+    required this.updatedAt,
+    this.amount,
+    this.accountId,
+    this.propertyId,
+    this.endDate,
+    this.comment,
+    this.lastGeneratedPeriod,
+    this.deletedAt,
+  });
+  final int id;
+  final RecurringStrategy strategy;
+  final CashflowKind kind;
+  final int categoryId;
+  final Money? amount; // null только у depositInterest
+  final String currencyCode;
+  final int? accountId;
+  final int? propertyId;
+  final bool affectsBalance;
+  final LocalDate startDate;
+  final LocalDate? endDate;
+  final String? comment;
+  final String? lastGeneratedPeriod; // 'YYYY-MM'
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+}
+
+final class RecurringRuleDraft { /* те же поля без id/маркера/даты аудита */ }
+```
+
+Репозиторий: `watchActive({strategy})`, `watchByAccount`, `watchByProperty`,
+`getById`, `create`, `revise`, `softDelete`. Правка не меняет `strategy` и маркер;
+пользователь создаёт только `fixed`, `depositInterest` — автоправило счёта.
 
 ## 7. Цели
 

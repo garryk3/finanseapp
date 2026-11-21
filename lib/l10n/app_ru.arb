@@ -828,7 +828,7 @@
   "@assetInUseTitle": {
     "description": "Заголовок диалога занятого актива."
   },
-  "assetInUseMessage": "Операций: {transactions}, оценок: {valuations}, целей: {goals}, записей: {cashflow}. Удаление недоступно — архивируйте актив.",
+  "assetInUseMessage": "Операций: {transactions}, оценок: {valuations}, целей: {goals}, записей: {cashflow}, правил: {recurring}. Удаление недоступно — архивируйте актив.",
   "@assetInUseMessage": {
     "description": "Разбивка ссылок на актив.",
     "placeholders": {
@@ -842,6 +842,9 @@
         "type": "int"
       },
       "cashflow": {
+        "type": "int"
+      },
+      "recurring": {
         "type": "int"
       }
     }

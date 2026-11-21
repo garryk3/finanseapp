@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:finanseapp/core/domain/common/result.dart';
 
 /// Календарная дата без времени и timezone (BR-VAL-2).
@@ -49,6 +51,25 @@ final class LocalDate implements Comparable<LocalDate> {
 
   /// Полночь UTC этой даты (для разницы в днях и timestamps).
   DateTime toUtcDateTime() => DateTime.utc(year, month, day);
+
+  /// Сдвиг на [months] месяцев с сохранением дня и clamp до конца месяца.
+  ///
+  /// 31 января + 1 месяц → 28/29 февраля; 31 марта + 1 месяц → 30 апреля.
+  /// Отрицательный сдвиг отклоняется: расписание регулярных платежей идёт
+  /// только вперёд.
+  LocalDate plusMonthsClamped(int months) {
+    if (months < 0) {
+      throw const DomainException(
+        DomainErrorCode.validation,
+        fieldErrors: {'date': 'validationDateInvalid'},
+      );
+    }
+    final total = year * 12 + (month - 1) + months;
+    final nextYear = total ~/ 12;
+    final nextMonth = total % 12 + 1;
+    final nextDay = math.min(day, _daysInMonth(nextYear, nextMonth));
+    return LocalDate(nextYear, nextMonth, nextDay);
+  }
 
   @override
   int compareTo(LocalDate other) {

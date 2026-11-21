@@ -10,14 +10,17 @@ final class AssetReferenceCounts {
     required this.valuations,
     required this.goals,
     required this.cashflow,
+    this.recurringRules = 0,
   });
 
   final int transactions;
   final int valuations;
   final int goals;
   final int cashflow;
+  final int recurringRules;
 
-  int get total => transactions + valuations + goals + cashflow;
+  int get total =>
+      transactions + valuations + goals + cashflow + recurringRules;
 
   bool get isUsed => total > 0;
 }

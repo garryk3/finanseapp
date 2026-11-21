@@ -6,6 +6,7 @@ import 'package:finanseapp/core/domain/common/revision.dart';
 import 'package:finanseapp/core/features/assets/domain/asset.dart';
 import 'package:finanseapp/core/features/categories/domain/category.dart';
 import 'package:finanseapp/core/features/goals/domain/financial_goal.dart';
+import 'package:finanseapp/core/features/recurring/domain/recurring_rule.dart';
 import 'package:finanseapp/core/features/assets/domain/subgroup.dart';
 import 'package:finanseapp/core/features/transactions/domain/asset_transaction.dart';
 import 'package:finanseapp/core/database/converters/decimal_converter.dart';
@@ -18,6 +19,7 @@ import 'package:finanseapp/core/database/daos/cashflow_dao.dart';
 import 'package:finanseapp/core/database/daos/currencies_dao.dart';
 import 'package:finanseapp/core/database/daos/goals_dao.dart';
 import 'package:finanseapp/core/database/daos/references_dao.dart';
+import 'package:finanseapp/core/database/daos/recurring_dao.dart';
 import 'package:finanseapp/core/database/daos/settings_dao.dart';
 import 'package:finanseapp/core/database/daos/transactions_dao.dart';
 import 'package:finanseapp/core/database/daos/valuations_dao.dart';
@@ -36,12 +38,16 @@ import 'package:finanseapp/core/database/tables/currencies.dart';
 import 'package:finanseapp/core/database/tables/exchange_rates.dart';
 import 'package:finanseapp/core/database/tables/goal_assets.dart';
 import 'package:finanseapp/core/database/tables/goals.dart';
+import 'package:finanseapp/core/database/tables/recurring_cashflow_rules.dart';
 import 'package:finanseapp/core/database/tables/subgroups.dart';
 
 part 'app_database.g.dart';
 
 /// Идентификатор формата файла FinanseApp (`FNAP`) для `PRAGMA application_id`.
 const appDatabaseApplicationId = 0x464E4150;
+
+/// Текущая версия схемы БД; используется backup-валидацией.
+const appDatabaseSchemaVersion = 2;
 
 /// Схема v1 FinanseApp (data_schema).
 ///
@@ -66,12 +72,14 @@ const appDatabaseApplicationId = 0x464E4150;
     Goals,
     GoalAssets,
     AppSettings,
+    RecurringCashflowRules,
   ],
   daos: [
     AssetsDao,
     ValuationsDao,
     TransactionsDao,
     CashflowDao,
+    RecurringDao,
     ReferencesDao,
     CurrenciesDao,
     GoalsDao,
@@ -93,7 +101,7 @@ class AppDatabase extends _$AppDatabase {
   LocalDate today() => LocalDate.fromDateTime(clock().toLocal());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => appDatabaseSchemaVersion;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -102,10 +110,27 @@ class AppDatabase extends _$AppDatabase {
       for (final statement in schemaObjectsV1) {
         await customStatement(statement);
       }
+      for (final statement in schemaObjectsV2) {
+        await customStatement(statement);
+      }
       await customStatement(
         'PRAGMA application_id = $appDatabaseApplicationId',
       );
       await ReferenceSeeder.seed(this);
+    },
+    onUpgrade: (m, from, to) async {
+      if (from < 2) {
+        await m.createTable(recurringCashflowRules);
+        // createTable не создаёт @TableIndex; без них апгрейд-БД расходится
+        // с чистой установкой и закоммиченным schema dump.
+        await m.create(recurringDeleted);
+        await m.create(recurringAccount);
+        await m.create(recurringProperty);
+        await m.addColumn(cashflowEntries, cashflowEntries.recurringRuleId);
+        for (final statement in schemaObjectsV2) {
+          await customStatement(statement);
+        }
+      }
     },
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');
@@ -160,4 +185,15 @@ const schemaObjectsV1 = <String>[
       'BEFORE UPDATE ON account_details '
       'WHEN NEW.end_date IS NOT NULL AND NEW.start_date > NEW.end_date BEGIN '
       "SELECT RAISE(ABORT, 'account end date before start date'); END",
+];
+
+/// Объекты схемы v2: одно автоправило процентов на счёт и одна автооперация
+/// правила на дату (BR-RC-4, BR-RC-9).
+const schemaObjectsV2 = <String>[
+  'CREATE UNIQUE INDEX recurring_active_deposit_interest '
+      'ON recurring_cashflow_rules (account_id) '
+      "WHERE strategy = 'deposit_interest' AND deleted_at IS NULL",
+  'CREATE UNIQUE INDEX cashflow_recurring_period '
+      'ON cashflow_entries (recurring_rule_id, occurred_on) '
+      'WHERE recurring_rule_id IS NOT NULL',
 ];

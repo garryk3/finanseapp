@@ -7,6 +7,7 @@ import 'package:finanseapp/core/database/tables/assets.dart';
 import 'package:finanseapp/core/database/tables/asset_transactions.dart';
 import 'package:finanseapp/core/database/tables/categories.dart';
 import 'package:finanseapp/core/database/tables/currencies.dart';
+import 'package:finanseapp/core/database/tables/recurring_cashflow_rules.dart';
 
 /// Запись денежного потока; current projection с soft delete (data_schema §5).
 @DataClassName('CashflowEntryRow')
@@ -86,6 +87,14 @@ class CashflowEntries extends Table {
 
   IntColumn get assetTransactionId => integer().nullable().references(
     AssetTransactions,
+    #id,
+    onUpdate: KeyAction.restrict,
+    onDelete: KeyAction.restrict,
+  )();
+
+  /// Правило, создавшее автооперацию (BR-RC-5); null — ручная запись.
+  IntColumn get recurringRuleId => integer().nullable().references(
+    RecurringCashflowRules,
     #id,
     onUpdate: KeyAction.restrict,
     onDelete: KeyAction.restrict,

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:finanseapp/app/app_restart.dart';
 import 'package:finanseapp/core/database/app_database_path.dart';
 import 'package:finanseapp/core/features/backup/data/local_database_backup_service.dart';
@@ -29,6 +31,7 @@ import 'package:finanseapp/core/features/settings/ui/about_view_model.dart';
 import 'package:finanseapp/core/features/settings/ui/settings_view_model.dart';
 import 'package:finanseapp/core/features/goals/domain/goal_repository.dart';
 import 'package:finanseapp/core/features/goals/ui/goals_view_model.dart';
+import 'package:finanseapp/core/features/recurring/logic/recurring_catchup_service.dart';
 import 'package:finanseapp/core/features/settings/ui/more_view_model.dart';
 import 'package:finanseapp/core/domain/common/local_date.dart';
 import 'package:finanseapp/core/features/assets/domain/asset_repository.dart';
@@ -46,6 +49,8 @@ Future<void> main() async {
 Future<ServiceLocator> buildAppLocator() async {
   final ServiceLocator locator = ServiceLocator();
   await registerCoreServices(locator);
+  // Догоняющая генерация не блокирует первый кадр (BR-RC-11, D8).
+  unawaited(locator.get<RecurringCatchupService>().catchUp());
 
   final storage = SecureStorageApplockStorage();
   final biometrics = LocalAuthBiometricGateway();

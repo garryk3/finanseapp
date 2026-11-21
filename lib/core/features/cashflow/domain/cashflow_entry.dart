@@ -21,6 +21,7 @@ final class CashflowEntry {
     this.propertyId,
     this.accountId,
     this.assetTransactionId,
+    this.recurringRuleId,
     this.deletedAt,
   });
 
@@ -39,6 +40,7 @@ final class CashflowEntry {
   final int? propertyId;
   final int? accountId;
   final int? assetTransactionId;
+  final int? recurringRuleId;
   final DateTime? deletedAt;
 }
 

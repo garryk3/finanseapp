@@ -170,6 +170,7 @@ Unique `(transactionId, revisionNo)`; индекс `(transactionId, changedAt, i
 | `propertyId` | INTEGER NULL → assets RESTRICT |
 | `accountId` | INTEGER NULL → assets RESTRICT |
 | `assetTransactionId` | INTEGER NULL → asset_transactions RESTRICT |
+| `recurringRuleId` | INTEGER NULL → recurring_cashflow_rules RESTRICT; правило, создавшее автооперацию |
 | `revisionNo` | INTEGER NOT NULL `>= 1` |
 | `createdAt` | TEXT NOT NULL UTC |
 | `updatedAt` | TEXT NOT NULL UTC |
@@ -180,6 +181,9 @@ Unique `(transactionId, revisionNo)`; индекс `(transactionId, changedAt, i
 `(assetTransactionId)`, `(deletedAt, occurredOn DESC)`.
 Unique partial index `cashflow_active_asset_link` на `assetTransactionId`
 `WHERE assetTransactionId IS NOT NULL AND deletedAt IS NULL`.
+Unique partial index `cashflow_recurring_period` на `(recurringRuleId, occurredOn)`
+`WHERE recurringRuleId IS NOT NULL` — одна автооперация на правило и дату, включая
+soft-deleted: удалённая пользователем автооперация не пересоздаётся (BR-RC-4).
 
 Domain + DAO checks:
 
@@ -248,8 +252,10 @@ Unique partial index `(kind, normalizedName) WHERE archivedAt IS NULL`;
 
 - `AppDatabase` принимает `QueryExecutor`; production path —
   `<applicationDocuments>/finanseapp.sqlite` из `app_database_path.dart`.
-- `schemaVersion = 1`, `onCreate`: все таблицы/индексы, затем `ReferenceSeeder.seed`
-  внутри одной транзакции; `onUpgrade`: последовательные versioned migrations.
+- `schemaVersion = 2`, `onCreate`: все таблицы/индексы v1+v2, затем
+  `ReferenceSeeder.seed` внутри одной транзакции. `onUpgrade` из v1: создать
+  `recurring_cashflow_rules`, добавить `cashflow_entries.recurring_rule_id`, применить
+  runtime-DDL `schemaObjectsV2` (частичные unique-индексы).
 - `beforeOpen`: `PRAGMA foreign_keys = ON`; в release не выполняются destructive fallback,
   `deleteAllTables` или молчаливая подмена схемы.
 - После каждой схемной задачи: `dart run build_runner build --delete-conflicting-outputs`,
@@ -318,3 +324,36 @@ Unique partial index `(kind, normalizedName) WHERE archivedAt IS NULL`;
   id)`, а не по порядку выборки SQLite.
 - Все write-методы работают внутри переданного Drift transaction executor; вложенный
   вызов repository не открывает независимое соединение и не делает premature commit.
+
+## 10. Регулярные платежи (schema v2)
+
+### `recurring_cashflow_rules`
+
+| Колонка | Тип / ограничения |
+|---|---|
+| `id` | PK |
+| `strategy` | TEXT NOT NULL `fixed|deposit_interest` |
+| `kind` | TEXT NOT NULL `income|expense` |
+| `categoryId` | INTEGER NOT NULL → categories RESTRICT |
+| `amountMinor` | INTEGER NULL `> 0`; NOT NULL только у `fixed` |
+| `currencyCode` | TEXT NOT NULL → currencies RESTRICT |
+| `accountId` | INTEGER NULL → assets RESTRICT |
+| `propertyId` | INTEGER NULL → assets RESTRICT |
+| `affectsBalance` | INTEGER NOT NULL boolean |
+| `startDate` | TEXT NOT NULL LocalDate |
+| `endDate` | TEXT NULL LocalDate |
+| `comment` | TEXT NULL |
+| `lastGeneratedPeriod` | TEXT NULL `YYYY-MM`; маркер catch-up |
+| `createdAt` / `updatedAt` | TEXT NOT NULL UTC |
+| `deletedAt` | TEXT NULL UTC |
+
+CHECK: property/account взаимоисключающи; `affectsBalance` требует account;
+`startDate <= endDate`; `fixed` имеет сумму, `deposit_interest` — нет; у
+`deposit_interest` всегда `income`, `accountId != NULL`, `affectsBalance = 1`.
+Индексы: `(deletedAt)`, `(accountId)`, `(propertyId)`.
+Unique partial index `recurring_active_deposit_interest` на `(accountId)`
+`WHERE strategy = 'deposit_interest' AND deletedAt IS NULL` — одно автоправило на счёт.
+
+Правило не хранит ревизий: изменение правил не переписывает созданные операции
+(они живут как обычные `cashflow_entries` со своими ревизиями). `last_generated_period`
+двигается в той же транзакции, что и автооперация.

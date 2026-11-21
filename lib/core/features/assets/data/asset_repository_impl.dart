@@ -141,6 +141,7 @@ final class AssetRepositoryImpl implements AssetRepository {
       valuations: counts.valuations,
       goals: counts.goals,
       cashflow: counts.cashflow,
+      recurringRules: counts.recurring,
     );
   }
 

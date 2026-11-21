@@ -11,6 +11,13 @@ mixin _$AssetsDaoMixin on DatabaseAccessor<AppDatabase> {
   $InvestmentDetailsTable get investmentDetails =>
       attachedDatabase.investmentDetails;
   $PropertyDetailsTable get propertyDetails => attachedDatabase.propertyDetails;
+  $CategoriesTable get categories => attachedDatabase.categories;
+  $RecurringCashflowRulesTable get recurringCashflowRules =>
+      attachedDatabase.recurringCashflowRules;
+  $AssetTransfersTable get assetTransfers => attachedDatabase.assetTransfers;
+  $AssetTransactionsTable get assetTransactions =>
+      attachedDatabase.assetTransactions;
+  $CashflowEntriesTable get cashflowEntries => attachedDatabase.cashflowEntries;
   AssetsDaoManager get managers => AssetsDaoManager(this);
 }
 
@@ -37,5 +44,27 @@ class AssetsDaoManager {
       $$PropertyDetailsTableTableManager(
         _db.attachedDatabase,
         _db.propertyDetails,
+      );
+  $$CategoriesTableTableManager get categories =>
+      $$CategoriesTableTableManager(_db.attachedDatabase, _db.categories);
+  $$RecurringCashflowRulesTableTableManager get recurringCashflowRules =>
+      $$RecurringCashflowRulesTableTableManager(
+        _db.attachedDatabase,
+        _db.recurringCashflowRules,
+      );
+  $$AssetTransfersTableTableManager get assetTransfers =>
+      $$AssetTransfersTableTableManager(
+        _db.attachedDatabase,
+        _db.assetTransfers,
+      );
+  $$AssetTransactionsTableTableManager get assetTransactions =>
+      $$AssetTransactionsTableTableManager(
+        _db.attachedDatabase,
+        _db.assetTransactions,
+      );
+  $$CashflowEntriesTableTableManager get cashflowEntries =>
+      $$CashflowEntriesTableTableManager(
+        _db.attachedDatabase,
+        _db.cashflowEntries,
       );
 }

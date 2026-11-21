@@ -4574,6 +4574,976 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
   }
 }
 
+class $RecurringCashflowRulesTable extends RecurringCashflowRules
+    with TableInfo<$RecurringCashflowRulesTable, RecurringCashflowRuleRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $RecurringCashflowRulesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<RecurringStrategy, String>
+  strategy =
+      GeneratedColumn<String>(
+        'strategy',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+        $customConstraints:
+            'NOT NULL CHECK (strategy IN (\'fixed\', \'deposit_interest\'))',
+      ).withConverter<RecurringStrategy>(
+        $RecurringCashflowRulesTable.$converterstrategy,
+      );
+  @override
+  late final GeneratedColumnWithTypeConverter<CashflowKind, String>
+  kind = GeneratedColumn<String>(
+    'kind',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (kind IN (\'income\', \'expense\'))',
+  ).withConverter<CashflowKind>($RecurringCashflowRulesTable.$converterkind);
+  static const VerificationMeta _categoryIdMeta = const VerificationMeta(
+    'categoryId',
+  );
+  @override
+  late final GeneratedColumn<int> categoryId = GeneratedColumn<int>(
+    'category_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES categories (id) ON UPDATE RESTRICT ON DELETE RESTRICT',
+    ),
+  );
+  static const VerificationMeta _amountMinorMeta = const VerificationMeta(
+    'amountMinor',
+  );
+  @override
+  late final GeneratedColumn<int> amountMinor = GeneratedColumn<int>(
+    'amount_minor',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'CHECK (amount_minor IS NULL OR amount_minor > 0)',
+  );
+  static const VerificationMeta _currencyCodeMeta = const VerificationMeta(
+    'currencyCode',
+  );
+  @override
+  late final GeneratedColumn<String> currencyCode = GeneratedColumn<String>(
+    'currency_code',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES currencies (code) ON UPDATE RESTRICT ON DELETE RESTRICT',
+    ),
+  );
+  static const VerificationMeta _accountIdMeta = const VerificationMeta(
+    'accountId',
+  );
+  @override
+  late final GeneratedColumn<int> accountId = GeneratedColumn<int>(
+    'account_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES assets (id) ON UPDATE RESTRICT ON DELETE RESTRICT',
+    ),
+  );
+  static const VerificationMeta _propertyIdMeta = const VerificationMeta(
+    'propertyId',
+  );
+  @override
+  late final GeneratedColumn<int> propertyId = GeneratedColumn<int>(
+    'property_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES assets (id) ON UPDATE RESTRICT ON DELETE RESTRICT',
+    ),
+  );
+  static const VerificationMeta _affectsBalanceMeta = const VerificationMeta(
+    'affectsBalance',
+  );
+  @override
+  late final GeneratedColumn<bool> affectsBalance = GeneratedColumn<bool>(
+    'affects_balance',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("affects_balance" IN (0, 1))',
+    ),
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<LocalDate, String> startDate =
+      GeneratedColumn<String>(
+        'start_date',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<LocalDate>(
+        $RecurringCashflowRulesTable.$converterstartDate,
+      );
+  @override
+  late final GeneratedColumnWithTypeConverter<LocalDate?, String> endDate =
+      GeneratedColumn<String>(
+        'end_date',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      ).withConverter<LocalDate?>(
+        $RecurringCashflowRulesTable.$converterendDaten,
+      );
+  static const VerificationMeta _commentMeta = const VerificationMeta(
+    'comment',
+  );
+  @override
+  late final GeneratedColumn<String> comment = GeneratedColumn<String>(
+    'comment',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _lastGeneratedPeriodMeta =
+      const VerificationMeta('lastGeneratedPeriod');
+  @override
+  late final GeneratedColumn<String> lastGeneratedPeriod =
+      GeneratedColumn<String>(
+        'last_generated_period',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  @override
+  late final GeneratedColumnWithTypeConverter<DateTime, String> createdAt =
+      GeneratedColumn<String>(
+        'created_at',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<DateTime>(
+        $RecurringCashflowRulesTable.$convertercreatedAt,
+      );
+  @override
+  late final GeneratedColumnWithTypeConverter<DateTime, String> updatedAt =
+      GeneratedColumn<String>(
+        'updated_at',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<DateTime>(
+        $RecurringCashflowRulesTable.$converterupdatedAt,
+      );
+  @override
+  late final GeneratedColumnWithTypeConverter<DateTime?, String> deletedAt =
+      GeneratedColumn<String>(
+        'deleted_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      ).withConverter<DateTime?>(
+        $RecurringCashflowRulesTable.$converterdeletedAtn,
+      );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    strategy,
+    kind,
+    categoryId,
+    amountMinor,
+    currencyCode,
+    accountId,
+    propertyId,
+    affectsBalance,
+    startDate,
+    endDate,
+    comment,
+    lastGeneratedPeriod,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'recurring_cashflow_rules';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<RecurringCashflowRuleRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('category_id')) {
+      context.handle(
+        _categoryIdMeta,
+        categoryId.isAcceptableOrUnknown(data['category_id']!, _categoryIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_categoryIdMeta);
+    }
+    if (data.containsKey('amount_minor')) {
+      context.handle(
+        _amountMinorMeta,
+        amountMinor.isAcceptableOrUnknown(
+          data['amount_minor']!,
+          _amountMinorMeta,
+        ),
+      );
+    }
+    if (data.containsKey('currency_code')) {
+      context.handle(
+        _currencyCodeMeta,
+        currencyCode.isAcceptableOrUnknown(
+          data['currency_code']!,
+          _currencyCodeMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_currencyCodeMeta);
+    }
+    if (data.containsKey('account_id')) {
+      context.handle(
+        _accountIdMeta,
+        accountId.isAcceptableOrUnknown(data['account_id']!, _accountIdMeta),
+      );
+    }
+    if (data.containsKey('property_id')) {
+      context.handle(
+        _propertyIdMeta,
+        propertyId.isAcceptableOrUnknown(data['property_id']!, _propertyIdMeta),
+      );
+    }
+    if (data.containsKey('affects_balance')) {
+      context.handle(
+        _affectsBalanceMeta,
+        affectsBalance.isAcceptableOrUnknown(
+          data['affects_balance']!,
+          _affectsBalanceMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_affectsBalanceMeta);
+    }
+    if (data.containsKey('comment')) {
+      context.handle(
+        _commentMeta,
+        comment.isAcceptableOrUnknown(data['comment']!, _commentMeta),
+      );
+    }
+    if (data.containsKey('last_generated_period')) {
+      context.handle(
+        _lastGeneratedPeriodMeta,
+        lastGeneratedPeriod.isAcceptableOrUnknown(
+          data['last_generated_period']!,
+          _lastGeneratedPeriodMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  RecurringCashflowRuleRow map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return RecurringCashflowRuleRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      strategy: $RecurringCashflowRulesTable.$converterstrategy.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}strategy'],
+        )!,
+      ),
+      kind: $RecurringCashflowRulesTable.$converterkind.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}kind'],
+        )!,
+      ),
+      categoryId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}category_id'],
+      )!,
+      amountMinor: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}amount_minor'],
+      ),
+      currencyCode: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}currency_code'],
+      )!,
+      accountId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}account_id'],
+      ),
+      propertyId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}property_id'],
+      ),
+      affectsBalance: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}affects_balance'],
+      )!,
+      startDate: $RecurringCashflowRulesTable.$converterstartDate.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}start_date'],
+        )!,
+      ),
+      endDate: $RecurringCashflowRulesTable.$converterendDaten.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}end_date'],
+        ),
+      ),
+      comment: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}comment'],
+      ),
+      lastGeneratedPeriod: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_generated_period'],
+      ),
+      createdAt: $RecurringCashflowRulesTable.$convertercreatedAt.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}created_at'],
+        )!,
+      ),
+      updatedAt: $RecurringCashflowRulesTable.$converterupdatedAt.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}updated_at'],
+        )!,
+      ),
+      deletedAt: $RecurringCashflowRulesTable.$converterdeletedAtn.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}deleted_at'],
+        ),
+      ),
+    );
+  }
+
+  @override
+  $RecurringCashflowRulesTable createAlias(String alias) {
+    return $RecurringCashflowRulesTable(attachedDatabase, alias);
+  }
+
+  static TypeConverter<RecurringStrategy, String> $converterstrategy =
+      const RecurringStrategyConverter();
+  static TypeConverter<CashflowKind, String> $converterkind =
+      const CashflowKindConverter();
+  static TypeConverter<LocalDate, String> $converterstartDate =
+      const LocalDateConverter();
+  static TypeConverter<LocalDate, String> $converterendDate =
+      const LocalDateConverter();
+  static TypeConverter<LocalDate?, String?> $converterendDaten =
+      NullAwareTypeConverter.wrap($converterendDate);
+  static TypeConverter<DateTime, String> $convertercreatedAt =
+      const UtcTimestampConverter();
+  static TypeConverter<DateTime, String> $converterupdatedAt =
+      const UtcTimestampConverter();
+  static TypeConverter<DateTime, String> $converterdeletedAt =
+      const UtcTimestampConverter();
+  static TypeConverter<DateTime?, String?> $converterdeletedAtn =
+      NullAwareTypeConverter.wrap($converterdeletedAt);
+}
+
+class RecurringCashflowRuleRow extends DataClass
+    implements Insertable<RecurringCashflowRuleRow> {
+  final int id;
+  final RecurringStrategy strategy;
+  final CashflowKind kind;
+  final int categoryId;
+  final int? amountMinor;
+  final String currencyCode;
+  final int? accountId;
+  final int? propertyId;
+  final bool affectsBalance;
+  final LocalDate startDate;
+  final LocalDate? endDate;
+  final String? comment;
+  final String? lastGeneratedPeriod;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  const RecurringCashflowRuleRow({
+    required this.id,
+    required this.strategy,
+    required this.kind,
+    required this.categoryId,
+    this.amountMinor,
+    required this.currencyCode,
+    this.accountId,
+    this.propertyId,
+    required this.affectsBalance,
+    required this.startDate,
+    this.endDate,
+    this.comment,
+    this.lastGeneratedPeriod,
+    required this.createdAt,
+    required this.updatedAt,
+    this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    {
+      map['strategy'] = Variable<String>(
+        $RecurringCashflowRulesTable.$converterstrategy.toSql(strategy),
+      );
+    }
+    {
+      map['kind'] = Variable<String>(
+        $RecurringCashflowRulesTable.$converterkind.toSql(kind),
+      );
+    }
+    map['category_id'] = Variable<int>(categoryId);
+    if (!nullToAbsent || amountMinor != null) {
+      map['amount_minor'] = Variable<int>(amountMinor);
+    }
+    map['currency_code'] = Variable<String>(currencyCode);
+    if (!nullToAbsent || accountId != null) {
+      map['account_id'] = Variable<int>(accountId);
+    }
+    if (!nullToAbsent || propertyId != null) {
+      map['property_id'] = Variable<int>(propertyId);
+    }
+    map['affects_balance'] = Variable<bool>(affectsBalance);
+    {
+      map['start_date'] = Variable<String>(
+        $RecurringCashflowRulesTable.$converterstartDate.toSql(startDate),
+      );
+    }
+    if (!nullToAbsent || endDate != null) {
+      map['end_date'] = Variable<String>(
+        $RecurringCashflowRulesTable.$converterendDaten.toSql(endDate),
+      );
+    }
+    if (!nullToAbsent || comment != null) {
+      map['comment'] = Variable<String>(comment);
+    }
+    if (!nullToAbsent || lastGeneratedPeriod != null) {
+      map['last_generated_period'] = Variable<String>(lastGeneratedPeriod);
+    }
+    {
+      map['created_at'] = Variable<String>(
+        $RecurringCashflowRulesTable.$convertercreatedAt.toSql(createdAt),
+      );
+    }
+    {
+      map['updated_at'] = Variable<String>(
+        $RecurringCashflowRulesTable.$converterupdatedAt.toSql(updatedAt),
+      );
+    }
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<String>(
+        $RecurringCashflowRulesTable.$converterdeletedAtn.toSql(deletedAt),
+      );
+    }
+    return map;
+  }
+
+  RecurringCashflowRulesCompanion toCompanion(bool nullToAbsent) {
+    return RecurringCashflowRulesCompanion(
+      id: Value(id),
+      strategy: Value(strategy),
+      kind: Value(kind),
+      categoryId: Value(categoryId),
+      amountMinor: amountMinor == null && nullToAbsent
+          ? const Value.absent()
+          : Value(amountMinor),
+      currencyCode: Value(currencyCode),
+      accountId: accountId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(accountId),
+      propertyId: propertyId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(propertyId),
+      affectsBalance: Value(affectsBalance),
+      startDate: Value(startDate),
+      endDate: endDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(endDate),
+      comment: comment == null && nullToAbsent
+          ? const Value.absent()
+          : Value(comment),
+      lastGeneratedPeriod: lastGeneratedPeriod == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastGeneratedPeriod),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
+  factory RecurringCashflowRuleRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return RecurringCashflowRuleRow(
+      id: serializer.fromJson<int>(json['id']),
+      strategy: serializer.fromJson<RecurringStrategy>(json['strategy']),
+      kind: serializer.fromJson<CashflowKind>(json['kind']),
+      categoryId: serializer.fromJson<int>(json['categoryId']),
+      amountMinor: serializer.fromJson<int?>(json['amountMinor']),
+      currencyCode: serializer.fromJson<String>(json['currencyCode']),
+      accountId: serializer.fromJson<int?>(json['accountId']),
+      propertyId: serializer.fromJson<int?>(json['propertyId']),
+      affectsBalance: serializer.fromJson<bool>(json['affectsBalance']),
+      startDate: serializer.fromJson<LocalDate>(json['startDate']),
+      endDate: serializer.fromJson<LocalDate?>(json['endDate']),
+      comment: serializer.fromJson<String?>(json['comment']),
+      lastGeneratedPeriod: serializer.fromJson<String?>(
+        json['lastGeneratedPeriod'],
+      ),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'strategy': serializer.toJson<RecurringStrategy>(strategy),
+      'kind': serializer.toJson<CashflowKind>(kind),
+      'categoryId': serializer.toJson<int>(categoryId),
+      'amountMinor': serializer.toJson<int?>(amountMinor),
+      'currencyCode': serializer.toJson<String>(currencyCode),
+      'accountId': serializer.toJson<int?>(accountId),
+      'propertyId': serializer.toJson<int?>(propertyId),
+      'affectsBalance': serializer.toJson<bool>(affectsBalance),
+      'startDate': serializer.toJson<LocalDate>(startDate),
+      'endDate': serializer.toJson<LocalDate?>(endDate),
+      'comment': serializer.toJson<String?>(comment),
+      'lastGeneratedPeriod': serializer.toJson<String?>(lastGeneratedPeriod),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+    };
+  }
+
+  RecurringCashflowRuleRow copyWith({
+    int? id,
+    RecurringStrategy? strategy,
+    CashflowKind? kind,
+    int? categoryId,
+    Value<int?> amountMinor = const Value.absent(),
+    String? currencyCode,
+    Value<int?> accountId = const Value.absent(),
+    Value<int?> propertyId = const Value.absent(),
+    bool? affectsBalance,
+    LocalDate? startDate,
+    Value<LocalDate?> endDate = const Value.absent(),
+    Value<String?> comment = const Value.absent(),
+    Value<String?> lastGeneratedPeriod = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => RecurringCashflowRuleRow(
+    id: id ?? this.id,
+    strategy: strategy ?? this.strategy,
+    kind: kind ?? this.kind,
+    categoryId: categoryId ?? this.categoryId,
+    amountMinor: amountMinor.present ? amountMinor.value : this.amountMinor,
+    currencyCode: currencyCode ?? this.currencyCode,
+    accountId: accountId.present ? accountId.value : this.accountId,
+    propertyId: propertyId.present ? propertyId.value : this.propertyId,
+    affectsBalance: affectsBalance ?? this.affectsBalance,
+    startDate: startDate ?? this.startDate,
+    endDate: endDate.present ? endDate.value : this.endDate,
+    comment: comment.present ? comment.value : this.comment,
+    lastGeneratedPeriod: lastGeneratedPeriod.present
+        ? lastGeneratedPeriod.value
+        : this.lastGeneratedPeriod,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
+  RecurringCashflowRuleRow copyWithCompanion(
+    RecurringCashflowRulesCompanion data,
+  ) {
+    return RecurringCashflowRuleRow(
+      id: data.id.present ? data.id.value : this.id,
+      strategy: data.strategy.present ? data.strategy.value : this.strategy,
+      kind: data.kind.present ? data.kind.value : this.kind,
+      categoryId: data.categoryId.present
+          ? data.categoryId.value
+          : this.categoryId,
+      amountMinor: data.amountMinor.present
+          ? data.amountMinor.value
+          : this.amountMinor,
+      currencyCode: data.currencyCode.present
+          ? data.currencyCode.value
+          : this.currencyCode,
+      accountId: data.accountId.present ? data.accountId.value : this.accountId,
+      propertyId: data.propertyId.present
+          ? data.propertyId.value
+          : this.propertyId,
+      affectsBalance: data.affectsBalance.present
+          ? data.affectsBalance.value
+          : this.affectsBalance,
+      startDate: data.startDate.present ? data.startDate.value : this.startDate,
+      endDate: data.endDate.present ? data.endDate.value : this.endDate,
+      comment: data.comment.present ? data.comment.value : this.comment,
+      lastGeneratedPeriod: data.lastGeneratedPeriod.present
+          ? data.lastGeneratedPeriod.value
+          : this.lastGeneratedPeriod,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RecurringCashflowRuleRow(')
+          ..write('id: $id, ')
+          ..write('strategy: $strategy, ')
+          ..write('kind: $kind, ')
+          ..write('categoryId: $categoryId, ')
+          ..write('amountMinor: $amountMinor, ')
+          ..write('currencyCode: $currencyCode, ')
+          ..write('accountId: $accountId, ')
+          ..write('propertyId: $propertyId, ')
+          ..write('affectsBalance: $affectsBalance, ')
+          ..write('startDate: $startDate, ')
+          ..write('endDate: $endDate, ')
+          ..write('comment: $comment, ')
+          ..write('lastGeneratedPeriod: $lastGeneratedPeriod, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    strategy,
+    kind,
+    categoryId,
+    amountMinor,
+    currencyCode,
+    accountId,
+    propertyId,
+    affectsBalance,
+    startDate,
+    endDate,
+    comment,
+    lastGeneratedPeriod,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is RecurringCashflowRuleRow &&
+          other.id == this.id &&
+          other.strategy == this.strategy &&
+          other.kind == this.kind &&
+          other.categoryId == this.categoryId &&
+          other.amountMinor == this.amountMinor &&
+          other.currencyCode == this.currencyCode &&
+          other.accountId == this.accountId &&
+          other.propertyId == this.propertyId &&
+          other.affectsBalance == this.affectsBalance &&
+          other.startDate == this.startDate &&
+          other.endDate == this.endDate &&
+          other.comment == this.comment &&
+          other.lastGeneratedPeriod == this.lastGeneratedPeriod &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class RecurringCashflowRulesCompanion
+    extends UpdateCompanion<RecurringCashflowRuleRow> {
+  final Value<int> id;
+  final Value<RecurringStrategy> strategy;
+  final Value<CashflowKind> kind;
+  final Value<int> categoryId;
+  final Value<int?> amountMinor;
+  final Value<String> currencyCode;
+  final Value<int?> accountId;
+  final Value<int?> propertyId;
+  final Value<bool> affectsBalance;
+  final Value<LocalDate> startDate;
+  final Value<LocalDate?> endDate;
+  final Value<String?> comment;
+  final Value<String?> lastGeneratedPeriod;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  const RecurringCashflowRulesCompanion({
+    this.id = const Value.absent(),
+    this.strategy = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.categoryId = const Value.absent(),
+    this.amountMinor = const Value.absent(),
+    this.currencyCode = const Value.absent(),
+    this.accountId = const Value.absent(),
+    this.propertyId = const Value.absent(),
+    this.affectsBalance = const Value.absent(),
+    this.startDate = const Value.absent(),
+    this.endDate = const Value.absent(),
+    this.comment = const Value.absent(),
+    this.lastGeneratedPeriod = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+  });
+  RecurringCashflowRulesCompanion.insert({
+    this.id = const Value.absent(),
+    required RecurringStrategy strategy,
+    required CashflowKind kind,
+    required int categoryId,
+    this.amountMinor = const Value.absent(),
+    required String currencyCode,
+    this.accountId = const Value.absent(),
+    this.propertyId = const Value.absent(),
+    required bool affectsBalance,
+    required LocalDate startDate,
+    this.endDate = const Value.absent(),
+    this.comment = const Value.absent(),
+    this.lastGeneratedPeriod = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.deletedAt = const Value.absent(),
+  }) : strategy = Value(strategy),
+       kind = Value(kind),
+       categoryId = Value(categoryId),
+       currencyCode = Value(currencyCode),
+       affectsBalance = Value(affectsBalance),
+       startDate = Value(startDate),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<RecurringCashflowRuleRow> custom({
+    Expression<int>? id,
+    Expression<String>? strategy,
+    Expression<String>? kind,
+    Expression<int>? categoryId,
+    Expression<int>? amountMinor,
+    Expression<String>? currencyCode,
+    Expression<int>? accountId,
+    Expression<int>? propertyId,
+    Expression<bool>? affectsBalance,
+    Expression<String>? startDate,
+    Expression<String>? endDate,
+    Expression<String>? comment,
+    Expression<String>? lastGeneratedPeriod,
+    Expression<String>? createdAt,
+    Expression<String>? updatedAt,
+    Expression<String>? deletedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (strategy != null) 'strategy': strategy,
+      if (kind != null) 'kind': kind,
+      if (categoryId != null) 'category_id': categoryId,
+      if (amountMinor != null) 'amount_minor': amountMinor,
+      if (currencyCode != null) 'currency_code': currencyCode,
+      if (accountId != null) 'account_id': accountId,
+      if (propertyId != null) 'property_id': propertyId,
+      if (affectsBalance != null) 'affects_balance': affectsBalance,
+      if (startDate != null) 'start_date': startDate,
+      if (endDate != null) 'end_date': endDate,
+      if (comment != null) 'comment': comment,
+      if (lastGeneratedPeriod != null)
+        'last_generated_period': lastGeneratedPeriod,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+    });
+  }
+
+  RecurringCashflowRulesCompanion copyWith({
+    Value<int>? id,
+    Value<RecurringStrategy>? strategy,
+    Value<CashflowKind>? kind,
+    Value<int>? categoryId,
+    Value<int?>? amountMinor,
+    Value<String>? currencyCode,
+    Value<int?>? accountId,
+    Value<int?>? propertyId,
+    Value<bool>? affectsBalance,
+    Value<LocalDate>? startDate,
+    Value<LocalDate?>? endDate,
+    Value<String?>? comment,
+    Value<String?>? lastGeneratedPeriod,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+  }) {
+    return RecurringCashflowRulesCompanion(
+      id: id ?? this.id,
+      strategy: strategy ?? this.strategy,
+      kind: kind ?? this.kind,
+      categoryId: categoryId ?? this.categoryId,
+      amountMinor: amountMinor ?? this.amountMinor,
+      currencyCode: currencyCode ?? this.currencyCode,
+      accountId: accountId ?? this.accountId,
+      propertyId: propertyId ?? this.propertyId,
+      affectsBalance: affectsBalance ?? this.affectsBalance,
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
+      comment: comment ?? this.comment,
+      lastGeneratedPeriod: lastGeneratedPeriod ?? this.lastGeneratedPeriod,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (strategy.present) {
+      map['strategy'] = Variable<String>(
+        $RecurringCashflowRulesTable.$converterstrategy.toSql(strategy.value),
+      );
+    }
+    if (kind.present) {
+      map['kind'] = Variable<String>(
+        $RecurringCashflowRulesTable.$converterkind.toSql(kind.value),
+      );
+    }
+    if (categoryId.present) {
+      map['category_id'] = Variable<int>(categoryId.value);
+    }
+    if (amountMinor.present) {
+      map['amount_minor'] = Variable<int>(amountMinor.value);
+    }
+    if (currencyCode.present) {
+      map['currency_code'] = Variable<String>(currencyCode.value);
+    }
+    if (accountId.present) {
+      map['account_id'] = Variable<int>(accountId.value);
+    }
+    if (propertyId.present) {
+      map['property_id'] = Variable<int>(propertyId.value);
+    }
+    if (affectsBalance.present) {
+      map['affects_balance'] = Variable<bool>(affectsBalance.value);
+    }
+    if (startDate.present) {
+      map['start_date'] = Variable<String>(
+        $RecurringCashflowRulesTable.$converterstartDate.toSql(startDate.value),
+      );
+    }
+    if (endDate.present) {
+      map['end_date'] = Variable<String>(
+        $RecurringCashflowRulesTable.$converterendDaten.toSql(endDate.value),
+      );
+    }
+    if (comment.present) {
+      map['comment'] = Variable<String>(comment.value);
+    }
+    if (lastGeneratedPeriod.present) {
+      map['last_generated_period'] = Variable<String>(
+        lastGeneratedPeriod.value,
+      );
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<String>(
+        $RecurringCashflowRulesTable.$convertercreatedAt.toSql(createdAt.value),
+      );
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<String>(
+        $RecurringCashflowRulesTable.$converterupdatedAt.toSql(updatedAt.value),
+      );
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<String>(
+        $RecurringCashflowRulesTable.$converterdeletedAtn.toSql(
+          deletedAt.value,
+        ),
+      );
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RecurringCashflowRulesCompanion(')
+          ..write('id: $id, ')
+          ..write('strategy: $strategy, ')
+          ..write('kind: $kind, ')
+          ..write('categoryId: $categoryId, ')
+          ..write('amountMinor: $amountMinor, ')
+          ..write('currencyCode: $currencyCode, ')
+          ..write('accountId: $accountId, ')
+          ..write('propertyId: $propertyId, ')
+          ..write('affectsBalance: $affectsBalance, ')
+          ..write('startDate: $startDate, ')
+          ..write('endDate: $endDate, ')
+          ..write('comment: $comment, ')
+          ..write('lastGeneratedPeriod: $lastGeneratedPeriod, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $CashflowEntriesTable extends CashflowEntries
     with TableInfo<$CashflowEntriesTable, CashflowEntryRow> {
   @override
@@ -4740,6 +5710,20 @@ class $CashflowEntriesTable extends CashflowEntries
       'REFERENCES asset_transactions (id) ON UPDATE RESTRICT ON DELETE RESTRICT',
     ),
   );
+  static const VerificationMeta _recurringRuleIdMeta = const VerificationMeta(
+    'recurringRuleId',
+  );
+  @override
+  late final GeneratedColumn<int> recurringRuleId = GeneratedColumn<int>(
+    'recurring_rule_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES recurring_cashflow_rules (id) ON UPDATE RESTRICT ON DELETE RESTRICT',
+    ),
+  );
   static const VerificationMeta _revisionNoMeta = const VerificationMeta(
     'revisionNo',
   );
@@ -4794,6 +5778,7 @@ class $CashflowEntriesTable extends CashflowEntries
     propertyId,
     accountId,
     assetTransactionId,
+    recurringRuleId,
     revisionNo,
     createdAt,
     updatedAt,
@@ -4893,6 +5878,15 @@ class $CashflowEntriesTable extends CashflowEntries
         ),
       );
     }
+    if (data.containsKey('recurring_rule_id')) {
+      context.handle(
+        _recurringRuleIdMeta,
+        recurringRuleId.isAcceptableOrUnknown(
+          data['recurring_rule_id']!,
+          _recurringRuleIdMeta,
+        ),
+      );
+    }
     if (data.containsKey('revision_no')) {
       context.handle(
         _revisionNoMeta,
@@ -4968,6 +5962,10 @@ class $CashflowEntriesTable extends CashflowEntries
         DriftSqlType.int,
         data['${effectivePrefix}asset_transaction_id'],
       ),
+      recurringRuleId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}recurring_rule_id'],
+      ),
       revisionNo: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}revision_no'],
@@ -5029,6 +6027,9 @@ class CashflowEntryRow extends DataClass
   final int? propertyId;
   final int? accountId;
   final int? assetTransactionId;
+
+  /// Правило, создавшее автооперацию (BR-RC-5); null — ручная запись.
+  final int? recurringRuleId;
   final int revisionNo;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -5047,6 +6048,7 @@ class CashflowEntryRow extends DataClass
     this.propertyId,
     this.accountId,
     this.assetTransactionId,
+    this.recurringRuleId,
     required this.revisionNo,
     required this.createdAt,
     required this.updatedAt,
@@ -5087,6 +6089,9 @@ class CashflowEntryRow extends DataClass
     }
     if (!nullToAbsent || assetTransactionId != null) {
       map['asset_transaction_id'] = Variable<int>(assetTransactionId);
+    }
+    if (!nullToAbsent || recurringRuleId != null) {
+      map['recurring_rule_id'] = Variable<int>(recurringRuleId);
     }
     map['revision_no'] = Variable<int>(revisionNo);
     {
@@ -5130,6 +6135,9 @@ class CashflowEntryRow extends DataClass
       assetTransactionId: assetTransactionId == null && nullToAbsent
           ? const Value.absent()
           : Value(assetTransactionId),
+      recurringRuleId: recurringRuleId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(recurringRuleId),
       revisionNo: Value(revisionNo),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
@@ -5158,6 +6166,7 @@ class CashflowEntryRow extends DataClass
       propertyId: serializer.fromJson<int?>(json['propertyId']),
       accountId: serializer.fromJson<int?>(json['accountId']),
       assetTransactionId: serializer.fromJson<int?>(json['assetTransactionId']),
+      recurringRuleId: serializer.fromJson<int?>(json['recurringRuleId']),
       revisionNo: serializer.fromJson<int>(json['revisionNo']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
@@ -5181,6 +6190,7 @@ class CashflowEntryRow extends DataClass
       'propertyId': serializer.toJson<int?>(propertyId),
       'accountId': serializer.toJson<int?>(accountId),
       'assetTransactionId': serializer.toJson<int?>(assetTransactionId),
+      'recurringRuleId': serializer.toJson<int?>(recurringRuleId),
       'revisionNo': serializer.toJson<int>(revisionNo),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
@@ -5202,6 +6212,7 @@ class CashflowEntryRow extends DataClass
     Value<int?> propertyId = const Value.absent(),
     Value<int?> accountId = const Value.absent(),
     Value<int?> assetTransactionId = const Value.absent(),
+    Value<int?> recurringRuleId = const Value.absent(),
     int? revisionNo,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -5222,6 +6233,9 @@ class CashflowEntryRow extends DataClass
     assetTransactionId: assetTransactionId.present
         ? assetTransactionId.value
         : this.assetTransactionId,
+    recurringRuleId: recurringRuleId.present
+        ? recurringRuleId.value
+        : this.recurringRuleId,
     revisionNo: revisionNo ?? this.revisionNo,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
@@ -5258,6 +6272,9 @@ class CashflowEntryRow extends DataClass
       assetTransactionId: data.assetTransactionId.present
           ? data.assetTransactionId.value
           : this.assetTransactionId,
+      recurringRuleId: data.recurringRuleId.present
+          ? data.recurringRuleId.value
+          : this.recurringRuleId,
       revisionNo: data.revisionNo.present
           ? data.revisionNo.value
           : this.revisionNo,
@@ -5283,6 +6300,7 @@ class CashflowEntryRow extends DataClass
           ..write('propertyId: $propertyId, ')
           ..write('accountId: $accountId, ')
           ..write('assetTransactionId: $assetTransactionId, ')
+          ..write('recurringRuleId: $recurringRuleId, ')
           ..write('revisionNo: $revisionNo, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
@@ -5306,6 +6324,7 @@ class CashflowEntryRow extends DataClass
     propertyId,
     accountId,
     assetTransactionId,
+    recurringRuleId,
     revisionNo,
     createdAt,
     updatedAt,
@@ -5328,6 +6347,7 @@ class CashflowEntryRow extends DataClass
           other.propertyId == this.propertyId &&
           other.accountId == this.accountId &&
           other.assetTransactionId == this.assetTransactionId &&
+          other.recurringRuleId == this.recurringRuleId &&
           other.revisionNo == this.revisionNo &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
@@ -5348,6 +6368,7 @@ class CashflowEntriesCompanion extends UpdateCompanion<CashflowEntryRow> {
   final Value<int?> propertyId;
   final Value<int?> accountId;
   final Value<int?> assetTransactionId;
+  final Value<int?> recurringRuleId;
   final Value<int> revisionNo;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
@@ -5366,6 +6387,7 @@ class CashflowEntriesCompanion extends UpdateCompanion<CashflowEntryRow> {
     this.propertyId = const Value.absent(),
     this.accountId = const Value.absent(),
     this.assetTransactionId = const Value.absent(),
+    this.recurringRuleId = const Value.absent(),
     this.revisionNo = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -5385,6 +6407,7 @@ class CashflowEntriesCompanion extends UpdateCompanion<CashflowEntryRow> {
     this.propertyId = const Value.absent(),
     this.accountId = const Value.absent(),
     this.assetTransactionId = const Value.absent(),
+    this.recurringRuleId = const Value.absent(),
     required int revisionNo,
     required DateTime createdAt,
     required DateTime updatedAt,
@@ -5414,6 +6437,7 @@ class CashflowEntriesCompanion extends UpdateCompanion<CashflowEntryRow> {
     Expression<int>? propertyId,
     Expression<int>? accountId,
     Expression<int>? assetTransactionId,
+    Expression<int>? recurringRuleId,
     Expression<int>? revisionNo,
     Expression<String>? createdAt,
     Expression<String>? updatedAt,
@@ -5434,6 +6458,7 @@ class CashflowEntriesCompanion extends UpdateCompanion<CashflowEntryRow> {
       if (accountId != null) 'account_id': accountId,
       if (assetTransactionId != null)
         'asset_transaction_id': assetTransactionId,
+      if (recurringRuleId != null) 'recurring_rule_id': recurringRuleId,
       if (revisionNo != null) 'revision_no': revisionNo,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
@@ -5455,6 +6480,7 @@ class CashflowEntriesCompanion extends UpdateCompanion<CashflowEntryRow> {
     Value<int?>? propertyId,
     Value<int?>? accountId,
     Value<int?>? assetTransactionId,
+    Value<int?>? recurringRuleId,
     Value<int>? revisionNo,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
@@ -5474,6 +6500,7 @@ class CashflowEntriesCompanion extends UpdateCompanion<CashflowEntryRow> {
       propertyId: propertyId ?? this.propertyId,
       accountId: accountId ?? this.accountId,
       assetTransactionId: assetTransactionId ?? this.assetTransactionId,
+      recurringRuleId: recurringRuleId ?? this.recurringRuleId,
       revisionNo: revisionNo ?? this.revisionNo,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -5529,6 +6556,9 @@ class CashflowEntriesCompanion extends UpdateCompanion<CashflowEntryRow> {
     if (assetTransactionId.present) {
       map['asset_transaction_id'] = Variable<int>(assetTransactionId.value);
     }
+    if (recurringRuleId.present) {
+      map['recurring_rule_id'] = Variable<int>(recurringRuleId.value);
+    }
     if (revisionNo.present) {
       map['revision_no'] = Variable<int>(revisionNo.value);
     }
@@ -5566,6 +6596,7 @@ class CashflowEntriesCompanion extends UpdateCompanion<CashflowEntryRow> {
           ..write('propertyId: $propertyId, ')
           ..write('accountId: $accountId, ')
           ..write('assetTransactionId: $assetTransactionId, ')
+          ..write('recurringRuleId: $recurringRuleId, ')
           ..write('revisionNo: $revisionNo, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
@@ -7541,6 +8572,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $AssetTransactionRevisionsTable assetTransactionRevisions =
       $AssetTransactionRevisionsTable(this);
   late final $CategoriesTable categories = $CategoriesTable(this);
+  late final $RecurringCashflowRulesTable recurringCashflowRules =
+      $RecurringCashflowRulesTable(this);
   late final $CashflowEntriesTable cashflowEntries = $CashflowEntriesTable(
     this,
   );
@@ -7674,12 +8707,25 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     'goal_assets_asset_goal',
     'CREATE INDEX goal_assets_asset_goal ON goal_assets (asset_id, goal_id)',
   );
+  late final Index recurringDeleted = Index(
+    'recurring_deleted',
+    'CREATE INDEX recurring_deleted ON recurring_cashflow_rules (deleted_at)',
+  );
+  late final Index recurringAccount = Index(
+    'recurring_account',
+    'CREATE INDEX recurring_account ON recurring_cashflow_rules (account_id)',
+  );
+  late final Index recurringProperty = Index(
+    'recurring_property',
+    'CREATE INDEX recurring_property ON recurring_cashflow_rules (property_id)',
+  );
   late final AssetsDao assetsDao = AssetsDao(this as AppDatabase);
   late final ValuationsDao valuationsDao = ValuationsDao(this as AppDatabase);
   late final TransactionsDao transactionsDao = TransactionsDao(
     this as AppDatabase,
   );
   late final CashflowDao cashflowDao = CashflowDao(this as AppDatabase);
+  late final RecurringDao recurringDao = RecurringDao(this as AppDatabase);
   late final ReferencesDao referencesDao = ReferencesDao(this as AppDatabase);
   late final CurrenciesDao currenciesDao = CurrenciesDao(this as AppDatabase);
   late final GoalsDao goalsDao = GoalsDao(this as AppDatabase);
@@ -7701,6 +8747,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     assetTransactions,
     assetTransactionRevisions,
     categories,
+    recurringCashflowRules,
     cashflowEntries,
     cashflowEntryRevisions,
     exchangeRates,
@@ -7738,6 +8785,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     goalsTargetDate,
     goalsCurrency,
     goalAssetsAssetGoal,
+    recurringDeleted,
+    recurringAccount,
+    recurringProperty,
   ];
 }
 
@@ -7777,6 +8827,34 @@ final class $$CurrenciesTableReferences
     );
 
     final cache = $_typedResult.readTableOrNull(_assetsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $RecurringCashflowRulesTable,
+    List<RecurringCashflowRuleRow>
+  >
+  _recurringCashflowRulesRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.recurringCashflowRules,
+        aliasName: 'currencies__code__recurring_cashflow_rules__currency_code',
+      );
+
+  $$RecurringCashflowRulesTableProcessedTableManager
+  get recurringCashflowRulesRefs {
+    final manager =
+        $$RecurringCashflowRulesTableTableManager(
+          $_db,
+          $_db.recurringCashflowRules,
+        ).filter(
+          (f) => f.currencyCode.code.sqlEquals($_itemColumn<String>('code')!),
+        );
+
+    final cache = $_typedResult.readTableOrNull(
+      _recurringCashflowRulesRefsTable($_db),
+    );
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -7900,6 +8978,32 @@ class $$CurrenciesTableFilterComposer
                 $removeJoinBuilderFromRootComposer,
           ),
     );
+    return f(composer);
+  }
+
+  Expression<bool> recurringCashflowRulesRefs(
+    Expression<bool> Function($$RecurringCashflowRulesTableFilterComposer f) f,
+  ) {
+    final $$RecurringCashflowRulesTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.code,
+          referencedTable: $db.recurringCashflowRules,
+          getReferencedColumn: (t) => t.currencyCode,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$RecurringCashflowRulesTableFilterComposer(
+                $db: $db,
+                $table: $db.recurringCashflowRules,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
     return f(composer);
   }
 
@@ -8075,6 +9179,32 @@ class $$CurrenciesTableAnnotationComposer
     return f(composer);
   }
 
+  Expression<T> recurringCashflowRulesRefs<T extends Object>(
+    Expression<T> Function($$RecurringCashflowRulesTableAnnotationComposer a) f,
+  ) {
+    final $$RecurringCashflowRulesTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.code,
+          referencedTable: $db.recurringCashflowRules,
+          getReferencedColumn: (t) => t.currencyCode,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$RecurringCashflowRulesTableAnnotationComposer(
+                $db: $db,
+                $table: $db.recurringCashflowRules,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
   Expression<T> cashflowEntriesRefs<T extends Object>(
     Expression<T> Function($$CashflowEntriesTableAnnotationComposer a) f,
   ) {
@@ -8166,6 +9296,7 @@ class $$CurrenciesTableTableManager
           CurrencyRow,
           PrefetchHooks Function({
             bool assetsRefs,
+            bool recurringCashflowRulesRefs,
             bool cashflowEntriesRefs,
             bool exchangeRatesRefs,
             bool goalsRefs,
@@ -8229,6 +9360,7 @@ class $$CurrenciesTableTableManager
           prefetchHooksCallback:
               ({
                 assetsRefs = false,
+                recurringCashflowRulesRefs = false,
                 cashflowEntriesRefs = false,
                 exchangeRatesRefs = false,
                 goalsRefs = false,
@@ -8237,6 +9369,7 @@ class $$CurrenciesTableTableManager
                   db: db,
                   explicitlyWatchedTables: [
                     if (assetsRefs) db.assets,
+                    if (recurringCashflowRulesRefs) db.recurringCashflowRules,
                     if (cashflowEntriesRefs) db.cashflowEntries,
                     if (exchangeRatesRefs) db.exchangeRates,
                     if (goalsRefs) db.goals,
@@ -8260,6 +9393,26 @@ class $$CurrenciesTableTableManager
                                 table,
                                 p0,
                               ).assetsRefs,
+                          currentColumn: 'code',
+                          referencedColumn: 'currency_code',
+                          typedResults: items,
+                        ),
+                      if (recurringCashflowRulesRefs)
+                        await $_getPrefetchedDataByColumns<
+                          CurrencyRow,
+                          $CurrenciesTable,
+                          RecurringCashflowRuleRow,
+                          $RecurringCashflowRulesTable
+                        >(
+                          currentTable: table,
+                          referencedTable: $$CurrenciesTableReferences
+                              ._recurringCashflowRulesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$CurrenciesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).recurringCashflowRulesRefs,
                           currentColumn: 'code',
                           referencedColumn: 'currency_code',
                           typedResults: items,
@@ -8346,6 +9499,7 @@ typedef $$CurrenciesTableProcessedTableManager =
       CurrencyRow,
       PrefetchHooks Function({
         bool assetsRefs,
+        bool recurringCashflowRulesRefs,
         bool cashflowEntriesRefs,
         bool exchangeRatesRefs,
         bool goalsRefs,
@@ -8485,6 +9639,55 @@ final class $$AssetsTableReferences
 
     final cache = $_typedResult.readTableOrNull(
       _assetTransactionsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $RecurringCashflowRulesTable,
+    List<RecurringCashflowRuleRow>
+  >
+  _recurringAccountRulesTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.recurringCashflowRules,
+        aliasName: 'assets__id__recurring_cashflow_rules__account_id',
+      );
+
+  $$RecurringCashflowRulesTableProcessedTableManager get recurringAccountRules {
+    final manager = $$RecurringCashflowRulesTableTableManager(
+      $_db,
+      $_db.recurringCashflowRules,
+    ).filter((f) => f.accountId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _recurringAccountRulesTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $RecurringCashflowRulesTable,
+    List<RecurringCashflowRuleRow>
+  >
+  _recurringPropertyRulesTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.recurringCashflowRules,
+        aliasName: 'assets__id__recurring_cashflow_rules__property_id',
+      );
+
+  $$RecurringCashflowRulesTableProcessedTableManager
+  get recurringPropertyRules {
+    final manager = $$RecurringCashflowRulesTableTableManager(
+      $_db,
+      $_db.recurringCashflowRules,
+    ).filter((f) => f.propertyId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _recurringPropertyRulesTable($_db),
     );
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
@@ -8733,6 +9936,58 @@ class $$AssetsTableFilterComposer
                 $removeJoinBuilderFromRootComposer,
           ),
     );
+    return f(composer);
+  }
+
+  Expression<bool> recurringAccountRules(
+    Expression<bool> Function($$RecurringCashflowRulesTableFilterComposer f) f,
+  ) {
+    final $$RecurringCashflowRulesTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.recurringCashflowRules,
+          getReferencedColumn: (t) => t.accountId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$RecurringCashflowRulesTableFilterComposer(
+                $db: $db,
+                $table: $db.recurringCashflowRules,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<bool> recurringPropertyRules(
+    Expression<bool> Function($$RecurringCashflowRulesTableFilterComposer f) f,
+  ) {
+    final $$RecurringCashflowRulesTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.recurringCashflowRules,
+          getReferencedColumn: (t) => t.propertyId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$RecurringCashflowRulesTableFilterComposer(
+                $db: $db,
+                $table: $db.recurringCashflowRules,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
     return f(composer);
   }
 
@@ -9057,6 +10312,58 @@ class $$AssetsTableAnnotationComposer
     return f(composer);
   }
 
+  Expression<T> recurringAccountRules<T extends Object>(
+    Expression<T> Function($$RecurringCashflowRulesTableAnnotationComposer a) f,
+  ) {
+    final $$RecurringCashflowRulesTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.recurringCashflowRules,
+          getReferencedColumn: (t) => t.accountId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$RecurringCashflowRulesTableAnnotationComposer(
+                $db: $db,
+                $table: $db.recurringCashflowRules,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<T> recurringPropertyRules<T extends Object>(
+    Expression<T> Function($$RecurringCashflowRulesTableAnnotationComposer a) f,
+  ) {
+    final $$RecurringCashflowRulesTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.recurringCashflowRules,
+          getReferencedColumn: (t) => t.propertyId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$RecurringCashflowRulesTableAnnotationComposer(
+                $db: $db,
+                $table: $db.recurringCashflowRules,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
   Expression<T> propertyEntries<T extends Object>(
     Expression<T> Function($$CashflowEntriesTableAnnotationComposer a) f,
   ) {
@@ -9153,6 +10460,8 @@ class $$AssetsTableTableManager
             bool propertyDetailsRefs,
             bool assetValuationsRefs,
             bool assetTransactionsRefs,
+            bool recurringAccountRules,
+            bool recurringPropertyRules,
             bool propertyEntries,
             bool accountEntries,
             bool goalAssetsRefs,
@@ -9221,6 +10530,8 @@ class $$AssetsTableTableManager
                 propertyDetailsRefs = false,
                 assetValuationsRefs = false,
                 assetTransactionsRefs = false,
+                recurringAccountRules = false,
+                recurringPropertyRules = false,
                 propertyEntries = false,
                 accountEntries = false,
                 goalAssetsRefs = false,
@@ -9233,6 +10544,8 @@ class $$AssetsTableTableManager
                     if (propertyDetailsRefs) db.propertyDetails,
                     if (assetValuationsRefs) db.assetValuations,
                     if (assetTransactionsRefs) db.assetTransactions,
+                    if (recurringAccountRules) db.recurringCashflowRules,
+                    if (recurringPropertyRules) db.recurringCashflowRules,
                     if (propertyEntries) db.cashflowEntries,
                     if (accountEntries) db.cashflowEntries,
                     if (goalAssetsRefs) db.goalAssets,
@@ -9369,6 +10682,46 @@ class $$AssetsTableTableManager
                           referencedColumn: 'asset_id',
                           typedResults: items,
                         ),
+                      if (recurringAccountRules)
+                        await $_getPrefetchedDataByColumns<
+                          AssetRow,
+                          $AssetsTable,
+                          RecurringCashflowRuleRow,
+                          $RecurringCashflowRulesTable
+                        >(
+                          currentTable: table,
+                          referencedTable: $$AssetsTableReferences
+                              ._recurringAccountRulesTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$AssetsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).recurringAccountRules,
+                          currentColumn: 'id',
+                          referencedColumn: 'account_id',
+                          typedResults: items,
+                        ),
+                      if (recurringPropertyRules)
+                        await $_getPrefetchedDataByColumns<
+                          AssetRow,
+                          $AssetsTable,
+                          RecurringCashflowRuleRow,
+                          $RecurringCashflowRulesTable
+                        >(
+                          currentTable: table,
+                          referencedTable: $$AssetsTableReferences
+                              ._recurringPropertyRulesTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$AssetsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).recurringPropertyRules,
+                          currentColumn: 'id',
+                          referencedColumn: 'property_id',
+                          typedResults: items,
+                        ),
                       if (propertyEntries)
                         await $_getPrefetchedDataByColumns<
                           AssetRow,
@@ -9456,6 +10809,8 @@ typedef $$AssetsTableProcessedTableManager =
         bool propertyDetailsRefs,
         bool assetValuationsRefs,
         bool assetTransactionsRefs,
+        bool recurringAccountRules,
+        bool recurringPropertyRules,
         bool propertyEntries,
         bool accountEntries,
         bool goalAssetsRefs,
@@ -12727,6 +14082,31 @@ final class $$CategoriesTableReferences
     extends BaseReferences<_$AppDatabase, $CategoriesTable, CategoryRow> {
   $$CategoriesTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
+  static MultiTypedResultKey<
+    $RecurringCashflowRulesTable,
+    List<RecurringCashflowRuleRow>
+  >
+  _recurringCashflowRulesRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.recurringCashflowRules,
+        aliasName: 'categories__id__recurring_cashflow_rules__category_id',
+      );
+
+  $$RecurringCashflowRulesTableProcessedTableManager
+  get recurringCashflowRulesRefs {
+    final manager = $$RecurringCashflowRulesTableTableManager(
+      $_db,
+      $_db.recurringCashflowRules,
+    ).filter((f) => f.categoryId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _recurringCashflowRulesRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
   static MultiTypedResultKey<$CashflowEntriesTable, List<CashflowEntryRow>>
   _cashflowEntriesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.cashflowEntries,
@@ -12798,6 +14178,32 @@ class $$CategoriesTableFilterComposer
         column: $table.archivedAt,
         builder: (column) => ColumnWithTypeConverterFilters(column),
       );
+
+  Expression<bool> recurringCashflowRulesRefs(
+    Expression<bool> Function($$RecurringCashflowRulesTableFilterComposer f) f,
+  ) {
+    final $$RecurringCashflowRulesTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.recurringCashflowRules,
+          getReferencedColumn: (t) => t.categoryId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$RecurringCashflowRulesTableFilterComposer(
+                $db: $db,
+                $table: $db.recurringCashflowRules,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
 
   Expression<bool> cashflowEntriesRefs(
     Expression<bool> Function($$CashflowEntriesTableFilterComposer f) f,
@@ -12913,6 +14319,32 @@ class $$CategoriesTableAnnotationComposer
         builder: (column) => column,
       );
 
+  Expression<T> recurringCashflowRulesRefs<T extends Object>(
+    Expression<T> Function($$RecurringCashflowRulesTableAnnotationComposer a) f,
+  ) {
+    final $$RecurringCashflowRulesTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.recurringCashflowRules,
+          getReferencedColumn: (t) => t.categoryId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$RecurringCashflowRulesTableAnnotationComposer(
+                $db: $db,
+                $table: $db.recurringCashflowRules,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
   Expression<T> cashflowEntriesRefs<T extends Object>(
     Expression<T> Function($$CashflowEntriesTableAnnotationComposer a) f,
   ) {
@@ -12952,7 +14384,10 @@ class $$CategoriesTableTableManager
           $$CategoriesTableUpdateCompanionBuilder,
           (CategoryRow, $$CategoriesTableReferences),
           CategoryRow,
-          PrefetchHooks Function({bool cashflowEntriesRefs})
+          PrefetchHooks Function({
+            bool recurringCashflowRulesRefs,
+            bool cashflowEntriesRefs,
+          })
         > {
   $$CategoriesTableTableManager(_$AppDatabase db, $CategoriesTable table)
     : super(
@@ -13013,39 +14448,64 @@ class $$CategoriesTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({cashflowEntriesRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [
-                if (cashflowEntriesRefs) db.cashflowEntries,
-              ],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (cashflowEntriesRefs)
-                    await $_getPrefetchedDataByColumns<
-                      CategoryRow,
-                      $CategoriesTable,
-                      CashflowEntryRow,
-                      $CashflowEntriesTable
-                    >(
-                      currentTable: table,
-                      referencedTable: $$CategoriesTableReferences
-                          ._cashflowEntriesRefsTable(db),
-                      managerFromTypedResult: (p0) =>
-                          $$CategoriesTableReferences(
-                            db,
-                            table,
-                            p0,
-                          ).cashflowEntriesRefs,
-                      currentColumn: 'id',
-                      referencedColumn: 'category_id',
-                      typedResults: items,
-                    ),
-                ];
+          prefetchHooksCallback:
+              ({
+                recurringCashflowRulesRefs = false,
+                cashflowEntriesRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (recurringCashflowRulesRefs) db.recurringCashflowRules,
+                    if (cashflowEntriesRefs) db.cashflowEntries,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (recurringCashflowRulesRefs)
+                        await $_getPrefetchedDataByColumns<
+                          CategoryRow,
+                          $CategoriesTable,
+                          RecurringCashflowRuleRow,
+                          $RecurringCashflowRulesTable
+                        >(
+                          currentTable: table,
+                          referencedTable: $$CategoriesTableReferences
+                              ._recurringCashflowRulesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$CategoriesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).recurringCashflowRulesRefs,
+                          currentColumn: 'id',
+                          referencedColumn: 'category_id',
+                          typedResults: items,
+                        ),
+                      if (cashflowEntriesRefs)
+                        await $_getPrefetchedDataByColumns<
+                          CategoryRow,
+                          $CategoriesTable,
+                          CashflowEntryRow,
+                          $CashflowEntriesTable
+                        >(
+                          currentTable: table,
+                          referencedTable: $$CategoriesTableReferences
+                              ._cashflowEntriesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$CategoriesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).cashflowEntriesRefs,
+                          currentColumn: 'id',
+                          referencedColumn: 'category_id',
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -13062,7 +14522,938 @@ typedef $$CategoriesTableProcessedTableManager =
       $$CategoriesTableUpdateCompanionBuilder,
       (CategoryRow, $$CategoriesTableReferences),
       CategoryRow,
-      PrefetchHooks Function({bool cashflowEntriesRefs})
+      PrefetchHooks Function({
+        bool recurringCashflowRulesRefs,
+        bool cashflowEntriesRefs,
+      })
+    >;
+typedef $$RecurringCashflowRulesTableCreateCompanionBuilder =
+    RecurringCashflowRulesCompanion Function({
+      Value<int> id,
+      required RecurringStrategy strategy,
+      required CashflowKind kind,
+      required int categoryId,
+      Value<int?> amountMinor,
+      required String currencyCode,
+      Value<int?> accountId,
+      Value<int?> propertyId,
+      required bool affectsBalance,
+      required LocalDate startDate,
+      Value<LocalDate?> endDate,
+      Value<String?> comment,
+      Value<String?> lastGeneratedPeriod,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<DateTime?> deletedAt,
+    });
+typedef $$RecurringCashflowRulesTableUpdateCompanionBuilder =
+    RecurringCashflowRulesCompanion Function({
+      Value<int> id,
+      Value<RecurringStrategy> strategy,
+      Value<CashflowKind> kind,
+      Value<int> categoryId,
+      Value<int?> amountMinor,
+      Value<String> currencyCode,
+      Value<int?> accountId,
+      Value<int?> propertyId,
+      Value<bool> affectsBalance,
+      Value<LocalDate> startDate,
+      Value<LocalDate?> endDate,
+      Value<String?> comment,
+      Value<String?> lastGeneratedPeriod,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+    });
+
+final class $$RecurringCashflowRulesTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $RecurringCashflowRulesTable,
+          RecurringCashflowRuleRow
+        > {
+  $$RecurringCashflowRulesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $CategoriesTable _categoryIdTable(_$AppDatabase db) => db.categories
+      .createAlias('recurring_cashflow_rules__category_id__categories__id');
+
+  $$CategoriesTableProcessedTableManager get categoryId {
+    final $_column = $_itemColumn<int>('category_id')!;
+
+    final manager = $$CategoriesTableTableManager(
+      $_db,
+      $_db.categories,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_categoryIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $CurrenciesTable _currencyCodeTable(_$AppDatabase db) => db.currencies
+      .createAlias('recurring_cashflow_rules__currency_code__currencies__code');
+
+  $$CurrenciesTableProcessedTableManager get currencyCode {
+    final $_column = $_itemColumn<String>('currency_code')!;
+
+    final manager = $$CurrenciesTableTableManager(
+      $_db,
+      $_db.currencies,
+    ).filter((f) => f.code.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_currencyCodeTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $AssetsTable _accountIdTable(_$AppDatabase db) =>
+      db.assets.createAlias('recurring_cashflow_rules__account_id__assets__id');
+
+  $$AssetsTableProcessedTableManager? get accountId {
+    final $_column = $_itemColumn<int>('account_id');
+    if ($_column == null) return null;
+    final manager = $$AssetsTableTableManager(
+      $_db,
+      $_db.assets,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_accountIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $AssetsTable _propertyIdTable(_$AppDatabase db) => db.assets
+      .createAlias('recurring_cashflow_rules__property_id__assets__id');
+
+  $$AssetsTableProcessedTableManager? get propertyId {
+    final $_column = $_itemColumn<int>('property_id');
+    if ($_column == null) return null;
+    final manager = $$AssetsTableTableManager(
+      $_db,
+      $_db.assets,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_propertyIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<$CashflowEntriesTable, List<CashflowEntryRow>>
+  _cashflowEntriesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.cashflowEntries,
+    aliasName:
+        'recurring_cashflow_rules__id__cashflow_entries__recurring_rule_id',
+  );
+
+  $$CashflowEntriesTableProcessedTableManager get cashflowEntriesRefs {
+    final manager = $$CashflowEntriesTableTableManager(
+      $_db,
+      $_db.cashflowEntries,
+    ).filter((f) => f.recurringRuleId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _cashflowEntriesRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$RecurringCashflowRulesTableFilterComposer
+    extends Composer<_$AppDatabase, $RecurringCashflowRulesTable> {
+  $$RecurringCashflowRulesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<RecurringStrategy, RecurringStrategy, String>
+  get strategy => $composableBuilder(
+    column: $table.strategy,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<CashflowKind, CashflowKind, String> get kind =>
+      $composableBuilder(
+        column: $table.kind,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get affectsBalance => $composableBuilder(
+    column: $table.affectsBalance,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<LocalDate, LocalDate, String> get startDate =>
+      $composableBuilder(
+        column: $table.startDate,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnWithTypeConverterFilters<LocalDate?, LocalDate, String> get endDate =>
+      $composableBuilder(
+        column: $table.endDate,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<String> get comment => $composableBuilder(
+    column: $table.comment,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lastGeneratedPeriod => $composableBuilder(
+    column: $table.lastGeneratedPeriod,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<DateTime, DateTime, String> get createdAt =>
+      $composableBuilder(
+        column: $table.createdAt,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnWithTypeConverterFilters<DateTime, DateTime, String> get updatedAt =>
+      $composableBuilder(
+        column: $table.updatedAt,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnWithTypeConverterFilters<DateTime?, DateTime, String> get deletedAt =>
+      $composableBuilder(
+        column: $table.deletedAt,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  $$CategoriesTableFilterComposer get categoryId {
+    final $$CategoriesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.categoryId,
+      referencedTable: $db.categories,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CategoriesTableFilterComposer(
+            $db: $db,
+            $table: $db.categories,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$CurrenciesTableFilterComposer get currencyCode {
+    final $$CurrenciesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.currencyCode,
+      referencedTable: $db.currencies,
+      getReferencedColumn: (t) => t.code,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CurrenciesTableFilterComposer(
+            $db: $db,
+            $table: $db.currencies,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$AssetsTableFilterComposer get accountId {
+    final $$AssetsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.accountId,
+      referencedTable: $db.assets,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AssetsTableFilterComposer(
+            $db: $db,
+            $table: $db.assets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$AssetsTableFilterComposer get propertyId {
+    final $$AssetsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.propertyId,
+      referencedTable: $db.assets,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AssetsTableFilterComposer(
+            $db: $db,
+            $table: $db.assets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> cashflowEntriesRefs(
+    Expression<bool> Function($$CashflowEntriesTableFilterComposer f) f,
+  ) {
+    final $$CashflowEntriesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.cashflowEntries,
+      getReferencedColumn: (t) => t.recurringRuleId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CashflowEntriesTableFilterComposer(
+            $db: $db,
+            $table: $db.cashflowEntries,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$RecurringCashflowRulesTableOrderingComposer
+    extends Composer<_$AppDatabase, $RecurringCashflowRulesTable> {
+  $$RecurringCashflowRulesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get strategy => $composableBuilder(
+    column: $table.strategy,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get affectsBalance => $composableBuilder(
+    column: $table.affectsBalance,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get startDate => $composableBuilder(
+    column: $table.startDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get endDate => $composableBuilder(
+    column: $table.endDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get comment => $composableBuilder(
+    column: $table.comment,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lastGeneratedPeriod => $composableBuilder(
+    column: $table.lastGeneratedPeriod,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$CategoriesTableOrderingComposer get categoryId {
+    final $$CategoriesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.categoryId,
+      referencedTable: $db.categories,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CategoriesTableOrderingComposer(
+            $db: $db,
+            $table: $db.categories,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$CurrenciesTableOrderingComposer get currencyCode {
+    final $$CurrenciesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.currencyCode,
+      referencedTable: $db.currencies,
+      getReferencedColumn: (t) => t.code,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CurrenciesTableOrderingComposer(
+            $db: $db,
+            $table: $db.currencies,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$AssetsTableOrderingComposer get accountId {
+    final $$AssetsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.accountId,
+      referencedTable: $db.assets,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AssetsTableOrderingComposer(
+            $db: $db,
+            $table: $db.assets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$AssetsTableOrderingComposer get propertyId {
+    final $$AssetsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.propertyId,
+      referencedTable: $db.assets,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AssetsTableOrderingComposer(
+            $db: $db,
+            $table: $db.assets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$RecurringCashflowRulesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $RecurringCashflowRulesTable> {
+  $$RecurringCashflowRulesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<RecurringStrategy, String> get strategy =>
+      $composableBuilder(column: $table.strategy, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<CashflowKind, String> get kind =>
+      $composableBuilder(column: $table.kind, builder: (column) => column);
+
+  GeneratedColumn<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get affectsBalance => $composableBuilder(
+    column: $table.affectsBalance,
+    builder: (column) => column,
+  );
+
+  GeneratedColumnWithTypeConverter<LocalDate, String> get startDate =>
+      $composableBuilder(column: $table.startDate, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<LocalDate?, String> get endDate =>
+      $composableBuilder(column: $table.endDate, builder: (column) => column);
+
+  GeneratedColumn<String> get comment =>
+      $composableBuilder(column: $table.comment, builder: (column) => column);
+
+  GeneratedColumn<String> get lastGeneratedPeriod => $composableBuilder(
+    column: $table.lastGeneratedPeriod,
+    builder: (column) => column,
+  );
+
+  GeneratedColumnWithTypeConverter<DateTime, String> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<DateTime, String> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<DateTime?, String> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  $$CategoriesTableAnnotationComposer get categoryId {
+    final $$CategoriesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.categoryId,
+      referencedTable: $db.categories,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CategoriesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.categories,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$CurrenciesTableAnnotationComposer get currencyCode {
+    final $$CurrenciesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.currencyCode,
+      referencedTable: $db.currencies,
+      getReferencedColumn: (t) => t.code,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CurrenciesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.currencies,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$AssetsTableAnnotationComposer get accountId {
+    final $$AssetsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.accountId,
+      referencedTable: $db.assets,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AssetsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.assets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$AssetsTableAnnotationComposer get propertyId {
+    final $$AssetsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.propertyId,
+      referencedTable: $db.assets,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AssetsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.assets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> cashflowEntriesRefs<T extends Object>(
+    Expression<T> Function($$CashflowEntriesTableAnnotationComposer a) f,
+  ) {
+    final $$CashflowEntriesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.cashflowEntries,
+      getReferencedColumn: (t) => t.recurringRuleId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CashflowEntriesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.cashflowEntries,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$RecurringCashflowRulesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $RecurringCashflowRulesTable,
+          RecurringCashflowRuleRow,
+          $$RecurringCashflowRulesTableFilterComposer,
+          $$RecurringCashflowRulesTableOrderingComposer,
+          $$RecurringCashflowRulesTableAnnotationComposer,
+          $$RecurringCashflowRulesTableCreateCompanionBuilder,
+          $$RecurringCashflowRulesTableUpdateCompanionBuilder,
+          (RecurringCashflowRuleRow, $$RecurringCashflowRulesTableReferences),
+          RecurringCashflowRuleRow,
+          PrefetchHooks Function({
+            bool categoryId,
+            bool currencyCode,
+            bool accountId,
+            bool propertyId,
+            bool cashflowEntriesRefs,
+          })
+        > {
+  $$RecurringCashflowRulesTableTableManager(
+    _$AppDatabase db,
+    $RecurringCashflowRulesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$RecurringCashflowRulesTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$RecurringCashflowRulesTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$RecurringCashflowRulesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<RecurringStrategy> strategy = const Value.absent(),
+                Value<CashflowKind> kind = const Value.absent(),
+                Value<int> categoryId = const Value.absent(),
+                Value<int?> amountMinor = const Value.absent(),
+                Value<String> currencyCode = const Value.absent(),
+                Value<int?> accountId = const Value.absent(),
+                Value<int?> propertyId = const Value.absent(),
+                Value<bool> affectsBalance = const Value.absent(),
+                Value<LocalDate> startDate = const Value.absent(),
+                Value<LocalDate?> endDate = const Value.absent(),
+                Value<String?> comment = const Value.absent(),
+                Value<String?> lastGeneratedPeriod = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+              }) => RecurringCashflowRulesCompanion(
+                id: id,
+                strategy: strategy,
+                kind: kind,
+                categoryId: categoryId,
+                amountMinor: amountMinor,
+                currencyCode: currencyCode,
+                accountId: accountId,
+                propertyId: propertyId,
+                affectsBalance: affectsBalance,
+                startDate: startDate,
+                endDate: endDate,
+                comment: comment,
+                lastGeneratedPeriod: lastGeneratedPeriod,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required RecurringStrategy strategy,
+                required CashflowKind kind,
+                required int categoryId,
+                Value<int?> amountMinor = const Value.absent(),
+                required String currencyCode,
+                Value<int?> accountId = const Value.absent(),
+                Value<int?> propertyId = const Value.absent(),
+                required bool affectsBalance,
+                required LocalDate startDate,
+                Value<LocalDate?> endDate = const Value.absent(),
+                Value<String?> comment = const Value.absent(),
+                Value<String?> lastGeneratedPeriod = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<DateTime?> deletedAt = const Value.absent(),
+              }) => RecurringCashflowRulesCompanion.insert(
+                id: id,
+                strategy: strategy,
+                kind: kind,
+                categoryId: categoryId,
+                amountMinor: amountMinor,
+                currencyCode: currencyCode,
+                accountId: accountId,
+                propertyId: propertyId,
+                affectsBalance: affectsBalance,
+                startDate: startDate,
+                endDate: endDate,
+                comment: comment,
+                lastGeneratedPeriod: lastGeneratedPeriod,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<
+                    $RecurringCashflowRulesTable,
+                    RecurringCashflowRuleRow
+                  >(table),
+                  $$RecurringCashflowRulesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({
+                categoryId = false,
+                currencyCode = false,
+                accountId = false,
+                propertyId = false,
+                cashflowEntriesRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (cashflowEntriesRefs) db.cashflowEntries,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (categoryId) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.categoryId,
+                            referencedTable:
+                                $$RecurringCashflowRulesTableReferences
+                                    ._categoryIdTable(db),
+                            referencedColumn:
+                                $$RecurringCashflowRulesTableReferences
+                                    ._categoryIdTable(db)
+                                    .id,
+                          ) as T;
+                        }
+                        if (currencyCode) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.currencyCode,
+                            referencedTable:
+                                $$RecurringCashflowRulesTableReferences
+                                    ._currencyCodeTable(db),
+                            referencedColumn:
+                                $$RecurringCashflowRulesTableReferences
+                                    ._currencyCodeTable(db)
+                                    .code,
+                          ) as T;
+                        }
+                        if (accountId) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.accountId,
+                            referencedTable:
+                                $$RecurringCashflowRulesTableReferences
+                                    ._accountIdTable(db),
+                            referencedColumn:
+                                $$RecurringCashflowRulesTableReferences
+                                    ._accountIdTable(db)
+                                    .id,
+                          ) as T;
+                        }
+                        if (propertyId) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.propertyId,
+                            referencedTable:
+                                $$RecurringCashflowRulesTableReferences
+                                    ._propertyIdTable(db),
+                            referencedColumn:
+                                $$RecurringCashflowRulesTableReferences
+                                    ._propertyIdTable(db)
+                                    .id,
+                          ) as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (cashflowEntriesRefs)
+                        await $_getPrefetchedDataByColumns<
+                          RecurringCashflowRuleRow,
+                          $RecurringCashflowRulesTable,
+                          CashflowEntryRow,
+                          $CashflowEntriesTable
+                        >(
+                          currentTable: table,
+                          referencedTable:
+                              $$RecurringCashflowRulesTableReferences
+                                  ._cashflowEntriesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$RecurringCashflowRulesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).cashflowEntriesRefs,
+                          currentColumn: 'id',
+                          referencedColumn: 'recurring_rule_id',
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$RecurringCashflowRulesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $RecurringCashflowRulesTable,
+      RecurringCashflowRuleRow,
+      $$RecurringCashflowRulesTableFilterComposer,
+      $$RecurringCashflowRulesTableOrderingComposer,
+      $$RecurringCashflowRulesTableAnnotationComposer,
+      $$RecurringCashflowRulesTableCreateCompanionBuilder,
+      $$RecurringCashflowRulesTableUpdateCompanionBuilder,
+      (RecurringCashflowRuleRow, $$RecurringCashflowRulesTableReferences),
+      RecurringCashflowRuleRow,
+      PrefetchHooks Function({
+        bool categoryId,
+        bool currencyCode,
+        bool accountId,
+        bool propertyId,
+        bool cashflowEntriesRefs,
+      })
     >;
 typedef $$CashflowEntriesTableCreateCompanionBuilder =
     CashflowEntriesCompanion Function({
@@ -13079,6 +15470,7 @@ typedef $$CashflowEntriesTableCreateCompanionBuilder =
       Value<int?> propertyId,
       Value<int?> accountId,
       Value<int?> assetTransactionId,
+      Value<int?> recurringRuleId,
       required int revisionNo,
       required DateTime createdAt,
       required DateTime updatedAt,
@@ -13099,6 +15491,7 @@ typedef $$CashflowEntriesTableUpdateCompanionBuilder =
       Value<int?> propertyId,
       Value<int?> accountId,
       Value<int?> assetTransactionId,
+      Value<int?> recurringRuleId,
       Value<int> revisionNo,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
@@ -13195,6 +15588,25 @@ final class $$CashflowEntriesTableReferences
       $_db.assetTransactions,
     ).filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_assetTransactionIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $RecurringCashflowRulesTable _recurringRuleIdTable(_$AppDatabase db) =>
+      db.recurringCashflowRules.createAlias(
+        'cashflow_entries__recurring_rule_id__recurring_cashflow_rules__id',
+      );
+
+  $$RecurringCashflowRulesTableProcessedTableManager? get recurringRuleId {
+    final $_column = $_itemColumn<int>('recurring_rule_id');
+    if ($_column == null) return null;
+    final manager = $$RecurringCashflowRulesTableTableManager(
+      $_db,
+      $_db.recurringCashflowRules,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_recurringRuleIdTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: [item]),
@@ -13417,6 +15829,30 @@ class $$CashflowEntriesTableFilterComposer
     return composer;
   }
 
+  $$RecurringCashflowRulesTableFilterComposer get recurringRuleId {
+    final $$RecurringCashflowRulesTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.recurringRuleId,
+          referencedTable: $db.recurringCashflowRules,
+          getReferencedColumn: (t) => t.id,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$RecurringCashflowRulesTableFilterComposer(
+                $db: $db,
+                $table: $db.recurringCashflowRules,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return composer;
+  }
+
   Expression<bool> cashflowEntryRevisionsRefs(
     Expression<bool> Function($$CashflowEntryRevisionsTableFilterComposer f) f,
   ) {
@@ -13627,6 +16063,30 @@ class $$CashflowEntriesTableOrderingComposer
     );
     return composer;
   }
+
+  $$RecurringCashflowRulesTableOrderingComposer get recurringRuleId {
+    final $$RecurringCashflowRulesTableOrderingComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.recurringRuleId,
+          referencedTable: $db.recurringCashflowRules,
+          getReferencedColumn: (t) => t.id,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$RecurringCashflowRulesTableOrderingComposer(
+                $db: $db,
+                $table: $db.recurringCashflowRules,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return composer;
+  }
 }
 
 class $$CashflowEntriesTableAnnotationComposer
@@ -13801,6 +16261,30 @@ class $$CashflowEntriesTableAnnotationComposer
     return composer;
   }
 
+  $$RecurringCashflowRulesTableAnnotationComposer get recurringRuleId {
+    final $$RecurringCashflowRulesTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.recurringRuleId,
+          referencedTable: $db.recurringCashflowRules,
+          getReferencedColumn: (t) => t.id,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$RecurringCashflowRulesTableAnnotationComposer(
+                $db: $db,
+                $table: $db.recurringCashflowRules,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return composer;
+  }
+
   Expression<T> cashflowEntryRevisionsRefs<T extends Object>(
     Expression<T> Function($$CashflowEntryRevisionsTableAnnotationComposer a) f,
   ) {
@@ -13847,6 +16331,7 @@ class $$CashflowEntriesTableTableManager
             bool propertyId,
             bool accountId,
             bool assetTransactionId,
+            bool recurringRuleId,
             bool cashflowEntryRevisionsRefs,
           })
         > {
@@ -13878,6 +16363,7 @@ class $$CashflowEntriesTableTableManager
                 Value<int?> propertyId = const Value.absent(),
                 Value<int?> accountId = const Value.absent(),
                 Value<int?> assetTransactionId = const Value.absent(),
+                Value<int?> recurringRuleId = const Value.absent(),
                 Value<int> revisionNo = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
@@ -13896,6 +16382,7 @@ class $$CashflowEntriesTableTableManager
                 propertyId: propertyId,
                 accountId: accountId,
                 assetTransactionId: assetTransactionId,
+                recurringRuleId: recurringRuleId,
                 revisionNo: revisionNo,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -13916,6 +16403,7 @@ class $$CashflowEntriesTableTableManager
                 Value<int?> propertyId = const Value.absent(),
                 Value<int?> accountId = const Value.absent(),
                 Value<int?> assetTransactionId = const Value.absent(),
+                Value<int?> recurringRuleId = const Value.absent(),
                 required int revisionNo,
                 required DateTime createdAt,
                 required DateTime updatedAt,
@@ -13934,6 +16422,7 @@ class $$CashflowEntriesTableTableManager
                 propertyId: propertyId,
                 accountId: accountId,
                 assetTransactionId: assetTransactionId,
+                recurringRuleId: recurringRuleId,
                 revisionNo: revisionNo,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -13954,6 +16443,7 @@ class $$CashflowEntriesTableTableManager
                 propertyId = false,
                 accountId = false,
                 assetTransactionId = false,
+                recurringRuleId = false,
                 cashflowEntryRevisionsRefs = false,
               }) {
                 return PrefetchHooks(
@@ -14032,6 +16522,17 @@ class $$CashflowEntriesTableTableManager
                                 .id,
                           ) as T;
                         }
+                        if (recurringRuleId) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.recurringRuleId,
+                            referencedTable: $$CashflowEntriesTableReferences
+                                ._recurringRuleIdTable(db),
+                            referencedColumn: $$CashflowEntriesTableReferences
+                                ._recurringRuleIdTable(db)
+                                .id,
+                          ) as T;
+                        }
 
                         return state;
                       },
@@ -14083,6 +16584,7 @@ typedef $$CashflowEntriesTableProcessedTableManager =
         bool propertyId,
         bool accountId,
         bool assetTransactionId,
+        bool recurringRuleId,
         bool cashflowEntryRevisionsRefs,
       })
     >;
@@ -15825,6 +18327,11 @@ class $AppDatabaseManager {
       );
   $$CategoriesTableTableManager get categories =>
       $$CategoriesTableTableManager(_db, _db.categories);
+  $$RecurringCashflowRulesTableTableManager get recurringCashflowRules =>
+      $$RecurringCashflowRulesTableTableManager(
+        _db,
+        _db.recurringCashflowRules,
+      );
   $$CashflowEntriesTableTableManager get cashflowEntries =>
       $$CashflowEntriesTableTableManager(_db, _db.cashflowEntries);
   $$CashflowEntryRevisionsTableTableManager get cashflowEntryRevisions =>

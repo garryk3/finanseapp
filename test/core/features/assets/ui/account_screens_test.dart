@@ -522,7 +522,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text(l10n.assetInUseTitle), findsOneWidget);
-    expect(find.text(l10n.assetInUseMessage(2, 0, 1, 0)), findsOneWidget);
+    expect(find.text(l10n.assetInUseMessage(2, 0, 1, 0, 0)), findsOneWidget);
   });
 }
 

@@ -2,6 +2,8 @@ import 'package:drift/drift.dart';
 import 'package:finanseapp/core/database/app_database.dart';
 import 'package:finanseapp/core/database/tables/assets.dart';
 import 'package:finanseapp/core/database/tables/asset_details.dart';
+import 'package:finanseapp/core/database/tables/cashflow_entries.dart';
+import 'package:finanseapp/core/database/tables/recurring_cashflow_rules.dart';
 import 'package:decimal/decimal.dart';
 import 'package:finanseapp/core/domain/common/local_date.dart';
 import 'package:finanseapp/core/domain/common/result.dart';
@@ -12,7 +14,14 @@ part 'assets_dao.g.dart';
 /// Активы и их detail-строки. Create выполняется одной транзакцией
 /// (TX-ASSET-SAVE): общая строка плюс ровно одна detail-строка вида.
 @DriftAccessor(
-  tables: [Assets, AccountDetails, InvestmentDetails, PropertyDetails],
+  tables: [
+    Assets,
+    AccountDetails,
+    InvestmentDetails,
+    PropertyDetails,
+    RecurringCashflowRules,
+    CashflowEntries,
+  ],
 )
 class AssetsDao extends DatabaseAccessor<AppDatabase> with _$AssetsDaoMixin {
   AssetsDao(super.db);
@@ -177,7 +186,9 @@ class AssetsDao extends DatabaseAccessor<AppDatabase> with _$AssetsDaoMixin {
     );
   });
 
-  Future<({int transactions, int valuations, int goals, int cashflow})>
+  Future<
+    ({int transactions, int valuations, int goals, int cashflow, int recurring})
+  >
   referenceCounts(int assetId) async {
     final row = await customSelect(
       'SELECT '
@@ -185,7 +196,10 @@ class AssetsDao extends DatabaseAccessor<AppDatabase> with _$AssetsDaoMixin {
       '(SELECT COUNT(*) FROM asset_valuations WHERE asset_id = ?1) AS val, '
       '(SELECT COUNT(*) FROM goal_assets WHERE asset_id = ?1) AS goals, '
       '(SELECT COUNT(*) FROM cashflow_entries '
-      'WHERE property_id = ?1 OR account_id = ?1) AS cashflow',
+      'WHERE property_id = ?1 OR account_id = ?1) AS cashflow, '
+      '(SELECT COUNT(*) FROM recurring_cashflow_rules '
+      'WHERE (property_id = ?1 OR account_id = ?1) '
+      'AND deleted_at IS NULL) AS recurring',
       variables: [Variable<int>(assetId)],
     ).getSingle();
     return (
@@ -193,6 +207,7 @@ class AssetsDao extends DatabaseAccessor<AppDatabase> with _$AssetsDaoMixin {
       valuations: row.read<int>('val'),
       goals: row.read<int>('goals'),
       cashflow: row.read<int>('cashflow'),
+      recurring: row.read<int>('recurring'),
     );
   }
 
@@ -288,7 +303,8 @@ class AssetsDao extends DatabaseAccessor<AppDatabase> with _$AssetsDaoMixin {
     return counts.transactions +
         counts.valuations +
         counts.goals +
-        counts.cashflow;
+        counts.cashflow +
+        counts.recurring;
   }
 
   Future<void> deleteIfUnused(int assetId) => transaction(() async {
@@ -299,6 +315,24 @@ class AssetsDao extends DatabaseAccessor<AppDatabase> with _$AssetsDaoMixin {
       );
     }
     final asset = await getById(assetId);
+    // Активных правил нет (проверено выше). Soft-deleted правила не должны
+    // блокировать удаление через FK RESTRICT: у перевешенных автоопераций
+    // очищаем текущую ссылку (ревизии сохраняют snapshot), затем удаляем
+    // инертное правило. Обнуление только account_id/property_id нарушило бы
+    // CHECK affects_balance/strategy, поэтому чистим ссылку на правило.
+    final staleRules =
+        await (select(recurringCashflowRules)..where(
+              (r) => r.accountId.equals(assetId) | r.propertyId.equals(assetId),
+            ))
+            .get();
+    for (final rule in staleRules) {
+      await (update(cashflowEntries)
+            ..where((e) => e.recurringRuleId.equals(rule.id)))
+          .write(const CashflowEntriesCompanion(recurringRuleId: Value(null)));
+      await (delete(
+        recurringCashflowRules,
+      )..where((r) => r.id.equals(rule.id))).go();
+    }
     switch (asset.kind) {
       case AssetKind.account:
         await (delete(
