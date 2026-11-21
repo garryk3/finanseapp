@@ -82,6 +82,13 @@ stack trace и сырое исключение пользователю не в�
 маршрут при локе на cold start или возврате из фона (BR-Sec-6). Кнопка «назад»
 лок-скрин не закрывает.
 
+Онбординг первого запуска (`OnboardingGate`) стоит в той же цепочке `builder`, но **внутри**
+`AppLockGate` (лок перекрывает онбординг, BR-Sec-6): пока флаг `app_settings.onboardingCompleted`
+не выставлен, `child` (Router) не монтируется. Экран онбординга рендерится под собственным
+`Navigator`, поэтому uikit-модалки (`AppSelect`, bottom sheet, диалоги) работают без Router.
+Системный BACK в этом состоянии закрывает открытый sheet/диалог онбординга
+(`WidgetsBindingObserver.didPopRoute` в гейте) и не завершает приложение.
+
 ## 3. Query parameters и prefill
 
 | Route | Keys | Правила |

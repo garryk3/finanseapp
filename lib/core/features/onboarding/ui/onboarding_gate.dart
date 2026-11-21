@@ -25,13 +25,32 @@ class OnboardingGate extends StatefulWidget {
   State<OnboardingGate> createState() => _OnboardingGateState();
 }
 
-class _OnboardingGateState extends State<OnboardingGate> {
+class _OnboardingGateState extends State<OnboardingGate>
+    with WidgetsBindingObserver {
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
   bool? _completed;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _check();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  /// Системный BACK закрывает открытый sheet/диалог онбординга, а не приложение.
+  @override
+  Future<bool> didPopRoute() async {
+    if (_completed != false) return false;
+    final navigator = _navigatorKey.currentState;
+    if (navigator == null || !navigator.canPop()) return false;
+    navigator.pop();
+    return true;
   }
 
   Future<void> _check() async {
@@ -56,6 +75,7 @@ class _OnboardingGateState extends State<OnboardingGate> {
     if (completed == null) return const SizedBox.shrink();
     if (completed) return widget.child;
     return Navigator(
+      key: _navigatorKey,
       onGenerateRoute: (_) => MaterialPageRoute<void>(
         builder: (_) => OnboardingScreen(
           repository: widget.repository,

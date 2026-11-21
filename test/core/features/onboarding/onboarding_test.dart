@@ -86,6 +86,39 @@ void main() {
     expect(find.byType(OnboardingScreen), findsNothing);
   });
 
+  testWidgets('онбординг: системный BACK закрывает выбор валюты', (
+    tester,
+  ) async {
+    final settings = _Settings();
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light(),
+        localizationsDelegates: const [
+          ...GlobalMaterialLocalizations.delegates,
+          AppLocalizations.delegate,
+        ],
+        supportedLocales: const [Locale('ru')],
+        builder: (context, child) => OnboardingGate(
+          repository: _Onboarding(),
+          settingsRepository: settings,
+          currencyRepository: _Currencies(),
+          child: child ?? const SizedBox.shrink(),
+        ),
+        home: const SizedBox.shrink(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('RUB'));
+    await tester.pumpAndSettle();
+    expect(find.text('USD'), findsWidgets);
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+
+    expect(find.text('USD'), findsNothing);
+    expect(find.byType(OnboardingScreen), findsOneWidget);
+  });
+
   testWidgets('онбординг: ошибка чтения валют не оставляет вечную загрузку', (
     tester,
   ) async {
