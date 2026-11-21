@@ -114,6 +114,23 @@ class AuditViewModel {
   void _log(String message, Object error, StackTrace stackTrace) => developer
       .log(message, name: 'audit', error: error, stackTrace: stackTrace);
 
+  /// Удалённые записи, которые действительно можно восстановить: запись,
+  /// удалённая отвязкой от активной операции, восстановлению не подлежит и
+  /// в аудите не показывается.
+  List<CashflowEntry> get restorableEntries {
+    final deletedTransactions = {
+      for (final item in transactions.value) item.id,
+    };
+    return [
+      for (final entry in entries.value)
+        if (entry.assetTransactionId == null ||
+            deletedTransactions.contains(entry.assetTransactionId))
+          entry,
+    ];
+  }
+
+  int get restorableEntryCount => restorableEntries.length;
+
   String assetName(int id) => _assetNames[id] ?? '';
 
   String categoryName(int id) => _categoryNames[id] ?? '';
