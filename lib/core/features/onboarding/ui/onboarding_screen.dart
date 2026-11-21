@@ -41,6 +41,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   bool _loadFailed = false;
   bool _saveFailed = false;
 
+  /// Действие, которое сейчас выполняется: спиннер на нажатой кнопке.
+  bool? _pendingAppliesCurrency;
+
   @override
   void initState() {
     super.initState();
@@ -78,6 +81,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     if (_busy) return;
     setState(() {
       _busy = true;
+      _pendingAppliesCurrency = applyCurrency;
       _saveFailed = false;
     });
     try {
@@ -96,7 +100,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       );
       if (mounted) setState(() => _saveFailed = true);
     } finally {
-      if (mounted) setState(() => _busy = false);
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _pendingAppliesCurrency = null;
+        });
+      }
     }
   }
 
@@ -111,15 +120,27 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            if (_saveFailed) ...[
+              Semantics(
+                liveRegion: true,
+                child: AppText(
+                  l10n.onboardingSaveError,
+                  style: Theme.of(context).textTheme.bodySmall
+                      ?.copyWith(color: Theme.of(context).colorScheme.error),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+            ],
             AppButton(
               label: l10n.onboardingStart,
-              pending: _busy,
+              pending: _pendingAppliesCurrency ?? false,
               onPressed: _busy ? null : () => _finish(applyCurrency: true),
             ),
             const SizedBox(height: AppSpacing.xs),
             AppButton(
               label: l10n.onboardingSkip,
               variant: AppButtonVariant.text,
+              pending: _pendingAppliesCurrency == false,
               onPressed: _busy ? null : () => _finish(applyCurrency: false),
             ),
           ],
@@ -172,18 +193,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     l10n.onboardingBaseCurrency,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-                if (_saveFailed) ...[
-                  const SizedBox(height: AppSpacing.sm),
-                  Semantics(
-                    liveRegion: true,
-                    child: AppText(
-                      l10n.onboardingSaveError,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.error,
-                      ),
                     ),
                   ),
                 ],

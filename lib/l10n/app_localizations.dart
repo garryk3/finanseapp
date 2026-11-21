@@ -3424,13 +3424,13 @@ abstract class AppLocalizations {
   /// Заголовок онбординга.
   ///
   /// In ru, this message translates to:
-  /// **'Добро пожаловать в FinanseApp'**
+  /// **'Добро пожаловать'**
   String get onboardingTitle;
 
   /// Вступление.
   ///
   /// In ru, this message translates to:
-  /// **'Локальный учёт финансов: данные хранятся только на устройстве.'**
+  /// **'FinanseApp — локальный учёт финансов: данные хранятся только на устройстве.'**
   String get onboardingIntro;
 
   /// Приватность.
@@ -3442,7 +3442,7 @@ abstract class AppLocalizations {
   /// Валюта.
   ///
   /// In ru, this message translates to:
-  /// **'Базовая валюта используется для отчётов и итогов; её можно изменить позже в настройках.'**
+  /// **'Используется для отчётов и итогов; можно изменить позже в настройках.'**
   String get onboardingBaseCurrency;
 
   /// CTA старт.
@@ -3466,7 +3466,7 @@ abstract class AppLocalizations {
   /// Заголовок вводной секции онбординга.
   ///
   /// In ru, this message translates to:
-  /// **'Начало работы'**
+  /// **'FinanseApp'**
   String get onboardingSetupTitle;
 
   /// Ошибка сохранения настроек онбординга.

@@ -2454,11 +2454,11 @@
   "@propertyYieldError": {
     "description": "Ошибка расчёта доходности."
   },
-  "onboardingTitle": "Добро пожаловать в FinanseApp",
+  "onboardingTitle": "Добро пожаловать",
   "@onboardingTitle": {
     "description": "Заголовок онбординга."
   },
-  "onboardingIntro": "Локальный учёт финансов: данные хранятся только на устройстве.",
+  "onboardingIntro": "FinanseApp — локальный учёт финансов: данные хранятся только на устройстве.",
   "@onboardingIntro": {
     "description": "Вступление."
   },
@@ -2466,7 +2466,7 @@
   "@onboardingPrivacy": {
     "description": "Приватность."
   },
-  "onboardingBaseCurrency": "Базовая валюта используется для отчётов и итогов; её можно изменить позже в настройках.",
+  "onboardingBaseCurrency": "Используется для отчётов и итогов; можно изменить позже в настройках.",
   "@onboardingBaseCurrency": {
     "description": "Валюта."
   },
@@ -2482,7 +2482,7 @@
   "@onboardingCurrencyLabel": {
     "description": "Короткий label выбора валюты."
   },
-  "onboardingSetupTitle": "Начало работы",
+  "onboardingSetupTitle": "FinanseApp",
   "@onboardingSetupTitle": {
     "description": "Заголовок вводной секции онбординга."
   },

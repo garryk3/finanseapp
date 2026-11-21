@@ -1816,11 +1816,11 @@ class AppLocalizationsRu extends AppLocalizations {
   String get propertyYieldError => 'Не удалось рассчитать доходность.';
 
   @override
-  String get onboardingTitle => 'Добро пожаловать в FinanseApp';
+  String get onboardingTitle => 'Добро пожаловать';
 
   @override
   String get onboardingIntro =>
-      'Локальный учёт финансов: данные хранятся только на устройстве.';
+      'FinanseApp — локальный учёт финансов: данные хранятся только на устройстве.';
 
   @override
   String get onboardingPrivacy =>
@@ -1828,7 +1828,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get onboardingBaseCurrency =>
-      'Базовая валюта используется для отчётов и итогов; её можно изменить позже в настройках.';
+      'Используется для отчётов и итогов; можно изменить позже в настройках.';
 
   @override
   String get onboardingStart => 'Начать';
@@ -1840,7 +1840,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get onboardingCurrencyLabel => 'Базовая валюта';
 
   @override
-  String get onboardingSetupTitle => 'Начало работы';
+  String get onboardingSetupTitle => 'FinanseApp';
 
   @override
   String get onboardingSaveError =>
