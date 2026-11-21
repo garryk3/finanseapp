@@ -77,7 +77,7 @@ class _AuditScreenState extends State<AuditScreen> {
           final loading = vm.state.value is ViewLoading;
           final items = _kind == AuditKind.assetTransaction
               ? vm.transactions.value
-              : vm.entries.value;
+              : vm.restorableEntries;
           final rowCount = loading || items.isEmpty ? 1 : items.length;
           return AppListView.builder(
             padding: const EdgeInsets.only(bottom: AppSpacing.xl),
@@ -121,7 +121,7 @@ class _AuditScreenState extends State<AuditScreen> {
         ),
         AppSegment(
           value: AuditKind.cashflow,
-          label: '${l10n.auditTabCashflow} · ${vm.entries.value.length}',
+          label: '${l10n.auditTabCashflow} · ${vm.restorableEntryCount}',
         ),
       ],
     ),
@@ -159,7 +159,7 @@ class _AuditScreenState extends State<AuditScreen> {
   }
 
   Widget _entryTile(AuditViewModel vm, AppLocalizations l10n, int index) {
-    final entry = vm.entries.value[index];
+    final entry = vm.restorableEntries[index];
     final income = entry.kind == CashflowKind.income;
     final name = vm.categoryName(entry.categoryId);
     return AppOperationListTile(

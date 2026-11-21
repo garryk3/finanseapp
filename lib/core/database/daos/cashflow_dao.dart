@@ -217,11 +217,19 @@ class CashflowDao extends DatabaseAccessor<AppDatabase>
   /// Восстанавливает связанную с операцией запись при restore пары.
   Future<void> restoreFromAsset(int assetTransactionId) => transaction(
     () async {
+      // Одна операция может иметь несколько исторических связанных записей
+      // (переназначение классификации), поэтому берём последнюю удалённую.
       final row =
           await (select(cashflowEntries)
-                ..where((e) => e.assetTransactionId.equals(assetTransactionId)))
+                ..where(
+                  (e) =>
+                      e.assetTransactionId.equals(assetTransactionId) &
+                      e.deletedAt.isNotNull(),
+                )
+                ..orderBy([(e) => OrderingTerm.desc(e.id)])
+                ..limit(1))
               .getSingleOrNull();
-      if (row == null || row.deletedAt == null) return;
+      if (row == null) return;
       final now = attachedDatabase.clock();
       await (update(cashflowEntries)..where((e) => e.id.equals(row.id))).write(
         CashflowEntriesCompanion(
