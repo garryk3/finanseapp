@@ -54,6 +54,17 @@ class CashflowDao extends DatabaseAccessor<AppDatabase>
     with _$CashflowDaoMixin {
   CashflowDao(super.db);
 
+  /// Удалённые записи денежного потока для аудита и восстановления (13.1).
+  Stream<List<CashflowEntryRow>> watchDeleted() {
+    final query = select(cashflowEntries)
+      ..where((e) => e.deletedAt.isNotNull())
+      ..orderBy([
+        (e) => OrderingTerm.desc(e.deletedAt),
+        (e) => OrderingTerm.desc(e.id),
+      ]);
+    return query.watch();
+  }
+
   /// Журнал с фильтрами (7.1/7.3); поиск по комментарию — в repository.
   Stream<List<CashflowEntryRow>> watchFiltered(CashflowFilter filter) {
     final query = select(cashflowEntries)

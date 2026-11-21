@@ -86,6 +86,17 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase>
   Future<List<AssetTransactionRow>> allRows() =>
       select(assetTransactions).get();
 
+  /// Удалённые операции для аудита и восстановления (13.1).
+  Stream<List<AssetTransactionRow>> watchDeleted() {
+    final query = select(assetTransactions)
+      ..where((t) => t.deletedAt.isNotNull())
+      ..orderBy([
+        (t) => OrderingTerm.desc(t.deletedAt),
+        (t) => OrderingTerm.desc(t.id),
+      ]);
+    return query.watch();
+  }
+
   /// Журнал операций с фильтрами (6.1: базовые; UI — 6.3).
   Stream<List<AssetTransactionRow>> watchFiltered(TransactionFilter filter) {
     final query =

@@ -37,17 +37,34 @@ final class AssetTransactionRepositoryImpl
             limit: search.isEmpty ? filter.limit : null,
           ),
         )
-        .asyncMap((rows) async {
-          final assets = {
-            for (final row in await _db.select(_db.assets).get()) row.id: row,
-          };
-          return [
-            for (final row in rows)
-              if (search.isEmpty ||
-                  (row.comment ?? '').toLowerCase().contains(search))
-                mapAssetTransaction(row, assets[row.assetId]!.currencyCode),
-          ];
-        });
+        .asyncMap((rows) => _mapRows(rows, search: search));
+  }
+
+  @override
+  Stream<List<AssetTransaction>> watchDeleted() =>
+      _db.transactionsDao.watchDeleted().asyncMap((rows) async {
+        final assets = {
+          for (final row in await _db.select(_db.assets).get()) row.id: row,
+        };
+        return [
+          for (final row in rows)
+            mapAssetTransaction(row, assets[row.assetId]!.currencyCode),
+        ];
+      });
+
+  Future<List<AssetTransaction>> _mapRows(
+    List<AssetTransactionRow> rows, {
+    String search = '',
+  }) async {
+    final assets = {
+      for (final row in await _db.select(_db.assets).get()) row.id: row,
+    };
+    return [
+      for (final row in rows)
+        if (search.isEmpty ||
+            (row.comment ?? '').toLowerCase().contains(search))
+          mapAssetTransaction(row, assets[row.assetId]!.currencyCode),
+    ];
   }
 
   @override

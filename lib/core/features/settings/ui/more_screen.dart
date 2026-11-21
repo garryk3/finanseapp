@@ -63,6 +63,11 @@ class _MoreScreenState extends State<MoreScreen> {
                     leading: const AppIcon(Icons.compare_arrows),
                     onTap: () => context.push(AppRoutes.comparison),
                   ),
+                  AppListTile(
+                    title: l10n.auditTitle,
+                    leading: const AppIcon(Icons.history),
+                    onTap: () => context.push(AppRoutes.audit),
+                  ),
                 ],
               ),
             ),

@@ -252,6 +252,19 @@ void main() {
     expect(await db.cashflowDao.revisions(id), hasLength(2));
   });
 
+  test('watchDeleted отдаёт только удалённые записи (13.1)', () async {
+    final id = await saveIncome();
+    await commands.delete(id);
+
+    final items = await repository.watchDeleted().first;
+
+    expect(items.map((item) => item.id), [id]);
+    expect(items.single.deletedAt, isNotNull);
+
+    await repository.restore(id);
+    expect(await repository.watchDeleted().first, isEmpty);
+  });
+
   test(
     'standalone restore возвращает запись и пишет restore-ревизию',
     () async {

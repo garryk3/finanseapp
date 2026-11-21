@@ -30,6 +30,7 @@ class AppOperationListTile extends StatelessWidget {
     this.linkedLabel,
     this.deleted = false,
     this.deletedLabel,
+    this.showDeletedBadge = true,
     this.onTap,
   }) : assert(!deleted || deletedLabel != null);
 
@@ -40,6 +41,9 @@ class AppOperationListTile extends StatelessWidget {
   final String? categoryLabel, accountLabel, comment, linkedLabel;
   final bool deleted;
   final String? deletedLabel;
+
+  /// Бейдж «удалено» можно скрыть, когда контекст задаёт сам экран (аудит).
+  final bool showDeletedBadge;
   final VoidCallback? onTap;
 
   @override
@@ -99,7 +103,7 @@ class AppOperationListTile extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        if (deleted) ...<Widget>[
+                        if (deleted && showDeletedBadge) ...<Widget>[
                           const SizedBox(width: AppSpacing.xs),
                           _StatusBadge(label: deletedLabel!, deleted: true),
                         ] else if (linkedLabel != null) ...<Widget>[
