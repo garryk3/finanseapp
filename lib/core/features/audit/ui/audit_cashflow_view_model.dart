@@ -34,7 +34,7 @@ class AuditCashflowViewModel {
     try {
       await cashflowRepository.restore(entryId);
       await load();
-    } on Exception {
+    } on Object {
       restoreFailed.value = true;
     } finally {
       restoreBusy.value = false;
