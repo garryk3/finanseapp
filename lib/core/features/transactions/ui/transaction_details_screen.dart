@@ -153,13 +153,14 @@ class _TransactionDetailsScreenState extends State<TransactionDetailsScreen> {
                         AppRoutes.auditAssetTransactionPath(transaction.id),
                       ),
                     ),
-                    if (transaction.transferId == null)
-                      AppButton(
-                        label: l10n.accountDelete,
-                        variant: AppButtonVariant.destructive,
-                        pending: vm.busy.value,
-                        onPressed: vm.busy.value ? null : _delete,
-                      ),
+                    AppButton(
+                      label: _isTransfer
+                          ? l10n.transferDeleteAction
+                          : l10n.accountDelete,
+                      variant: AppButtonVariant.destructive,
+                      pending: vm.busy.value,
+                      onPressed: vm.busy.value ? null : _delete,
+                    ),
                   ],
                 ),
               ),
@@ -174,13 +175,19 @@ class _TransactionDetailsScreenState extends State<TransactionDetailsScreen> {
     );
   }
 
+  bool get _isTransfer => _viewModel.transaction.value?.transferId != null;
+
   Future<void> _delete() async {
     final l10n = AppLocalizations.of(context);
     final confirmed = await showAppDialog<bool>(
       context: context,
       builder: (context) => AppConfirmDialog(
-        title: l10n.transactionDeleteTitle,
-        message: l10n.transactionDeleteMessage,
+        title: _isTransfer
+            ? l10n.transferDeleteTitle
+            : l10n.transactionDeleteTitle,
+        message: _isTransfer
+            ? l10n.transferDeleteMessage
+            : l10n.transactionDeleteMessage,
         confirmLabel: l10n.commonDelete,
         cancelLabel: l10n.commonCancel,
         destructive: true,

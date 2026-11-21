@@ -2525,5 +2525,17 @@
   "transactionDeleteBalanceBlocked": "Нельзя удалить: после этой операции остаток счёта станет отрицательным.",
   "@transactionDeleteBalanceBlocked": {
     "description": "Удаление нарушает историю баланса."
+  },
+  "transferDeleteTitle": "Удалить перевод?",
+  "@transferDeleteTitle": {
+    "description": "Подтверждение удаления перевода."
+  },
+  "transferDeleteMessage": "Будут удалены обе операции перевода, балансы счетов откатятся.",
+  "@transferDeleteMessage": {
+    "description": "Пояснение удаления перевода."
+  },
+  "transferDeleteAction": "Удалить перевод",
+  "@transferDeleteAction": {
+    "description": "Кнопка удаления перевода в деталях."
   }
 }

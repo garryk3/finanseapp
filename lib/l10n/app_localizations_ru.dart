@@ -1874,4 +1874,14 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get transactionDeleteBalanceBlocked =>
       'Нельзя удалить: после этой операции остаток счёта станет отрицательным.';
+
+  @override
+  String get transferDeleteTitle => 'Удалить перевод?';
+
+  @override
+  String get transferDeleteMessage =>
+      'Будут удалены обе операции перевода, балансы счетов откатятся.';
+
+  @override
+  String get transferDeleteAction => 'Удалить перевод';
 }

@@ -3528,6 +3528,24 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Нельзя удалить: после этой операции остаток счёта станет отрицательным.'**
   String get transactionDeleteBalanceBlocked;
+
+  /// Подтверждение удаления перевода.
+  ///
+  /// In ru, this message translates to:
+  /// **'Удалить перевод?'**
+  String get transferDeleteTitle;
+
+  /// Пояснение удаления перевода.
+  ///
+  /// In ru, this message translates to:
+  /// **'Будут удалены обе операции перевода, балансы счетов откатятся.'**
+  String get transferDeleteMessage;
+
+  /// Кнопка удаления перевода в деталях.
+  ///
+  /// In ru, this message translates to:
+  /// **'Удалить перевод'**
+  String get transferDeleteAction;
 }
 
 class _AppLocalizationsDelegate

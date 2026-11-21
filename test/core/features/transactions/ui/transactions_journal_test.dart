@@ -86,6 +86,7 @@ final class FakeTransactions implements AssetTransactionRepository {
   final DomainException? deleteError;
   final List<TransactionFilter> filters = [];
   int deletes = 0;
+  int transferDeletes = 0;
 
   @override
   Stream<List<AssetTransaction>> watch(TransactionFilter filter) {
@@ -125,7 +126,9 @@ final class FakeTransactions implements AssetTransactionRepository {
   Future<void> reviseTransfer(int transferId, TransferDraft draft) async {}
 
   @override
-  Future<void> softDeleteTransfer(int transferId) async {}
+  Future<void> softDeleteTransfer(int transferId) async {
+    transferDeletes++;
+  }
 
   @override
   Future<void> restoreTransfer(int transferId) async {}
@@ -360,7 +363,7 @@ void main() {
     expect(find.text(l10n.auditRestore), findsOneWidget);
   });
 
-  testWidgets('нога перевода не предлагает удаление', (tester) async {
+  testWidgets('нога перевода удаляется вместе с парой', (tester) async {
     final transaction = AssetTransaction(
       id: 1,
       assetId: 1,
@@ -374,8 +377,9 @@ void main() {
       updatedAt: DateTime.utc(2026),
       transferId: 5,
     );
+    final repository = FakeTransactions([transaction]);
     final vm = TransactionDetailsViewModel(
-      repository: FakeTransactions([transaction]),
+      repository: repository,
       assetRepository: FakeAssets([_account(1, 'Счёт')]),
       auditRepository: FakeAudit([]),
       settingsRepository: FakeSettings(),
@@ -386,8 +390,16 @@ void main() {
     );
     await _pump(tester, TransactionDetailsScreen(viewModel: vm));
 
-    expect(find.text(l10n.accountDelete), findsNothing);
-    expect(find.text(l10n.transactionKindTransferOut), findsWidgets);
+    expect(find.text(l10n.transferDeleteAction), findsOneWidget);
+    await tester.tap(find.text(l10n.transferDeleteAction));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text(l10n.transferDeleteTitle), findsOneWidget);
+    expect(find.text(l10n.transferDeleteMessage), findsOneWidget);
+    await tester.tap(find.text(l10n.commonDelete).last);
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(repository.transferDeletes, 1);
+    expect(repository.deletes, 0);
   });
 
   testWidgets('удаление с нарушением истории баланса объясняет причину', (
