@@ -116,7 +116,12 @@ class TransactionDetailsViewModel {
   Future<Result<void>> delete() async {
     busy.value = true;
     try {
-      await repository.softDelete(transactionId);
+      final transferId = transaction.value?.transferId;
+      if (transferId != null) {
+        await repository.softDeleteTransfer(transferId);
+      } else {
+        await repository.softDelete(transactionId);
+      }
       return const Success(null);
     } on DomainException catch (error) {
       return Failure(error);

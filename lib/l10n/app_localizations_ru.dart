@@ -1874,4 +1874,25 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get transactionDeleteBalanceBlocked =>
       'Нельзя удалить: после этой операции остаток счёта станет отрицательным.';
+
+  @override
+  String get transferDeleteTitle => 'Удалить перевод?';
+
+  @override
+  String get transferDeleteMessage =>
+      'Обе операции перевода будут скрыты из журнала, балансы обоих счетов вернутся к прежним значениям. Восстановить можно в «Удалённых операциях».';
+
+  @override
+  String get transferDeleteAction => 'Удалить перевод';
+
+  @override
+  String get transferDeleted => 'Перевод удалён.';
+
+  @override
+  String get transferDeleteBalanceBlocked =>
+      'Нельзя удалить перевод: на одном из двух счетов остаток станет отрицательным. Сначала удалите или измените более поздние операции.';
+
+  @override
+  String get transferDeleteConflict =>
+      'Перевод уже удалён или повреждён. Обновите журнал.';
 }

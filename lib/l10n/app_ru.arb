@@ -2525,5 +2525,29 @@
   "transactionDeleteBalanceBlocked": "Нельзя удалить: после этой операции остаток счёта станет отрицательным.",
   "@transactionDeleteBalanceBlocked": {
     "description": "Удаление нарушает историю баланса."
+  },
+  "transferDeleteTitle": "Удалить перевод?",
+  "@transferDeleteTitle": {
+    "description": "Подтверждение удаления перевода."
+  },
+  "transferDeleteMessage": "Обе операции перевода будут скрыты из журнала, балансы обоих счетов вернутся к прежним значениям. Восстановить можно в «Удалённых операциях».",
+  "@transferDeleteMessage": {
+    "description": "Пояснение удаления перевода."
+  },
+  "transferDeleteAction": "Удалить перевод",
+  "@transferDeleteAction": {
+    "description": "Кнопка удаления перевода в деталях."
+  },
+  "transferDeleted": "Перевод удалён.",
+  "@transferDeleted": {
+    "description": "Успешное удаление перевода."
+  },
+  "transferDeleteBalanceBlocked": "Нельзя удалить перевод: на одном из двух счетов остаток станет отрицательным. Сначала удалите или измените более поздние операции.",
+  "@transferDeleteBalanceBlocked": {
+    "description": "Удаление перевода нарушает историю баланса."
+  },
+  "transferDeleteConflict": "Перевод уже удалён или повреждён. Обновите журнал.",
+  "@transferDeleteConflict": {
+    "description": "Конфликт при удалении перевода."
   }
 }
