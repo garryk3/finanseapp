@@ -19,6 +19,11 @@
   `flutter_secure_storage` (хэш PIN и флаги вне БД — backup их не переносит),
   `crypto` (PBKDF2-HMAC-SHA256 для salted hash PIN).
 - CI: format, оба analyze-гейта, unit/widget tests и release APK; releases по тегам `v*`.
+  versionCode релизного APK = `+N` из `pubspec.yaml` (не номер запуска workflow), иначе обновления
+  поверх локальных сборок отклоняются как downgrade.
+- Подпись: временный upload-ключ (`android/app/upload-keystore.jks`). Первая установка поверх
+  debug-подписанной сборки невозможна (`INSTALL_FAILED_UPDATE_INCOMPATIBLE`) — нужен одноразовый
+  `adb uninstall`/удаление приложения (данные экспортируйте заранее), далее обновления ставятся.
 
 ## Архитектурные контракты
 
