@@ -45,7 +45,10 @@ jobs:
           echo "build_name=$TAG" >> "$GITHUB_OUTPUT"
 
       - name: Build release APK
-        run: flutter build apk --release --build-name=${{ steps.version.outputs.build_name }} --build-number=${{ github.run_number }}
+        # versionCode берём из pubspec (`version: X.Y.Z+N`), а не из run_number:
+        # иначе релизный APK получает versionCode 1 и не ставится поверх
+        # локальных сборок с большим номером (INSTALL_FAILED_VERSION_DOWNGRADE).
+        run: flutter build apk --release --build-name=${{ steps.version.outputs.build_name }}
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
