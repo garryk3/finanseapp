@@ -90,7 +90,7 @@ class _PropertyFormScreenState extends State<PropertyFormScreen> {
     if (widget.viewModel.busy.value) return;
     final l10n = AppLocalizations.of(context);
     final currency = _currencyOf(_currencyCode);
-    final opening = parseOpeningAmount(_opening.text, currency);
+    final opening = parseOpeningAmountOrZero(_opening.text, currency);
     final purchase = _purchase.text.trim().isEmpty
         ? null
         : parseOpeningAmount(_purchase.text, currency);
