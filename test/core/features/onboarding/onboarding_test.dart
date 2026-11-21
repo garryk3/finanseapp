@@ -119,7 +119,7 @@ void main() {
     expect(find.byType(OnboardingScreen), findsOneWidget);
   });
 
-  testWidgets('онбординг: ошибка сохранения показывается у поля валюты', (
+  testWidgets('онбординг: ошибка сохранения видна и без списка валют', (
     tester,
   ) async {
     final l10n = await AppLocalizations.delegate.load(const Locale('ru'));
@@ -132,9 +132,9 @@ void main() {
         ],
         supportedLocales: const [Locale('ru')],
         builder: (context, child) => OnboardingGate(
-          repository: _Onboarding(),
+          repository: _FailingOnboarding(),
           settingsRepository: _FailingSettings(),
-          currencyRepository: _Currencies(),
+          currencyRepository: _FailingCurrencies(),
           child: child ?? const SizedBox.shrink(),
         ),
         home: const SizedBox.shrink(),
@@ -269,4 +269,12 @@ final class _FailingSettings implements SettingsRepository {
 
   @override
   Future<void> setBaseCurrency(String code) async => throw StateError('db');
+}
+
+final class _FailingOnboarding implements OnboardingRepository {
+  @override
+  Future<bool> isCompleted() async => false;
+
+  @override
+  Future<void> complete() async => throw StateError('db');
 }

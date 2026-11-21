@@ -3472,7 +3472,7 @@ abstract class AppLocalizations {
   /// Ошибка сохранения настроек онбординга.
   ///
   /// In ru, this message translates to:
-  /// **'Не удалось сохранить выбор. Попробуйте ещё раз.'**
+  /// **'Не удалось сохранить настройки. Попробуйте ещё раз.'**
   String get onboardingSaveError;
 }
 

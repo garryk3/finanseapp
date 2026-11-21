@@ -1844,5 +1844,5 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get onboardingSaveError =>
-      'Не удалось сохранить выбор. Попробуйте ещё раз.';
+      'Не удалось сохранить настройки. Попробуйте ещё раз.';
 }

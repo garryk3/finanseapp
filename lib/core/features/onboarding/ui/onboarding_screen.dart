@@ -60,6 +60,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         _currencies = options;
         _selected = base.code;
         _loadFailed = false;
+        _saveFailed = false;
       });
     } on Object catch (error, stackTrace) {
       developer.log(
@@ -152,7 +153,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     label: l10n.onboardingCurrencyLabel,
                     value: _selected,
                     searchable: true,
-                    errorText: _saveFailed ? l10n.onboardingSaveError : null,
                     items: [
                       for (final currency in _currencies)
                         AppSelectItem(
@@ -162,16 +162,28 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         ),
                     ],
                     onChanged: (value) => setState(() {
+                      if (value != _selected) _saveFailed = false;
                       _selected = value;
-                      _saveFailed = false;
                     }),
                   ),
-                if (!_loadFailed) ...[
+                if (!_loadFailed && _selected != null) ...[
                   const SizedBox(height: AppSpacing.xs),
                   AppText(
                     l10n.onboardingBaseCurrency,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+                if (_saveFailed) ...[
+                  const SizedBox(height: AppSpacing.sm),
+                  Semantics(
+                    liveRegion: true,
+                    child: AppText(
+                      l10n.onboardingSaveError,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
                     ),
                   ),
                 ],

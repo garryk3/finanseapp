@@ -2486,7 +2486,7 @@
   "@onboardingSetupTitle": {
     "description": "Заголовок вводной секции онбординга."
   },
-  "onboardingSaveError": "Не удалось сохранить выбор. Попробуйте ещё раз.",
+  "onboardingSaveError": "Не удалось сохранить настройки. Попробуйте ещё раз.",
   "@onboardingSaveError": {
     "description": "Ошибка сохранения настроек онбординга."
   }
