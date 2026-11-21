@@ -1,5 +1,6 @@
 import 'package:finanseapp/core/database/app_database.dart';
 import 'package:finanseapp/core/database/daos/recurring_dao.dart';
+import 'package:finanseapp/core/domain/common/local_date.dart';
 import 'package:finanseapp/core/domain/common/money.dart';
 import 'package:finanseapp/core/features/recurring/domain/recurring_repository.dart';
 import 'package:finanseapp/core/features/recurring/domain/recurring_rule.dart';
@@ -34,6 +35,19 @@ final class RecurringRepositoryImpl implements RecurringRepository {
 
   @override
   Future<void> softDelete(int id) => _dao.softDelete(id);
+
+  @override
+  Future<({Money amount, LocalDate date})?> lastGenerated(int ruleId) async {
+    final row = await _dao.findLastGeneratedEntry(ruleId);
+    if (row == null) return null;
+    return (
+      amount: Money(
+        minorUnits: row.amountMinor,
+        currencyCode: row.currencyCode,
+      ),
+      date: row.occurredOn,
+    );
+  }
 
   static List<RecurringRule> _mapList(List<RecurringCashflowRuleRow> rows) => [
     for (final row in rows) _map(row),

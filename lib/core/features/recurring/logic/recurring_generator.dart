@@ -4,18 +4,20 @@ import 'dart:developer' as developer;
 import 'package:decimal/decimal.dart';
 import 'package:finanseapp/core/database/app_database.dart';
 import 'package:finanseapp/core/database/daos/cashflow_dao.dart';
-import 'package:finanseapp/core/database/daos/transactions_dao.dart';
 import 'package:finanseapp/core/domain/common/currency.dart';
 import 'package:finanseapp/core/domain/common/local_date.dart';
 import 'package:finanseapp/core/domain/common/money.dart';
+import 'package:finanseapp/core/domain/common/money_math.dart';
 import 'package:finanseapp/core/domain/common/result.dart';
+import 'package:finanseapp/core/domain/common/validation.dart';
 import 'package:finanseapp/core/features/cashflow/logic/cashflow_commands.dart';
+import 'package:finanseapp/core/features/cashflow/logic/linked_cashflow_writer.dart';
 import 'package:finanseapp/core/features/categories/domain/category.dart';
 import 'package:finanseapp/core/features/currencies/domain/currency_repository.dart';
 import 'package:finanseapp/core/features/currencies/domain/exchange_rate_repository.dart';
 import 'package:finanseapp/core/features/recurring/domain/recurring_rule.dart';
 import 'package:finanseapp/core/features/recurring/logic/recurring_schedule.dart';
-import 'package:finanseapp/core/features/transactions/domain/asset_transaction.dart';
+import 'package:rational/rational.dart';
 
 /// Итог одного прогона генерации (BR-RC-11).
 final class RecurringGenerationReport {
@@ -52,7 +54,10 @@ enum RecurringPendingReason {
   validation,
 }
 
-/// Генератор операций по активным правилам (BR-RC-3…6, BR-RC-11).
+/// Комментарий операций капитализации; data-строка, не UI-строка.
+const depositInterestComment = 'Капитализация процентов';
+
+/// Генератор операций по активным правилам (BR-RC-3…6, BR-RC-9…11).
 ///
 /// Никогда не ходит в сеть: курс берётся только из кэша на точную дату;
 /// без курса период откладывается. Ошибка одного правила не мешает остальным,
@@ -73,17 +78,31 @@ final class RecurringGenerator {
     var generated = 0;
     final pending = <RecurringPending>[];
     try {
-      final rules = await db.recurringDao.activeRules();
-      if (rules.isEmpty) return const RecurringGenerationReport.empty();
       final assets = await _assetsById();
+      final accountDetails = await _accountDetailsById();
       final currencies = await _currenciesByCode();
+      await _reconcileDepositInterest(assets, accountDetails, pending);
+
+      final rules = await db.recurringDao.activeRules();
+      if (rules.isEmpty) {
+        return RecurringGenerationReport(
+          generated: generated,
+          pending: pending,
+        );
+      }
       final today = db.today();
       final tasks = <_PeriodTask>[];
 
       for (final rule in rules) {
-        // Проценты по вкладам добавляет 15.3 (BR-RC-9).
-        if (rule.strategy != RecurringStrategy.fixed) continue;
-        if (rule.amountMinor == null) continue;
+        if (rule.strategy == RecurringStrategy.fixed &&
+            rule.amountMinor == null) {
+          continue;
+        }
+        if (rule.strategy == RecurringStrategy.depositInterest &&
+            (rule.accountId == null ||
+                !accountDetails.containsKey(rule.accountId))) {
+          continue;
+        }
 
         final archived = _isArchived(rule, assets);
         if (archived) {
@@ -91,7 +110,7 @@ final class RecurringGenerator {
             startDate: rule.startDate,
             endDate: rule.endDate,
             lastGeneratedPeriod: rule.lastGeneratedPeriod,
-            firstPeriodOffset: 0,
+            firstPeriodOffset: _offsetFor(rule.strategy),
           );
           if (start != null) {
             pending.add(
@@ -110,7 +129,7 @@ final class RecurringGenerator {
           endDate: rule.endDate,
           today: today,
           lastGeneratedPeriod: rule.lastGeneratedPeriod,
-          firstPeriodOffset: 0,
+          firstPeriodOffset: _offsetFor(rule.strategy),
         );
         for (final date in dates) {
           tasks.add(_PeriodTask(rule: rule, date: date));
@@ -126,6 +145,7 @@ final class RecurringGenerator {
         final result = await _generatePeriod(
           task: task,
           currencies: currencies,
+          accountDetails: accountDetails,
         );
         if (result == _PeriodResult.created) {
           generated++;
@@ -155,10 +175,100 @@ final class RecurringGenerator {
     return RecurringGenerationReport(generated: generated, pending: pending);
   }
 
+  /// Создаёт/восстанавливает автоправило процентов для каждого активного
+  /// вклада со ставкой > 0 и останавливает его при ставке 0/архиве (BR-RC-9).
+  Future<void> _reconcileDepositInterest(
+    Map<int, AssetRow> assets,
+    Map<int, AccountDetailRow> details,
+    List<RecurringPending> pending,
+  ) async {
+    final categoryId = await _activeCategoryId('Проценты по вкладу');
+    for (final detail in details.values) {
+      final asset = assets[detail.assetId];
+      if (asset == null) continue;
+      final active = asset.archivedAt == null;
+      if (!active || detail.annualRate <= Decimal.zero) {
+        try {
+          await db.recurringDao.softDeleteDepositInterestRule(detail.assetId);
+        } catch (error, stackTrace) {
+          developer.log(
+            'Не удалось остановить начисление процентов',
+            name: 'recurring.generator',
+            error: error,
+            stackTrace: stackTrace,
+          );
+        }
+        continue;
+      }
+      if (categoryId == null) {
+        // Категория переименована/архивирована: останавливаем существующее
+        // правило, чтобы оно не начисляло по устаревшим зеркальным полям
+        // (например, после endDate). Маркер сохраняется для восстановления.
+        try {
+          await db.recurringDao.softDeleteDepositInterestRule(detail.assetId);
+        } catch (error, stackTrace) {
+          developer.log(
+            'Не удалось приостановить проценты без категории',
+            name: 'recurring.generator',
+            error: error,
+            stackTrace: stackTrace,
+          );
+        }
+        final existing = await db.recurringDao.findDepositInterestRule(
+          detail.assetId,
+          includeDeleted: true,
+        );
+        pending.add(
+          RecurringPending(
+            ruleId: existing?.id ?? 0,
+            date: db.today(),
+            reason: RecurringPendingReason.categoryUnavailable,
+          ),
+        );
+        continue;
+      }
+      try {
+        await db.recurringDao.upsertDepositInterestRule(
+          accountId: detail.assetId,
+          categoryId: categoryId,
+          currencyCode: asset.currencyCode,
+          startDate: detail.startDate,
+          endDate: detail.endDate,
+        );
+      } catch (error, stackTrace) {
+        developer.log(
+          'Не удалось обновить автоправило процентов',
+          name: 'recurring.generator',
+          error: error,
+          stackTrace: stackTrace,
+        );
+        pending.add(
+          RecurringPending(
+            ruleId: 0,
+            date: db.today(),
+            reason: RecurringPendingReason.validation,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<int?> _activeCategoryId(String name) async {
+    final normalized = normalizeEntityName(name);
+    final query = db.select(db.categories)
+      ..where((c) => c.kind.equalsValue(CashflowKind.income))
+      ..where((c) => c.normalizedName.equals(normalized))
+      ..where((c) => c.archivedAt.isNull())
+      ..limit(1);
+    final row = await query.getSingleOrNull();
+    return row?.id;
+  }
+
   /// Возвращает причину отложенного периода или null, если он создан/пропущен.
   Future<_PeriodResult> _generatePeriod({
     required _PeriodTask task,
     required Map<String, Currency> currencies,
+    required Map<int, AccountDetailRow> accountDetails,
   }) async {
     final rule = task.rule;
     final date = task.date;
@@ -166,23 +276,54 @@ final class RecurringGenerator {
       final existing = await db.recurringDao.findGeneratedEntry(rule.id, date);
       if (existing != null) {
         // Пользователь мог удалить операцию: повторно не создаём (BR-RC-4).
-        await db.transaction(
-          () => db.recurringDao.updateLastGeneratedPeriod(
-            rule.id,
-            RecurringSchedule.periodKey(date),
-          ),
-        );
+        await _moveMarker(rule.id, date);
         return _PeriodResult.skipped;
+      }
+
+      final currency = currencies[rule.currencyCode] ?? _fallbackCurrency(rule);
+      final int amountMinor;
+      final String? comment;
+      if (rule.strategy == RecurringStrategy.depositInterest) {
+        final detail = accountDetails[rule.accountId!];
+        if (detail == null || detail.annualRate <= Decimal.zero) {
+          return _PeriodResult.skipped;
+        }
+        final balanceMinor = await db.transactionsDao.balanceAsOfMinor(
+          rule.accountId!,
+          date,
+        );
+        if (balanceMinor <= 0) {
+          await _moveMarker(rule.id, date);
+          return _PeriodResult.skipped;
+        }
+        final balance = Money(
+          minorUnits: balanceMinor,
+          currencyCode: rule.currencyCode,
+        );
+        final interest = MoneyMath.fromRational(
+          MoneyMath.toDecimal(balance, currency).toRational() *
+              detail.annualRate.toRational() /
+              Rational.fromInt(1200),
+          currency,
+        );
+        if (interest.minorUnits <= 0) {
+          await _moveMarker(rule.id, date);
+          return _PeriodResult.skipped;
+        }
+        amountMinor = interest.minorUnits;
+        comment = depositInterestComment;
+      } else {
+        amountMinor = rule.amountMinor!;
+        comment = rule.comment;
       }
 
       final rate = await _rateFor(rule.currencyCode, date);
       if (rate == null) return _PeriodResult.rateUnavailable;
 
       final amount = Money(
-        minorUnits: rule.amountMinor!,
+        minorUnits: amountMinor,
         currencyCode: rule.currencyCode,
       );
-      final currency = currencies[rule.currencyCode] ?? _fallbackCurrency(rule);
       final rubMinor = CashflowCommands.rubAmount(
         amount,
         currency,
@@ -190,39 +331,37 @@ final class RecurringGenerator {
       ).minorUnits;
 
       await db.transaction(() async {
-        int? transactionId;
         if (rule.affectsBalance && rule.accountId != null) {
-          transactionId = await db.transactionsDao.create(
-            AssetTransactionInput(
-              assetId: rule.accountId!,
-              kind: rule.kind == CashflowKind.income
-                  ? AssetTransactionKind.deposit
-                  : AssetTransactionKind.withdrawal,
-              amountMinor: amount.minorUnits,
-              occurredOn: date,
-              rateToRub: rate,
-              amountRubMinor: rubMinor,
-              comment: rule.comment,
-            ),
-          );
-        }
-        await db.cashflowDao.create(
-          CashflowEntryInput(
+          await LinkedCashflowWriter(db).create(
             kind: rule.kind,
             categoryId: rule.categoryId,
-            amountMinor: amount.minorUnits,
-            currencyCode: rule.currencyCode,
+            amount: amount,
             occurredOn: date,
             rateToRub: rate,
             amountRubMinor: rubMinor,
-            affectsBalance: rule.affectsBalance,
-            comment: rule.comment,
+            accountId: rule.accountId!,
             propertyId: rule.propertyId,
-            accountId: rule.accountId,
-            assetTransactionId: transactionId,
             recurringRuleId: rule.id,
-          ),
-        );
+            comment: comment,
+          );
+        } else {
+          await db.cashflowDao.create(
+            CashflowEntryInput(
+              kind: rule.kind,
+              categoryId: rule.categoryId,
+              amountMinor: amount.minorUnits,
+              currencyCode: rule.currencyCode,
+              occurredOn: date,
+              rateToRub: rate,
+              amountRubMinor: rubMinor,
+              affectsBalance: false,
+              comment: comment,
+              propertyId: rule.propertyId,
+              accountId: rule.accountId,
+              recurringRuleId: rule.id,
+            ),
+          );
+        }
         await db.recurringDao.updateLastGeneratedPeriod(
           rule.id,
           RecurringSchedule.periodKey(date),
@@ -247,6 +386,13 @@ final class RecurringGenerator {
     }
   }
 
+  Future<void> _moveMarker(int ruleId, LocalDate date) => db.transaction(
+    () => db.recurringDao.updateLastGeneratedPeriod(
+      ruleId,
+      RecurringSchedule.periodKey(date),
+    ),
+  );
+
   Future<Decimal?> _rateFor(String currencyCode, LocalDate date) async {
     if (currencyCode == 'RUB') return Decimal.one;
     final rate = await rateRepository.find(currencyCode, date);
@@ -258,10 +404,18 @@ final class RecurringGenerator {
     return {for (final row in rows) row.id: row};
   }
 
+  Future<Map<int, AccountDetailRow>> _accountDetailsById() async {
+    final rows = await db.assetsDao.allAccountDetails();
+    return {for (final row in rows) row.assetId: row};
+  }
+
   Future<Map<String, Currency>> _currenciesByCode() async {
     final rows = await currencyRepository.watchAll().first;
     return {for (final row in rows) row.code: row};
   }
+
+  static int _offsetFor(RecurringStrategy strategy) =>
+      strategy == RecurringStrategy.fixed ? 0 : 1;
 
   static bool _isArchived(
     RecurringCashflowRuleRow rule,

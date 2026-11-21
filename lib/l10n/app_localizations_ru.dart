@@ -1241,6 +1241,39 @@ class AppLocalizationsRu extends AppLocalizations {
   String get recurringAutoInterestTitle => 'Проценты по вкладу';
 
   @override
+  String recurringAutoInterestMeta(String rate) {
+    return '$rate% годовых · капитализация ежемесячно';
+  }
+
+  @override
+  String recurringNextAccrual(String date) {
+    return 'Следующее начисление: $date';
+  }
+
+  @override
+  String recurringOverdueAccrual(String date) {
+    return 'Просрочено: $date';
+  }
+
+  @override
+  String get recurringAccrualStoppedArchive =>
+      'Начисления остановлены: счёт в архиве';
+
+  @override
+  String get recurringAccrualUnavailable =>
+      'Начисления не выполняются: проверьте категорию';
+
+  @override
+  String get recurringLastAccrualLabel => 'Последнее начисление';
+
+  @override
+  String get recurringAutoChip => 'Авто';
+
+  @override
+  String get accountRateAutoHint =>
+      'Проценты начисляются автоматически в то же число месяца, что и дата начала (для 31-го — последний день месяца). Прошедшие месяцы будут начислены при сохранении.';
+
+  @override
   String get recurringTargetHint => 'Цель — только счёт или недвижимость';
 
   @override

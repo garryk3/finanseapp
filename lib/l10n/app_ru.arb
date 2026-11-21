@@ -1666,6 +1666,53 @@
   "@recurringAutoInterestTitle": {
     "description": "Название автоправила процентов в списке."
   },
+  "recurringAutoInterestMeta": "{rate}% годовых · капитализация ежемесячно",
+  "@recurringAutoInterestMeta": {
+    "description": "Параметры автоправила процентов.",
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
+  "recurringNextAccrual": "Следующее начисление: {date}",
+  "@recurringNextAccrual": {
+    "description": "Ближайшее начисление процентов.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "recurringOverdueAccrual": "Просрочено: {date}",
+  "@recurringOverdueAccrual": {
+    "description": "Начисление процентов не выполнено в срок.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "recurringAccrualStoppedArchive": "Начисления остановлены: счёт в архиве",
+  "@recurringAccrualStoppedArchive": {
+    "description": "Архивный вклад не капитализируется."
+  },
+  "recurringAccrualUnavailable": "Начисления не выполняются: проверьте категорию",
+  "@recurringAccrualUnavailable": {
+    "description": "Автоправило процентов не создано или недоступно."
+  },
+  "recurringLastAccrualLabel": "Последнее начисление",
+  "@recurringLastAccrualLabel": {
+    "description": "Подпись суммы последнего начисления."
+  },
+  "recurringAutoChip": "Авто",
+  "@recurringAutoChip": {
+    "description": "Метка автоматического правила в карточке процентов."
+  },
+  "accountRateAutoHint": "Проценты начисляются автоматически в то же число месяца, что и дата начала (для 31-го — последний день месяца). Прошедшие месяцы будут начислены при сохранении.",
+  "@accountRateAutoHint": {
+    "description": "Подсказка в форме счёта при ставке больше нуля."
+  },
   "recurringTargetHint": "Цель — только счёт или недвижимость",
   "@recurringTargetHint": {
     "description": "Пояснение взаимоисключающего выбора цели."

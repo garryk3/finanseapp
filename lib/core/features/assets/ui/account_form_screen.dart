@@ -20,7 +20,7 @@ import 'package:finanseapp/uikit/app_error_state.dart';
 import 'package:finanseapp/uikit/app_spinner.dart';
 import 'package:finanseapp/uikit/app_text.dart';
 import 'package:finanseapp/uikit/app_text_field.dart';
-import 'package:flutter/widgets.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
@@ -191,6 +191,12 @@ class _AccountFormScreenState extends State<AccountFormScreen> {
     if (navigator?.canPop() ?? false) navigator!.pop();
   }
 
+  Decimal? get _rateValue {
+    final raw = _rate.text.trim().replaceAll(',', '.');
+    if (raw.isEmpty) return null;
+    return Decimal.tryParse(raw);
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -235,6 +241,10 @@ class _AccountFormScreenState extends State<AccountFormScreen> {
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
                     ),
+                    helperText: (_rateValue ?? Decimal.zero) > Decimal.zero
+                        ? l10n.accountRateAutoHint
+                        : null,
+                    onChanged: (_) => setState(() {}),
                   ),
                   const SizedBox(height: AppSpacing.md),
                   if (vm.banks.value.isEmpty) ...[

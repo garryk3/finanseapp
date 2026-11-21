@@ -22,6 +22,7 @@ class AccountFormViewModel {
     required this.subgroupRepository,
     required this.currencyRepository,
     this.editingId,
+    this.catchup,
   });
 
   final AssetRepository repository;
@@ -35,6 +36,9 @@ class AccountFormViewModel {
   final Signal<AccountAsset?> account = signal(null);
   final Signal<AssetReferenceCounts?> referenceCounts = signal(null);
   final Signal<bool> busy = signal(false);
+
+  /// Единая команда Catch-up после сохранения счёта (BR-RC-9).
+  final Future<void> Function()? catchup;
 
   bool get isEditing => editingId != null;
 
@@ -68,20 +72,27 @@ class AccountFormViewModel {
     required LocalDate startDate,
     LocalDate? endDate,
   }) async {
+    final draft = AccountDraft(
+      name: name,
+      currencyCode: currencyCode,
+      openingValue: openingValue,
+      bankId: bankId,
+      annualRate: annualRate,
+      startDate: startDate,
+      endDate: endDate,
+    );
     busy.value = true;
     try {
-      final draft = AccountDraft(
-        name: name,
-        currencyCode: currencyCode,
-        openingValue: openingValue,
-        bankId: bankId,
-        annualRate: annualRate,
-        startDate: startDate,
-        endDate: endDate,
-      );
-      if (editingId == null) return Success(await repository.create(draft));
-      await repository.update(editingId!, draft);
-      return const Success(0);
+      int id;
+      if (editingId == null) {
+        id = await repository.create(draft);
+      } else {
+        await repository.update(editingId!, draft);
+        id = 0;
+      }
+      // Только после успешной записи: reconcile увидит новый/изменённый счёт.
+      if (catchup != null) unawaited(catchup!());
+      return Success(id);
     } on DomainException catch (error) {
       return Failure(error);
     } on Exception {

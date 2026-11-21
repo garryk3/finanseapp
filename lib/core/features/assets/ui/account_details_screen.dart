@@ -235,6 +235,7 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
             assetId: asset.id,
             isAccount: isAccount,
             today: vm.today,
+            account: asset is AccountAsset ? asset : null,
             readOnly: isArchived,
           ),
         if (asset is PropertyAsset && vm.cashflowRepository != null)

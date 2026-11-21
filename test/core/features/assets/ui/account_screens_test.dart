@@ -524,6 +524,61 @@ void main() {
     expect(find.text(l10n.assetInUseTitle), findsOneWidget);
     expect(find.text(l10n.assetInUseMessage(2, 0, 1, 0, 0)), findsOneWidget);
   });
+
+  testWidgets('подсказка о капитализации появляется при ставке > 0', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 1800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final snapshot = AssetSnapshot(
+      asset: _account(),
+      currentValue: const Money(minorUnits: 0, currencyCode: 'RUB'),
+    );
+    final vm = AccountFormViewModel(
+      repository: FakeAssets(snapshot),
+      subgroupRepository: FakeSubgroups(),
+      currencyRepository: FakeCurrencies(),
+    );
+    await _pump(tester, AccountFormScreen(viewModel: vm));
+
+    expect(find.text(l10n.accountRateAutoHint), findsNothing);
+    final fields = find.byType(TextField);
+    await tester.enterText(fields.at(2), '12');
+    await tester.pump();
+
+    expect(find.text(l10n.accountRateAutoHint), findsOneWidget);
+  });
+
+  test('сохранение счёта запускает catch-up процентов', () async {
+    var catchupCalls = 0;
+    final snapshot = AssetSnapshot(
+      asset: _account(),
+      currentValue: const Money(minorUnits: 0, currencyCode: 'RUB'),
+    );
+    final vm = AccountFormViewModel(
+      repository: FakeAssets(snapshot),
+      subgroupRepository: FakeSubgroups(),
+      currencyRepository: FakeCurrencies(),
+      catchup: () async {
+        catchupCalls++;
+      },
+    );
+
+    final result = await vm.save(
+      name: 'Вклад',
+      bankId: 1,
+      currencyCode: 'RUB',
+      openingValue: const Money(minorUnits: 0, currencyCode: 'RUB'),
+      annualRate: Decimal.parse('12'),
+      startDate: LocalDate(2026, 1, 1),
+    );
+    await Future<void>.delayed(Duration.zero);
+
+    expect(result, isA<Success<int>>());
+    expect(catchupCalls, 1);
+    vm.dispose();
+  });
 }
 
 final class _FailingCurrencies implements CurrencyRepository {

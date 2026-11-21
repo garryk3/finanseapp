@@ -99,6 +99,11 @@ const _calcCoverage = <String, List<String>>{
   'CALC-036': [
     'test/core/features/assets/logic/property_yield_calculator_test.dart',
   ],
+  'CALC-037': ['test/core/features/recurring/recurring_interest_test.dart'],
+  'CALC-038': ['test/core/features/recurring/recurring_interest_test.dart'],
+  'CALC-039': ['test/core/features/recurring/recurring_interest_test.dart'],
+  'CALC-040': ['test/core/features/recurring/recurring_interest_test.dart'],
+  'CALC-041': ['test/core/features/recurring/recurring_interest_test.dart'],
   'CALC-042': ['test/core/features/recurring/recurring_schedule_test.dart'],
   'CALC-043': ['test/core/features/recurring/recurring_schedule_test.dart'],
   'CALC-044': ['test/core/features/recurring/recurring_schedule_test.dart'],
@@ -161,7 +166,7 @@ void _expectTestsInside(Iterable<String> directories, String owner) {
 void main() {
   test('каждый BR из business_rules.md покрыт тестовой группой', () {
     final ids = _brIds('docs/architecture/business_rules.md');
-    expect(ids, hasLength(111));
+    expect(ids, hasLength(113));
     for (final prefix in _brCoverage.keys) {
       expect(
         ids.any((id) => id.startsWith('$prefix-')),
@@ -182,7 +187,7 @@ void main() {
 
   test('каждая CALC имеет literal-тест или документированный defer', () {
     final ids = _idsIn('docs/architecture/calculations.md', r'CALC-\d{3}');
-    expect(ids, hasLength(39));
+    expect(ids, hasLength(44));
 
     final stale = {
       ..._calcCoverage.keys,

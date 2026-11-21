@@ -566,6 +566,29 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase>
     }
   }
 
+  /// Баланс счёта на конец [date] с учётом opening и всех активных операций.
+  ///
+  /// Один SQL-запрос; soft-deleted операции исключены. Нужен для начисления
+  /// процентов по вкладу (BR-RC-9).
+  Future<int> balanceAsOfMinor(int assetId, LocalDate date) async {
+    final row = await customSelect(
+      'SELECT a.opening_value_minor + COALESCE(SUM('
+      "CASE WHEN t.kind IN ('deposit', 'transferIn') THEN t.amount_minor "
+      'ELSE -t.amount_minor END), 0) AS balance '
+      'FROM assets a LEFT JOIN asset_transactions t '
+      'ON t.asset_id = a.id AND t.deleted_at IS NULL AND t.occurred_on <= ?2 '
+      'WHERE a.id = ?1 GROUP BY a.id',
+      variables: [Variable<int>(assetId), Variable<String>(date.toIsoString())],
+    ).getSingleOrNull();
+    if (row == null) {
+      throw const DomainException(
+        DomainErrorCode.notFound,
+        fieldErrors: {'assetId': 'validationAssetNotFound'},
+      );
+    }
+    return row.read<int>('balance');
+  }
+
   static int _signedDelta(AssetTransactionKind kind, int amountMinor) =>
       kind == AssetTransactionKind.deposit ||
           kind == AssetTransactionKind.transferIn
