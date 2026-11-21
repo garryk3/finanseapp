@@ -87,7 +87,8 @@ stack trace и сырое исключение пользователю не в�
 не выставлен, `child` (Router) не монтируется. Экран онбординга рендерится под собственным
 `Navigator`, поэтому uikit-модалки (`AppSelect`, bottom sheet, диалоги) работают без Router.
 Системный BACK в этом состоянии закрывает открытый sheet/диалог онбординга
-(`WidgetsBindingObserver.didPopRoute` в гейте) и не завершает приложение.
+(`WidgetsBindingObserver.didPopRoute` в гейте) и не завершает приложение; на корне
+онбординга без модалки BACK работает как обычно — выходит из приложения.
 
 ## 3. Query parameters и prefill
 
