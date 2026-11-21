@@ -2404,7 +2404,7 @@ abstract class AppLocalizations {
   /// **'Последнее начисление'**
   String get recurringLastAccrualLabel;
 
-  /// Метка автоматического правила в карточке процентов.
+  /// Метка автоматического правила в карточке и списке.
   ///
   /// In ru, this message translates to:
   /// **'Авто'**
