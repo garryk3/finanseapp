@@ -3538,7 +3538,7 @@ abstract class AppLocalizations {
   /// Пояснение удаления перевода.
   ///
   /// In ru, this message translates to:
-  /// **'Будут удалены обе операции перевода, балансы счетов откатятся.'**
+  /// **'Обе операции перевода будут скрыты из журнала, балансы обоих счетов вернутся к прежним значениям. Восстановить можно в «Удалённых операциях».'**
   String get transferDeleteMessage;
 
   /// Кнопка удаления перевода в деталях.
@@ -3546,6 +3546,24 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Удалить перевод'**
   String get transferDeleteAction;
+
+  /// Успешное удаление перевода.
+  ///
+  /// In ru, this message translates to:
+  /// **'Перевод удалён.'**
+  String get transferDeleted;
+
+  /// Удаление перевода нарушает историю баланса.
+  ///
+  /// In ru, this message translates to:
+  /// **'Нельзя удалить перевод: на одном из двух счетов остаток станет отрицательным. Сначала удалите или измените более поздние операции.'**
+  String get transferDeleteBalanceBlocked;
+
+  /// Конфликт при удалении перевода.
+  ///
+  /// In ru, this message translates to:
+  /// **'Перевод уже удалён или повреждён. Обновите журнал.'**
+  String get transferDeleteConflict;
 }
 
 class _AppLocalizationsDelegate

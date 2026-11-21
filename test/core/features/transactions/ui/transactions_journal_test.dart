@@ -400,6 +400,7 @@ void main() {
 
     expect(repository.transferDeletes, 1);
     expect(repository.deletes, 0);
+    expect(find.text(l10n.transferDeleted), findsOneWidget);
   });
 
   testWidgets('удаление с нарушением истории баланса объясняет причину', (

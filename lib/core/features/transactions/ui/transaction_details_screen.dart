@@ -153,6 +153,7 @@ class _TransactionDetailsScreenState extends State<TransactionDetailsScreen> {
                         AppRoutes.auditAssetTransactionPath(transaction.id),
                       ),
                     ),
+                    const SizedBox(height: AppSpacing.sm),
                     AppButton(
                       label: _isTransfer
                           ? l10n.transferDeleteAction
@@ -210,7 +211,10 @@ class _TransactionDetailsScreenState extends State<TransactionDetailsScreen> {
       showAppSnackBar(context, message: message, isError: true);
       return;
     }
-    showAppSnackBar(context, message: l10n.transactionDeleted);
+    showAppSnackBar(
+      context,
+      message: _isTransfer ? l10n.transferDeleted : l10n.transactionDeleted,
+    );
     final navigator = Navigator.maybeOf(context);
     if (navigator?.canPop() ?? false) navigator!.pop(true);
   }
