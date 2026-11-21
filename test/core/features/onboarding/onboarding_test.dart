@@ -5,6 +5,7 @@ import 'package:finanseapp/core/domain/common/currency.dart';
 import 'package:finanseapp/core/features/currencies/domain/currency_repository.dart';
 import 'package:finanseapp/core/features/onboarding/data/onboarding_repository_impl.dart';
 import 'package:finanseapp/core/features/onboarding/domain/onboarding_repository.dart';
+import 'package:finanseapp/core/features/onboarding/ui/onboarding_gate.dart';
 import 'package:finanseapp/core/features/onboarding/ui/onboarding_screen.dart';
 import 'package:finanseapp/core/features/settings/domain/settings_repository.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
@@ -53,7 +54,6 @@ void main() {
     final l10n = await AppLocalizations.delegate.load(const Locale('ru'));
     final settings = _Settings();
     final onboarding = _Onboarding();
-    var done = false;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -63,12 +63,14 @@ void main() {
           AppLocalizations.delegate,
         ],
         supportedLocales: const [Locale('ru')],
-        home: OnboardingScreen(
+        // Гейт стоит в builder, как в app.dart: Navigator у экрана только свой.
+        builder: (context, child) => OnboardingGate(
           repository: onboarding,
           settingsRepository: settings,
           currencyRepository: _Currencies(),
-          onDone: () => done = true,
+          child: child ?? const SizedBox.shrink(),
         ),
+        home: const SizedBox.shrink(),
       ),
     );
     await tester.pumpAndSettle();
@@ -81,7 +83,7 @@ void main() {
 
     expect(settings.base, 'USD');
     expect(onboarding.completed, isTrue);
-    expect(done, isTrue);
+    expect(find.byType(OnboardingScreen), findsNothing);
   });
 
   testWidgets('онбординг: ошибка чтения валют не оставляет вечную загрузку', (

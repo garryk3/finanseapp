@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:finanseapp/core/features/currencies/domain/currency_repository.dart';
 import 'package:finanseapp/core/features/onboarding/domain/onboarding_repository.dart';
 import 'package:finanseapp/core/features/onboarding/ui/onboarding_screen.dart';
@@ -36,8 +38,14 @@ class _OnboardingGateState extends State<OnboardingGate> {
     try {
       final completed = await widget.repository.isCompleted();
       if (mounted) setState(() => _completed = completed);
-    } on Object {
+    } on Object catch (error, stackTrace) {
       // Ошибка чтения флага не должна оставлять пустой cold start.
+      developer.log(
+        'Не удалось прочитать флаг онбординга',
+        name: 'onboarding.gate',
+        error: error,
+        stackTrace: stackTrace,
+      );
       if (mounted) setState(() => _completed = true);
     }
   }

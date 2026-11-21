@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:finanseapp/app/theme/app_spacing.dart';
 import 'package:finanseapp/core/domain/common/currency.dart';
 import 'package:finanseapp/core/features/currencies/domain/currency_repository.dart';
@@ -54,7 +56,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         _selected = base.code;
         _loadFailed = false;
       });
-    } on Object {
+    } on Object catch (error, stackTrace) {
+      developer.log(
+        'Не удалось загрузить онбординг',
+        name: 'onboarding.load',
+        error: error,
+        stackTrace: stackTrace,
+      );
       if (!mounted) return;
       setState(() => _loadFailed = true);
     }
@@ -73,7 +81,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       }
       await widget.repository.complete();
       if (mounted) widget.onDone();
-    } on Object {
+    } on Object catch (error, stackTrace) {
+      developer.log(
+        'Не удалось завершить онбординг',
+        name: 'onboarding.finish',
+        error: error,
+        stackTrace: stackTrace,
+      );
       if (mounted) setState(() => _saveFailed = true);
     } finally {
       if (mounted) setState(() => _busy = false);
