@@ -3451,7 +3451,7 @@ abstract class AppLocalizations {
   /// **'Начать'**
   String get onboardingStart;
 
-  /// CTA пропуск.
+  /// Вторая CTA: завершить онбординг, не меняя базовую валюту.
   ///
   /// In ru, this message translates to:
   /// **'Не менять валюту'**

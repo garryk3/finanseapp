@@ -2476,7 +2476,7 @@
   },
   "onboardingSkip": "Не менять валюту",
   "@onboardingSkip": {
-    "description": "CTA пропуск."
+    "description": "Вторая CTA: завершить онбординг, не меняя базовую валюту."
   },
   "onboardingCurrencyLabel": "Базовая валюта",
   "@onboardingCurrencyLabel": {
