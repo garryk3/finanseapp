@@ -1571,6 +1571,199 @@
   "@cashflowAffectsBalance": {
     "description": "Создать связанную операцию по счёту."
   },
+  "operationsRecurringTab": "Регулярные",
+  "@operationsRecurringTab": {
+    "description": "Вкладка журнала операций с правилами ежемесячных платежей."
+  },
+  "recurringTitle": "Ежемесячные платежи",
+  "@recurringTitle": {
+    "description": "Заголовок списка и секции регулярных платежей."
+  },
+  "recurringEmpty": "Пока нет ежемесячных платежей.",
+  "@recurringEmpty": {
+    "description": "Пустое состояние списка регулярных платежей."
+  },
+  "recurringEmptyHint": "Создайте правило из формы дохода/расхода или кнопкой «Добавить платёж».",
+  "@recurringEmptyHint": {
+    "description": "Как появится первое правило."
+  },
+  "recurringRuleDeletedTitle": "Правило удалено",
+  "@recurringRuleDeletedTitle": {
+    "description": "Ссылка из истории ведёт на удалённое правило."
+  },
+  "recurringRuleDeletedMessage": "Созданные операции сохранились, новые платежи не начисляются.",
+  "@recurringRuleDeletedMessage": {
+    "description": "Пояснение к удалённому правилу."
+  },
+  "recurringAdd": "Добавить платёж",
+  "@recurringAdd": {
+    "description": "Кнопка создания ежемесячного платежа."
+  },
+  "recurringNew": "Новый ежемесячный платёж",
+  "@recurringNew": {
+    "description": "Заголовок формы создания правила."
+  },
+  "recurringEdit": "Ежемесячный платёж",
+  "@recurringEdit": {
+    "description": "Заголовок формы редактирования правила."
+  },
+  "recurringMonthly": "Повторять ежемесячно",
+  "@recurringMonthly": {
+    "description": "Чекбокс создания правила из формы дохода/расхода."
+  },
+  "recurringStartDate": "Дата начала",
+  "@recurringStartDate": {
+    "description": "Дата первого платежа правила."
+  },
+  "recurringEndDate": "Дата окончания",
+  "@recurringEndDate": {
+    "description": "Необязательная дата последнего платежа."
+  },
+  "recurringEndDateOptional": "Дата окончания (необязательно)",
+  "@recurringEndDateOptional": {
+    "description": "Поле необязательной даты окончания."
+  },
+  "recurringEndClear": "Убрать дату окончания",
+  "@recurringEndClear": {
+    "description": "Очистка необязательной даты окончания."
+  },
+  "recurringEndNotSet": "Бессрочно",
+  "@recurringEndNotSet": {
+    "description": "Дата окончания не задана."
+  },
+  "recurringScheduleFrom": "Ежемесячно с {from}",
+  "@recurringScheduleFrom": {
+    "description": "Расписание правила: from — дата начала.",
+    "placeholders": {
+      "from": {
+        "type": "String"
+      }
+    }
+  },
+  "recurringNextLabel": "Следующий: {date}",
+  "@recurringNextLabel": {
+    "description": "Ближайший платёж правила.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "recurringOverdueLabel": "Просрочен: {date}",
+  "@recurringOverdueLabel": {
+    "description": "Платёж правила не выполнен в срок.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "recurringCompleted": "Завершено",
+  "@recurringCompleted": {
+    "description": "Правило дошло до даты окончания."
+  },
+  "recurringAutoInterestTitle": "Проценты по вкладу",
+  "@recurringAutoInterestTitle": {
+    "description": "Название автоправила процентов в списке."
+  },
+  "recurringTargetHint": "Цель — только счёт или недвижимость",
+  "@recurringTargetHint": {
+    "description": "Пояснение взаимоисключающего выбора цели."
+  },
+  "recurringNoTargets": "Сначала добавьте счёт или недвижимость.",
+  "@recurringNoTargets": {
+    "description": "Нет активов для цели правила."
+  },
+  "recurringScheduleUntil": "по {to}",
+  "@recurringScheduleUntil": {
+    "description": "Дата окончания правила.",
+    "placeholders": {
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "recurringNextPayment": "Следующий платёж: {date}",
+  "@recurringNextPayment": {
+    "description": "Ближайшая дата платежа правила.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "recurringNextPaymentNone": "Дата не определена",
+  "@recurringNextPaymentNone": {
+    "description": "Следующий платёж не вычисляется (нет даты начала)."
+  },
+  "recurringPendingRate": "Ожидает курс",
+  "@recurringPendingRate": {
+    "description": "Платёж отложен: нет курса на дату."
+  },
+  "recurringAutoBadge": "Автоплатёж",
+  "@recurringAutoBadge": {
+    "description": "Метка операции, созданной правилом."
+  },
+  "recurringRuleLink": "Изменить правило",
+  "@recurringRuleLink": {
+    "description": "Переход от автооперации к её правилу."
+  },
+  "recurringDeleteTitle": "Удалить правило?",
+  "@recurringDeleteTitle": {
+    "description": "Заголовок подтверждения удаления правила."
+  },
+  "recurringDeleteMessage": "Правило будет удалено. Созданные операции останутся.",
+  "@recurringDeleteMessage": {
+    "description": "Пояснение удаления правила без удаления истории."
+  },
+  "recurringDeleted": "Правило удалено",
+  "@recurringDeleted": {
+    "description": "Уведомление после удаления правила."
+  },
+  "recurringSaved": "Правило сохранено",
+  "@recurringSaved": {
+    "description": "Уведомление после сохранения правила."
+  },
+  "recurringDeleteAction": "Удалить правило",
+  "@recurringDeleteAction": {
+    "description": "Кнопка удаления правила в форме."
+  },
+  "recurringTargetAccount": "Счёт",
+  "@recurringTargetAccount": {
+    "description": "Выбор счёта как цели правила."
+  },
+  "recurringTargetProperty": "Недвижимость",
+  "@recurringTargetProperty": {
+    "description": "Выбор недвижимости как цели правила."
+  },
+  "recurringNoTarget": "Не выбран",
+  "@recurringNoTarget": {
+    "description": "Правило без привязки к активу."
+  },
+  "recurringErrorDates": "Дата окончания не может быть раньше даты начала",
+  "@recurringErrorDates": {
+    "description": "Ошибка диапазона дат правила."
+  },
+  "recurringReadOnlyInterest": "Проценты по вкладу начисляются автоматически и настраиваются в счёте.",
+  "@recurringReadOnlyInterest": {
+    "description": "Автоправило процентов нельзя править вручную."
+  },
+  "recurringOpenAccount": "Открыть счёт",
+  "@recurringOpenAccount": {
+    "description": "Переход из автоправила процентов к счёту."
+  },
+  "recurringRateHint": "Курс берётся из сохранённого курса на дату платежа.",
+  "@recurringRateHint": {
+    "description": "Какой курс использует автогенерация."
+  },
+  "recurringSectionEmpty": "Нет ежемесячных платежей.",
+  "@recurringSectionEmpty": {
+    "description": "Пустая секция на экране актива."
+  },
+  "recurringNoTargetHint": "Без привязки к активу",
+  "@recurringNoTargetHint": {
+    "description": "Правило без счёта и недвижимости."
+  },
   "cashflowErrorAccount": "Выберите счёт или отключите влияние на баланс.",
   "@cashflowErrorAccount": {
     "description": "Ошибка счёта при affectsBalance."

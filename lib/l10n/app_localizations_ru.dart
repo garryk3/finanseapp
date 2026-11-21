@@ -1173,6 +1173,148 @@ class AppLocalizationsRu extends AppLocalizations {
   String get cashflowAffectsBalance => 'Влияет на баланс счёта';
 
   @override
+  String get operationsRecurringTab => 'Регулярные';
+
+  @override
+  String get recurringTitle => 'Ежемесячные платежи';
+
+  @override
+  String get recurringEmpty => 'Пока нет ежемесячных платежей.';
+
+  @override
+  String get recurringEmptyHint =>
+      'Создайте правило из формы дохода/расхода или кнопкой «Добавить платёж».';
+
+  @override
+  String get recurringRuleDeletedTitle => 'Правило удалено';
+
+  @override
+  String get recurringRuleDeletedMessage =>
+      'Созданные операции сохранились, новые платежи не начисляются.';
+
+  @override
+  String get recurringAdd => 'Добавить платёж';
+
+  @override
+  String get recurringNew => 'Новый ежемесячный платёж';
+
+  @override
+  String get recurringEdit => 'Ежемесячный платёж';
+
+  @override
+  String get recurringMonthly => 'Повторять ежемесячно';
+
+  @override
+  String get recurringStartDate => 'Дата начала';
+
+  @override
+  String get recurringEndDate => 'Дата окончания';
+
+  @override
+  String get recurringEndDateOptional => 'Дата окончания (необязательно)';
+
+  @override
+  String get recurringEndClear => 'Убрать дату окончания';
+
+  @override
+  String get recurringEndNotSet => 'Бессрочно';
+
+  @override
+  String recurringScheduleFrom(String from) {
+    return 'Ежемесячно с $from';
+  }
+
+  @override
+  String recurringNextLabel(String date) {
+    return 'Следующий: $date';
+  }
+
+  @override
+  String recurringOverdueLabel(String date) {
+    return 'Просрочен: $date';
+  }
+
+  @override
+  String get recurringCompleted => 'Завершено';
+
+  @override
+  String get recurringAutoInterestTitle => 'Проценты по вкладу';
+
+  @override
+  String get recurringTargetHint => 'Цель — только счёт или недвижимость';
+
+  @override
+  String get recurringNoTargets => 'Сначала добавьте счёт или недвижимость.';
+
+  @override
+  String recurringScheduleUntil(String to) {
+    return 'по $to';
+  }
+
+  @override
+  String recurringNextPayment(String date) {
+    return 'Следующий платёж: $date';
+  }
+
+  @override
+  String get recurringNextPaymentNone => 'Дата не определена';
+
+  @override
+  String get recurringPendingRate => 'Ожидает курс';
+
+  @override
+  String get recurringAutoBadge => 'Автоплатёж';
+
+  @override
+  String get recurringRuleLink => 'Изменить правило';
+
+  @override
+  String get recurringDeleteTitle => 'Удалить правило?';
+
+  @override
+  String get recurringDeleteMessage =>
+      'Правило будет удалено. Созданные операции останутся.';
+
+  @override
+  String get recurringDeleted => 'Правило удалено';
+
+  @override
+  String get recurringSaved => 'Правило сохранено';
+
+  @override
+  String get recurringDeleteAction => 'Удалить правило';
+
+  @override
+  String get recurringTargetAccount => 'Счёт';
+
+  @override
+  String get recurringTargetProperty => 'Недвижимость';
+
+  @override
+  String get recurringNoTarget => 'Не выбран';
+
+  @override
+  String get recurringErrorDates =>
+      'Дата окончания не может быть раньше даты начала';
+
+  @override
+  String get recurringReadOnlyInterest =>
+      'Проценты по вкладу начисляются автоматически и настраиваются в счёте.';
+
+  @override
+  String get recurringOpenAccount => 'Открыть счёт';
+
+  @override
+  String get recurringRateHint =>
+      'Курс берётся из сохранённого курса на дату платежа.';
+
+  @override
+  String get recurringSectionEmpty => 'Нет ежемесячных платежей.';
+
+  @override
+  String get recurringNoTargetHint => 'Без привязки к активу';
+
+  @override
   String get cashflowErrorAccount =>
       'Выберите счёт или отключите влияние на баланс.';
 

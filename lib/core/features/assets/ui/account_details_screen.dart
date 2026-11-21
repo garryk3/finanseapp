@@ -7,6 +7,7 @@ import 'package:finanseapp/core/features/assets/domain/asset.dart';
 import 'package:finanseapp/core/features/assets/domain/asset_valuation.dart';
 import 'package:finanseapp/core/features/assets/ui/account_details_view_model.dart';
 import 'package:finanseapp/core/features/assets/ui/property_cashflow_section.dart';
+import 'package:finanseapp/core/features/recurring/ui/recurring_rules_section.dart';
 import 'package:finanseapp/core/presentation/date_formatter.dart';
 import 'package:finanseapp/core/presentation/money_formatter.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
@@ -223,6 +224,19 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
             ],
           ),
         ),
+        if ((isAccount || asset is PropertyAsset) &&
+            vm.recurringRepository != null &&
+            vm.categoryRepository != null)
+          RecurringRulesSection(
+            repository: vm.recurringRepository!,
+            categoryRepository: vm.categoryRepository!,
+            currencyRepository: vm.currencyRepository,
+            rateRepository: vm.rateRepository,
+            assetId: asset.id,
+            isAccount: isAccount,
+            today: vm.today,
+            readOnly: isArchived,
+          ),
         if (asset is PropertyAsset && vm.cashflowRepository != null)
           PropertyCashflowSection(
             repository: vm.cashflowRepository!,

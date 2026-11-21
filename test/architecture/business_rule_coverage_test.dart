@@ -161,7 +161,7 @@ void _expectTestsInside(Iterable<String> directories, String owner) {
 void main() {
   test('каждый BR из business_rules.md покрыт тестовой группой', () {
     final ids = _brIds('docs/architecture/business_rules.md');
-    expect(ids, hasLength(110));
+    expect(ids, hasLength(111));
     for (final prefix in _brCoverage.keys) {
       expect(
         ids.any((id) => id.startsWith('$prefix-')),

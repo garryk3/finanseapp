@@ -11,8 +11,10 @@ import 'package:finanseapp/core/features/assets/domain/asset_repository.dart';
 import 'package:finanseapp/core/features/assets/domain/asset_valuation.dart';
 import 'package:finanseapp/core/features/assets/logic/account_forecast_calculator.dart';
 import 'package:finanseapp/core/features/cashflow/domain/cashflow_repository.dart';
+import 'package:finanseapp/core/features/categories/domain/category_repository.dart';
 import 'package:finanseapp/core/features/currencies/domain/currency_repository.dart';
 import 'package:finanseapp/core/features/currencies/domain/exchange_rate_repository.dart';
+import 'package:finanseapp/core/features/recurring/domain/recurring_repository.dart';
 import 'package:finanseapp/core/features/settings/domain/settings_repository.dart';
 import 'package:signals/signals.dart';
 
@@ -26,6 +28,8 @@ class AccountDetailsViewModel {
     required this.currencyRepository,
     required this.rateRepository,
     this.cashflowRepository,
+    this.recurringRepository,
+    this.categoryRepository,
   });
 
   final AssetRepository repository;
@@ -35,6 +39,8 @@ class AccountDetailsViewModel {
   final CurrencyRepository currencyRepository;
   final ExchangeRateRepository rateRepository;
   final CashflowRepository? cashflowRepository;
+  final RecurringRepository? recurringRepository;
+  final CategoryRepository? categoryRepository;
 
   final Signal<AccountAsset?> account = signal(null);
   final Signal<Asset?> asset = signal(null);

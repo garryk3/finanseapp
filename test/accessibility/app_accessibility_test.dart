@@ -1,6 +1,7 @@
 import 'package:decimal/decimal.dart';
 import 'package:finanseapp/app/app.dart';
 import 'package:finanseapp/core/database/daos/cashflow_dao.dart';
+import 'package:finanseapp/core/database/daos/recurring_dao.dart';
 import 'package:finanseapp/core/database/daos/transactions_dao.dart';
 import 'package:finanseapp/core/domain/common/local_date.dart';
 import 'package:finanseapp/core/features/assets/domain/subgroup.dart';
@@ -21,6 +22,9 @@ import 'package:finanseapp/core/features/dashboard/ui/dashboard_screen.dart';
 import 'package:finanseapp/core/features/goals/ui/goal_details_screen.dart';
 import 'package:finanseapp/core/features/goals/ui/goal_form_screen.dart';
 import 'package:finanseapp/core/features/goals/ui/goals_screen.dart';
+import 'package:finanseapp/core/features/recurring/domain/recurring_rule.dart';
+import 'package:finanseapp/core/features/recurring/ui/recurring_rule_form_screen.dart';
+import 'package:finanseapp/core/features/recurring/ui/recurring_rules_screen.dart';
 import 'package:finanseapp/core/features/settings/ui/about_screen.dart';
 import 'package:finanseapp/core/features/settings/ui/more_screen.dart';
 import 'package:finanseapp/core/features/settings/ui/settings_screen.dart';
@@ -77,6 +81,18 @@ void main() {
         affectsBalance: false,
       ),
     );
+    final recurringRuleId = await db.recurringDao.create(
+      RecurringRuleInput(
+        strategy: RecurringStrategy.fixed,
+        kind: CashflowKind.expense,
+        categoryId: await categoryId(db, CashflowKind.expense),
+        amountMinor: 100000,
+        currencyCode: 'RUB',
+        accountId: accountId,
+        affectsBalance: false,
+        startDate: LocalDate(2026, 11, 1),
+      ),
+    );
 
     tester.view.physicalSize = const Size(320, 900);
     tester.view.devicePixelRatio = 1;
@@ -96,6 +112,15 @@ void main() {
       (
         path: AppRoutes.operationsTab(tab: 'transactions'),
         screen: TransactionsScreen,
+      ),
+      (
+        path: AppRoutes.operationsTab(tab: 'recurring'),
+        screen: RecurringRulesScreen,
+      ),
+      (path: AppRoutes.recurringNew, screen: RecurringRuleFormScreen),
+      (
+        path: AppRoutes.recurringEditPath(recurringRuleId),
+        screen: RecurringRuleFormScreen,
       ),
       (path: AppRoutes.assets, screen: AssetsScreen),
       (
@@ -143,6 +168,11 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.byTooltip(l10n.transactionsAdd), findsOneWidget);
+
+    router.go(AppRoutes.operationsTab(tab: 'recurring'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.byTooltip(l10n.recurringAdd), findsOneWidget);
 
     router.go(AppRoutes.analytics);
     await tester.pumpAndSettle();

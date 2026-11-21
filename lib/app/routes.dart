@@ -29,6 +29,9 @@ abstract final class AppRoutes {
   static const cashflowDetails = '/cashflow/:id';
   static const cashflowEdit = '/cashflow/:id/edit';
 
+  static const recurringNew = '/recurring/new';
+  static const recurringEdit = '/recurring/:id/edit';
+
   static const goalNew = '/goals/new';
   static const goalDetails = '/goals/:id';
   static const goalEdit = '/goals/:id/edit';
@@ -49,7 +52,11 @@ abstract final class AppRoutes {
   static const about = '/more/about';
 
   /// Значения вкладки журнала операций; неизвестное значение → cashflow.
-  static const operationsTabs = <String>['cashflow', 'transactions'];
+  static const operationsTabs = <String>[
+    'cashflow',
+    'transactions',
+    'recurring',
+  ];
 
   static String operationsTab({required String tab}) => '$operations?tab=$tab';
 
@@ -76,6 +83,20 @@ abstract final class AppRoutes {
   static String cashflowNewForProperty(int id, {bool income = false}) =>
       '$cashflowNew?propertyId=$id&kind=${income ? 'income' : 'expense'}';
   static String cashflowEditPath(int id) => '/cashflow/$id/edit';
+  static String recurringNewPath({
+    int? propertyId,
+    int? accountId,
+    String kind = 'expense',
+  }) {
+    final query = <String>[
+      if (propertyId != null) 'propertyId=$propertyId',
+      if (accountId != null) 'accountId=$accountId',
+      'kind=${kind == 'income' ? 'income' : 'expense'}',
+    ];
+    return '$recurringNew?${query.join('&')}';
+  }
+
+  static String recurringEditPath(int id) => '/recurring/$id/edit';
   static String goalDetailsPath(int id) => '/goals/$id';
   static String goalEditPath(int id) => '/goals/$id/edit';
   static String categoryEditPath(int id) => '/more/categories/$id/edit';

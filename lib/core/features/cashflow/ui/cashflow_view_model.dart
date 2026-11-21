@@ -17,6 +17,7 @@ import 'package:finanseapp/core/features/categories/domain/category.dart';
 import 'package:finanseapp/core/features/cashflow/logic/cashflow_commands.dart';
 import 'package:finanseapp/core/features/categories/domain/category_repository.dart';
 import 'package:finanseapp/core/features/currencies/domain/currency_repository.dart';
+import 'package:finanseapp/core/features/recurring/logic/recurring_commands.dart';
 import 'package:finanseapp/core/presentation/money_formatter.dart';
 import 'package:finanseapp/core/presentation/view_state.dart';
 import 'package:signals/signals.dart';
@@ -230,6 +231,7 @@ class CashflowFormViewModel {
     required this.currencyRepository,
     required this.commands,
     required this.assetRepository,
+    this.recurringCommands,
     this.editingId,
     this.initialKind = CashflowKind.expense,
     this.propertyId,
@@ -240,6 +242,7 @@ class CashflowFormViewModel {
   final CurrencyRepository currencyRepository;
   final CashflowCommands commands;
   final AssetRepository assetRepository;
+  final RecurringCommands? recurringCommands;
   final int? editingId;
   final CashflowKind initialKind;
   final int? propertyId;
@@ -253,6 +256,9 @@ class CashflowFormViewModel {
   final Signal<bool> busy = signal(false);
 
   bool get isEditing => editingId != null;
+
+  /// Создание правила доступно только на новом доходе/расходе (15.2).
+  bool get canRepeat => !isEditing && recurringCommands != null;
 
   LocalDate get today => commands.today;
 
@@ -346,6 +352,38 @@ class CashflowFormViewModel {
     accountId: accountId,
     affectsBalance: affectsBalance,
   );
+
+  Future<Result<int>> saveRecurring({
+    required CashflowKind kind,
+    required int categoryId,
+    required Money amount,
+    required String currencyCode,
+    int? accountId,
+    int? propertyId,
+    required bool affectsBalance,
+    required LocalDate startDate,
+    LocalDate? endDate,
+    String? comment,
+  }) {
+    final recurring = recurringCommands;
+    if (recurring == null) {
+      return Future.value(
+        const Failure(DomainException(DomainErrorCode.storageFailure)),
+      );
+    }
+    return recurring.save(
+      kind: kind,
+      categoryId: categoryId,
+      amount: amount,
+      currencyCode: currencyCode,
+      accountId: accountId,
+      propertyId: propertyId ?? entry.value?.propertyId ?? this.propertyId,
+      affectsBalance: affectsBalance,
+      startDate: startDate,
+      endDate: endDate,
+      comment: comment,
+    );
+  }
 
   void dispose() {}
 }

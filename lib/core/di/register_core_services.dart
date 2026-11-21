@@ -44,6 +44,7 @@ import 'package:finanseapp/core/features/recurring/data/recurring_repository_imp
 import 'package:finanseapp/core/features/recurring/domain/recurring_repository.dart';
 import 'package:finanseapp/core/features/recurring/logic/recurring_catchup_service.dart';
 import 'package:finanseapp/core/features/recurring/logic/recurring_generator.dart';
+import 'package:finanseapp/core/features/recurring/ui/recurring_rules_view_model.dart';
 import 'package:finanseapp/core/features/settings/data/settings_repository_impl.dart';
 import 'package:finanseapp/core/features/settings/domain/settings_repository.dart';
 import 'package:finanseapp/core/di/service_locator.dart';
@@ -132,6 +133,16 @@ Future<ServiceLocator> registerCoreServices(
   );
   locator.register<RecurringCatchupService>(
     RecurringCatchupService(generator: locator.get<RecurringGenerator>()),
+  );
+  locator.registerFactory<RecurringRulesViewModel>(
+    () => RecurringRulesViewModel(
+      repository: locator.get<RecurringRepository>(),
+      categoryRepository: locator.get<CategoryRepository>(),
+      currencyRepository: locator.get<CurrencyRepository>(),
+      assetRepository: locator.get<AssetRepository>(),
+      rateRepository: locator.get<ExchangeRateRepository>(),
+      today: LocalDate.fromDateTime(DateTime.now()),
+    ),
   );
   locator.registerFactory<CurrenciesViewModel>(
     () => CurrenciesViewModel(
