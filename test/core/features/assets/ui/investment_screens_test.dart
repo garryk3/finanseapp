@@ -325,6 +325,49 @@ void main() {
     expect(find.text(l10n.accountErrorAmount), findsNothing);
   });
 
+  testWidgets('редактирование: нулевой баланс инвестиции показан пустым', (
+    tester,
+  ) async {
+    final repository = FakeAssets(
+      AssetSnapshot(
+        asset: _investment(opening: 0),
+        currentValue: const Money(minorUnits: 0, currencyCode: 'RUB'),
+      ),
+    );
+    final vm = InvestmentFormViewModel(
+      repository: repository,
+      subgroupRepository: FakeSubgroups(),
+      currencyRepository: FakeCurrencies(),
+      editingId: 1,
+    );
+    await _pump(tester, InvestmentFormScreen(viewModel: vm));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(
+      tester.widget<TextField>(find.byType(TextField).at(1)).controller!.text,
+      isEmpty,
+    );
+  });
+
+  testWidgets('редактирование: ненулевой баланс инвестиции показан как есть', (
+    tester,
+  ) async {
+    final repository = FakeAssets(_snapshot());
+    final vm = InvestmentFormViewModel(
+      repository: repository,
+      subgroupRepository: FakeSubgroups(),
+      currencyRepository: FakeCurrencies(),
+      editingId: 1,
+    );
+    await _pump(tester, InvestmentFormScreen(viewModel: vm));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(
+      tester.widget<TextField>(find.byType(TextField).at(1)).controller!.text,
+      '1000',
+    );
+  });
+
   testWidgets('форма инвестиции не сохраняет пустое название', (tester) async {
     final repository = FakeAssets(_snapshot());
     final vm = InvestmentFormViewModel(
