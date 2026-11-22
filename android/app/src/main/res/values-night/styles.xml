@@ -5,6 +5,14 @@
         <!-- Show a splash screen on the activity. Automatically removed when
              the Flutter engine draws its first frame -->
         <item name="android:windowBackground">@drawable/launch_background</item>
+        <!-- Android 12+: системный splash сразу на фоне видео-заставки. -->
+        <item name="android:windowSplashScreenBackground">@color/splash_background</item>
+        <!-- Без иконки: заставка — это видео/постер, лишний кадр не нужен. -->
+        <item name="android:windowSplashScreenAnimatedIcon">@android:color/transparent</item>
+        <item name="android:statusBarColor">@color/splash_background</item>
+        <item name="android:navigationBarColor">@color/splash_background</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
     </style>
     <!-- Theme applied to the Android Window as soon as the process has started.
          This theme determines the color of the Android Window while your
@@ -13,6 +21,8 @@
 
          This Theme is only used starting with V2 of Flutter's Android embedding. -->
     <style name="NormalTheme" parent="@android:style/Theme.Black.NoTitleBar">
-        <item name="android:windowBackground">?android:colorBackground</item>
+        <!-- Фон окна до первого непрозрачного кадра Flutter: без белой вспышки
+             при смене LaunchTheme → NormalTheme (Flutter рисует поверх). -->
+        <item name="android:windowBackground">@color/splash_background</item>
     </style>
 </resources>

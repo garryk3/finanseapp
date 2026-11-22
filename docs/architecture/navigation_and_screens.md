@@ -92,6 +92,28 @@ stack trace и сырое исключение пользователю не в�
 (`WidgetsBindingObserver.didPopRoute` в гейте) и не завершает приложение; на корне
 онбординга без модалки BACK работает как обычно — выходит из приложения.
 
+### Холодный старт: видео-заставка
+
+`AppRestartHost` оборачивает приложение в `StartupSplash` (гейт 2.5 с):
+
+1. Первый кадр Flutter — `SplashScreen` с `VideoPlayerController.asset`
+   (`assets/video/finsplash.mp4`, звук 0, без цикла): центральный квадрат 1:1
+   исходника 16:9 на фоне `AppTheme.splashBackground`; до готовности видео виден
+   постер `assets/video/finsplash_poster.png` (первый кадр), при
+   `MediaQuery.disableAnimations` — только постер, ошибка инициализации —
+   постер без видео; края растворяются в фоне градиентными шторками.
+2. Ровно через 2.5 с гейт скрывает заставку, даже если DI/БД ещё собираются:
+   приложение проявляется поверх неё за последние 200 мс (видимо ≤2.5 с;
+   reduce-motion — мгновенно); пока `locator == null`, показывается
+   `StartupLoadingScreen` (фон + спиннер), затем `FinanseApp`.
+3. Гейт включён только на Android (`defaultTargetPlatform`): Linux e2e и
+   widget-тесты не ждут видео. `StartupSplash` сохраняет state между обновлениями
+   child, поэтому restart по импорту backup видео не повторяет.
+
+Android launch-тема (`LaunchTheme`, drawable `launch_background`) и
+`windowSplashScreenBackground` используют тот же `#06110E`, поэтому белой
+вспышки до первого кадра нет.
+
 ## 3. Query parameters и prefill
 
 | Route | Keys | Правила |

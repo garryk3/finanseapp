@@ -13,6 +13,8 @@
 - `go_router`, `fl_chart`, `flutter_localizations` + `intl`, русская локаль.
 - Manual DI через конструкторы, feature-first внутри `lib/core/features/`.
 - Material 3 через `package:material_ui/material_ui.dart`; светлая и тёмная темы.
+- `video_player` — только видео-заставка холодного старта (`assets/video/finsplash.mp4`,
+  muted, ≤2.5 с, Android only); на Linux подменяется статичным/пропускается.
 - UI только через `lib/uikit/`; analyzer guard `restrict_raw_flutter` обязателен.
 - Offline-first; сеть нужна для точных курсов ЦБ РФ и ручной проверки GitHub Updates.
 - Защита доступа (12.5): `local_auth` (биометрия, graceful fallback на PIN),

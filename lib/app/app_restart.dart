@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:finanseapp/app/app.dart';
+import 'package:finanseapp/app/startup_splash.dart';
 import 'package:finanseapp/core/di/service_locator.dart';
+import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// Тик полного пересоздания приложения после импорта БД (BR-BU-6).
@@ -27,9 +29,20 @@ void completeAppRestart() {
 
 /// Владелец ServiceLocator: пересоздаёт его по [appRestartTick].
 class AppRestartHost extends StatefulWidget {
-  const AppRestartHost({super.key, required this.build});
+  const AppRestartHost({
+    super.key,
+    required this.build,
+    this.showSplash,
+    this.splashDuration = const Duration(milliseconds: 2500),
+    this.splashBuilder,
+  });
 
   final Future<ServiceLocator> Function() build;
+
+  /// null — только Android (S3); тесты/e2e на Linux не ждут splash.
+  final bool? showSplash;
+  final Duration splashDuration;
+  final WidgetBuilder? splashBuilder;
 
   @override
   State<AppRestartHost> createState() => _AppRestartHostState();
@@ -77,7 +90,14 @@ class _AppRestartHostState extends State<AppRestartHost> {
   @override
   Widget build(BuildContext context) {
     final locator = _locator;
-    if (locator == null) return const SizedBox.shrink();
-    return FinanseApp(key: ValueKey(_generation), locator: locator);
+    return StartupSplash(
+      enabled:
+          widget.showSplash ?? defaultTargetPlatform == TargetPlatform.android,
+      duration: widget.splashDuration,
+      splashBuilder: widget.splashBuilder,
+      child: locator == null
+          ? null
+          : FinanseApp(key: ValueKey(_generation), locator: locator),
+    );
   }
 }
