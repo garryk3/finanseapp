@@ -38,7 +38,7 @@ class _AccountFormScreenState extends State<AccountFormScreen> {
   late AccountFormViewModel _viewModel = widget.viewModel;
   final _name = TextEditingController();
   final _opening = TextEditingController();
-  final _rate = TextEditingController(text: '0');
+  final _rate = TextEditingController();
   int? _bankId;
   String _currencyCode = 'RUB';
   LocalDate _startDate = LocalDate.fromDateTime(DateTime.now());
@@ -83,11 +83,15 @@ class _AccountFormScreenState extends State<AccountFormScreen> {
     final account = _viewModel.account.value;
     if (account != null) {
       _name.text = account.name;
-      _opening.text = MoneyMath.toDecimal(
+      final opening = MoneyMath.toDecimal(
         account.openingValue,
         _currencyOf(account.currencyCode),
-      ).toString();
-      _rate.text = account.annualRate.toString();
+      );
+      // Ноль показываем пустым полем (hint «0»): иначе ввод дописывается к «0».
+      _opening.text = opening == Decimal.zero ? '' : opening.toString();
+      _rate.text = account.annualRate == Decimal.zero
+          ? ''
+          : account.annualRate.toString();
       _currencyCode = account.currencyCode;
       _startDate = account.startDate;
       _endDate = account.endDate;
@@ -238,6 +242,7 @@ class _AccountFormScreenState extends State<AccountFormScreen> {
                   AppTextField(
                     label: l10n.accountRateLabel,
                     controller: _rate,
+                    hint: l10n.accountRateHint,
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
                     ),

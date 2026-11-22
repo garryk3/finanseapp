@@ -535,6 +535,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get accountRateLabel => 'Ставка, % годовых';
 
   @override
+  String get accountRateHint => '0';
+
+  @override
   String get accountStartDate => 'Дата начала';
 
   @override
