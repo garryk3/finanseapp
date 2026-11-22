@@ -112,12 +112,13 @@
      градиентные шторки по краям; фон `AppTheme.splashBackground`; `Semantics`
      с названием приложения.
   4. **StartupSplash.** `enabled`, `duration = 2500ms`, `fadeDuration = 200ms`,
-     `child`, `splashBuilder`; таймеры в initState; `_done`; build — стабильный
-     корневой `Stack` (тёмная база; splash `MaterialApp` до 2.5 с; приложение
-     монтируется в последние 200 мс и проявляется `FadeTransition`; после DI >
-     2.5 с — `StartupLoadingScreen`). Таймеры отменять в dispose; повторный child
-     не перезапускает splash (state сохраняется в AppRestartHost); при
-     reduce-motion без фейда.
+     `child`, `splashBuilder`; таймеры стартуют после первого отрисованного
+     кадра (`addPostFrameCallback`), чтобы прогрев движка не съедал заставку;
+     `_done`; build — стабильный корневой `Stack` (тёмная база; splash
+     `MaterialApp` до 2.5 с; приложение монтируется в последние 200 мс и
+     проявляется `FadeTransition`; после DI > 2.5 с — `StartupLoadingScreen`).
+     Таймеры отменять в dispose; повторный child не перезапускает splash
+     (state сохраняется в AppRestartHost); при reduce-motion без фейда.
   5. **AppRestartHost.** Опциональные `showSplash`, `splashDuration`,
      `splashBuilder`; default `showSplash ?? defaultTargetPlatform == android`;
      build `StartupSplash(... child: locator == null ? null : FinanseApp(...))`.
@@ -147,6 +148,11 @@
   постер, video_player). Linux e2e не затронут (splash выключен). Ручная
   проверка видео — короткий android-tester до PR (`TEST_PLAN.md`); e2e Linux
   не запускался по решению владельца (splash на Linux выключен).
+- **Короткий QA (2026-11-22):** 9 PASS, 1 FAIL (TC-149, не блокер), 1 SKIP.
+  TC-149: таймер стартовал в `initState`, первый кадр запаздывал на ~0.6 с —
+  видимая заставка 1.89 с, видео ~1.5 с. Исправлено: отсчёт от первого
+  отрисованного кадра (`addPostFrameCallback`), видео играет до 2.5 с.
+  Recheck TC-149 — PASS (2.25–2.46 с).
 
 ## Этап 17 — Числовые поля формы счёта без стартового нуля
 
@@ -180,7 +186,7 @@
 
 ## Текущий этап
 
-Этап 16 «Видео-заставка при запуске» — задача 16.1 закрыта (2026-11-22),
-PR из ветки `task/16.1-splash-video`. Этап 17: 17.1 закрыта (2026-11-22) —
-пустые числовые поля формы счёта вместо стартового нуля. Завершённые
-этапы 1–15 — `PLAN_ARCHIVE.md`.
+Этап 16 «Видео-заставка при запуске» — задача 16.1 закрыта и смержена
+(2026-11-22, PR #68). Этап 17: 17.1 закрыта (2026-11-22) — пустые числовые
+поля формы счёта вместо стартового нуля, вливается PR из ветки
+`task/17.1-empty-number-fields`. Завершённые этапы 1–15 — `PLAN_ARCHIVE.md`.

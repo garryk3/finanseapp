@@ -61,7 +61,14 @@ class _StartupSplashState extends State<StartupSplash>
     // Создаём сразу: на Linux/в e2e (_done) dispose не должен трогать Ticker
     // деактивированного элемента.
     _fade = AnimationController(vsync: this, duration: widget.fadeDuration);
-    _start();
+    // Отсчёт 2.5 с — от первого отрисованного кадра: прогрев движка/видео не
+    // должен «съедать» заставку (QA TC-149).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _done) return;
+      // _reset мог уже запустить таймеры до первого кадра.
+      if (_revealTimer != null || _finishTimer != null) return;
+      _start();
+    });
   }
 
   @override
