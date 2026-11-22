@@ -1048,6 +1048,12 @@ abstract class AppLocalizations {
   /// **'Ставка, % годовых'**
   String get accountRateLabel;
 
+  /// Подсказка пустого поля ставки: пусто означает 0 (без начислений).
+  ///
+  /// In ru, this message translates to:
+  /// **'0'**
+  String get accountRateHint;
+
   /// Поле даты начала вклада.
   ///
   /// In ru, this message translates to:

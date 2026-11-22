@@ -719,6 +719,10 @@
   "@accountRateLabel": {
     "description": "Поле годовой ставки."
   },
+  "accountRateHint": "0",
+  "@accountRateHint": {
+    "description": "Подсказка пустого поля ставки: пусто означает 0 (без начислений)."
+  },
   "accountStartDate": "Дата начала",
   "@accountStartDate": {
     "description": "Поле даты начала вклада."

@@ -59,6 +59,7 @@ final class FakeAssets implements AssetRepository {
   Future<AssetSnapshot> getById(int id) async => snapshot;
 
   AssetDraft? createdDraft;
+  AssetDraft? updatedDraft;
 
   @override
   Future<List<AssetValuation>> valuations(int id) async => const [];
@@ -70,7 +71,9 @@ final class FakeAssets implements AssetRepository {
   }
 
   @override
-  Future<void> update(int id, AssetDraft draft) async {}
+  Future<void> update(int id, AssetDraft draft) async {
+    updatedDraft = draft;
+  }
 
   @override
   Future<void> deleteIfUnused(int id) async {}
@@ -166,19 +169,22 @@ final class FakeRates implements ExchangeRateRepository {
   ) => throw const DomainException(DomainErrorCode.validation);
 }
 
-AccountAsset _account({int opening = 10000000, bool archived = false}) =>
-    AccountAsset(
-      id: 1,
-      name: 'Вклад',
-      currencyCode: 'RUB',
-      openingValue: Money(minorUnits: opening, currencyCode: 'RUB'),
-      createdAt: DateTime.utc(2026),
-      bankId: 1,
-      annualRate: Decimal.parse('12'),
-      startDate: LocalDate(2026, 1, 1),
-      endDate: LocalDate(2027, 1, 1),
-      archivedAt: archived ? DateTime.utc(2026, 2, 1) : null,
-    );
+AccountAsset _account({
+  int opening = 10000000,
+  bool archived = false,
+  String rate = '12',
+}) => AccountAsset(
+  id: 1,
+  name: 'Вклад',
+  currencyCode: 'RUB',
+  openingValue: Money(minorUnits: opening, currencyCode: 'RUB'),
+  createdAt: DateTime.utc(2026),
+  bankId: 1,
+  annualRate: Decimal.parse(rate),
+  startDate: LocalDate(2026, 1, 1),
+  endDate: LocalDate(2027, 1, 1),
+  archivedAt: archived ? DateTime.utc(2026, 2, 1) : null,
+);
 
 Future<void> _pump(WidgetTester tester, Widget child) async {
   await tester.pumpWidget(
@@ -300,6 +306,94 @@ void main() {
 
     expect(find.text(l10n.accountNoBanks), findsNothing);
     expect(find.text('Новый банк'), findsOneWidget);
+  });
+
+  testWidgets('создание: поле ставки пустое, ввод 12 даёт 12', (tester) async {
+    tester.view.physicalSize = const Size(900, 1600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final snapshot = AssetSnapshot(
+      asset: _account(),
+      currentValue: const Money(minorUnits: 0, currencyCode: 'RUB'),
+    );
+    final assets = FakeAssets(snapshot);
+    final vm = AccountFormViewModel(
+      repository: assets,
+      subgroupRepository: FakeSubgroups(),
+      currencyRepository: FakeCurrencies(),
+    );
+    await _pump(tester, AccountFormScreen(viewModel: vm));
+
+    final rateField = tester.widget<TextField>(find.byType(TextField).at(2));
+    expect(rateField.controller!.text, isEmpty);
+    expect(rateField.decoration?.hintText, l10n.accountRateHint);
+
+    await tester.enterText(find.byType(TextField).first, 'Наличные');
+    await tester.enterText(find.byType(TextField).at(2), '12');
+    await tester.ensureVisible(find.text(l10n.commonSave));
+    await tester.pump();
+    await tester.tap(find.text(l10n.commonSave));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(
+      (assets.createdDraft! as AccountDraft).annualRate,
+      Decimal.parse('12'),
+    );
+  });
+
+  testWidgets('редактирование: нулевые баланс и ставка показаны пустыми', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 1600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final snapshot = AssetSnapshot(
+      asset: _account(opening: 0, rate: '0'),
+      currentValue: const Money(minorUnits: 0, currencyCode: 'RUB'),
+    );
+    final assets = FakeAssets(snapshot);
+    final vm = AccountFormViewModel(
+      repository: assets,
+      subgroupRepository: FakeSubgroups(),
+      currencyRepository: FakeCurrencies(),
+      editingId: 1,
+    );
+    await _pump(tester, AccountFormScreen(viewModel: vm));
+
+    final fields = find.byType(TextField);
+    expect(tester.widget<TextField>(fields.at(1)).controller!.text, isEmpty);
+    expect(tester.widget<TextField>(fields.at(2)).controller!.text, isEmpty);
+
+    await tester.ensureVisible(find.text(l10n.commonSave));
+    await tester.tap(find.text(l10n.commonSave));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    final draft = assets.updatedDraft! as AccountDraft;
+    expect(draft.openingValue.minorUnits, 0);
+    expect(draft.annualRate, Decimal.zero);
+  });
+
+  testWidgets('редактирование: ненулевые баланс и ставка показаны как есть', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 1600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final snapshot = AssetSnapshot(
+      asset: _account(opening: 10000000, rate: '12.5'),
+      currentValue: const Money(minorUnits: 10000000, currencyCode: 'RUB'),
+    );
+    final vm = AccountFormViewModel(
+      repository: FakeAssets(snapshot),
+      subgroupRepository: FakeSubgroups(),
+      currencyRepository: FakeCurrencies(),
+      editingId: 1,
+    );
+    await _pump(tester, AccountFormScreen(viewModel: vm));
+
+    final fields = find.byType(TextField);
+    expect(tester.widget<TextField>(fields.at(1)).controller!.text, '100000');
+    expect(tester.widget<TextField>(fields.at(2)).controller!.text, '12.5');
   });
 
   testWidgets('пустые баланс и ставка сохраняются как нули', (tester) async {
