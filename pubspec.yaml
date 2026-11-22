@@ -37,6 +37,7 @@ dependencies:
   sqlite3: ^3.5.1
   package_info_plus: ^10.2.2
   url_launcher: ^6.3.2
+  video_player: ^2.14.1
 
 dev_dependencies:
   flutter_test:
@@ -51,3 +52,6 @@ dev_dependencies:
 flutter:
   generate: true
   uses-material-design: true
+  assets:
+    - assets/video/finsplash.mp4
+    - assets/video/finsplash_poster.png
