@@ -1,5 +1,6 @@
 import 'package:finanseapp/app/theme/app_theme.dart';
 import 'package:finanseapp/core/domain/common/currency.dart';
+import 'package:finanseapp/core/domain/common/money.dart';
 import 'package:finanseapp/core/features/assets/domain/asset.dart';
 import 'package:finanseapp/core/features/assets/domain/asset_draft.dart';
 import 'package:finanseapp/core/features/assets/domain/asset_repository.dart';
@@ -20,6 +21,11 @@ const _rub = Currency(
 );
 
 final class FakeAssets implements AssetRepository {
+  FakeAssets([this.snapshot]);
+
+  final AssetSnapshot? snapshot;
+  AssetDraft? savedDraft;
+
   @override
   Stream<List<AssetSnapshot>> watchAll({bool includeArchived = false}) =>
       const Stream.empty();
@@ -28,13 +34,15 @@ final class FakeAssets implements AssetRepository {
   Stream<AssetSnapshot?> watchById(int id) => const Stream.empty();
 
   @override
-  Future<AssetSnapshot> getById(int id) => throw UnimplementedError();
+  Future<AssetSnapshot> getById(int id) async => snapshot!;
 
   @override
   Future<int> create(AssetDraft draft) async => 1;
 
   @override
-  Future<void> update(int id, AssetDraft draft) async {}
+  Future<void> update(int id, AssetDraft draft) async {
+    savedDraft = draft;
+  }
 
   @override
   Future<void> deleteIfUnused(int id) async {}
@@ -117,4 +125,118 @@ void main() {
     expect(find.text(l10n.propertyFormNew), findsOneWidget);
     expect(find.text(l10n.propertyAddressLabel), findsOneWidget);
   });
+
+  testWidgets('редактирование: нулевые стоимость и цена показаны пустыми', (
+    tester,
+  ) async {
+    await _pumpEdit(tester, _property(opening: 0, purchase: 0));
+
+    final fields = find.byType(TextField);
+    expect(tester.widget<TextField>(fields.at(2)).controller!.text, isEmpty);
+    expect(tester.widget<TextField>(fields.at(3)).controller!.text, isEmpty);
+  });
+
+  testWidgets('редактирование: ненулевые стоимость и цена показаны как есть', (
+    tester,
+  ) async {
+    await _pumpEdit(tester, _property(opening: 100000, purchase: 5000000));
+
+    final fields = find.byType(TextField);
+    expect(tester.widget<TextField>(fields.at(2)).controller!.text, '1000');
+    expect(tester.widget<TextField>(fields.at(3)).controller!.text, '50000');
+  });
+
+  testWidgets('сохранённый нулевой purchasePrice не превращается в null', (
+    tester,
+  ) async {
+    final l10n = await AppLocalizations.delegate.load(const Locale('ru'));
+    final assets = await _pumpEdit(tester, _property(opening: 0, purchase: 0));
+
+    await tester.ensureVisible(find.text(l10n.commonSave));
+    await tester.tap(find.text(l10n.commonSave));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    final draft = assets.savedDraft! as PropertyDraft;
+    expect(draft.purchasePrice?.minorUnits, 0);
+  });
+
+  testWidgets('пустая цена покупки сохраняется как null', (tester) async {
+    final l10n = await AppLocalizations.delegate.load(const Locale('ru'));
+    final assets = await _pumpEdit(tester, _property(opening: 0));
+
+    expect(
+      tester.widget<TextField>(find.byType(TextField).at(3)).controller!.text,
+      isEmpty,
+    );
+    await tester.ensureVisible(find.text(l10n.commonSave));
+    await tester.tap(find.text(l10n.commonSave));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    final draft = assets.savedDraft! as PropertyDraft;
+    expect(draft.purchasePrice, isNull);
+  });
+
+  testWidgets('очистка ненулевой цены покупки сохраняется как null', (
+    tester,
+  ) async {
+    final l10n = await AppLocalizations.delegate.load(const Locale('ru'));
+    final assets = await _pumpEdit(
+      tester,
+      _property(opening: 0, purchase: 5000000),
+    );
+
+    final fields = find.byType(TextField);
+    expect(tester.widget<TextField>(fields.at(3)).controller!.text, '50000');
+    await tester.enterText(fields.at(3), '');
+    await tester.ensureVisible(find.text(l10n.commonSave));
+    await tester.tap(find.text(l10n.commonSave));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    final draft = assets.savedDraft! as PropertyDraft;
+    expect(draft.purchasePrice, isNull);
+  });
+}
+
+PropertyAsset _property({required int opening, int? purchase}) => PropertyAsset(
+  id: 1,
+  name: 'Квартира',
+  currencyCode: 'RUB',
+  openingValue: Money(minorUnits: opening, currencyCode: 'RUB'),
+  createdAt: DateTime.utc(2026),
+  purchasePrice: purchase == null
+      ? null
+      : Money(minorUnits: purchase, currencyCode: 'RUB'),
+);
+
+Future<FakeAssets> _pumpEdit(
+  WidgetTester tester,
+  PropertyAsset property,
+) async {
+  tester.view.physicalSize = const Size(900, 1600);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
+  final assets = FakeAssets(
+    AssetSnapshot(
+      asset: property,
+      currentValue: const Money(minorUnits: 0, currencyCode: 'RUB'),
+    ),
+  );
+  final vm = PropertyFormViewModel(
+    repository: assets,
+    currencyRepository: FakeCurrencies(),
+    editingId: 1,
+  );
+  await tester.pumpWidget(
+    MaterialApp(
+      theme: AppTheme.light(),
+      localizationsDelegates: const [
+        ...GlobalMaterialLocalizations.delegates,
+        AppLocalizations.delegate,
+      ],
+      supportedLocales: const [Locale('ru')],
+      home: PropertyFormScreen(viewModel: vm),
+    ),
+  );
+  await tester.pump(const Duration(milliseconds: 300));
+  return assets;
 }

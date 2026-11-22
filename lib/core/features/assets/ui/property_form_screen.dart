@@ -1,5 +1,6 @@
 import 'package:finanseapp/app/theme/app_spacing.dart';
 import 'package:finanseapp/core/domain/common/currency.dart';
+import 'package:finanseapp/core/domain/common/money.dart';
 import 'package:finanseapp/core/domain/common/money_math.dart';
 import 'package:finanseapp/core/domain/common/result.dart';
 import 'package:finanseapp/core/features/assets/ui/account_form_view_model.dart';
@@ -40,6 +41,10 @@ class _PropertyFormScreenState extends State<PropertyFormScreen> {
   String? _formError;
   bool _loaded = false;
 
+  /// Загруженная цена покупки: сохранённый ноль не должен стать `null`
+  /// при сохранении формы без правки этого поля.
+  Money? _purchaseOriginal;
+
   @override
   void initState() {
     super.initState();
@@ -50,13 +55,16 @@ class _PropertyFormScreenState extends State<PropertyFormScreen> {
         final currency = _currencyOf(property.currencyCode);
         _name.text = property.name;
         _address.text = property.address ?? '';
-        _opening.text = MoneyMath.toDecimal(
-          property.openingValue,
-          currency,
-        ).toString();
+        // Ноль показываем пустым полем (hint «0»): иначе ввод дописывается к «0».
+        _opening.text = property.openingValue.minorUnits == 0
+            ? ''
+            : MoneyMath.toDecimal(property.openingValue, currency).toString();
         final purchase = property.purchasePrice;
+        _purchaseOriginal = purchase;
         if (purchase != null) {
-          _purchase.text = MoneyMath.toDecimal(purchase, currency).toString();
+          _purchase.text = purchase.minorUnits == 0
+              ? ''
+              : MoneyMath.toDecimal(purchase, currency).toString();
         }
         _currencyCode = property.currencyCode;
       }
@@ -91,9 +99,10 @@ class _PropertyFormScreenState extends State<PropertyFormScreen> {
     final l10n = AppLocalizations.of(context);
     final currency = _currencyOf(_currencyCode);
     final opening = parseOpeningAmountOrZero(_opening.text, currency);
-    final purchase = _purchase.text.trim().isEmpty
-        ? null
-        : parseOpeningAmount(_purchase.text, currency);
+    final purchaseText = _purchase.text.trim();
+    final purchase = purchaseText.isEmpty
+        ? (_purchaseOriginal?.minorUnits == 0 ? _purchaseOriginal : null)
+        : parseOpeningAmount(purchaseText, currency);
     if (_name.text.trim().isEmpty) {
       setState(() => _nameError = l10n.propertyErrorName);
       return;

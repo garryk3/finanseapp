@@ -86,10 +86,13 @@ class _InvestmentFormScreenState extends State<InvestmentFormScreen> {
     final investment = _viewModel.investment.value;
     if (investment != null) {
       _name.text = investment.name;
-      _opening.text = MoneyMath.toDecimal(
-        investment.openingValue,
-        _currencyOf(investment.currencyCode),
-      ).toString();
+      // Ноль показываем пустым полем (hint «0»): иначе ввод дописывается к «0».
+      _opening.text = investment.openingValue.minorUnits == 0
+          ? ''
+          : MoneyMath.toDecimal(
+              investment.openingValue,
+              _currencyOf(investment.currencyCode),
+            ).toString();
       _currencyCode = investment.currencyCode;
     }
     setState(() {
