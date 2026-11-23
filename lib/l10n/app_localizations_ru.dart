@@ -352,6 +352,11 @@ class AppLocalizationsRu extends AppLocalizations {
   String get currencyErrorRub => 'RUB нельзя отключить или удалить.';
 
   @override
+  String currencyErrorInUseCode(String code) {
+    return '$code нельзя отключить или удалить: валюта используется.';
+  }
+
+  @override
   String get baseCurrencyTitle => 'Базовая валюта';
 
   @override
@@ -765,6 +770,10 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get valuationErrorValue =>
       'Введите стоимость. Стоимость не может быть отрицательной.';
+
+  @override
+  String get rateErrorImmutable =>
+      'Курс на эту дату уже используется операциями и не может быть изменён. Оставьте поле пустым, чтобы взять сохранённый курс.';
 
   @override
   String get valuationErrorRate =>

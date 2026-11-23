@@ -712,6 +712,12 @@ abstract class AppLocalizations {
   /// **'RUB нельзя отключить или удалить.'**
   String get currencyErrorRub;
 
+  /// Ошибка защиты используемой не-RUB валюты.
+  ///
+  /// In ru, this message translates to:
+  /// **'{code} нельзя отключить или удалить: валюта используется.'**
+  String currencyErrorInUseCode(String code);
+
   /// Заголовок выбора базовой валюты.
   ///
   /// In ru, this message translates to:
@@ -1467,6 +1473,12 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Введите стоимость. Стоимость не может быть отрицательной.'**
   String get valuationErrorValue;
+
+  /// Ошибка ручного курса на дату, который уже используется операциями.
+  ///
+  /// In ru, this message translates to:
+  /// **'Курс на эту дату уже используется операциями и не может быть изменён. Оставьте поле пустым, чтобы взять сохранённый курс.'**
+  String get rateErrorImmutable;
 
   /// Ошибка получения курса.
   ///

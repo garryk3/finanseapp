@@ -470,6 +470,15 @@
   "@currencyErrorRub": {
     "description": "Ошибка защиты RUB."
   },
+  "currencyErrorInUseCode": "{code} нельзя отключить или удалить: валюта используется.",
+  "@currencyErrorInUseCode": {
+    "description": "Ошибка защиты используемой не-RUB валюты.",
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
   "baseCurrencyTitle": "Базовая валюта",
   "@baseCurrencyTitle": {
     "description": "Заголовок выбора базовой валюты."
@@ -1036,6 +1045,10 @@
   "valuationErrorValue": "Введите стоимость. Стоимость не может быть отрицательной.",
   "@valuationErrorValue": {
     "description": "Ошибка стоимости оценки."
+  },
+  "rateErrorImmutable": "Курс на эту дату уже используется операциями и не может быть изменён. Оставьте поле пустым, чтобы взять сохранённый курс.",
+  "@rateErrorImmutable": {
+    "description": "Ошибка ручного курса на дату, который уже используется операциями."
   },
   "valuationErrorRate": "Не удалось получить курс. Введите курс вручную.",
   "@valuationErrorRate": {
