@@ -2357,6 +2357,28 @@
   "@dashboardOverview": {
     "description": "Заголовок секции net worth."
   },
+  "dashboardOverdueTitle": "Просроченные счета",
+  "@dashboardOverdueTitle": {
+    "description": "Секция-предупреждение о счетах с истёкшим сроком."
+  },
+  "dashboardOverdueEnded": "Срок истёк {date}",
+  "@dashboardOverdueEnded": {
+    "description": "Подпись счёта с истёкшим сроком окончания.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboardOverdueMore": "Ещё {count}",
+  "@dashboardOverdueMore": {
+    "description": "Разворачивает оставшиеся строки просроченных счетов на месте.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "dashboardGoalsTitle": "Цели",
   "@dashboardGoalsTitle": {
     "description": "Заголовок секции целей на главной."

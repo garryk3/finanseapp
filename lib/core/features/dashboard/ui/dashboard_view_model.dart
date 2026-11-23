@@ -85,6 +85,9 @@ class DashboardViewModel {
     LocalDate.fromDateTime(DateTime.now()),
   );
 
+  /// Неархивные счета с истёкшим сроком окончания (today > endDate).
+  final Signal<List<AccountAsset>> overdueAccounts = signal(const []);
+
   final CalculateGoalProgress _goalCalculator = const CalculateGoalProgress();
   final Map<String, Decimal> _rateCache = {};
 
@@ -148,6 +151,7 @@ class DashboardViewModel {
           _snapshots = {
             for (final snapshot in snapshots) snapshot.asset.id: snapshot,
           };
+          _updateOverdueAccounts(snapshots);
           assetNames.value = {
             for (final snapshot in snapshots)
               snapshot.asset.id: snapshot.asset.name,
@@ -169,6 +173,23 @@ class DashboardViewModel {
           _transactionsReady = true;
           _emit();
         }, onError: _fail);
+  }
+
+  void _updateOverdueAccounts(List<AssetSnapshot> snapshots) {
+    final today = this.today.value;
+    final overdue = <AccountAsset>[];
+    for (final snapshot in snapshots) {
+      final asset = snapshot.asset;
+      if (asset is! AccountAsset) continue;
+      final endDate = asset.endDate;
+      if (asset.archivedAt != null || endDate == null) continue;
+      if (today.compareTo(endDate) > 0) overdue.add(asset);
+    }
+    overdue.sort((a, b) {
+      final byDate = a.endDate!.compareTo(b.endDate!);
+      return byDate != 0 ? byDate : a.id.compareTo(b.id);
+    });
+    overdueAccounts.value = overdue;
   }
 
   Future<void> _loadCurrencies() async {

@@ -3255,6 +3255,24 @@ abstract class AppLocalizations {
   /// **'Обзор'**
   String get dashboardOverview;
 
+  /// Секция-предупреждение о счетах с истёкшим сроком.
+  ///
+  /// In ru, this message translates to:
+  /// **'Просроченные счета'**
+  String get dashboardOverdueTitle;
+
+  /// Подпись счёта с истёкшим сроком окончания.
+  ///
+  /// In ru, this message translates to:
+  /// **'Срок истёк {date}'**
+  String dashboardOverdueEnded(String date);
+
+  /// Разворачивает оставшиеся строки просроченных счетов на месте.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ещё {count}'**
+  String dashboardOverdueMore(int count);
+
   /// Заголовок секции целей на главной.
   ///
   /// In ru, this message translates to:
