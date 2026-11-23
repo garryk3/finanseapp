@@ -1724,6 +1724,70 @@ class AppLocalizationsRu extends AppLocalizations {
   String get dashboardNetWorthProperty => 'Недвижимость';
 
   @override
+  String get dashboardSafetyTitle => 'Подушка безопасности';
+
+  @override
+  String get dashboardSafetyRunway => 'При текущих тратах хватит на';
+
+  @override
+  String dashboardSafetyMonths(int count) {
+    return '$count мес';
+  }
+
+  @override
+  String get dashboardSafetyNoReserve => 'Запаса нет';
+
+  @override
+  String get dashboardSafetyLessThanMonth => 'Меньше чем на месяц';
+
+  @override
+  String get dashboardSafetyMoreThan100Years => '100+ лет';
+
+  @override
+  String dashboardSafetyYears(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count года',
+      many: '$count лет',
+      few: '$count года',
+      one: '$count год',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboardSafetyYearsMonths(String years, int months) {
+    return '$years $months мес';
+  }
+
+  @override
+  String get dashboardSafetyPeriod =>
+      'Деньги на всех счетах · средние расходы за 3 полных месяца';
+
+  @override
+  String dashboardSafetyTarget(String amount) {
+    return 'Цель — 6 месяцев расходов ($amount)';
+  }
+
+  @override
+  String dashboardSafetyEta(int months, String profit) {
+    return 'До цели — $months мес, если откладывать $profit/мес';
+  }
+
+  @override
+  String dashboardSafetyEtaMoreThan10Years(String profit) {
+    return 'До цели — больше 10 лет, если откладывать $profit/мес';
+  }
+
+  @override
+  String get dashboardSafetyReached => 'Цель достигнута';
+
+  @override
+  String get dashboardSafetyNoProfit =>
+      'Доходы не превышают расходы — цель не приближается';
+
+  @override
   String get dashboardQuickActions => 'Быстрые действия';
 
   @override

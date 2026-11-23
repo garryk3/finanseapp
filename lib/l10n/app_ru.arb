@@ -2341,6 +2341,98 @@
   "@dashboardNetWorthProperty": {
     "description": "Разбивка чистого капитала: недвижимость."
   },
+  "dashboardSafetyTitle": "Подушка безопасности",
+  "@dashboardSafetyTitle": {
+    "description": "Карточка запаса денег на Главной."
+  },
+  "dashboardSafetyRunway": "При текущих тратах хватит на",
+  "@dashboardSafetyRunway": {
+    "description": "Подпись перед сроком подушки."
+  },
+  "dashboardSafetyMonths": "{count} мес",
+  "@dashboardSafetyMonths": {
+    "description": "Срок подушки в месяцах.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboardSafetyNoReserve": "Запаса нет",
+  "@dashboardSafetyNoReserve": {
+    "description": "Нулевой запас денег на счетах."
+  },
+  "dashboardSafetyLessThanMonth": "Меньше чем на месяц",
+  "@dashboardSafetyLessThanMonth": {
+    "description": "Денег есть, но меньше месяца расходов."
+  },
+  "dashboardSafetyMoreThan100Years": "100+ лет",
+  "@dashboardSafetyMoreThan100Years": {
+    "description": "Ограничение отображения очень длинного запаса."
+  },
+  "dashboardSafetyYears": "{count, plural, one{{count} год} few{{count} года} many{{count} лет} other{{count} года}}",
+  "@dashboardSafetyYears": {
+    "description": "Годы подушки с русским склонением.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboardSafetyYearsMonths": "{years} {months} мес",
+  "@dashboardSafetyYearsMonths": {
+    "description": "Полный срок подушки: годы и остаток месяцев.",
+    "placeholders": {
+      "years": {
+        "type": "String"
+      },
+      "months": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboardSafetyPeriod": "Деньги на всех счетах · средние расходы за 3 полных месяца",
+  "@dashboardSafetyPeriod": {
+    "description": "База и период усреднения расходов подушки."
+  },
+  "dashboardSafetyTarget": "Цель — 6 месяцев расходов ({amount})",
+  "@dashboardSafetyTarget": {
+    "description": "Целевой размер подушки.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboardSafetyEta": "До цели — {months} мес, если откладывать {profit}/мес",
+  "@dashboardSafetyEta": {
+    "description": "Срок достижения цели при текущем профиците.",
+    "placeholders": {
+      "months": {
+        "type": "int"
+      },
+      "profit": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboardSafetyEtaMoreThan10Years": "До цели — больше 10 лет, если откладывать {profit}/мес",
+  "@dashboardSafetyEtaMoreThan10Years": {
+    "description": "Срок цели больше 10 лет.",
+    "placeholders": {
+      "profit": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboardSafetyReached": "Цель достигнута",
+  "@dashboardSafetyReached": {
+    "description": "Подушка достигла целевых 6 месяцев."
+  },
+  "dashboardSafetyNoProfit": "Доходы не превышают расходы — цель не приближается",
+  "@dashboardSafetyNoProfit": {
+    "description": "При нулевом/отрицательном профиците срок цели не считается."
+  },
   "dashboardQuickActions": "Быстрые действия",
   "@dashboardQuickActions": {
     "description": "Секция быстрых действий."
