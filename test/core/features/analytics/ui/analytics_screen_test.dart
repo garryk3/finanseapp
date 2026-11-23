@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:decimal/decimal.dart';
+import 'package:finanseapp/app/routes.dart';
 import 'package:finanseapp/app/theme/app_theme.dart';
 import 'package:finanseapp/core/domain/common/currency.dart';
 import 'package:finanseapp/core/domain/common/date_range.dart';
@@ -11,6 +12,7 @@ import 'package:finanseapp/core/domain/common/result.dart';
 import 'package:finanseapp/core/features/analytics/domain/analytics_queries.dart';
 import 'package:finanseapp/core/features/analytics/domain/cashflow_period_point.dart';
 import 'package:finanseapp/core/features/analytics/domain/net_worth_summary.dart';
+import 'package:finanseapp/core/features/analytics/logic/analytics_periods.dart';
 import 'package:finanseapp/core/features/analytics/ui/analytics_screen.dart';
 import 'package:finanseapp/core/features/analytics/ui/analytics_view_model.dart';
 import 'package:finanseapp/core/features/assets/domain/asset.dart';
@@ -24,6 +26,7 @@ import 'package:finanseapp/core/features/currencies/domain/exchange_rate_reposit
 import 'package:finanseapp/core/features/settings/domain/settings_repository.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 const _rub = Currency(
@@ -248,6 +251,25 @@ Future<void> _pump(
   await tester.pump(const Duration(milliseconds: 50));
 }
 
+Future<void> _pumpRouter(WidgetTester tester, GoRouter router) async {
+  tester.view.physicalSize = const Size(1000, 1800);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
+  await tester.pumpWidget(
+    MaterialApp.router(
+      theme: AppTheme.light(),
+      localizationsDelegates: const [
+        ...GlobalMaterialLocalizations.delegates,
+        AppLocalizations.delegate,
+      ],
+      supportedLocales: const [Locale('ru')],
+      routerConfig: router,
+    ),
+  );
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 50));
+}
+
 void main() {
   late AppLocalizations l10n;
 
@@ -446,5 +468,58 @@ void main() {
 
     expect(find.text(l10n.analyticsNoAssetsTitle), findsNothing);
     expect(find.text(l10n.analyticsCashflowIncome), findsOneWidget);
+  });
+
+  testWidgets('ссылка детализации пушит роут с текущими фильтрами', (
+    tester,
+  ) async {
+    final queries = _Queries(
+      hasEarliest: false,
+      hasCashflow: true,
+      cashflowPoints: [
+        CashflowPeriodPoint(
+          periodStart: LocalDate(2026, 11, 1),
+          summary: const CashflowSummary(
+            income: Money(minorUnits: 100000, currencyCode: 'RUB'),
+            expense: Money(minorUnits: 0, currencyCode: 'RUB'),
+            net: Money(minorUnits: 100000, currencyCode: 'RUB'),
+            currencyCode: 'RUB',
+          ),
+        ),
+      ],
+    );
+    final viewModel = _viewModel(queries)
+      ..setInitialPeriod(AnalyticsPeriod.year);
+    Uri? pushed;
+    final router = GoRouter(
+      initialLocation: AppRoutes.analytics,
+      routes: [
+        GoRoute(
+          path: AppRoutes.analytics,
+          builder: (context, state) => AnalyticsScreen(viewModel: viewModel),
+        ),
+        GoRoute(
+          path: AppRoutes.analyticsDetails,
+          builder: (context, state) {
+            pushed = state.uri;
+            return const SizedBox.shrink();
+          },
+        ),
+      ],
+    );
+
+    await _pumpRouter(tester, router);
+    await tester.tap(find.text(l10n.analyticsCashflowIncome));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+
+    await tester.tap(find.text(l10n.analyticsDetailsTitle));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(pushed?.path, AppRoutes.analyticsDetails);
+    expect(pushed?.queryParameters['period'], 'year');
+    expect(pushed?.queryParameters['kind'], 'income');
+    expect(pushed?.queryParameters.containsKey('categoryId'), isFalse);
   });
 }

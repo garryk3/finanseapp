@@ -39,7 +39,7 @@ void main() {
     l10n = await AppLocalizations.delegate.load(const Locale('ru'));
   });
 
-  testWidgets('summary, легенда и доступный список периодов', (tester) async {
+  testWidgets('summary, график и легенда без списка периодов', (tester) async {
     tester.view.physicalSize = const Size(1000, 2000);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -75,11 +75,15 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.text(l10n.analyticsCashflowTitle), findsOneWidget);
-    expect(find.text('01.11.2026'), findsWidgets);
-    expect(find.text('02.11.2026'), findsWidgets);
-    expect(find.text(l10n.analyticsPeriodsTitle), findsOneWidget);
+    expect(find.text('1000 ₽'), findsOneWidget);
+    expect(find.text('250 ₽'), findsOneWidget);
+    expect(find.text('750 ₽'), findsOneWidget);
+    expect(find.text('01.11.2026'), findsNothing);
+    expect(find.text('02.11.2026'), findsNothing);
+    expect(find.textContaining('Показать все'), findsNothing);
     expect(find.text(l10n.cashflowIncome), findsWidgets);
     expect(find.text(l10n.cashflowExpense), findsWidgets);
+    expect(find.text(l10n.cashflowTotalsNet), findsWidgets);
   });
 
   testWidgets('пустая серия не рисует секцию', (tester) async {
@@ -146,52 +150,6 @@ void main() {
 
     expect(find.text(l10n.analyticsCashflowEmptyTitle), findsOneWidget);
     expect(find.text(l10n.analyticsCashflowTitle), findsNothing);
-  });
-
-  testWidgets('длинная серия сворачивается и разворачивается', (tester) async {
-    tester.view.physicalSize = const Size(1000, 2400);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.reset);
-    final points = [
-      for (var day = 1; day <= 7; day++)
-        _point(LocalDate(2026, 11, day), 100, 10),
-    ];
-
-    await tester.pumpWidget(
-      MaterialApp(
-        theme: AppTheme.light(),
-        localizationsDelegates: const [
-          ...GlobalMaterialLocalizations.delegates,
-          AppLocalizations.delegate,
-        ],
-        supportedLocales: const [Locale('ru')],
-        home: SingleChildScrollView(
-          child: CashflowChartSection(
-            summary: CashflowSummary(
-              income: _rubles(700),
-              expense: _rubles(70),
-              net: _rubles(630),
-              currencyCode: 'RUB',
-            ),
-            points: points,
-            baseCurrency: _rub,
-            periodLabel: l10n.analyticsPeriodMonth,
-            l10n: l10n,
-            formatMoney: _format,
-          ),
-        ),
-      ),
-    );
-    await tester.pump(const Duration(milliseconds: 300));
-
-    expect(find.text('01.11.2026'), findsNothing);
-    expect(find.text(l10n.analyticsShowAllPeriods(7)), findsOneWidget);
-
-    await tester.tap(find.text(l10n.analyticsShowAllPeriods(7)));
-    await tester.pump();
-
-    expect(find.text('01.11.2026'), findsOneWidget);
-    expect(find.text(l10n.analyticsCollapsePeriods), findsOneWidget);
   });
 
   testWidgets('31 дневная группа на 320dp/1.3/dark — без overflow', (

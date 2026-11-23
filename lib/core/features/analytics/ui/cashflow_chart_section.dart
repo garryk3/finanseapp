@@ -8,19 +8,18 @@ import 'package:finanseapp/core/features/analytics/domain/cashflow_period_point.
 import 'package:finanseapp/core/features/cashflow/domain/cashflow_summary.dart';
 import 'package:finanseapp/core/presentation/date_formatter.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
-import 'package:finanseapp/uikit/app_button.dart';
 import 'package:finanseapp/uikit/app_cashflow_chart.dart';
 import 'package:finanseapp/uikit/app_cashflow_summary.dart';
 import 'package:finanseapp/uikit/app_chart_data.dart';
 import 'package:finanseapp/uikit/app_chart_frame.dart';
 import 'package:finanseapp/uikit/app_chart_legend.dart';
 import 'package:finanseapp/uikit/app_empty_state.dart';
-import 'package:finanseapp/uikit/app_section.dart';
-import 'package:finanseapp/uikit/app_text.dart';
 import 'package:material_ui/material_ui.dart';
 
-/// Cashflow summary + grouped bars + доступный список периодов (9.3).
-class CashflowChartSection extends StatefulWidget {
+/// Cashflow summary + grouped bars + легенда (9.3).
+///
+/// Список периодов вынесен на страницу «Детализация за месяц» (18.5).
+class CashflowChartSection extends StatelessWidget {
   const CashflowChartSection({
     super.key,
     required this.summary,
@@ -39,19 +38,8 @@ class CashflowChartSection extends StatefulWidget {
   final String Function(Money) formatMoney;
 
   @override
-  State<CashflowChartSection> createState() => _CashflowChartSectionState();
-}
-
-class _CashflowChartSectionState extends State<CashflowChartSection> {
-  static const _collapsedCount = 5;
-
-  bool _expanded = false;
-
-  @override
   Widget build(BuildContext context) {
-    final points = widget.points;
     if (points.isEmpty) return const SizedBox.shrink();
-    final l10n = widget.l10n;
     if (points.every(_isZero)) {
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
@@ -63,12 +51,11 @@ class _CashflowChartSectionState extends State<CashflowChartSection> {
       );
     }
 
-    final textTheme = Theme.of(context).textTheme;
-    final incomeText = widget.formatMoney(widget.summary.income);
-    final expenseText = widget.formatMoney(widget.summary.expense);
-    final netText = widget.formatMoney(widget.summary.net);
+    final incomeText = formatMoney(summary.income);
+    final expenseText = formatMoney(summary.expense);
+    final netText = formatMoney(summary.net);
     final accessible = l10n.analyticsCashflowChartSummary(
-      widget.periodLabel,
+      periodLabel,
       incomeText,
       expenseText,
       netText,
@@ -76,22 +63,18 @@ class _CashflowChartSectionState extends State<CashflowChartSection> {
     final monthly =
         points.length > 1 && points.every((p) => p.periodStart.day == 1);
     final rangeText = _rangeText(points, monthly: monthly);
-    final periodSubtitle =
-        '${widget.periodLabel} · $rangeText · ${widget.baseCurrency.code}';
+    final periodSubtitle = '$periodLabel · $rangeText · ${baseCurrency.code}';
     final groups = [
       for (final point in points)
         AppCashflowBarGroup(
           label: _shortDate(point.periodStart, monthly: monthly),
           income: _toDouble(point.summary.income),
           expense: _toDouble(point.summary.expense),
-          incomeText: widget.formatMoney(point.summary.income),
-          expenseText: widget.formatMoney(point.summary.expense),
-          netText: widget.formatMoney(point.summary.net),
+          incomeText: formatMoney(point.summary.income),
+          expenseText: formatMoney(point.summary.expense),
+          netText: formatMoney(point.summary.net),
         ),
     ];
-    final visible = _expanded
-        ? points.reversed
-        : points.reversed.take(_collapsedCount);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -138,54 +121,6 @@ class _CashflowChartSectionState extends State<CashflowChartSection> {
             ],
           ),
         ),
-        AppSection(
-          header: l10n.analyticsPeriodsTitle,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              for (final point in visible)
-                MergeSemantics(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: AppSpacing.xxs,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        AppText(
-                          const DateFormatter().format(point.periodStart),
-                          style: textTheme.bodyMedium,
-                        ),
-                        AppText(
-                          '${l10n.cashflowIncome}: '
-                          '${widget.formatMoney(point.summary.income)}',
-                          style: textTheme.bodySmall,
-                        ),
-                        AppText(
-                          '${l10n.cashflowExpense}: '
-                          '${widget.formatMoney(point.summary.expense)}',
-                          style: textTheme.bodySmall,
-                        ),
-                        AppText(
-                          '${l10n.cashflowTotalsNet}: '
-                          '${widget.formatMoney(point.summary.net)}',
-                          style: textTheme.bodySmall,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              if (points.length > _collapsedCount)
-                AppButton(
-                  label: _expanded
-                      ? l10n.analyticsCollapsePeriods
-                      : l10n.analyticsShowAllPeriods(points.length),
-                  variant: AppButtonVariant.text,
-                  onPressed: () => setState(() => _expanded = !_expanded),
-                ),
-            ],
-          ),
-        ),
       ],
     );
   }
@@ -218,5 +153,5 @@ class _CashflowChartSectionState extends State<CashflowChartSection> {
   static String _two(int value) => value.toString().padLeft(2, '0');
 
   double _toDouble(Money money) =>
-      MoneyMath.toDecimal(money, widget.baseCurrency).toDouble();
+      MoneyMath.toDecimal(money, baseCurrency).toDouble();
 }

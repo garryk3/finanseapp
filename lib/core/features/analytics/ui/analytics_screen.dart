@@ -17,6 +17,8 @@ import 'package:finanseapp/uikit/app_empty_state.dart';
 import 'package:finanseapp/uikit/app_error_state.dart';
 import 'package:finanseapp/uikit/app_filter_bar.dart';
 import 'package:finanseapp/uikit/app_filter_chip.dart';
+import 'package:finanseapp/uikit/app_icon.dart';
+import 'package:finanseapp/uikit/app_list_tile.dart';
 import 'package:finanseapp/uikit/app_list_view.dart';
 import 'package:finanseapp/uikit/app_scaffold.dart';
 import 'package:finanseapp/uikit/app_skeleton.dart';
@@ -150,6 +152,21 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   periodLabel: _periodLabel(l10n, vm.period.value),
                   l10n: l10n,
                   formatMoney: vm.formatMoney,
+                ),
+              if (base != null)
+                AppListTile(
+                  title: l10n.analyticsDetailsTitle,
+                  trailing: const AppIcon(
+                    Icons.chevron_right,
+                    semanticLabel: null,
+                  ),
+                  onTap: () => context.push(
+                    AppRoutes.analyticsDetailsPath(
+                      period: _periodToken(vm.period.value),
+                      kind: _cashflowKindToken(vm.cashflowKind.value),
+                      categoryId: vm.categoryId.value,
+                    ),
+                  ),
                 ),
               if (base != null)
                 CategoryTotalsSection(
@@ -306,6 +323,20 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         AnalyticsPeriod.year => l10n.analyticsPeriodYear,
         AnalyticsPeriod.all => l10n.analyticsPeriodAll,
       };
+
+  static String _periodToken(AnalyticsPeriod period) => switch (period) {
+    AnalyticsPeriod.month => 'month',
+    AnalyticsPeriod.threeMonths => '3m',
+    AnalyticsPeriod.sixMonths => '6m',
+    AnalyticsPeriod.year => 'year',
+    AnalyticsPeriod.all => 'all',
+  };
+
+  static String? _cashflowKindToken(CashflowKind? kind) => switch (kind) {
+    CashflowKind.income => 'income',
+    CashflowKind.expense => 'expense',
+    null => null,
+  };
 
   static String _kindLabel(AppLocalizations l10n, AssetKind kind) =>
       switch (kind) {

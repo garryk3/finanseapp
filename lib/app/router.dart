@@ -12,6 +12,10 @@ import 'package:finanseapp/core/features/analytics/ui/analytics_screen.dart';
 import 'package:finanseapp/core/features/analytics/ui/asset_comparison_screen.dart';
 import 'package:finanseapp/core/features/analytics/ui/asset_comparison_view_model.dart';
 import 'package:finanseapp/core/features/analytics/ui/analytics_view_model.dart';
+import 'package:finanseapp/core/features/analytics/ui/cashflow_details_screen.dart'
+    as analytics_details;
+import 'package:finanseapp/core/features/analytics/ui/cashflow_details_view_model.dart'
+    as analytics_details;
 import 'package:finanseapp/core/features/applock/logic/applock_settings_view_model.dart';
 import 'package:finanseapp/core/features/applock/ui/applock_manage_screen.dart';
 import 'package:finanseapp/core/features/assets/domain/subgroup.dart';
@@ -489,6 +493,43 @@ GoRouter buildRouter({required ServiceLocator locator}) {
                         viewModel.setInitialPeriod(period);
                       }
                       return AnalyticsScreen(viewModel: viewModel);
+                    },
+                  ),
+                  GoRoute(
+                    path: 'analytics/details',
+                    name: 'analytics-details',
+                    builder: (context, state) {
+                      final query = state.uri.queryParameters;
+                      final kind = switch (AppRoutes.parseAllowlisted(
+                        query['kind'],
+                        const {'income', 'expense'},
+                      )) {
+                        'income' => CashflowKind.income,
+                        'expense' => CashflowKind.expense,
+                        _ => null,
+                      };
+                      final viewModel =
+                          analytics_details.CashflowDetailsViewModel(
+                              queries: locator.get<AnalyticsQueries>(),
+                              settingsRepository: locator
+                                  .get<SettingsRepository>(),
+                              currencyRepository: locator
+                                  .get<CurrencyRepository>(),
+                              rateRepository: locator
+                                  .get<ExchangeRateRepository>(),
+                              now: () => LocalDate.fromDateTime(DateTime.now()),
+                            )
+                            ..setInitialPeriod(
+                              _analyticsPeriod(query['period']) ??
+                                  AnalyticsPeriod.month,
+                            )
+                            ..setInitialKind(kind)
+                            ..setInitialCategoryId(
+                              AppRoutes.parseId(query['categoryId']),
+                            );
+                      return analytics_details.CashflowDetailsScreen(
+                        viewModel: viewModel,
+                      );
                     },
                   ),
                   GoRoute(

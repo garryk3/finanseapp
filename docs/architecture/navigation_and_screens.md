@@ -59,6 +59,7 @@
 | goal-edit | `/goals/:id/edit` | GoalFormScreen(edit) |
 | more | `/more` | MoreScreen |
 | analytics | `/more/analytics` | AnalyticsScreen |
+| analytics-details | `/more/analytics/details` | CashflowDetailsScreen (детализация периодов) |
 | settings | `/more/settings` | SettingsScreen |
 | categories | `/more/categories` | CategoriesScreen |
 | category-new | `/more/categories/new` | CategoryFormScreen(create) |
@@ -126,6 +127,7 @@ Android launch-тема (`LaunchTheme`, drawable `launch_background`) и
 | `/goals/new` | `category=accounts|investments` | default accounts |
 | `/assets` | `kind=account|investment|property`, `query` | filters не попадают в journal других разделов |
 | `/more/audit` | `type=assetTransaction|cashflow`, `query` | default assetTransaction |
+| `/more/analytics/details` | `period=month|3m|6m|year|all`, `kind=income|expense`, `categoryId` | default month; invalid period/kind/categoryId игнорируются; kind/category наследуются с аналитики и на странице не редактируются |
 
 Все query values читаются через allowlist и `int.tryParse`; repository не получает строку
 из URL. Несуществующий prefill id показывает inline error и оставляет форму, а не создаёт
@@ -179,7 +181,8 @@ VM — ViewModel, создаваемая через DI. «Тест» — мин�
 | GoalForm | GoalFormViewModel: eligible assets | Name/category/target/date/multi-select | Property и несоответствующий kind недоступны |
 | GoalDetails | GoalDetailsViewModel: progress | Progress/deficit/surplus/monthly contribution | Нулевые месяцы → null, не infinity |
 | MoreScreen | MoreViewModel: локальная навигация | Аналитика, справочники, настройки, аудит, о приложении | Все tiles ведут по named route |
-| AnalyticsScreen | AnalyticsViewModel: net worth/cashflow queries | Period, kind/category filters, charts + accessible values | Пустой период/нет курса имеет отдельные состояния |
+| AnalyticsScreen | AnalyticsViewModel: net worth/cashflow queries | Period, kind/category filters, charts + accessible values, ссылка «Детализация за месяц» | Пустой период/нет курса имеет отдельные состояния |
+| AnalyticsDetails | CashflowDetailsViewModel (inline в builder): cashflowSeries/cashflow + period/kind/category из query | Чипы периода, список дата/доход/расход/итог, empty month/period | Нулевые бакеты скрыты, newest-first; ошибка курса + ручной ввод |
 | CategoriesScreen | CategoriesViewModel | Income/expense tabs, add/edit/archive | Использованная категория предлагает archive или move |
 | CategoryForm | CategoryFormViewModel | Kind/name/colorKey/iconKey | Duplicate внутри kind отклонён, другое kind разрешено |
 | SubgroupsScreen | SubgroupsViewModel | Bank/broker tabs, CRUD/move | Move+delete атомарны |

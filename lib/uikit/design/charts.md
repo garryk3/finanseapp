@@ -109,8 +109,10 @@ class AppCashflowChart extends StatelessWidget {
 ```
 
 `accessibleSummary` — полная русская строка с period, последним/min/max значением и
-направлением. Под графиком feature Screen обязан показать expand/collapsed text table или
-list тех же точек; `AppChartFrame` сам данные не дублирует и не вычисляет.
+направлением. Текстовая альтернатива: для net worth — expand/collapsed text table или
+list тех же точек под графиком; для cashflow — отдельная страница «Детализация» со
+списком точек и ссылкой под графиком. `AppChartFrame` сам данные не дублирует и не
+вычисляет.
 
 ## 3. Поведение
 

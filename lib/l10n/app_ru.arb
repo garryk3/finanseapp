@@ -2346,9 +2346,17 @@
   "@analyticsCashflowTitle": {
     "description": "Заголовок cashflow-секции аналитики."
   },
-  "analyticsPeriodsTitle": "Значения по периодам",
-  "@analyticsPeriodsTitle": {
-    "description": "Доступный список cashflow-серии."
+  "analyticsDetailsTitle": "Детализация за месяц",
+  "@analyticsDetailsTitle": {
+    "description": "Ссылка на экране аналитики и заголовок страницы детализации."
+  },
+  "analyticsDetailsCategoryFilter": "Фильтр по категории",
+  "@analyticsDetailsCategoryFilter": {
+    "description": "Read-only чип унаследованного фильтра по категории."
+  },
+  "analyticsDetailsEmptyFilteredMessage": "Добавьте операцию или измените фильтры.",
+  "@analyticsDetailsEmptyFilteredMessage": {
+    "description": "Пояснение пустой детализации при активных унаследованных фильтрах."
   },
   "analyticsCashflowChartSummary": "Период: {period}. Доход: {income}. Расход: {expense}. Итог: {net}.",
   "@analyticsCashflowChartSummary": {
@@ -2376,18 +2384,13 @@
   "@analyticsCashflowEmptyMessage": {
     "description": "Пояснение пустой cashflow-серии."
   },
-  "analyticsShowAllPeriods": "Показать все периоды ({count})",
-  "@analyticsShowAllPeriods": {
-    "description": "Развернуть cashflow-список периодов.",
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
+  "analyticsCashflowEmptyMonthTitle": "Нет операций за месяц",
+  "@analyticsCashflowEmptyMonthTitle": {
+    "description": "Пустая детализация за текущий месяц."
   },
-  "analyticsCollapsePeriods": "Свернуть периоды",
-  "@analyticsCollapsePeriods": {
-    "description": "Свернуть cashflow-список периодов."
+  "analyticsCashflowEmptyMonthMessage": "Добавьте операцию или измените период.",
+  "@analyticsCashflowEmptyMonthMessage": {
+    "description": "Пояснение пустой детализации за месяц."
   },
   "analyticsCashflowKindAll": "Все операции",
   "@analyticsCashflowKindAll": {
