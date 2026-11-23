@@ -141,6 +141,11 @@ neutral fallback, не Color.parse. `iconKey` из domain заранее пре�
 Operation tile обязательно содержит `typeLabel` + `icon` и включает их в Semantics;
 пустые части meta-строки (`dateText`, category/account) опускаются перед `join(' · ')`:
 «Доход», «Расход», «Пополнение», «Снятие», «Перевод»; знак суммы также сохраняется.
+Сумма операции окрашивается тоном `AppMoneyTone` (income/expense/transfer) через
+`resolveMoneyToneColor`; смысловой тон (`income`/`expense`/`transfer`) всегда
+сильнее цвета `style`, поэтому стили `textTheme.*` не гасят окраску. Цвет
+`style` учитывается только при `tone: neutral` — для deleted/archived приглушения
+(`AppMoneyText`, §4).
 Archived/deleted labels (`showDeletedBadge: false` скрывает бейдж там, где контекст
 задаёт экран, — аудит удалённых) приходят из feature View и показываются визуально + в Semantics.
 Linked label поясняет «Влияет на баланс»/«Связано со счётом», но не создаёт вторую сумму
@@ -180,6 +185,8 @@ Ratio clamp 0…1 для indicator; фактический процент >100 �
 
 - Income/expense/deposit/withdrawal/transfer имеют обязательные typeLabel+icon и разные
   semantics даже в monochrome; expense не error.
+- `AppOperationListTile` с tone income/expense/transfer даёт три разных цвета текста
+  суммы; deleted — приглушение onSurfaceVariant, а не тон.
 - Очень большая сумма `−123 456 789 012,34 ₽` не overflow при 320dp и 1.3.
 - Goal 0%, 75%, 125%, achieved/closed; ratio и semantics корректны.
 - Archived asset/category и deleted operation показывают переданные labels визуально и в
