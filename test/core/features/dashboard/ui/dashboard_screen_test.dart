@@ -72,6 +72,8 @@ final class _Queries implements AnalyticsQueries {
     ),
     this.cashflowPoints = const [],
     this.cashflowError,
+    this.safetyResult,
+    this.safetyError,
   });
 
   Money total;
@@ -79,8 +81,12 @@ final class _Queries implements AnalyticsQueries {
   Map<AssetKind, Money>? byKind;
   CashflowSummary cashflowResult;
   CashflowFilter? lastCashflowFilter;
+  CashflowFilter? lastSafetyFilter;
   final List<CashflowPeriodPoint> cashflowPoints;
   Object? cashflowError;
+  CashflowSummary? safetyResult;
+  Object? safetyError;
+  int safetyQueries = 0;
 
   @override
   Future<NetWorthSummary> netWorth(LocalDate onDate) async {
@@ -107,6 +113,19 @@ final class _Queries implements AnalyticsQueries {
 
   @override
   Future<CashflowSummary> cashflow(CashflowFilter filter) async {
+    if (filter.period?.start != LocalDate(2026, 11, 1)) {
+      safetyQueries++;
+      lastSafetyFilter = filter;
+      final failure = safetyError;
+      if (failure != null) throw failure;
+      return safetyResult ??
+          const CashflowSummary(
+            income: Money(minorUnits: 0, currencyCode: 'RUB'),
+            expense: Money(minorUnits: 0, currencyCode: 'RUB'),
+            net: Money(minorUnits: 0, currencyCode: 'RUB'),
+            currencyCode: 'RUB',
+          );
+    }
     lastCashflowFilter = filter;
     final failure = cashflowError;
     if (failure != null) throw failure;
@@ -488,6 +507,7 @@ void main() {
     expect(find.text(l10n.dashboardCashflowEmpty), findsOneWidget);
     expect(find.text(l10n.dashboardAddExpense), findsOneWidget);
     expect(find.text(l10n.dashboardEmptyTitle), findsNothing);
+    expect(find.text(l10n.dashboardSafetyTitle), findsNothing);
   });
 
   testWidgets('на 427dp контент Главной имеет отступ 16dp, как на Операциях', (
@@ -764,6 +784,124 @@ void main() {
     expect(find.text(l10n.dashboardNetWorthProperty), findsNothing);
   });
 
+  testWidgets('подушка: runway, цель и срок при прибыли', (tester) async {
+    final queries = _Queries(
+      _rubles(3000),
+      safetyResult: CashflowSummary(
+        income: _rubles(3600),
+        expense: _rubles(3000),
+        net: _rubles(600),
+        currencyCode: 'RUB',
+      ),
+    );
+    final vm = await pump(
+      tester,
+      width: 427,
+      queries: queries,
+      snapshots: [_snapshot(1, _rubles(3000))],
+    );
+
+    expect(find.text(l10n.dashboardSafetyTitle), findsOneWidget);
+    expect(find.text(l10n.dashboardSafetyMonths(3)), findsOneWidget);
+    expect(
+      find.text(l10n.dashboardSafetyTarget(vm.formatMoney(_rubles(6000)))),
+      findsOneWidget,
+    );
+    expect(
+      find.text(l10n.dashboardSafetyEta(15, vm.formatMoney(_rubles(200)))),
+      findsOneWidget,
+    );
+    expect(queries.lastSafetyFilter?.period?.start, LocalDate(2026, 8, 1));
+    expect(queries.lastSafetyFilter?.period?.end, LocalDate(2026, 10, 31));
+  });
+
+  testWidgets('подушка: без расходов карточки нет', (tester) async {
+    await pump(tester, width: 427, total: _rubles(3000));
+    expect(find.text(l10n.dashboardSafetyTitle), findsNothing);
+  });
+
+  testWidgets('подушка: без счетов не показывается', (tester) async {
+    final queries = _Queries(
+      _rubles(3000),
+      safetyResult: CashflowSummary(
+        income: _rubles(3600),
+        expense: _rubles(3000),
+        net: _rubles(600),
+        currencyCode: 'RUB',
+      ),
+    );
+    await pump(tester, width: 427, queries: queries);
+    expect(find.text(l10n.dashboardSafetyTitle), findsNothing);
+  });
+
+  testWidgets('подушка перезагружается при смене базовой валюты', (
+    tester,
+  ) async {
+    final settings = StreamController<Currency>.broadcast();
+    addTearDown(settings.close);
+    final queries = _Queries(
+      _rubles(3000),
+      safetyResult: CashflowSummary(
+        income: _rubles(3600),
+        expense: _rubles(3000),
+        net: _rubles(600),
+        currencyCode: 'RUB',
+      ),
+    );
+    await pump(
+      tester,
+      width: 427,
+      queries: queries,
+      snapshots: [_snapshot(1, _rubles(3000))],
+      settingsController: settings,
+    );
+    final before = queries.safetyQueries;
+    settings.add(_usd);
+    await tester.pumpAndSettle();
+    expect(queries.safetyQueries, greaterThan(before));
+  });
+
+  testWidgets('подушка скрывается при ошибке курса net worth', (tester) async {
+    final queries = _Queries(
+      _rubles(3000),
+      safetyResult: CashflowSummary(
+        income: _rubles(3600),
+        expense: _rubles(3000),
+        net: _rubles(600),
+        currencyCode: 'RUB',
+      ),
+    );
+    await pump(
+      tester,
+      width: 427,
+      queries: queries,
+      snapshots: [_snapshot(1, _rubles(3000))],
+    );
+    expect(find.text(l10n.dashboardSafetyTitle), findsOneWidget);
+
+    queries.error = const DomainException(DomainErrorCode.rateUnavailable);
+    markExchangeRateChanged();
+    await tester.pumpAndSettle();
+
+    expect(find.text(l10n.dashboardSafetyTitle), findsNothing);
+  });
+
+  testWidgets('подушка скрывается при ошибке safety-запроса', (tester) async {
+    final queries = _Queries(
+      _rubles(3000),
+      safetyError: const DomainException(DomainErrorCode.storageFailure),
+    );
+    await pump(
+      tester,
+      width: 427,
+      queries: queries,
+      snapshots: [_snapshot(1, _rubles(3000))],
+    );
+
+    expect(find.text(l10n.dashboardSafetyTitle), findsNothing);
+    expect(find.text(l10n.dashboardNetWorthTitle), findsOneWidget);
+  });
+
   testWidgets('ошибка курса net worth не скрывает цели и операции', (
     tester,
   ) async {
@@ -874,6 +1012,31 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.text(l10n.dashboardNetWorthTitle), findsOneWidget);
     expect(find.text(l10n.dashboardQuickActions), findsOneWidget);
+  });
+
+  testWidgets('320dp, font 1.3, тёмная тема: подушка без overflow', (
+    tester,
+  ) async {
+    final queries = _Queries(
+      _rubles(3000),
+      safetyResult: CashflowSummary(
+        income: _rubles(3600),
+        expense: _rubles(3000),
+        net: _rubles(600),
+        currencyCode: 'RUB',
+      ),
+    );
+    await pump(
+      tester,
+      width: 320,
+      dark: true,
+      largeText: true,
+      queries: queries,
+      snapshots: [_snapshot(1, _rubles(3000))],
+    );
+
+    expect(tester.takeException(), isNull);
+    expect(find.text(l10n.dashboardSafetyTitle), findsOneWidget);
   });
 
   testWidgets('повторная эмиссия обновляет данные, dispose отменяет подписки', (

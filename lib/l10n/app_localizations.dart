@@ -3231,6 +3231,90 @@ abstract class AppLocalizations {
   /// **'Недвижимость'**
   String get dashboardNetWorthProperty;
 
+  /// Карточка запаса денег на Главной.
+  ///
+  /// In ru, this message translates to:
+  /// **'Подушка безопасности'**
+  String get dashboardSafetyTitle;
+
+  /// Подпись перед сроком подушки.
+  ///
+  /// In ru, this message translates to:
+  /// **'При текущих тратах хватит на'**
+  String get dashboardSafetyRunway;
+
+  /// Срок подушки в месяцах.
+  ///
+  /// In ru, this message translates to:
+  /// **'{count} мес'**
+  String dashboardSafetyMonths(int count);
+
+  /// Нулевой запас денег на счетах.
+  ///
+  /// In ru, this message translates to:
+  /// **'Запаса нет'**
+  String get dashboardSafetyNoReserve;
+
+  /// Денег есть, но меньше месяца расходов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Меньше чем на месяц'**
+  String get dashboardSafetyLessThanMonth;
+
+  /// Ограничение отображения очень длинного запаса.
+  ///
+  /// In ru, this message translates to:
+  /// **'100+ лет'**
+  String get dashboardSafetyMoreThan100Years;
+
+  /// Годы подушки с русским склонением.
+  ///
+  /// In ru, this message translates to:
+  /// **'{count, plural, one{{count} год} few{{count} года} many{{count} лет} other{{count} года}}'**
+  String dashboardSafetyYears(int count);
+
+  /// Полный срок подушки: годы и остаток месяцев.
+  ///
+  /// In ru, this message translates to:
+  /// **'{years} {months} мес'**
+  String dashboardSafetyYearsMonths(String years, int months);
+
+  /// База и период усреднения расходов подушки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Деньги на всех счетах · средние расходы за 3 полных месяца'**
+  String get dashboardSafetyPeriod;
+
+  /// Целевой размер подушки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Цель — 6 месяцев расходов ({amount})'**
+  String dashboardSafetyTarget(String amount);
+
+  /// Срок достижения цели при текущем профиците.
+  ///
+  /// In ru, this message translates to:
+  /// **'До цели — {months} мес, если откладывать {profit}/мес'**
+  String dashboardSafetyEta(int months, String profit);
+
+  /// Срок цели больше 10 лет.
+  ///
+  /// In ru, this message translates to:
+  /// **'До цели — больше 10 лет, если откладывать {profit}/мес'**
+  String dashboardSafetyEtaMoreThan10Years(String profit);
+
+  /// Подушка достигла целевых 6 месяцев.
+  ///
+  /// In ru, this message translates to:
+  /// **'Цель достигнута'**
+  String get dashboardSafetyReached;
+
+  /// При нулевом/отрицательном профиците срок цели не считается.
+  ///
+  /// In ru, this message translates to:
+  /// **'Доходы не превышают расходы — цель не приближается'**
+  String get dashboardSafetyNoProfit;
+
   /// Секция быстрых действий.
   ///
   /// In ru, this message translates to:

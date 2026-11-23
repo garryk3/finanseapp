@@ -19,6 +19,7 @@ import 'package:finanseapp/core/features/cashflow/domain/cashflow_summary.dart';
 import 'package:finanseapp/core/features/currencies/domain/currency_repository.dart';
 import 'package:finanseapp/core/features/currencies/domain/exchange_rate_repository.dart';
 import 'package:finanseapp/core/features/currencies/logic/exchange_rate_events.dart';
+import 'package:finanseapp/core/features/dashboard/logic/safety_cushion.dart';
 import 'package:finanseapp/core/features/goals/domain/financial_goal.dart';
 import 'package:finanseapp/core/features/goals/domain/goal_progress.dart';
 import 'package:finanseapp/core/features/goals/domain/goal_repository.dart';
@@ -88,6 +89,9 @@ class DashboardViewModel {
   /// Неархивные счета с истёкшим сроком окончания (today > endDate).
   final Signal<List<AccountAsset>> overdueAccounts = signal(const []);
 
+  /// Подушка безопасности; null — нет расходов/счетов/курса.
+  final Signal<SafetyCushion?> safetyCushion = signal(null);
+
   final CalculateGoalProgress _goalCalculator = const CalculateGoalProgress();
   final Map<String, Decimal> _rateCache = {};
 
@@ -110,7 +114,12 @@ class DashboardViewModel {
   StreamSubscription<List<AssetTransaction>>? _transactionsSubscription;
   StreamSubscription<Currency>? _baseSubscription;
   StreamSubscription<List<CashflowEntry>>? _cashflowSubscription;
+  StreamSubscription<List<CashflowEntry>>? _safetySubscription;
   EffectCleanup? _rateCleanup;
+
+  CashflowSummary? _safetySummary;
+  int _safetyToken = 0;
+  bool _safetyReady = false;
 
   void init() {
     today.value = now();
@@ -134,6 +143,7 @@ class DashboardViewModel {
       _rateCache.clear();
       unawaited(_reloadNetWorth());
       unawaited(_reloadCashflow());
+      unawaited(_reloadSafety());
       unawaited(_recomputeGoals());
     });
     _cashflowSubscription?.cancel();
@@ -143,6 +153,20 @@ class DashboardViewModel {
           (_) => unawaited(_reloadCashflow()),
           onError: _failLocalCashflow,
         );
+    _safetySummary = null;
+    _safetyReady = false;
+    safetyCushion.value = null;
+    _safetySubscription?.cancel();
+    _safetySubscription = cashflowRepository
+        .watch(CashflowFilter(period: _safetyRange))
+        .listen(
+          (_) => unawaited(_reloadSafety()),
+          onError: (_) {
+            _safetySummary = null;
+            safetyCushion.value = null;
+          },
+        );
+    unawaited(_reloadSafety());
     _assetsSubscription?.cancel();
     _assetsSubscription = assetRepository
         .watchAll(includeArchived: true)
@@ -152,6 +176,7 @@ class DashboardViewModel {
             for (final snapshot in snapshots) snapshot.asset.id: snapshot,
           };
           _updateOverdueAccounts(snapshots);
+          _recomputeSafety();
           assetNames.value = {
             for (final snapshot in snapshots)
               snapshot.asset.id: snapshot.asset.name,
@@ -210,6 +235,7 @@ class DashboardViewModel {
       baseCurrency.value = currency;
       unawaited(_reloadCashflow());
       unawaited(_reloadNetWorth());
+      unawaited(_reloadSafety());
     }, onError: _fail);
   }
 
@@ -217,6 +243,17 @@ class DashboardViewModel {
       analyticsRange(period: AnalyticsPeriod.month, today: today.value);
 
   DateRange get _monthRange => cashflowRange;
+
+  /// Три полных месяца до текущего (например, для 23.11 — август–октябрь).
+  DateRange get _safetyRange {
+    final firstOfMonth = DateTime(today.value.year, today.value.month);
+    final end = firstOfMonth.subtract(const Duration(days: 1));
+    final start = DateTime(end.year, end.month - 2, 1);
+    return DateRange(
+      start: LocalDate.fromDateTime(start),
+      end: LocalDate.fromDateTime(end),
+    );
+  }
 
   Future<void> _reloadCashflow() async {
     final token = ++_cashflowToken;
@@ -250,6 +287,50 @@ class DashboardViewModel {
     _emit();
   }
 
+  Future<void> _reloadSafety() async {
+    final token = ++_safetyToken;
+    try {
+      final summary = await queries.cashflow(
+        CashflowFilter(period: _safetyRange),
+      );
+      if (_disposed || token != _safetyToken) return;
+      _safetySummary = summary;
+      _safetyReady = true;
+      _recomputeSafety();
+      _emit();
+    } on Exception {
+      if (_disposed || token != _safetyToken) return;
+      _safetySummary = null;
+      _safetyReady = true;
+      safetyCushion.value = null;
+      _emit();
+    }
+  }
+
+  bool get _hasActiveAccounts => _snapshots.values.any(
+    (snapshot) =>
+        snapshot.asset is AccountAsset && snapshot.asset.archivedAt == null,
+  );
+
+  void _recomputeSafety() {
+    final netWorth = this.netWorth.value;
+    final summary = _safetySummary;
+    if (netWorthError.value != null ||
+        netWorth == null ||
+        summary == null ||
+        !_hasActiveAccounts) {
+      safetyCushion.value = null;
+      return;
+    }
+    final cash =
+        netWorth.byAssetKind[AssetKind.account] ??
+        Money(minorUnits: 0, currencyCode: netWorth.total.currencyCode);
+    safetyCushion.value = SafetyCushion.calculate(
+      cash: cash,
+      lastThreeMonths: summary,
+    );
+  }
+
   Future<void> _reloadNetWorth() async {
     final token = ++_netWorthToken;
     final onDate = today.value;
@@ -259,17 +340,20 @@ class DashboardViewModel {
       netWorth.value = summary;
       netWorthError.value = null;
       _netWorthReady = true;
+      _recomputeSafety();
       _emit();
     } on DomainException catch (error) {
       if (_disposed || token != _netWorthToken) return;
       // Недоступный курс не должен скрывать остальные блоки главной.
       netWorthError.value = error.code;
       _netWorthReady = true;
+      _recomputeSafety();
       _emit();
     } on Exception {
       if (_disposed || token != _netWorthToken) return;
       netWorthError.value = DomainErrorCode.storageFailure;
       _netWorthReady = true;
+      _recomputeSafety();
       _emit();
     }
   }
@@ -317,7 +401,8 @@ class DashboardViewModel {
     if (!_netWorthReady ||
         !_cashflowReady ||
         !_goalsReady ||
-        !_transactionsReady) {
+        !_transactionsReady ||
+        !_safetyReady) {
       return;
     }
     state.value = const ViewData(null);
@@ -349,10 +434,12 @@ class DashboardViewModel {
     _disposed = true;
     _goalToken++;
     _netWorthToken++;
+    _safetyToken++;
     _assetsSubscription?.cancel();
     _goalsSubscription?.cancel();
     _transactionsSubscription?.cancel();
     _cashflowSubscription?.cancel();
+    _safetySubscription?.cancel();
     _baseSubscription?.cancel();
     _rateCleanup?.call();
     _rateCleanup = null;
