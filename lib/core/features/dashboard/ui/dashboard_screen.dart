@@ -3,6 +3,7 @@ import 'package:finanseapp/app/theme/app_spacing.dart';
 import 'package:finanseapp/core/features/assets/domain/asset.dart';
 import 'package:finanseapp/core/features/dashboard/ui/dashboard_cashflow.dart';
 import 'package:finanseapp/core/features/dashboard/ui/dashboard_goals.dart';
+import 'package:finanseapp/core/features/dashboard/ui/dashboard_locked_assets.dart';
 import 'package:finanseapp/core/features/dashboard/ui/dashboard_net_worth.dart';
 import 'package:finanseapp/core/features/dashboard/ui/dashboard_overdue_accounts.dart';
 import 'package:finanseapp/core/features/dashboard/ui/dashboard_recent_operations.dart';
@@ -137,6 +138,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
               onTap: () => context.push(AppRoutes.analytics),
             ),
           ),
+          if (vm.hasLockedAssets.value)
+            DashboardLockedAssets(
+              total: vm.lockedTotal.value,
+              share: vm.lockedShare.value,
+              error: vm.lockedError.value,
+              l10n: l10n,
+              formatMoney: vm.formatMoney,
+              onTap: () => context.go(AppRoutes.assets),
+            ),
           _quickActions(context, l10n),
           if (overdue.isNotEmpty)
             DashboardOverdueAccounts(

@@ -3495,6 +3495,30 @@ abstract class AppLocalizations {
   /// **'Не удалось рассчитать'**
   String get dashboardNetWorthUnavailable;
 
+  /// Карточка заблокированных активов на Главной.
+  ///
+  /// In ru, this message translates to:
+  /// **'Заблокированные активы'**
+  String get dashboardLockedTitle;
+
+  /// Доля заблокированных активов от стоимости инвестиций.
+  ///
+  /// In ru, this message translates to:
+  /// **'{percent}% от инвестиций'**
+  String dashboardLockedShare(String percent);
+
+  /// Пояснение к блоку заблокированных активов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Заблокированные суммы не уменьшают стоимость инвестиций и чистый капитал. Показаны в базовой валюте; процент — от общей стоимости инвестиций.'**
+  String get dashboardLockedTooltip;
+
+  /// Доступная подпись info-иконки блока заблокированных активов.
+  ///
+  /// In ru, this message translates to:
+  /// **'О заблокированных активах'**
+  String get dashboardLockedInfoLabel;
+
   /// Секция cashflow месяца на главной.
   ///
   /// In ru, this message translates to:
