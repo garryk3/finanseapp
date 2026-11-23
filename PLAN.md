@@ -1047,7 +1047,13 @@
   `style` (M3 textTheme окрашивал все стили и глушил тон), `style.color`
   учитывается только при `neutral` — deleted/archived приглушение.
   6 новых тестов (включая поведенческие проверки отрисованного цвета карточек),
-  всего 856; format/analyze/dart analyze/test зелёные.
+  всего 856; format/analyze/dart analyze/test зелёные. Побочный эффект в рамках
+  контракта DESIGN §2: тона «ожили» в `AppCashflowSummary`, deficit/surplus
+  целей, итогах категорий и «+поступление» регулярных (раньше глушились M3).
+- **WILL ROT 18.7:** trailing последних операций без `maxLines` — на
+  экстремально длинной сумме возможен overflow (pre-existing, не регрессия
+  18.7); income/transfer — самая близкая пара палитры (ΔE ~20), пересмотр при
+  смене токенов.
 - **Отклонение:** правка `lib/uikit/app_money_text.dart` (вне списка Files) —
   без неё `AppSummaryCard.tone` не доходил до текста; выявлено task-reviewer.
 
