@@ -67,11 +67,6 @@ class _CategoryTotalsSectionState extends State<CategoryTotalsSection> {
     final filterKind = widget.cashflowKind;
     if (filterKind != null) {
       _kind = filterKind;
-      if (widget.onKindChanged != null) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) widget.onKindChanged?.call(filterKind);
-        });
-      }
     } else if (widget.selectedKind != null) {
       _kind = widget.selectedKind!;
     }

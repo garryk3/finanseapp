@@ -83,6 +83,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     AnalyticsViewModel vm,
   ) {
     final state = vm.state.value;
+    final filterKind = vm.cashflowKind.value;
+    // Активный kind-фильтр задаёт тип итогов; запоминаем его в state экрана,
+    // чтобы после сброса фильтра таб не прыгал (и переживал reload).
+    if (filterKind != null) _categoryKind = filterKind;
     final points = vm.points.value;
     final base = vm.baseCurrency.value;
     return Center(
