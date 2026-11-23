@@ -3,6 +3,7 @@ import 'package:finanseapp/app/theme/app_spacing.dart';
 import 'package:finanseapp/core/features/dashboard/ui/dashboard_cashflow.dart';
 import 'package:finanseapp/core/features/dashboard/ui/dashboard_goals.dart';
 import 'package:finanseapp/core/features/dashboard/ui/dashboard_net_worth.dart';
+import 'package:finanseapp/core/features/dashboard/ui/dashboard_overdue_accounts.dart';
 import 'package:finanseapp/core/features/dashboard/ui/dashboard_recent_operations.dart';
 import 'package:finanseapp/core/features/dashboard/ui/dashboard_view_model.dart';
 import 'package:finanseapp/core/domain/common/result.dart';
@@ -96,6 +97,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   ) {
     final summary = vm.netWorth.value;
     final base = vm.baseCurrency.value;
+    final overdue = vm.overdueAccounts.value;
     final value = summary == null ? '—' : vm.formatMoney(summary.total);
     final currencyCode = vm.netWorthError.value != null
         ? base?.code ?? ''
@@ -123,6 +125,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
           _quickActions(context, l10n),
+          if (overdue.isNotEmpty)
+            DashboardOverdueAccounts(
+              accounts: overdue,
+              l10n: l10n,
+              onAccount: (id) => context.push(AppRoutes.assetDetailsPath(id)),
+            ),
           if (vm.cashflowError.value != null)
             AppSection(
               header: l10n.dashboardCashflowTitle,

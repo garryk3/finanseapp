@@ -325,16 +325,24 @@ final class _Rates implements ExchangeRateRepository {
   ) => throw UnimplementedError();
 }
 
-AssetSnapshot _snapshot(int id, Money value) => AssetSnapshot(
+AssetSnapshot _snapshot(
+  int id,
+  Money value, {
+  LocalDate? endDate,
+  DateTime? archivedAt,
+  String? name,
+}) => AssetSnapshot(
   asset: AccountAsset(
     id: id,
-    name: 'Счёт $id',
+    name: name ?? 'Счёт $id',
     currencyCode: 'RUB',
     openingValue: const Money(minorUnits: 0, currencyCode: 'RUB'),
     createdAt: DateTime.utc(2024, 1, 1),
     bankId: 1,
     annualRate: Decimal.zero,
     startDate: LocalDate(2024, 1, 1),
+    endDate: endDate,
+    archivedAt: archivedAt,
   ),
   currentValue: value,
 );
@@ -530,6 +538,151 @@ void main() {
     expect(overview.dy, quickActions.dy);
     expect(overview.dx, lessThan(quickActions.dx));
   });
+
+  testWidgets('просроченные счета: только неархивные с endDate < today', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      width: 427,
+      total: _rubles(100),
+      snapshots: [
+        _snapshot(1, _rubles(100), endDate: LocalDate(2026, 11, 18)),
+        _snapshot(2, _rubles(100), endDate: _today),
+        _snapshot(3, _rubles(100), endDate: LocalDate(2026, 12, 1)),
+        _snapshot(
+          4,
+          _rubles(100),
+          endDate: LocalDate(2026, 11, 1),
+          archivedAt: DateTime.utc(2026, 11, 2),
+        ),
+      ],
+    );
+
+    expect(find.text(l10n.dashboardOverdueTitle), findsOneWidget);
+    expect(find.text('Счёт 1'), findsOneWidget);
+    expect(find.text(l10n.dashboardOverdueEnded('18.11.2026')), findsOneWidget);
+    expect(find.text('Счёт 2'), findsNothing);
+    expect(find.text('Счёт 3'), findsNothing);
+    expect(find.text('Счёт 4'), findsNothing);
+  });
+
+  testWidgets('просроченные счета: пусто — блока нет', (tester) async {
+    await pump(tester, width: 427, total: _rubles(100));
+    expect(find.text(l10n.dashboardOverdueTitle), findsNothing);
+  });
+
+  testWidgets('просроченные счета обновляются по стриму активов', (
+    tester,
+  ) async {
+    final controller = StreamController<List<AssetSnapshot>>.broadcast();
+    addTearDown(controller.close);
+    final vm = viewModel(total: _rubles(100), assetController: controller);
+    addTearDown(vm.dispose);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light(),
+        localizationsDelegates: const [
+          ...GlobalMaterialLocalizations.delegates,
+          AppLocalizations.delegate,
+        ],
+        supportedLocales: const [Locale('ru')],
+        home: DashboardScreen(viewModel: vm),
+      ),
+    );
+    await tester.pump();
+
+    controller.add(const []);
+    await tester.pumpAndSettle();
+    expect(find.text(l10n.dashboardOverdueTitle), findsNothing);
+
+    controller.add([
+      _snapshot(1, _rubles(100), endDate: LocalDate(2026, 11, 18)),
+    ]);
+    await tester.pumpAndSettle();
+    expect(find.text(l10n.dashboardOverdueTitle), findsOneWidget);
+    expect(find.text('Счёт 1'), findsOneWidget);
+
+    controller.add(const []);
+    await tester.pumpAndSettle();
+    expect(find.text(l10n.dashboardOverdueTitle), findsNothing);
+  });
+
+  testWidgets('просроченные счета: 3 строки, Ещё разворачивает, tap в детали', (
+    tester,
+  ) async {
+    final vm = viewModel(
+      total: _rubles(100),
+      snapshots: [
+        for (var id = 1; id <= 4; id++)
+          _snapshot(id, _rubles(100), endDate: LocalDate(2026, 11, id)),
+      ],
+    );
+    addTearDown(vm.dispose);
+    final router = GoRouter(
+      initialLocation: '/',
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (context, state) => DashboardScreen(viewModel: vm),
+        ),
+        GoRoute(
+          path: '/assets/:id',
+          builder: (context, state) =>
+              AppText('ASSET:${state.pathParameters['id']}'),
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      MaterialApp.router(
+        theme: AppTheme.light(),
+        localizationsDelegates: const [
+          ...GlobalMaterialLocalizations.delegates,
+          AppLocalizations.delegate,
+        ],
+        supportedLocales: const [Locale('ru')],
+        routerConfig: router,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Счёт 4'), findsNothing);
+    await tester.tap(find.text('Счёт 1'));
+    await tester.pumpAndSettle();
+    expect(find.text('ASSET:1'), findsOneWidget);
+
+    router.go('/');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l10n.dashboardOverdueMore(1)));
+    await tester.pump();
+    expect(find.text('Счёт 4'), findsOneWidget);
+    expect(find.text(l10n.dashboardOverdueMore(1)), findsNothing);
+  });
+
+  testWidgets(
+    '320dp, font 1.3, тёмная тема: 4 просроченных счёта без overflow',
+    (tester) async {
+      await pump(
+        tester,
+        width: 320,
+        dark: true,
+        largeText: true,
+        total: _rubles(100),
+        snapshots: [
+          for (var id = 1; id <= 4; id++)
+            _snapshot(
+              id,
+              _rubles(100),
+              endDate: LocalDate(2026, 11, id),
+              name: 'Очень длинное название счёта с просроченным сроком $id',
+            ),
+        ],
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(find.text(l10n.dashboardOverdueTitle), findsOneWidget);
+    },
+  );
 
   testWidgets('данные: net worth, достигнутая цель и последняя операция', (
     tester,

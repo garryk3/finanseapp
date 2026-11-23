@@ -1736,6 +1736,19 @@ class AppLocalizationsRu extends AppLocalizations {
   String get dashboardOverview => 'Обзор';
 
   @override
+  String get dashboardOverdueTitle => 'Просроченные счета';
+
+  @override
+  String dashboardOverdueEnded(String date) {
+    return 'Срок истёк $date';
+  }
+
+  @override
+  String dashboardOverdueMore(int count) {
+    return 'Ещё $count';
+  }
+
+  @override
   String get dashboardGoalsTitle => 'Цели';
 
   @override
