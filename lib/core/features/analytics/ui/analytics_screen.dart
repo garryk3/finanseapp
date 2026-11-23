@@ -28,9 +28,17 @@ import 'package:signals_flutter/signals_flutter.dart';
 
 /// Аналитика: net worth за период и вид активов (9.2).
 class AnalyticsScreen extends StatefulWidget {
-  const AnalyticsScreen({super.key, required this.viewModel});
+  const AnalyticsScreen({
+    super.key,
+    required this.viewModel,
+    this.disposeViewModel = true,
+  });
 
   final AnalyticsViewModel viewModel;
+
+  /// false — ViewModel принадлежит DI/маршруту и переживает экран
+  /// (фильтры сохраняются при возврате с подстраниц, 18.9).
+  final bool disposeViewModel;
 
   @override
   State<AnalyticsScreen> createState() => _AnalyticsScreenState();
@@ -49,14 +57,14 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   void didUpdateWidget(covariant AnalyticsScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (!identical(oldWidget.viewModel, widget.viewModel)) {
-      oldWidget.viewModel.dispose();
+      if (oldWidget.disposeViewModel) oldWidget.viewModel.dispose();
       _viewModel = widget.viewModel..init();
     }
   }
 
   @override
   void dispose() {
-    _viewModel.dispose();
+    if (widget.disposeViewModel) _viewModel.dispose();
     super.dispose();
   }
 
