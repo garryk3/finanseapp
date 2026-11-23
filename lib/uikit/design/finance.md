@@ -54,12 +54,12 @@ class AppMetric extends StatelessWidget {
 class AppSummaryCard extends StatelessWidget {
   const AppSummaryCard({
     super.key, required this.title, required this.value,
-    this.subtitle, this.leading, this.trailing, this.onTap,
+    this.subtitle, this.leading, this.trailing, this.footer, this.onTap,
     this.tone = AppMoneyTone.neutral,
   });
   final String title, value;
   final String? subtitle;
-  final Widget? leading, trailing;
+  final Widget? leading, trailing, footer;
   final VoidCallback? onTap;
   final AppMoneyTone tone;
 }

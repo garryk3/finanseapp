@@ -2329,6 +2329,18 @@
   "@dashboardNetWorthTitle": {
     "description": "Заголовок net worth на главной."
   },
+  "dashboardNetWorthAccounts": "Счета",
+  "@dashboardNetWorthAccounts": {
+    "description": "Разбивка чистого капитала: счета."
+  },
+  "dashboardNetWorthInvestments": "Инвестиции",
+  "@dashboardNetWorthInvestments": {
+    "description": "Разбивка чистого капитала: инвестиции."
+  },
+  "dashboardNetWorthProperty": "Недвижимость",
+  "@dashboardNetWorthProperty": {
+    "description": "Разбивка чистого капитала: недвижимость."
+  },
   "dashboardQuickActions": "Быстрые действия",
   "@dashboardQuickActions": {
     "description": "Секция быстрых действий."

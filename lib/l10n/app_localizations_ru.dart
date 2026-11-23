@@ -1715,6 +1715,15 @@ class AppLocalizationsRu extends AppLocalizations {
   String get dashboardNetWorthTitle => 'Чистый капитал';
 
   @override
+  String get dashboardNetWorthAccounts => 'Счета';
+
+  @override
+  String get dashboardNetWorthInvestments => 'Инвестиции';
+
+  @override
+  String get dashboardNetWorthProperty => 'Недвижимость';
+
+  @override
   String get dashboardQuickActions => 'Быстрые действия';
 
   @override

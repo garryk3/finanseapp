@@ -1,5 +1,6 @@
 import 'package:finanseapp/app/routes.dart';
 import 'package:finanseapp/app/theme/app_spacing.dart';
+import 'package:finanseapp/core/features/assets/domain/asset.dart';
 import 'package:finanseapp/core/features/dashboard/ui/dashboard_cashflow.dart';
 import 'package:finanseapp/core/features/dashboard/ui/dashboard_goals.dart';
 import 'package:finanseapp/core/features/dashboard/ui/dashboard_net_worth.dart';
@@ -106,6 +107,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
       const DateFormatter().format(vm.today.value),
       if (currencyCode.isNotEmpty) currencyCode,
     ].join(' · ');
+    final breakdown = <DashboardNetWorthPart>[
+      if (vm.netWorthError.value == null && summary != null)
+        for (final kind in AssetKind.values)
+          if (!(summary.byAssetKind[kind]?.isZero ?? true))
+            DashboardNetWorthPart(
+              label: _netWorthKindLabel(l10n, kind),
+              value: vm.formatMoney(summary.byAssetKind[kind]!),
+            ),
+    ];
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
       child: AppAdaptiveGrid(
@@ -121,6 +131,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 _ => l10n.dashboardNetWorthUnavailable,
               },
               subtitle: subtitle,
+              breakdown: breakdown,
               onTap: () => context.push(AppRoutes.analytics),
             ),
           ),
@@ -198,6 +209,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
+
+  String _netWorthKindLabel(AppLocalizations l10n, AssetKind kind) =>
+      switch (kind) {
+        AssetKind.account => l10n.dashboardNetWorthAccounts,
+        AssetKind.investment => l10n.dashboardNetWorthInvestments,
+        AssetKind.property => l10n.dashboardNetWorthProperty,
+      };
 
   Widget _quickActions(BuildContext context, AppLocalizations l10n) =>
       AppSection(

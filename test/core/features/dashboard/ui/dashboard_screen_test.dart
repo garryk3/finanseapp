@@ -63,6 +63,7 @@ final class _Queries implements AnalyticsQueries {
   _Queries(
     this.total, {
     this.error,
+    this.byKind,
     this.cashflowResult = const CashflowSummary(
       income: Money(minorUnits: 0, currencyCode: 'RUB'),
       expense: Money(minorUnits: 0, currencyCode: 'RUB'),
@@ -75,6 +76,7 @@ final class _Queries implements AnalyticsQueries {
 
   Money total;
   Object? error;
+  Map<AssetKind, Money>? byKind;
   CashflowSummary cashflowResult;
   CashflowFilter? lastCashflowFilter;
   final List<CashflowPeriodPoint> cashflowPoints;
@@ -86,7 +88,7 @@ final class _Queries implements AnalyticsQueries {
     if (failure != null) throw failure;
     return NetWorthSummary(
       total: total,
-      byAssetKind: {for (final kind in AssetKind.values) kind: total},
+      byAssetKind: byKind ?? {for (final kind in AssetKind.values) kind: total},
     );
   }
 
@@ -653,6 +655,7 @@ void main() {
 
     router.go('/');
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text(l10n.dashboardOverdueMore(1)));
     await tester.tap(find.text(l10n.dashboardOverdueMore(1)));
     await tester.pump();
     expect(find.text('Счёт 4'), findsOneWidget);
@@ -702,6 +705,63 @@ void main() {
     expect(find.text(l10n.dashboardGoalsEmpty), findsNothing);
     expect(find.text(l10n.dashboardRecentEmpty), findsNothing);
     expect(find.text(vm.formatMoney(_rubles(1500))), findsWidgets);
+  });
+
+  testWidgets('чистый капитал: разбивка только по ненулевым категориям', (
+    tester,
+  ) async {
+    final vm = await pump(
+      tester,
+      width: 427,
+      queries: _Queries(
+        _rubles(1000),
+        byKind: {
+          AssetKind.account: _rubles(150),
+          AssetKind.investment: _rubles(0),
+          AssetKind.property: _rubles(800),
+        },
+      ),
+    );
+
+    expect(find.text(l10n.dashboardNetWorthAccounts), findsOneWidget);
+    expect(find.text(vm.formatMoney(_rubles(150))), findsOneWidget);
+    expect(find.text(l10n.dashboardNetWorthInvestments), findsNothing);
+    expect(find.text(l10n.dashboardNetWorthProperty), findsOneWidget);
+    expect(find.text(vm.formatMoney(_rubles(800))), findsOneWidget);
+  });
+
+  testWidgets('чистый капитал: отрицательный счёт виден в разбивке', (
+    tester,
+  ) async {
+    const negative = Money(minorUnits: -5000, currencyCode: 'RUB');
+    final vm = await pump(
+      tester,
+      width: 427,
+      queries: _Queries(
+        _rubles(100),
+        byKind: {
+          AssetKind.account: negative,
+          AssetKind.investment: _rubles(0),
+          AssetKind.property: _rubles(0),
+        },
+      ),
+    );
+
+    expect(find.text(l10n.dashboardNetWorthAccounts), findsOneWidget);
+    expect(find.text(vm.formatMoney(negative)), findsOneWidget);
+    expect(find.text(l10n.dashboardNetWorthProperty), findsNothing);
+  });
+
+  testWidgets('чистый капитал: при ошибке курса разбивки нет', (tester) async {
+    await pump(
+      tester,
+      width: 427,
+      error: const DomainException(DomainErrorCode.rateUnavailable),
+    );
+
+    expect(find.text(l10n.dashboardNetWorthAccounts), findsNothing);
+    expect(find.text(l10n.dashboardNetWorthInvestments), findsNothing);
+    expect(find.text(l10n.dashboardNetWorthProperty), findsNothing);
   });
 
   testWidgets('ошибка курса net worth не скрывает цели и операции', (

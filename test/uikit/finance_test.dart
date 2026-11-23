@@ -193,6 +193,26 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.text('−123 456 789 012,34 ₽'), findsOneWidget);
     });
+
+    testWidgets('footer рендерится и отсутствует без него', (tester) async {
+      await tester.pumpWidget(
+        testApp(
+          const AppSummaryCard(
+            title: 'Итог',
+            value: '1 000,00 ₽',
+            footer: AppText('Разбивка'),
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(find.text('Разбивка'), findsOneWidget);
+
+      await tester.pumpWidget(
+        testApp(const AppSummaryCard(title: 'Итог', value: '1 000,00 ₽')),
+      );
+      await tester.pump();
+      expect(find.text('Разбивка'), findsNothing);
+    });
   });
 
   group('AppCashflowSummary', () {
