@@ -68,7 +68,8 @@ class DashboardRecentOperations extends StatelessWidget {
                           ' · ${_type(l10n, operation.kind)}',
                       leading: _icon(operation.kind),
                       trailing: AppMoneyText(
-                        formatMoney(operation.amount),
+                        '${_sign(operation.kind)}'
+                        '${formatMoney(operation.amount)}',
                         tone: _tone(operation.kind),
                       ),
                       onTap: () => onOpen(operation.id),
@@ -89,6 +90,12 @@ class DashboardRecentOperations extends StatelessWidget {
     AssetTransactionKind.withdrawal => AppMoneyTone.expense,
     AssetTransactionKind.transferOut ||
     AssetTransactionKind.transferIn => AppMoneyTone.transfer,
+  };
+
+  /// Знак — второй (не цветовой) канал направления, как в журнале операций.
+  static String _sign(AssetTransactionKind kind) => switch (kind) {
+    AssetTransactionKind.deposit || AssetTransactionKind.transferIn => '+',
+    AssetTransactionKind.withdrawal || AssetTransactionKind.transferOut => '−',
   };
 
   static AppIcon _icon(AssetTransactionKind kind) => switch (kind) {

@@ -429,10 +429,15 @@ AssetSnapshot _investmentSnapshot(
   lockedBalances: locked.isEmpty ? null : locked,
 );
 
-AssetTransaction _operation(int id, int assetId, int major) => AssetTransaction(
+AssetTransaction _operation(
+  int id,
+  int assetId,
+  int major, {
+  AssetTransactionKind kind = AssetTransactionKind.deposit,
+}) => AssetTransaction(
   id: id,
   assetId: assetId,
-  kind: AssetTransactionKind.deposit,
+  kind: kind,
   amount: _rubles(major),
   occurredOn: _today,
   rateToRub: Decimal.one,
@@ -792,6 +797,21 @@ void main() {
     expect(find.text(l10n.dashboardGoalsEmpty), findsNothing);
     expect(find.text(l10n.dashboardRecentEmpty), findsNothing);
     expect(find.text(vm.formatMoney(_rubles(1500))), findsWidgets);
+  });
+
+  testWidgets('последние операции показывают знак по типу', (tester) async {
+    final vm = await pump(
+      tester,
+      total: _rubles(1500),
+      snapshots: [_snapshot(1, _rubles(1500))],
+      operations: [
+        _operation(1, 1, 500),
+        _operation(2, 1, 300, kind: AssetTransactionKind.withdrawal),
+      ],
+    );
+
+    expect(find.text('+${vm.formatMoney(_rubles(500))}'), findsOneWidget);
+    expect(find.text('−${vm.formatMoney(_rubles(300))}'), findsOneWidget);
   });
 
   testWidgets('мультивалютная инвестиция в net worth и прогрессе цели', (

@@ -32,12 +32,15 @@ class AppMoneyText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final base = style ?? Theme.of(context).textTheme.titleSmall;
-    // Явный цвет вызывающего (deleted/archived приглушение) имеет приоритет
-    // над тоном; цвет дефолтного стиля темы — нет, иначе тон не применится
-    // (finance.md §4).
-    final Color? explicitColor = style?.color;
+    // Для neutral сохраняется цвет стиля (deleted/archived приглушение);
+    // смысловой тон всегда сильнее цвета стиля — иначе цвет textTheme,
+    // который M3 проставляет всем стилям, молча перебивал бы тон
+    // (finance.md §2).
+    final resolvedColor = tone == AppMoneyTone.neutral
+        ? style?.color
+        : resolveMoneyToneColor(context, tone);
     final effectiveStyle = base?.copyWith(
-      color: explicitColor ?? resolveMoneyToneColor(context, tone),
+      color: resolvedColor,
       fontFeatures: const <FontFeature>[FontFeature.tabularFigures()],
     );
     return AppText(

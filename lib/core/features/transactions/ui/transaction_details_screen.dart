@@ -1,4 +1,5 @@
 import 'package:finanseapp/app/routes.dart';
+import 'package:finanseapp/app/theme/app_semantic_colors.dart';
 import 'package:finanseapp/app/theme/app_spacing.dart';
 import 'package:finanseapp/core/domain/common/currency.dart';
 import 'package:finanseapp/core/domain/common/money.dart';
@@ -116,6 +117,7 @@ class _TransactionDetailsScreenState extends State<TransactionDetailsScreen> {
                 child: AppSummaryCard(
                   title: _kindLabel(l10n, transaction.kind),
                   value: _money(transaction.amount),
+                  tone: _tone(transaction.kind),
                   subtitle: transaction.amount.currencyCode == 'RUB'
                       ? null
                       : '${l10n.transactionAmountRub}: '
@@ -237,4 +239,11 @@ class _TransactionDetailsScreenState extends State<TransactionDetailsScreen> {
         AssetTransactionKind.transferOut => l10n.transactionKindTransferOut,
         AssetTransactionKind.transferIn => l10n.transactionKindTransferIn,
       };
+
+  static AppMoneyTone _tone(AssetTransactionKind kind) => switch (kind) {
+    AssetTransactionKind.deposit => AppMoneyTone.income,
+    AssetTransactionKind.withdrawal => AppMoneyTone.expense,
+    AssetTransactionKind.transferOut ||
+    AssetTransactionKind.transferIn => AppMoneyTone.transfer,
+  };
 }
