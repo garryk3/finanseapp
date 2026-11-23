@@ -1,6 +1,7 @@
 import 'package:decimal/decimal.dart';
 import 'package:finanseapp/core/database/daos/cashflow_dao.dart';
 import 'package:finanseapp/core/features/categories/domain/category.dart';
+import 'package:finanseapp/uikit/app_segmented_control.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -69,6 +70,14 @@ void main() {
       find.text(l10n.analyticsCategoriesTitle),
       const Offset(0, -300),
     );
+    await tester.pumpAndSettle();
+    expect(find.text(l10n.analyticsCategoriesEmptyExpense), findsOneWidget);
+    final incomeTab = find.descendant(
+      of: find.byType(AppSegmentedControl<CashflowKind>),
+      matching: find.text(l10n.analyticsCashflowIncome),
+    );
+    expect(incomeTab, findsOneWidget);
+    await tester.tap(incomeTab);
     await tester.pumpAndSettle();
     expect(find.text(incomeCategoryName), findsOneWidget);
     expect(find.text(l10n.analyticsNoAssetsTitle), findsNothing);

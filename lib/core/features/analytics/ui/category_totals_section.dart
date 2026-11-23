@@ -15,8 +15,9 @@ import 'package:material_ui/material_ui.dart';
 /// Итоги cashflow по категориям с долей от доходов/расходов (9.4).
 ///
 /// Доходы и расходы разделены табами: по умолчанию показаны расходы.
-/// Если задан [cashflowKind] (фильтр аналитики по типу), таб следует за
-/// фильтром и недоступен для переключения (18.6).
+/// Если задан [cashflowKind] (фильтр аналитики по типу), таб заменяется
+/// подписью типа: фильтр жёстко задаёт kind (18.6). [selectedKind] позволяет
+/// родителю сохранить выбор таба, пока секция размонтирована на время reload.
 class CategoryTotalsSection extends StatefulWidget {
   const CategoryTotalsSection({
     super.key,
@@ -27,6 +28,8 @@ class CategoryTotalsSection extends StatefulWidget {
     required this.shareOf,
     required this.showShare,
     this.cashflowKind,
+    this.selectedKind,
+    this.onKindChanged,
   });
 
   final List<CategoryTotal> totals;
@@ -39,18 +42,39 @@ class CategoryTotalsSection extends StatefulWidget {
   /// Активный фильтр по типу cashflow; `null` — «Все операции».
   final CashflowKind? cashflowKind;
 
+  /// Выбор пользователя, сохраняемый родителем между пересборками.
+  final CashflowKind? selectedKind;
+
+  /// Сообщает родителю о ручном переключении таба.
+  final ValueChanged<CashflowKind>? onKindChanged;
+
   @override
   State<CategoryTotalsSection> createState() => _CategoryTotalsSectionState();
 }
 
 class _CategoryTotalsSectionState extends State<CategoryTotalsSection> {
-  late CashflowKind _kind = widget.cashflowKind ?? CashflowKind.expense;
+  late CashflowKind _kind;
+
+  @override
+  void initState() {
+    super.initState();
+    _kind = widget.cashflowKind ?? widget.selectedKind ?? CashflowKind.expense;
+  }
 
   @override
   void didUpdateWidget(covariant CategoryTotalsSection oldWidget) {
     super.didUpdateWidget(oldWidget);
     final filterKind = widget.cashflowKind;
-    if (filterKind != null) _kind = filterKind;
+    if (filterKind != null) {
+      _kind = filterKind;
+      if (widget.onKindChanged != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) widget.onKindChanged?.call(filterKind);
+        });
+      }
+    } else if (widget.selectedKind != null) {
+      _kind = widget.selectedKind!;
+    }
   }
 
   String _shareText(CategoryTotal total) {
@@ -63,10 +87,11 @@ class _CategoryTotalsSectionState extends State<CategoryTotalsSection> {
   void _selectKind(CashflowKind value) {
     if (widget.cashflowKind != null || value == _kind) return;
     setState(() => _kind = value);
+    widget.onKindChanged?.call(value);
   }
 
   Widget _tabs() {
-    final control = AppSegmentedControl<CashflowKind>(
+    return AppSegmentedControl<CashflowKind>(
       segments: [
         AppSegment(
           value: CashflowKind.expense,
@@ -80,19 +105,13 @@ class _CategoryTotalsSectionState extends State<CategoryTotalsSection> {
       selected: {_kind},
       onSelectionChanged: (values) => _selectKind(values.first),
     );
-    if (widget.cashflowKind == null) return control;
-    // Фильтр «Доходы»/«Расходы» жёстко задаёт kind — переключатель
-    // заблокирован, чтобы не расходиться с фильтром.
-    return Semantics(
-      enabled: false,
-      child: IgnorePointer(child: Opacity(opacity: 0.6, child: control)),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     if (widget.totals.isEmpty) return const SizedBox.shrink();
     final textTheme = Theme.of(context).textTheme;
+    final scheme = Theme.of(context).colorScheme;
     final sorted = [
       for (final total in widget.totals)
         if (widget.categories[total.categoryId]?.kind == _kind) total,
@@ -102,8 +121,21 @@ class _CategoryTotalsSectionState extends State<CategoryTotalsSection> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _tabs(),
-          const SizedBox(height: AppSpacing.sm),
+          if (widget.cashflowKind == null) ...[
+            _tabs(),
+            const SizedBox(height: AppSpacing.sm),
+          ] else
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+              child: AppText(
+                _kind == CashflowKind.income
+                    ? widget.l10n.analyticsCashflowIncome
+                    : widget.l10n.analyticsCashflowExpense,
+                style: textTheme.bodySmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
+              ),
+            ),
           if (sorted.isEmpty)
             AppText(
               _kind == CashflowKind.income

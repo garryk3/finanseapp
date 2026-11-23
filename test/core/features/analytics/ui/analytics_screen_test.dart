@@ -421,7 +421,7 @@ void main() {
 
     expect(queries.lastCashflowFilter?.kind, CashflowKind.income);
     expect(find.text(l10n.analyticsCategoryFilterLabel), findsOneWidget);
-    expect(_selectedKind(tester), {CashflowKind.income});
+    expect(find.byType(AppSegmentedControl<CashflowKind>), findsNothing);
     expect(find.text('Зарплата'), findsOneWidget);
     expect(find.text('100%'), findsOneWidget);
     expect(find.text('100% · Доходы'), findsNothing);

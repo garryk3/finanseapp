@@ -39,6 +39,9 @@ class AnalyticsScreen extends StatefulWidget {
 class _AnalyticsScreenState extends State<AnalyticsScreen> {
   late AnalyticsViewModel _viewModel = widget.viewModel;
 
+  /// Выбор таба «Расходы/Доходы» переживает unmount секции на время reload.
+  CashflowKind _categoryKind = CashflowKind.expense;
+
   @override
   void initState() {
     super.initState();
@@ -173,6 +176,12 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   totals: vm.categoryTotals.value,
                   categories: vm.categories.value,
                   cashflowKind: vm.cashflowKind.value,
+                  selectedKind: _categoryKind,
+                  onKindChanged: (kind) {
+                    if (kind != _categoryKind) {
+                      setState(() => _categoryKind = kind);
+                    }
+                  },
                   l10n: l10n,
                   formatMoney: vm.formatMoney,
                   shareOf: vm.categoryShare,

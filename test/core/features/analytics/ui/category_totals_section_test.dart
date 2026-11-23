@@ -7,6 +7,7 @@ import 'package:finanseapp/core/features/categories/domain/category.dart';
 import 'package:finanseapp/core/features/analytics/ui/category_totals_section.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
 import 'package:finanseapp/uikit/app_money_text.dart';
+import 'package:finanseapp/uikit/app_segmented_control.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -45,6 +46,8 @@ Widget _app({
   required List<CategoryTotal> totals,
   required List<CashflowCategory> categories,
   CashflowKind? cashflowKind,
+  CashflowKind? selectedKind,
+  ValueChanged<CashflowKind>? onKindChanged,
   bool showShare = true,
 }) {
   final map = _map(categories);
@@ -61,6 +64,8 @@ Widget _app({
           totals: totals,
           categories: map,
           cashflowKind: cashflowKind,
+          selectedKind: selectedKind,
+          onKindChanged: onKindChanged,
           l10n: l10n,
           formatMoney: _format,
           shareOf: _shareByKind(map, 10000000, 10000000),
@@ -146,7 +151,9 @@ void main() {
     );
   });
 
-  testWidgets('cashflowKind задаёт таб и следует за фильтром', (tester) async {
+  testWidgets('cashflowKind задаёт тип, табы скрыты при фильтре', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       _app(
         l10n: l10n,
@@ -156,17 +163,10 @@ void main() {
       ),
     );
 
-    expect(_selectedKind(tester), {CashflowKind.income});
+    expect(find.byType(AppSegmentedControl<CashflowKind>), findsNothing);
+    expect(find.text(l10n.analyticsCashflowIncome), findsOneWidget);
     expect(find.text('Зарплата'), findsOneWidget);
     expect(find.text('Продукты'), findsNothing);
-
-    // При активном фильтре таб заблокирован.
-    await tester.tap(
-      find.text(l10n.analyticsCashflowExpense),
-      warnIfMissed: false,
-    );
-    await tester.pump();
-    expect(_selectedKind(tester), {CashflowKind.income});
 
     await tester.pumpWidget(
       _app(
@@ -178,7 +178,8 @@ void main() {
     );
     await tester.pump();
 
-    expect(_selectedKind(tester), {CashflowKind.expense});
+    expect(find.byType(AppSegmentedControl<CashflowKind>), findsNothing);
+    expect(find.text(l10n.analyticsCashflowExpense), findsOneWidget);
     expect(find.text('Продукты'), findsOneWidget);
     expect(find.text('Зарплата'), findsNothing);
 
@@ -190,6 +191,32 @@ void main() {
     expect(_selectedKind(tester), {CashflowKind.expense});
 
     await tester.tap(find.text(l10n.analyticsCashflowIncome));
+    await tester.pump();
+
+    expect(_selectedKind(tester), {CashflowKind.income});
+    expect(find.text('Зарплата'), findsOneWidget);
+  });
+
+  testWidgets('selectedKind сохраняет выбор после remount', (tester) async {
+    await tester.pumpWidget(
+      _app(
+        l10n: l10n,
+        totals: totals,
+        categories: categories,
+        selectedKind: CashflowKind.income,
+      ),
+    );
+    expect(_selectedKind(tester), {CashflowKind.income});
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpWidget(
+      _app(
+        l10n: l10n,
+        totals: totals,
+        categories: categories,
+        selectedKind: CashflowKind.income,
+      ),
+    );
     await tester.pump();
 
     expect(_selectedKind(tester), {CashflowKind.income});
