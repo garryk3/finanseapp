@@ -37,6 +37,7 @@ abstract final class AppRoutes {
   static const goalEdit = '/goals/:id/edit';
 
   static const analytics = '/more/analytics';
+  static const analyticsDetails = '/more/analytics/details';
   static const comparison = '/more/compare';
   static const settings = '/more/settings';
   static const categories = '/more/categories';
@@ -80,6 +81,22 @@ abstract final class AppRoutes {
   static String transferEditPath(int transferId) =>
       '/transactions/transfer/$transferId/edit';
   static String cashflowDetailsPath(int id) => '/cashflow/$id';
+
+  /// Детализация денежного потока по периодам (18.5). Токены периода те же,
+  /// что парсит роутер: `month|3m|6m|year|all`.
+  static String analyticsDetailsPath({
+    String period = 'month',
+    String? kind,
+    int? categoryId,
+  }) {
+    final query = <String>[
+      'period=$period',
+      if (kind != null) 'kind=$kind',
+      if (categoryId != null) 'categoryId=$categoryId',
+    ];
+    return '$analyticsDetails?${query.join('&')}';
+  }
+
   static String cashflowNewForProperty(int id, {bool income = false}) =>
       '$cashflowNew?propertyId=$id&kind=${income ? 'income' : 'expense'}';
   static String cashflowEditPath(int id) => '/cashflow/$id/edit';

@@ -816,7 +816,7 @@
   зафиксирован как **CALC-047** в `calculations.md`; coverage-тест обновлён
   (46 → 47).
 
-### 18.5 Аналитика: «Детализация за месяц» отдельной страницей — [ ]
+### 18.5 Аналитика: «Детализация за месяц» отдельной страницей — [x] (2026-11-23)
 
 - **Приоритет/зависимости:** P2; независима от 18.1–18.4; 18.6 после неё.
 - **Суть:** список значений по периодам (сейчас внутри `CashflowChartSection`,
@@ -825,7 +825,7 @@
   (доход = 0 и расход = 0) не показываются. Если за выбранный месяц вообще нет
   операций — «Нет операций за месяц».
 - **Решения:**
-  - **A1.** Новый роут `/more/analytics/details` (name `cashflow-details`),
+  - **A1.** Новый роут `/more/analytics/details` (name `analytics-details`),
     query-параметры: `period` (allowlist `month|3m|6m|year|all`, default `month`),
     `kind` (`income|expense`), `categoryId` (int). VM создаётся inline в builder
     роутера (образец `comparison`, `lib/app/router.dart:468–479`).
@@ -852,7 +852,7 @@
     `net_worth_chart_section.dart`) НЕ трогать.
   - **A4.** На экране аналитики после cashflow-секции — `AppListTile(
     title: l10n.analyticsDetailsTitle, trailing: AppIcon(Icons.chevron_right,
-    semanticLabel: null), onTap: push cashflowDetailsPath с текущими
+    semanticLabel: null), onTap: push analyticsDetailsPath с текущими
     vm.period/vm.cashflowKind/vm.categoryId)`. Показывается при
     `vm.baseCurrency.value != null` (как секция категорий), независимо от
     наличия точек.
@@ -869,8 +869,8 @@
     `lib/core/features/analytics/ui/cashflow_period_list.dart`;
     `test/core/features/analytics/ui/cashflow_details_screen_test.dart`,
     `test/core/features/analytics/ui/cashflow_details_view_model_test.dart`.
-  - Modify: `lib/app/routes.dart` (+`cashflowDetails = '/more/analytics/details'`,
-    +хелпер `cashflowDetailsPath({String period = 'month', String? kind,
+  - Modify: `lib/app/routes.dart` (+`analyticsDetails = '/more/analytics/details'`,
+    +хелпер `analyticsDetailsPath({String period = 'month', String? kind,
     int? categoryId})` — образец `categoriesPath`; строки period — те же токены
     `month|3m|6m|year|all`, что парсит роутер; вызывающий мапит enum в строку,
     routes.dart от фич не зависит), `lib/app/router.dart`
@@ -917,6 +917,16 @@
 - **DoD:** общий DoD; task-reviewer + design-reviewer; android-tester коротким
   прогоном; статус `[x]` до PR; e2e — спросить.
 - **Предлагаемый commit:** `task/18.5: детализация за месяц — отдельная страница`.
+- **Итог:** страница `/more/analytics/details` (name `analytics-details`) с
+  query `period/kind/categoryId`, VM по образцу аналитики, фильтрация нулевых
+  периодов и newest-first, чипы периода, общий `CashflowPeriodList`, empty state
+  «Нет операций за месяц»; из `CashflowChartSection` удалён список/сворачивание,
+  на экране аналитики — ссылка с текущими фильтрами. 16 новых тестовых функций
+  (8 VM, 5 widget, 3 route), всего 866; format/analyze чисто.
+- **Отклонение:** имена `analyticsDetails`/`analyticsDetailsPath`/
+  `analytics-details` вместо `cashflowDetails*`, потому что последние уже заняты
+  деталями cashflow-записи (`/cashflow/:id`); `MissingRate` переиспользован из
+  `AnalyticsViewModel`.
 
 ### 18.6 Аналитика: табы «Расходы»/«Доходы» в итогах по категориям — [ ]
 

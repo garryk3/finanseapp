@@ -1727,7 +1727,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get analyticsCashflowTitle => 'Денежный поток';
 
   @override
-  String get analyticsPeriodsTitle => 'Значения по периодам';
+  String get analyticsDetailsTitle => 'Детализация за месяц';
 
   @override
   String analyticsCashflowChartSummary(
@@ -1747,12 +1747,11 @@ class AppLocalizationsRu extends AppLocalizations {
       'Измените период или добавьте операцию.';
 
   @override
-  String analyticsShowAllPeriods(int count) {
-    return 'Показать все периоды ($count)';
-  }
+  String get analyticsCashflowEmptyMonthTitle => 'Нет операций за месяц';
 
   @override
-  String get analyticsCollapsePeriods => 'Свернуть периоды';
+  String get analyticsCashflowEmptyMonthMessage =>
+      'Добавьте операцию или измените период.';
 
   @override
   String get analyticsCashflowKindAll => 'Все операции';

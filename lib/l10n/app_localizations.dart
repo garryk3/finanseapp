@@ -3232,11 +3232,11 @@ abstract class AppLocalizations {
   /// **'Денежный поток'**
   String get analyticsCashflowTitle;
 
-  /// Доступный список cashflow-серии.
+  /// Ссылка на экране аналитики и заголовок страницы детализации.
   ///
   /// In ru, this message translates to:
-  /// **'Значения по периодам'**
-  String get analyticsPeriodsTitle;
+  /// **'Детализация за месяц'**
+  String get analyticsDetailsTitle;
 
   /// Доступное описание cashflow-графика.
   ///
@@ -3261,17 +3261,17 @@ abstract class AppLocalizations {
   /// **'Измените период или добавьте операцию.'**
   String get analyticsCashflowEmptyMessage;
 
-  /// Развернуть cashflow-список периодов.
+  /// Пустая детализация за текущий месяц.
   ///
   /// In ru, this message translates to:
-  /// **'Показать все периоды ({count})'**
-  String analyticsShowAllPeriods(int count);
+  /// **'Нет операций за месяц'**
+  String get analyticsCashflowEmptyMonthTitle;
 
-  /// Свернуть cashflow-список периодов.
+  /// Пояснение пустой детализации за месяц.
   ///
   /// In ru, this message translates to:
-  /// **'Свернуть периоды'**
-  String get analyticsCollapsePeriods;
+  /// **'Добавьте операцию или измените период.'**
+  String get analyticsCashflowEmptyMonthMessage;
 
   /// Фильтр cashflow-аналитики по типу.
   ///

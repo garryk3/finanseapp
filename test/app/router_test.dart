@@ -3,6 +3,7 @@ import 'package:finanseapp/core/features/dashboard/ui/dashboard_screen.dart';
 import 'package:finanseapp/app/shell_screen.dart';
 import 'package:finanseapp/app/routes.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
+import 'package:finanseapp/uikit/app_filter_chip.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
@@ -55,6 +56,41 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text(l10n.cashflowEmptyTitle), findsOneWidget);
+  });
+
+  testWidgets('детализация: malformed query не роняет экран', (tester) async {
+    final router = await pumpApp(tester);
+
+    router.go('/more/analytics/details?period=nope&kind=other&categoryId=abc');
+    await tester.pumpAndSettle();
+
+    expect(find.text(l10n.analyticsDetailsTitle), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('детализация: period из query выбирает чип', (tester) async {
+    final router = await pumpApp(tester);
+
+    router.go('/more/analytics/details?period=year&kind=income&categoryId=1');
+    await tester.pumpAndSettle();
+
+    expect(
+      tester
+          .widget<AppFilterChip>(
+            find.widgetWithText(AppFilterChip, l10n.analyticsPeriodYear),
+          )
+          .selected,
+      isTrue,
+    );
+    expect(
+      tester
+          .widget<AppFilterChip>(
+            find.widgetWithText(AppFilterChip, l10n.analyticsPeriodMonth),
+          )
+          .selected,
+      isFalse,
+    );
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('кнопка «На главную» возвращает на dashboard', (tester) async {
