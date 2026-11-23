@@ -89,9 +89,23 @@ final class PropertyAsset extends Asset {
 }
 
 /// Актив вместе с вычисленной текущей стоимостью (domain_model §4).
+///
+/// [currentValue] — стоимость в основной валюте актива (первая позиция
+/// [breakdown]); [currencyBalances] содержит все валютные позиции инвестиции
+/// (M4). Для счёта и квартиры поле остаётся `null`.
 final class AssetSnapshot {
-  const AssetSnapshot({required this.asset, required this.currentValue});
+  const AssetSnapshot({
+    required this.asset,
+    required this.currentValue,
+    this.currencyBalances,
+  });
 
   final Asset asset;
   final Money currentValue;
+
+  /// Позиции мультивалютной инвестиции; `null` — стоимость в одной валюте.
+  final List<Money>? currencyBalances;
+
+  /// Все валютные позиции; для одно-валютного актива — одна [currentValue].
+  List<Money> get breakdown => currencyBalances ?? [currentValue];
 }

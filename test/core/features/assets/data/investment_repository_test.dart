@@ -167,6 +167,91 @@ void main() {
     );
   });
 
+  test('оценка в валюте актива нормализуется в NULL (M1)', () async {
+    final id = await repository.create(draft());
+    await repository.recordValuation(
+      AssetValuationDraft(
+        assetId: id,
+        effectiveOn: LocalDate(2026, 1, 2),
+        value: const Money(minorUnits: 150000, currencyCode: 'RUB'),
+        rateToRub: Decimal.one,
+        fractionDigits: 2,
+      ),
+    );
+
+    final row = await (db.select(
+      db.assetValuations,
+    )..where((v) => v.assetId.equals(id))).getSingle();
+    expect(row.currencyCode, isNull);
+  });
+
+  test('оценка инвестиции в EUR пишется с валютой и RUB по курсу', () async {
+    final id = await repository.create(draft(opening: 100000));
+    await repository.recordValuation(
+      AssetValuationDraft(
+        assetId: id,
+        effectiveOn: LocalDate(2026, 1, 2),
+        value: const Money(minorUnits: 12000, currencyCode: 'EUR'),
+        rateToRub: Decimal.fromInt(100),
+        fractionDigits: 2,
+      ),
+    );
+
+    final row = await (db.select(
+      db.assetValuations,
+    )..where((v) => v.assetId.equals(id))).getSingle();
+    expect(row.currencyCode, 'EUR');
+    expect(row.valueMinor, 12000);
+    expect(row.valueRubMinor, 1200000);
+
+    final snapshot = await repository.getById(id);
+    expect(
+      snapshot.currentValue,
+      const Money(minorUnits: 100000, currencyCode: 'RUB'),
+    );
+    expect(snapshot.breakdown, [
+      const Money(minorUnits: 100000, currencyCode: 'RUB'),
+      const Money(minorUnits: 12000, currencyCode: 'EUR'),
+    ]);
+  });
+
+  test('снапшот мультивалютной инвестиции: breakdown по M4', () async {
+    final id = await repository.create(draft(opening: 100000));
+    await repository.recordValuation(
+      AssetValuationDraft(
+        assetId: id,
+        effectiveOn: LocalDate(2026, 1, 2),
+        value: const Money(minorUnits: 12000, currencyCode: 'USD'),
+        rateToRub: Decimal.fromInt(90),
+        fractionDigits: 2,
+      ),
+    );
+    await db.transactionsDao.create(
+      AssetTransactionInput(
+        assetId: id,
+        kind: AssetTransactionKind.deposit,
+        amountMinor: 5000,
+        currencyCode: 'USD',
+        occurredOn: LocalDate(2026, 1, 3),
+        rateToRub: Decimal.fromInt(90),
+        amountRubMinor: 450000,
+      ),
+    );
+
+    final snapshot = await repository.getById(id);
+    expect(
+      snapshot.currentValue,
+      const Money(minorUnits: 100000, currencyCode: 'RUB'),
+    );
+    expect(snapshot.breakdown, [
+      const Money(minorUnits: 100000, currencyCode: 'RUB'),
+      const Money(minorUnits: 17000, currencyCode: 'USD'),
+    ]);
+
+    final all = await repository.watchAll().first;
+    expect(all.single.breakdown, snapshot.breakdown);
+  });
+
   test('update инвестиции и запрет смены валюты при операциях', () async {
     final id = await repository.create(draft());
     await repository.update(id, draft(opening: 200000));

@@ -27,12 +27,16 @@ final class AssetTransactionInput {
     required this.occurredOn,
     required this.rateToRub,
     required this.amountRubMinor,
+    this.currencyCode,
     this.comment,
   });
 
   final int assetId;
   final AssetTransactionKind kind;
   final int amountMinor;
+
+  /// Валюта операции (M1); `null` — валюта актива.
+  final String? currencyCode;
   final LocalDate occurredOn;
   final Decimal rateToRub;
   final int amountRubMinor;
@@ -129,7 +133,13 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase>
       query.where(assets.kind.equalsValue(filter.assetKind!));
     }
     if (filter.currencyCode != null) {
-      query.where(assets.currencyCode.equals(filter.currencyCode!));
+      // M8: валюта операции, а NULL означает валюту актива.
+      final code = filter.currencyCode!;
+      query.where(
+        assetTransactions.currencyCode.equals(code) |
+            (assetTransactions.currencyCode.isNull() &
+                assets.currencyCode.equals(code)),
+      );
     }
     if (filter.limit != null) query.limit(filter.limit!);
     return query.watch().map(
@@ -179,6 +189,7 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase>
         assetId: input.assetId,
         kind: input.kind,
         amountMinor: input.amountMinor,
+        currencyCode: Value(input.currencyCode),
         occurredOn: input.occurredOn,
         rateToRub: input.rateToRub,
         amountRubMinor: input.amountRubMinor,
@@ -236,6 +247,7 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase>
             assetId: Value(input.assetId),
             kind: Value(input.kind),
             amountMinor: Value(input.amountMinor),
+            currencyCode: Value(input.currencyCode),
             occurredOn: Value(input.occurredOn),
             rateToRub: Value(input.rateToRub),
             amountRubMinor: Value(input.amountRubMinor),
@@ -763,6 +775,7 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase>
           assetId: row.assetId,
           kind: row.kind,
           amountMinor: row.amountMinor,
+          currencyCode: row.currencyCode,
           occurredOn: row.occurredOn,
           rateToRub: row.rateToRub,
           amountRubMinor: row.amountRubMinor,

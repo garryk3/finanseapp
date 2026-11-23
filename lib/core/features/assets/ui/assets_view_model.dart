@@ -2,10 +2,10 @@ import 'dart:async';
 
 import 'package:decimal/decimal.dart';
 import 'package:finanseapp/core/domain/common/currency.dart';
-import 'package:finanseapp/core/domain/common/currency_converter.dart';
 import 'package:finanseapp/core/domain/common/local_date.dart';
 import 'package:finanseapp/core/domain/common/money.dart';
 import 'package:finanseapp/core/domain/common/result.dart';
+import 'package:finanseapp/core/features/analytics/logic/net_worth_calculator.dart';
 import 'package:finanseapp/core/features/assets/domain/asset.dart';
 import 'package:finanseapp/core/features/assets/domain/asset_repository.dart';
 import 'package:finanseapp/core/features/currencies/domain/currency_repository.dart';
@@ -103,7 +103,8 @@ class AssetsViewModel {
 
   Future<void> _ensureRates() async {
     final codes = {
-      for (final snapshot in _all) snapshot.asset.currencyCode,
+      for (final snapshot in _all)
+        for (final money in snapshot.breakdown) money.currencyCode,
       if (baseCurrency.value != null) baseCurrency.value!.code,
     };
     final missing = [
@@ -171,28 +172,51 @@ class AssetsViewModel {
       const MoneyFormatter().format(money, currencyOf(money.currencyCode));
 
   /// Эквивалент в базовой валюте: текст, «нет курса» или совпадение валют.
+  ///
+  /// Мультивалютная инвестиция суммируется по `breakdown` через
+  /// [NetWorthCalculator] и показывается даже при совпадении базовой валюты с
+  /// основной валютой актива.
   ({String? text, bool unavailable}) baseEquivalent(AssetSnapshot snapshot) {
     final base = baseCurrency.value;
-    if (base == null || base.code == snapshot.asset.currencyCode) {
+    if (base == null) return (text: null, unavailable: false);
+    final breakdown = snapshot.breakdown;
+    if (breakdown.length == 1 && base.code == breakdown.single.currencyCode) {
       return (text: null, unavailable: false);
     }
-    final sourceRate = snapshot.asset.currencyCode == 'RUB'
-        ? Decimal.one
-        : _rateCache[snapshot.asset.currencyCode];
-    final baseRate = base.code == 'RUB' ? Decimal.one : _rateCache[base.code];
-    if (sourceRate == null || baseRate == null) {
-      return (text: null, unavailable: true);
+    final needsConversion = breakdown.any(
+      (money) => money.currencyCode != base.code,
+    );
+    final rates = <String, Decimal>{};
+    if (needsConversion) {
+      for (final money in breakdown) {
+        if (money.currencyCode == base.code) continue;
+        final rate = money.currencyCode == 'RUB'
+            ? Decimal.one
+            : _rateCache[money.currencyCode];
+        if (rate == null) return (text: null, unavailable: true);
+        rates[money.currencyCode] = rate;
+      }
+      if (base.code != 'RUB') {
+        final baseRate = _rateCache[base.code];
+        if (baseRate == null) return (text: null, unavailable: true);
+        rates[base.code] = baseRate;
+      }
     }
     try {
-      final converted = CurrencyConverter.convertWithRates(
-        value: snapshot.currentValue,
-        source: currencyOf(snapshot.asset.currencyCode),
-        target: base,
-        sourceRateToRub: sourceRate,
-        targetRateToRub: baseRate,
+      final summary = NetWorthCalculator.calculate(
+        assets: [
+          for (final money in breakdown)
+            NetWorthAssetValue(
+              kind: snapshot.asset.kind,
+              value: money,
+              currency: currencyOf(money.currencyCode),
+            ),
+        ],
+        ratesToRub: rates,
+        baseCurrency: base,
       );
       return (
-        text: const MoneyFormatter().format(converted, base),
+        text: const MoneyFormatter().format(summary.total, base),
         unavailable: false,
       );
     } on DomainException {

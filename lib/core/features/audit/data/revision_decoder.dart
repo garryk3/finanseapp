@@ -20,7 +20,8 @@ AssetTransaction decodeAssetTransactionSnapshot(
     kind: const AssetTransactionKindConverter().fromSql(data['kind'] as String),
     amount: Money(
       minorUnits: data['amountMinor'] as int,
-      currencyCode: currencyCode,
+      // M7: старые snapshot без ключа читаются в валюте актива.
+      currencyCode: data['currencyCode'] as String? ?? currencyCode,
     ),
     occurredOn: LocalDate.parse(data['occurredOn'] as String),
     rateToRub: const DecimalConverter().fromSql(data['rateToRub'] as String),

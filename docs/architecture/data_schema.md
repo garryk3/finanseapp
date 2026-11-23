@@ -1,6 +1,6 @@
 # Drift-схема и транзакции записи
 
-Это нормативная схема `AppDatabase.schemaVersion = 1`. Имена таблиц/колонок в Dart —
+Это нормативная схема `AppDatabase.schemaVersion = 3`. Имена таблиц/колонок в Dart —
 lowerCamelCase, в SQLite — snake_case. Ни одна задача не меняет тип, constraint или
 индекс без обновления этого документа, schema dump и миграционного теста.
 
@@ -97,6 +97,7 @@ Repository в одной транзакции создаёт/изменяет о
 | `assetId` | INTEGER NOT NULL → assets RESTRICT |
 | `effectiveOn` | TEXT NOT NULL LocalDate |
 | `valueMinor` | INTEGER NOT NULL, `>= 0` |
+| `currencyCode` | TEXT NULL → currencies.code RESTRICT; `NULL` = `assets.currencyCode` |
 | `rateToRub` | TEXT NOT NULL Decimal `> 0` |
 | `valueRubMinor` | INTEGER NOT NULL, `>= 0` |
 | `createdAt` | TEXT NOT NULL UTC |
@@ -104,6 +105,11 @@ Repository в одной транзакции создаёт/изменяет о
 Разрешены только investment/property. Индексы `(assetId, effectiveOn DESC, id DESC)`,
 `(effectiveOn)`, `(assetId, createdAt)`. Один актив может иметь несколько оценок на дату;
 последняя определяется `effectiveOn`, затем `id`, а не временем устройства.
+
+`currencyCode` — валюта оценки (M1/M2): `NULL` означает валюту актива и пишется при
+совпадении. У инвестиции допустима любая валюта справочника, у квартиры — только валюта
+актива, иначе `validationCurrencyMismatch`. `valueRubMinor` считается от валюты оценки
+по её `rateToRub`.
 
 ## 4. Транзакции активов и переводы
 
@@ -125,7 +131,8 @@ soft delete обеих ног для аудита.
 | `id` | PK |
 | `assetId` | INTEGER NOT NULL → assets RESTRICT |
 | `kind` | TEXT NOT NULL stable enum |
-| `amountMinor` | INTEGER NOT NULL `> 0`, в валюте актива |
+| `amountMinor` | INTEGER NOT NULL `> 0`, в валюте операции |
+| `currencyCode` | TEXT NULL → currencies.code RESTRICT; `NULL` = валюта актива |
 | `occurredOn` | TEXT NOT NULL LocalDate |
 | `rateToRub` | TEXT NOT NULL Decimal `> 0` |
 | `amountRubMinor` | INTEGER NOT NULL `> 0` |
@@ -142,14 +149,23 @@ Unique partial index `asset_transactions_active_transfer_leg` на `(transferId,
 `WHERE deletedAt IS NULL AND transferId IS NOT NULL`.
 Check: transfer kinds требуют `transferId`, deposit/withdrawal требуют `NULL`;
 наличие ровно transferOut у исходного и transferIn у целевого актива проверяет DAO
-в транзакции и тестами. Триггер запрещает несоответствие валюты суммы и актива через
-саму модель: отдельной `currencyCode` у транзакции нет.
+в транзакции и тестами.
+
+`currencyCode` — валюта операции (M1/M2): `NULL` означает валюту актива и пишется при
+совпадении. Операция инвестиции допускает любую валюту справочника; операция счёта —
+только валюту актива, иначе `validationCurrencyMismatch`. У перевода ноги всегда в
+валюте своего счёта. `amountRubMinor = amountOriginal × rateToRub` считается от валюты
+операции (M6), а не от валюты актива.
 
 ### `asset_transaction_revisions`
 
 `id` PK; `transactionId` NOT NULL → asset_transactions RESTRICT; `revisionNo` NOT NULL;
 `action` NOT NULL; `snapshotJson` NOT NULL; `changedAt` NOT NULL UTC.
 Unique `(transactionId, revisionNo)`; индекс `(transactionId, changedAt, id)`.
+
+Snapshot операции содержит аддитивный ключ `currencyCode` (`String?`, `null` = валюта
+актива, M7); `snapshotSchemaVersion` остаётся 1. Декодер аудита читает ключ с fallback
+на валюту актива — старые snapshot продолжают открываться.
 
 ## 5. Денежный поток
 
@@ -252,16 +268,21 @@ Unique partial index `(kind, normalizedName) WHERE archivedAt IS NULL`;
 
 - `AppDatabase` принимает `QueryExecutor`; production path —
   `<applicationDocuments>/finanseapp.sqlite` из `app_database_path.dart`.
-- `schemaVersion = 2`, `onCreate`: все таблицы/индексы v1+v2, затем
+- `schemaVersion = 3`, `onCreate`: все таблицы/индексы v1–v3, затем
   `ReferenceSeeder.seed` внутри одной транзакции. `onUpgrade` из v1: создать
   `recurring_cashflow_rules`, добавить `cashflow_entries.recurring_rule_id`, применить
-  runtime-DDL `schemaObjectsV2` (частичные unique-индексы).
+  runtime-DDL `schemaObjectsV2` (частичные unique-индексы), затем добавить
+  `asset_transactions.currency_code` и `asset_valuations.currency_code`. Из v2:
+  те же две nullable-колонки. Runtime-DDL v3 не нужен: FK на `currencies.code`
+  объявлен в таблицах и создаётся вместе с ними.
 - `beforeOpen`: `PRAGMA foreign_keys = ON`; в release не выполняются destructive fallback,
   `deleteAllTables` или молчаливая подмена схемы.
 - После каждой схемной задачи: `dart run build_runner build --delete-conflicting-outputs`,
   `dart run drift_dev schema dump lib/core/database/app_database.dart drift_schemas/`.
 - Тест v1 проверяет все FK/unique/indexes через `sqlite_master`, `foreign_key_check` и
   `PRAGMA integrity_check`; seed запускается дважды без дублей и перезаписи rename.
+  Тест v2→v3 на файловой БД проверяет `user_version`, наличие nullable-колонок
+  (`PRAGMA table_info`), целостность старых строк и чтение их в валюте актива.
 - При будущем импорте более старой схемы она открывается только через новый AppDatabase,
   который выполняет последовательный upgrade **до** открытия приложения.
 

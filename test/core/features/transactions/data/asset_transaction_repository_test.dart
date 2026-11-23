@@ -454,4 +454,99 @@ void main() {
     expect(revisions, isEmpty);
     expect(await db.select(db.cashflowEntries).get(), isEmpty);
   });
+
+  test(
+    'deposit инвестиции в USD пишет валюту и RUB по курсу операции',
+    () async {
+      final assetId = await createInvestment(db, currencyCode: 'RUB');
+      final id = await repository.create(
+        draft(assetId, amount: 10000, currency: 'USD', rate: '92'),
+      );
+
+      final row = await db.transactionsDao.getById(id);
+      expect(row.currencyCode, 'USD');
+      expect(row.amountRubMinor, 920000);
+      final transaction = await repository.getById(id);
+      expect(
+        transaction.amount,
+        const Money(minorUnits: 10000, currencyCode: 'USD'),
+      );
+      expect(
+        transaction.amountRub,
+        const Money(minorUnits: 920000, currencyCode: 'RUB'),
+      );
+    },
+  );
+
+  test('deposit в валюте актива нормализуется в NULL (M1)', () async {
+    final assetId = await createAccount(db, currencyCode: 'USD');
+    final id = await repository.create(
+      draft(assetId, amount: 10000, currency: 'USD', rate: '90'),
+    );
+
+    final row = await db.transactionsDao.getById(id);
+    expect(row.currencyCode, isNull);
+    expect(row.amountRubMinor, 900000);
+  });
+
+  test('операция по счёту в чужой валюте отклоняется (M2)', () async {
+    final assetId = await createAccount(db, currencyCode: 'RUB');
+
+    await expectLater(
+      repository.create(draft(assetId, currency: 'USD')),
+      throwsA(
+        isA<DomainException>().having(
+          (error) => error.fieldErrors,
+          'fieldErrors',
+          containsPair('currencyCode', 'validationCurrencyMismatch'),
+        ),
+      ),
+    );
+
+    expect(await db.transactionsDao.allRows(), isEmpty);
+  });
+
+  test('ревизия операции по счёту в чужой валюте отклоняется (M2)', () async {
+    final assetId = await createAccount(db, currencyCode: 'RUB');
+    final id = await repository.create(
+      draft(assetId, currency: 'RUB', rate: '1'),
+    );
+
+    await expectLater(
+      repository.revise(id, draft(assetId, currency: 'USD')),
+      throwsA(
+        isA<DomainException>().having(
+          (error) => error.fieldErrors,
+          'fieldErrors',
+          containsPair('currencyCode', 'validationCurrencyMismatch'),
+        ),
+      ),
+    );
+
+    final row = await db.transactionsDao.getById(id);
+    expect(row.currencyCode, isNull);
+    expect(row.amountMinor, 10000);
+  });
+
+  test('фильтр журнала по валюте операции (M8)', () async {
+    final assetId = await createInvestment(db, currencyCode: 'RUB');
+    final usdId = await repository.create(
+      draft(assetId, currency: 'USD', rate: '90'),
+    );
+    final rubId = await repository.create(
+      draft(assetId, currency: 'RUB', rate: '1'),
+    );
+
+    final usd = await repository
+        .watch(const TransactionFilter(currencyCode: 'USD'))
+        .first;
+    expect(usd.map((transaction) => transaction.id), [usdId]);
+    expect(usd.single.amount.currencyCode, 'USD');
+
+    final rub = await repository
+        .watch(const TransactionFilter(currencyCode: 'RUB'))
+        .first;
+    expect(rub.map((transaction) => transaction.id), [rubId]);
+    expect(rub.single.amount.currencyCode, 'RUB');
+  });
 }

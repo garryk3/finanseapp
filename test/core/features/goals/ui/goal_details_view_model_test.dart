@@ -25,6 +25,14 @@ const _rub = Currency(
   isEnabled: true,
 );
 
+const _usd = Currency(
+  code: 'USD',
+  name: 'Доллар',
+  fractionDigits: 2,
+  isPreset: true,
+  isEnabled: true,
+);
+
 Money _rubles(int major) => Money(minorUnits: major * 100, currencyCode: 'RUB');
 
 FinancialGoal _goal({GoalStatus status = GoalStatus.active}) => FinancialGoal(
@@ -50,6 +58,22 @@ AssetSnapshot _account(int value) => AssetSnapshot(
     startDate: LocalDate(2026, 1, 1),
   ),
   currentValue: _rubles(value),
+);
+
+AssetSnapshot _investment(List<Money> balances) => AssetSnapshot(
+  asset: InvestmentAsset(
+    id: 1,
+    name: 'Инвестиция',
+    currencyCode: balances.first.currencyCode,
+    openingValue: Money(
+      minorUnits: 0,
+      currencyCode: balances.first.currencyCode,
+    ),
+    createdAt: DateTime.utc(2026, 1, 1),
+    brokerId: 1,
+  ),
+  currentValue: balances.first,
+  currencyBalances: balances,
 );
 
 final class _Goals implements GoalRepository {
@@ -152,10 +176,10 @@ final class _Assets implements AssetRepository {
 
 final class _Currencies implements CurrencyRepository {
   @override
-  Stream<List<Currency>> watchAll() => Stream.value(const [_rub]);
+  Stream<List<Currency>> watchAll() => Stream.value(const [_rub, _usd]);
 
   @override
-  Future<List<Currency>> getEnabled() async => const [_rub];
+  Future<List<Currency>> getEnabled() async => const [_rub, _usd];
 
   @override
   Future<int> countReferences(String code) async => 0;
@@ -174,8 +198,23 @@ final class _Currencies implements CurrencyRepository {
 }
 
 final class _Rates implements ExchangeRateRepository {
+  _Rates([this.rates = const {}]);
+
+  final Map<String, Decimal> rates;
+
   @override
-  Future<ExchangeRate?> find(String code, LocalDate date) async => null;
+  Future<ExchangeRate?> find(String code, LocalDate date) async {
+    final rate = rates[code];
+    if (rate == null) return null;
+    return ExchangeRate(
+      id: 1,
+      currencyCode: code,
+      date: date,
+      rateToRub: rate,
+      source: ExchangeRateSource.manual,
+      fetchedAt: DateTime.utc(2026, 1, 1),
+    );
+  }
 
   @override
   Future<ExchangeRate> fetchFromCbr(String code, LocalDate date) =>
@@ -210,6 +249,27 @@ void main() {
 
     expect(vm.progress.value?.completionRatio, Decimal.one);
     expect(vm.goal.value?.status, GoalStatus.achieved);
+  });
+
+  test('мультивалютная инвестиция конвертируется по позициям', () async {
+    final vm = GoalDetailsViewModel(
+      repository: _Goals(_goal()),
+      assetRepository: _Assets(
+        _investment(const [
+          Money(minorUnits: 100000, currencyCode: 'RUB'),
+          Money(minorUnits: 2000, currencyCode: 'USD'),
+        ]),
+      ),
+      goalId: 1,
+      currencyRepository: _Currencies(),
+      rateRepository: _Rates({'USD': Decimal.fromInt(90)}),
+      today: LocalDate(2026, 11, 19),
+    );
+    addTearDown(vm.dispose);
+
+    await vm.load();
+
+    expect(vm.progress.value?.progress, _rubles(2800));
   });
 
   test('ошибка watch-потока даёт storageFailure', () async {

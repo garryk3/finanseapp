@@ -35,6 +35,7 @@ class ValuationsDao extends DatabaseAccessor<AppDatabase>
     required int valueMinor,
     required Decimal rateToRub,
     required int valueRubMinor,
+    String? currencyCode,
   }) => transaction(() async {
     if (effectiveOn.compareTo(attachedDatabase.today()) > 0) {
       throw const DomainException(
@@ -74,6 +75,7 @@ class ValuationsDao extends DatabaseAccessor<AppDatabase>
         assetId: assetId,
         effectiveOn: effectiveOn,
         valueMinor: valueMinor,
+        currencyCode: Value(currencyCode),
         rateToRub: rateToRub,
         valueRubMinor: valueRubMinor,
         createdAt: attachedDatabase.clock(),

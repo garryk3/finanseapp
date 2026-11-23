@@ -14,9 +14,11 @@ abstract final class GoalCalculator {
   ///
   /// Конверсия — ответственность `CalculateGoalProgress`; сюда попадают только
   /// суммы одной валюты, поэтому смешивание курсов не может просочиться сюда.
+  /// У мультивалютной инвестиции каждая позиция `breakdown` конвертируется
+  /// отдельно, затем все позиции всех списков складываются.
   static GoalProgress calculate({
     required FinancialGoal goal,
-    required Map<int, Money> assetValues,
+    required Map<int, List<Money>> assetValues,
     required Currency currency,
     required LocalDate today,
   }) {
@@ -34,8 +36,10 @@ abstract final class GoalCalculator {
     }
 
     var progress = Money(minorUnits: 0, currencyCode: currency.code);
-    for (final value in assetValues.values) {
-      progress = MoneyMath.add(progress, value);
+    for (final values in assetValues.values) {
+      for (final value in values) {
+        progress = MoneyMath.add(progress, value);
+      }
     }
 
     final rawDeficit = MoneyMath.subtract(goal.targetAmount, progress);

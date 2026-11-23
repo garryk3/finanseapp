@@ -139,10 +139,10 @@ class GoalsViewModel {
     final token = ++_emitToken;
     final views = <GoalView>[];
     for (final goal in _goals) {
-      final values = <int, Money>{};
+      final values = <int, List<Money>>{};
       for (final assetId in goal.assetIds) {
         final snapshot = _snapshots[assetId];
-        if (snapshot != null) values[assetId] = snapshot.currentValue;
+        if (snapshot != null) values[assetId] = snapshot.breakdown;
       }
       final progress = _assetsFailed
           ? null

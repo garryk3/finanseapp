@@ -107,7 +107,8 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
     final isArchived = asset.archivedAt != null;
     final showBase =
         vm.baseCurrency.value != null &&
-        vm.baseCurrency.value!.code != asset.currencyCode;
+        (vm.baseCurrency.value!.code != asset.currencyCode ||
+            vm.breakdown.value.length > 1);
     return AppListView(
       children: [
         AppSection(

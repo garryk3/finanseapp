@@ -16,29 +16,41 @@ InvestmentAsset _asset(int opening) => InvestmentAsset(
   brokerId: 1,
 );
 
-AssetValuation _valuation(int id, LocalDate date, int value) => AssetValuation(
+AssetValuation _valuation(
+  int id,
+  LocalDate date,
+  int value, {
+  String currency = 'RUB',
+}) => AssetValuation(
   id: id,
   assetId: 1,
   effectiveOn: date,
-  value: Money(minorUnits: value, currencyCode: 'RUB'),
+  value: Money(minorUnits: value, currencyCode: currency),
   rateToRub: Decimal.one,
   valueRub: Money(minorUnits: value, currencyCode: 'RUB'),
   createdAt: DateTime.utc(2026),
 );
 
-AssetTransaction _tx(int amount, LocalDate date, AssetTransactionKind kind) =>
-    AssetTransaction(
-      id: 1,
-      assetId: 1,
-      kind: kind,
-      amount: Money(minorUnits: amount, currencyCode: 'RUB'),
-      occurredOn: date,
-      rateToRub: Decimal.one,
-      amountRub: Money(minorUnits: amount, currencyCode: 'RUB'),
-      revisionNo: 1,
-      createdAt: DateTime.utc(2026),
-      updatedAt: DateTime.utc(2026),
-    );
+AssetTransaction _tx(
+  int amount,
+  LocalDate date,
+  AssetTransactionKind kind, {
+  int id = 1,
+  String currency = 'RUB',
+  DateTime? deletedAt,
+}) => AssetTransaction(
+  id: id,
+  assetId: 1,
+  kind: kind,
+  amount: Money(minorUnits: amount, currencyCode: currency),
+  occurredOn: date,
+  rateToRub: Decimal.one,
+  amountRub: Money(minorUnits: amount, currencyCode: 'RUB'),
+  revisionNo: 1,
+  createdAt: DateTime.utc(2026),
+  updatedAt: DateTime.utc(2026),
+  deletedAt: deletedAt,
+);
 
 void main() {
   test('CALC-014: оценка 1500 и последующая tx +50 = 1550', () {
@@ -95,5 +107,142 @@ void main() {
     ]);
 
     expect(value.minorUnits, 110000);
+  });
+
+  group('investmentBalances (M3/M4)', () {
+    test('CALC-045: opening RUB + deposit USD → позиции основной и USD', () {
+      final balances = AssetValueCalculator.investmentBalances(
+        _asset(100000),
+        const [],
+        [
+          _tx(
+            10000,
+            LocalDate(2026, 1, 1),
+            AssetTransactionKind.deposit,
+            currency: 'USD',
+          ),
+        ],
+      );
+
+      expect(balances, [
+        const Money(minorUnits: 100000, currencyCode: 'RUB'),
+        const Money(minorUnits: 10000, currencyCode: 'USD'),
+      ]);
+    });
+
+    test('оценка в USD меняет только USD-позицию', () {
+      final balances = AssetValueCalculator.investmentBalances(
+        _asset(100000),
+        [_valuation(1, LocalDate(2026, 1, 5), 12000, currency: 'USD')],
+        [
+          _tx(
+            10000,
+            LocalDate(2026, 1, 1),
+            AssetTransactionKind.deposit,
+            currency: 'USD',
+          ),
+        ],
+      );
+
+      expect(balances, [
+        const Money(minorUnits: 100000, currencyCode: 'RUB'),
+        const Money(minorUnits: 12000, currencyCode: 'USD'),
+      ]);
+    });
+
+    test('операция той же даты, что оценка, применяется после неё', () {
+      final balances = AssetValueCalculator.investmentBalances(
+        _asset(0),
+        [_valuation(1, LocalDate(2026, 1, 5), 12000, currency: 'USD')],
+        [
+          _tx(
+            500,
+            LocalDate(2026, 1, 5),
+            AssetTransactionKind.deposit,
+            currency: 'USD',
+          ),
+        ],
+      );
+
+      expect(balances, [
+        const Money(minorUnits: 0, currencyCode: 'RUB'),
+        const Money(minorUnits: 12500, currencyCode: 'USD'),
+      ]);
+    });
+
+    test('withdrawal обнуляет USD — позиция исчезает, RUB остаётся первой', () {
+      final balances = AssetValueCalculator.investmentBalances(
+        _asset(100000),
+        const [],
+        [
+          _tx(
+            10000,
+            LocalDate(2026, 1, 1),
+            AssetTransactionKind.deposit,
+            id: 1,
+            currency: 'USD',
+          ),
+          _tx(
+            10000,
+            LocalDate(2026, 1, 2),
+            AssetTransactionKind.withdrawal,
+            id: 2,
+            currency: 'USD',
+          ),
+        ],
+      );
+
+      expect(balances, [const Money(minorUnits: 100000, currencyCode: 'RUB')]);
+    });
+
+    test('удалённые операции не учитываются', () {
+      final balances = AssetValueCalculator.investmentBalances(
+        _asset(100000),
+        const [],
+        [
+          _tx(
+            10000,
+            LocalDate(2026, 1, 1),
+            AssetTransactionKind.deposit,
+            currency: 'USD',
+            deletedAt: DateTime.utc(2026, 2),
+          ),
+        ],
+      );
+
+      expect(balances, [const Money(minorUnits: 100000, currencyCode: 'RUB')]);
+    });
+
+    test(
+      'основная валюта присутствует даже с нулём; остальные по алфавиту',
+      () {
+        final balances = AssetValueCalculator.investmentBalances(
+          _asset(0),
+          const [],
+          [
+            _tx(
+              10000,
+              LocalDate(2026, 1, 1),
+              AssetTransactionKind.deposit,
+              id: 1,
+              currency: 'USD',
+            ),
+            _tx(
+              20000,
+              LocalDate(2026, 1, 2),
+              AssetTransactionKind.deposit,
+              id: 2,
+              currency: 'EUR',
+            ),
+          ],
+        );
+
+        expect(balances, [
+          const Money(minorUnits: 0, currencyCode: 'RUB'),
+          const Money(minorUnits: 20000, currencyCode: 'EUR'),
+          const Money(minorUnits: 10000, currencyCode: 'USD'),
+        ]);
+      },
+    );
   });
 }

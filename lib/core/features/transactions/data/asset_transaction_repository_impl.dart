@@ -202,11 +202,12 @@ final class AssetTransactionRepositoryImpl
         assetId: draft.assetId,
         kind: draft.kind,
         amountMinor: draft.amount.minorUnits,
+        currencyCode: _operationCurrency(asset, draft.amount),
         occurredOn: draft.occurredOn,
         rateToRub: draft.rateToRub,
         amountRubMinor: await _rubMinor(
           draft.amount,
-          asset.currencyCode,
+          draft.amount.currencyCode,
           draft.rateToRub,
         ),
         comment: draft.comment,
@@ -229,16 +230,29 @@ final class AssetTransactionRepositoryImpl
         assetId: draft.assetId,
         kind: draft.kind,
         amountMinor: draft.amount.minorUnits,
+        currencyCode: _operationCurrency(asset, draft.amount),
         occurredOn: draft.occurredOn,
         rateToRub: draft.rateToRub,
         amountRubMinor: await _rubMinor(
           draft.amount,
-          asset.currencyCode,
+          draft.amount.currencyCode,
           draft.rateToRub,
         ),
         comment: draft.comment,
       ),
     );
+  }
+
+  /// M1/M2: `NULL` для валюты актива; чужая валюта — только инвестиции.
+  static String? _operationCurrency(AssetRow asset, Money amount) {
+    if (amount.currencyCode == asset.currencyCode) return null;
+    if (asset.kind != AssetKind.investment) {
+      throw const DomainException(
+        DomainErrorCode.validation,
+        fieldErrors: {'currencyCode': 'validationCurrencyMismatch'},
+      );
+    }
+    return amount.currencyCode;
   }
 
   Future<void> _createLinked(

@@ -34,11 +34,13 @@ void main() {
     int assetId,
     int amountMinor, {
     LocalDate? occurredOn,
+    String? currencyCode,
   }) => Future.value(
     AssetTransactionInput(
       assetId: assetId,
       kind: AssetTransactionKind.deposit,
       amountMinor: amountMinor,
+      currencyCode: currencyCode,
       occurredOn: occurredOn ?? LocalDate(2026, 1, 10),
       rateToRub: Decimal.one,
       amountRubMinor: amountMinor,
@@ -85,12 +87,27 @@ void main() {
       expect(snapshot['amountMinor'], 25050);
       expect(snapshot['occurredOn'], '2026-01-10');
       expect(snapshot['rateToRub'], '1');
+      expect(snapshot['currencyCode'], isNull);
       expect(snapshot['deletedAt'], isNull);
       expect(
         snapshot['createdAt'],
         const UtcTimestampConverter().toSql(row.createdAt),
       );
       expect(await balanceOf(accountId), 125050);
+    });
+
+    test('snapshot ревизии хранит валюту операции (M7)', () async {
+      final accountId = await createAccount(db, openingValueMinor: 100000);
+      final id = await db.transactionsDao.create(
+        await deposit(accountId, 10000, currencyCode: 'USD'),
+      );
+
+      final snapshot = decodeSnapshot(
+        (await db.transactionsDao.revisions(id)).single.snapshotJson,
+      );
+
+      expect(snapshot['currencyCode'], 'USD');
+      expect(snapshot['snapshotSchemaVersion'], 1);
     });
 
     test('revise добавляет edit-ревизию, старый snapshot неизменен', () async {

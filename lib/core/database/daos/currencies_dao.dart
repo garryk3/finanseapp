@@ -43,6 +43,12 @@ class CurrenciesDao extends DatabaseAccessor<AppDatabase>
       'SELECT '
       '(SELECT COUNT(*) FROM assets WHERE currency_code = ?1) + '
       '(SELECT COUNT(*) FROM cashflow_entries WHERE currency_code = ?1) + '
+      '(SELECT COUNT(*) FROM asset_transactions t '
+      'JOIN assets a ON a.id = t.asset_id '
+      'WHERE COALESCE(t.currency_code, a.currency_code) = ?1) + '
+      '(SELECT COUNT(*) FROM asset_valuations v '
+      'JOIN assets a ON a.id = v.asset_id '
+      'WHERE COALESCE(v.currency_code, a.currency_code) = ?1) + '
       '(SELECT COUNT(*) FROM goals WHERE currency_code = ?1) + '
       '$ratesSql'
       '(SELECT COUNT(*) FROM app_settings '
@@ -236,12 +242,14 @@ class CurrenciesDao extends DatabaseAccessor<AppDatabase>
       'SELECT '
       '(SELECT COUNT(*) FROM asset_transactions t '
       'JOIN assets a ON a.id = t.asset_id '
-      'WHERE a.currency_code = ?1 AND t.occurred_on = ?2) + '
+      'WHERE COALESCE(t.currency_code, a.currency_code) = ?1 '
+      'AND t.occurred_on = ?2) + '
       '(SELECT COUNT(*) FROM cashflow_entries '
       'WHERE currency_code = ?1 AND occurred_on = ?2) + '
       '(SELECT COUNT(*) FROM asset_valuations v '
       'JOIN assets a ON a.id = v.asset_id '
-      'WHERE a.currency_code = ?1 AND v.effective_on = ?2) AS total',
+      'WHERE COALESCE(v.currency_code, a.currency_code) = ?1 '
+      'AND v.effective_on = ?2) AS total',
       variables: [
         Variable<String>(currencyCode),
         Variable<String>(date.toIsoString()),

@@ -123,12 +123,12 @@ class GoalDetailsViewModel {
         for (final snapshot in snapshots) snapshot.asset.id: snapshot,
       };
       final linked = <Asset>[];
-      final values = <int, Money>{};
+      final values = <int, List<Money>>{};
       for (final id in current.assetIds) {
         final snapshot = byId[id];
         if (snapshot == null) continue;
         linked.add(snapshot.asset);
-        values[id] = snapshot.currentValue;
+        values[id] = snapshot.breakdown;
       }
       assets.value = linked;
 

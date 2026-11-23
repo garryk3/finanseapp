@@ -107,6 +107,10 @@ const _calcCoverage = <String, List<String>>{
   'CALC-042': ['test/core/features/recurring/recurring_schedule_test.dart'],
   'CALC-043': ['test/core/features/recurring/recurring_schedule_test.dart'],
   'CALC-044': ['test/core/features/recurring/recurring_schedule_test.dart'],
+  'CALC-045': [
+    'test/core/features/assets/domain/investment_value_calculator_test.dart',
+  ],
+  'CALC-046': ['test/core/features/analytics/data/net_worth_test.dart'],
 };
 
 /// Расчёты, которые ещё не реализованы; запись обязана объяснить причину.
@@ -166,7 +170,7 @@ void _expectTestsInside(Iterable<String> directories, String owner) {
 void main() {
   test('каждый BR из business_rules.md покрыт тестовой группой', () {
     final ids = _brIds('docs/architecture/business_rules.md');
-    expect(ids, hasLength(113));
+    expect(ids, hasLength(115));
     for (final prefix in _brCoverage.keys) {
       expect(
         ids.any((id) => id.startsWith('$prefix-')),
@@ -187,7 +191,7 @@ void main() {
 
   test('каждая CALC имеет literal-тест или документированный defer', () {
     final ids = _idsIn('docs/architecture/calculations.md', r'CALC-\d{3}');
-    expect(ids, hasLength(44));
+    expect(ids, hasLength(46));
 
     final stale = {
       ..._calcCoverage.keys,

@@ -40,22 +40,93 @@ abstract final class AnalyticsMappers {
     Iterable<AssetValuationRow> valuations,
     Iterable<AssetTransactionRow> transactions,
     LocalDate onDate,
+  ) =>
+      investmentValuesByCurrency(
+        asset,
+        valuations,
+        transactions,
+        onDate,
+      )[asset.currencyCode] ??
+      asset.openingValueMinor;
+
+  /// Стоимость инвестиции по валютам на дату (M3/M4).
+  ///
+  /// Группировка по `currencyCode ?? asset.currencyCode`; для каждой валюты —
+  /// своя последняя оценка и операции начиная с её даты. Основная валюта
+  /// присутствует всегда, остальные — только с ненулевым балансом.
+  static Map<String, int> investmentValuesByCurrency(
+    AssetRow asset,
+    Iterable<AssetValuationRow> valuations,
+    Iterable<AssetTransactionRow> transactions,
+    LocalDate onDate,
   ) {
-    final latest = _latestValuation(valuations, onDate);
-    var value = latest?.valueMinor ?? asset.openingValueMinor;
-    final from = latest?.effectiveOn;
-    for (final transaction in transactions) {
-      if (transaction.deletedAt != null) continue;
-      if (transaction.occurredOn.compareTo(onDate) > 0) continue;
-      if (from != null && transaction.occurredOn.compareTo(from) < 0) continue;
-      value += switch (transaction.kind) {
-        AssetTransactionKind.deposit ||
-        AssetTransactionKind.transferIn => transaction.amountMinor,
-        AssetTransactionKind.withdrawal ||
-        AssetTransactionKind.transferOut => -transaction.amountMinor,
-      };
+    final codes = <String>{
+      asset.currencyCode,
+      for (final valuation in valuations)
+        valuation.currencyCode ?? asset.currencyCode,
+      for (final transaction in transactions)
+        transaction.currencyCode ?? asset.currencyCode,
+    };
+    final values = <String, int>{};
+    for (final code in codes) {
+      final latest = _latestValuationIn(
+        valuations,
+        onDate,
+        code,
+        asset.currencyCode,
+      );
+      var value =
+          latest?.valueMinor ??
+          (code == asset.currencyCode ? asset.openingValueMinor : 0);
+      final from = latest?.effectiveOn;
+      for (final transaction in transactions) {
+        if (transaction.deletedAt != null) continue;
+        if ((transaction.currencyCode ?? asset.currencyCode) != code) continue;
+        if (transaction.occurredOn.compareTo(onDate) > 0) continue;
+        if (from != null && transaction.occurredOn.compareTo(from) < 0) {
+          continue;
+        }
+        value += switch (transaction.kind) {
+          AssetTransactionKind.deposit ||
+          AssetTransactionKind.transferIn => transaction.amountMinor,
+          AssetTransactionKind.withdrawal ||
+          AssetTransactionKind.transferOut => -transaction.amountMinor,
+        };
+      }
+      values[code] = value;
     }
-    return value;
+    final others = [
+      for (final code in values.keys)
+        if (code != asset.currencyCode && values[code] != 0) code,
+    ]..sort();
+    return {
+      asset.currencyCode: values[asset.currencyCode] ?? asset.openingValueMinor,
+      for (final code in others) code: values[code]!,
+    };
+  }
+
+  static AssetValuationRow? _latestValuationIn(
+    Iterable<AssetValuationRow> valuations,
+    LocalDate onDate,
+    String currencyCode,
+    String assetCurrencyCode,
+  ) {
+    AssetValuationRow? latest;
+    for (final valuation in valuations) {
+      if ((valuation.currencyCode ?? assetCurrencyCode) != currencyCode) {
+        continue;
+      }
+      if (valuation.effectiveOn.compareTo(onDate) > 0) continue;
+      if (latest == null) {
+        latest = valuation;
+        continue;
+      }
+      final byDate = valuation.effectiveOn.compareTo(latest.effectiveOn);
+      if (byDate > 0 || (byDate == 0 && valuation.id > latest.id)) {
+        latest = valuation;
+      }
+    }
+    return latest;
   }
 
   static int propertyValueMinor(

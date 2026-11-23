@@ -188,6 +188,64 @@ void main() {
     );
   });
 
+  test(
+    'CALC-046: мультивалютная инвестиция складывается по позициям',
+    () async {
+      final investment = await createInvestment(
+        db,
+        currencyCode: 'RUB',
+        openingValueMinor: 10000000,
+      );
+      await db.transactionsDao.create(
+        AssetTransactionInput(
+          assetId: investment,
+          kind: AssetTransactionKind.deposit,
+          amountMinor: 12000,
+          currencyCode: 'USD',
+          occurredOn: today(),
+          rateToRub: Decimal.fromInt(92),
+          amountRubMinor: 1104000,
+        ),
+      );
+      await saveRate('USD', 92);
+
+      final summary = await queries.netWorth(today());
+
+      expect(summary.total, rub(111040));
+      expect(summary.byAssetKind[AssetKind.investment], rub(111040));
+    },
+  );
+
+  test('нет курса валютной позиции инвестиции — rateUnavailable', () async {
+    final investment = await createInvestment(
+      db,
+      currencyCode: 'RUB',
+      openingValueMinor: 10000000,
+    );
+    await db.transactionsDao.create(
+      AssetTransactionInput(
+        assetId: investment,
+        kind: AssetTransactionKind.deposit,
+        amountMinor: 12000,
+        currencyCode: 'USD',
+        occurredOn: today(),
+        rateToRub: Decimal.fromInt(92),
+        amountRubMinor: 1104000,
+      ),
+    );
+
+    await expectLater(
+      queries.netWorth(today()),
+      throwsA(
+        isA<DomainException>().having(
+          (error) => error.code,
+          'code',
+          DomainErrorCode.rateUnavailable,
+        ),
+      ),
+    );
+  });
+
   test('CALC-022: 1000 RUB + 20 USD×90 + 1000 EUR×100 = 102 800 RUB', () async {
     await createAccount(db, currencyCode: 'RUB', openingValueMinor: 100000);
     await createInvestment(db, currencyCode: 'USD', openingValueMinor: 2000);

@@ -305,10 +305,10 @@ final class _Settings implements SettingsRepository {
 
 final class _Currencies implements CurrencyRepository {
   @override
-  Stream<List<Currency>> watchAll() => Stream.value(const [_rub]);
+  Stream<List<Currency>> watchAll() => Stream.value(const [_rub, _usd]);
 
   @override
-  Future<List<Currency>> getEnabled() async => const [_rub];
+  Future<List<Currency>> getEnabled() async => const [_rub, _usd];
 
   @override
   Future<int> countReferences(String code) async => 0;
@@ -331,8 +331,23 @@ final class _Currencies implements CurrencyRepository {
 }
 
 final class _Rates implements ExchangeRateRepository {
+  _Rates([this.rates = const {}]);
+
+  final Map<String, Decimal> rates;
+
   @override
-  Future<ExchangeRate?> find(String currencyCode, LocalDate date) async => null;
+  Future<ExchangeRate?> find(String currencyCode, LocalDate date) async {
+    final rate = rates[currencyCode];
+    if (rate == null) return null;
+    return ExchangeRate(
+      id: 1,
+      currencyCode: currencyCode,
+      date: date,
+      rateToRub: rate,
+      source: ExchangeRateSource.manual,
+      fetchedAt: DateTime.utc(2026, 1, 1),
+    );
+  }
 
   @override
   Future<ExchangeRate> fetchFromCbr(String currencyCode, LocalDate date) =>
@@ -368,6 +383,23 @@ AssetSnapshot _snapshot(
   currentValue: value,
 );
 
+AssetSnapshot _investmentSnapshot(int id, List<Money> balances) =>
+    AssetSnapshot(
+      asset: InvestmentAsset(
+        id: id,
+        name: 'Инвестиция $id',
+        currencyCode: balances.first.currencyCode,
+        openingValue: Money(
+          minorUnits: 0,
+          currencyCode: balances.first.currencyCode,
+        ),
+        createdAt: DateTime.utc(2024, 1, 1),
+        brokerId: 1,
+      ),
+      currentValue: balances.first,
+      currencyBalances: balances,
+    );
+
 AssetTransaction _operation(int id, int assetId, int major) => AssetTransaction(
   id: id,
   assetId: assetId,
@@ -381,11 +413,11 @@ AssetTransaction _operation(int id, int assetId, int major) => AssetTransaction(
   updatedAt: DateTime.utc(2026, 11, 19),
 );
 
-FinancialGoal _goal(int assetId) => FinancialGoal(
+FinancialGoal _goal(int assetId, {int target = 1000}) => FinancialGoal(
   id: 1,
   name: 'Отпуск',
   category: GoalCategory.accounts,
-  targetAmount: _rubles(1000),
+  targetAmount: _rubles(target),
   status: GoalStatus.active,
   assetIds: {assetId},
   createdAt: DateTime.utc(2026, 1, 1),
@@ -413,6 +445,7 @@ void main() {
     Currency base = _rub,
     _Queries? queries,
     StreamController<Currency>? settingsController,
+    Map<String, Decimal> rates = const {},
   }) => DashboardViewModel(
     queries:
         queries ??
@@ -439,7 +472,7 @@ void main() {
     cashflowRepository: _Cashflows(),
     settingsRepository: _Settings(controller: settingsController, base: base),
     currencyRepository: _Currencies(),
-    rateRepository: _Rates(),
+    rateRepository: _Rates(rates),
     now: () => _today,
   );
 
@@ -454,6 +487,7 @@ void main() {
     Currency base = _rub,
     _Queries? queries,
     StreamController<Currency>? settingsController,
+    Map<String, Decimal> rates = const {},
     double width = 1000,
     bool dark = false,
     bool largeText = false,
@@ -468,6 +502,7 @@ void main() {
       base: base,
       queries: queries,
       settingsController: settingsController,
+      rates: rates,
     );
     tester.view.physicalSize = Size(width, 2000);
     tester.view.devicePixelRatio = 1;
@@ -725,6 +760,28 @@ void main() {
     expect(find.text(l10n.dashboardGoalsEmpty), findsNothing);
     expect(find.text(l10n.dashboardRecentEmpty), findsNothing);
     expect(find.text(vm.formatMoney(_rubles(1500))), findsWidgets);
+  });
+
+  testWidgets('мультивалютная инвестиция в net worth и прогрессе цели', (
+    tester,
+  ) async {
+    final vm = await pump(
+      tester,
+      total: _rubles(111040),
+      goals: [_goal(1, target: 110000)],
+      snapshots: [
+        _investmentSnapshot(1, const [
+          Money(minorUnits: 10000000, currencyCode: 'RUB'),
+          Money(minorUnits: 12000, currencyCode: 'USD'),
+        ]),
+      ],
+      rates: {'USD': Decimal.fromInt(92)},
+    );
+
+    expect(find.text(l10n.dashboardNetWorthTitle), findsOneWidget);
+    expect(find.text(vm.formatMoney(_rubles(111040))), findsWidgets);
+    // Без USD-позиции 100 000 RUB не закрывают цель на 110 000.
+    expect(find.text(l10n.goalStatusAchieved), findsOneWidget);
   });
 
   testWidgets('чистый капитал: разбивка только по ненулевым категориям', (

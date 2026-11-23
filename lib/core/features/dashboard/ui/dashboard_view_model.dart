@@ -363,10 +363,10 @@ class DashboardViewModel {
     final token = ++_goalToken;
     final views = <DashboardGoal>[];
     for (final goal in _goals) {
-      final values = <int, Money>{};
+      final values = <int, List<Money>>{};
       for (final id in goal.assetIds) {
         final snapshot = _snapshots[id];
-        if (snapshot != null) values[id] = snapshot.currentValue;
+        if (snapshot != null) values[id] = snapshot.breakdown;
       }
       final progress = await _goalCalculator.load(
         goal: goal,

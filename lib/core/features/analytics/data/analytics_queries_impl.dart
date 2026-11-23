@@ -145,37 +145,43 @@ final class AnalyticsQueriesImpl implements AnalyticsQueries {
       if (assetKind != null && asset.kind != assetKind) continue;
       if (assetId != null && asset.id != assetId) continue;
       if (!AnalyticsMappers.isIncluded(asset, onDate)) continue;
-      final currency = data.currencies[asset.currencyCode];
-      if (currency == null) {
-        throw AnalyticsMappers.currencyNotFound(asset.currencyCode);
-      }
-      if (asset.currencyCode != data.baseCurrency.code) {
-        rates[asset.currencyCode] = await _rateFor(
-          asset.currencyCode,
-          onDate,
-          rateCache,
-        );
-        rates[data.baseCurrency.code] = await _rateFor(
-          data.baseCurrency.code,
-          onDate,
-          rateCache,
-        );
-      }
-      values.add(
-        NetWorthAssetValue(
-          kind: asset.kind,
-          value: Money(
-            minorUnits: AnalyticsMappers.valueMinor(
-              asset: asset,
-              transactions: data.transactionsByAsset[asset.id] ?? const [],
-              valuations: data.valuationsByAsset[asset.id] ?? const [],
-              onDate: onDate,
-            ),
-            currencyCode: asset.currencyCode,
+      final transactions = data.transactionsByAsset[asset.id] ?? const [];
+      final valuations = data.valuationsByAsset[asset.id] ?? const [];
+      final positions = asset.kind == AssetKind.investment
+          ? AnalyticsMappers.investmentValuesByCurrency(
+              asset,
+              valuations,
+              transactions,
+              onDate,
+            )
+          : {
+              asset.currencyCode: AnalyticsMappers.valueMinor(
+                asset: asset,
+                transactions: transactions,
+                valuations: valuations,
+                onDate: onDate,
+              ),
+            };
+      for (final position in positions.entries) {
+        final code = position.key;
+        final currency = data.currencies[code];
+        if (currency == null) throw AnalyticsMappers.currencyNotFound(code);
+        if (code != data.baseCurrency.code) {
+          rates[code] = await _rateFor(code, onDate, rateCache);
+          rates[data.baseCurrency.code] = await _rateFor(
+            data.baseCurrency.code,
+            onDate,
+            rateCache,
+          );
+        }
+        values.add(
+          NetWorthAssetValue(
+            kind: asset.kind,
+            value: Money(minorUnits: position.value, currencyCode: code),
+            currency: currency,
           ),
-          currency: currency,
-        ),
-      );
+        );
+      }
     }
     return NetWorthCalculator.calculate(
       assets: values,

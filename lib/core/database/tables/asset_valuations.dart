@@ -3,6 +3,7 @@ import 'package:finanseapp/core/database/converters/decimal_converter.dart';
 import 'package:finanseapp/core/database/converters/local_date_converter.dart';
 import 'package:finanseapp/core/database/converters/utc_timestamp_converter.dart';
 import 'package:finanseapp/core/database/tables/assets.dart';
+import 'package:finanseapp/core/database/tables/currencies.dart';
 
 /// Абсолютная оценка инвестиции/квартиры на конец дня (data_schema §3).
 @DataClassName('AssetValuationRow')
@@ -33,6 +34,14 @@ class AssetValuations extends Table {
 
   IntColumn get valueMinor =>
       integer().customConstraint('NOT NULL CHECK (value_minor >= 0)')();
+
+  /// Валюта оценки (M1); `NULL` — валюта актива.
+  TextColumn get currencyCode => text().nullable().references(
+    Currencies,
+    #code,
+    onUpdate: KeyAction.restrict,
+    onDelete: KeyAction.restrict,
+  )();
 
   TextColumn get rateToRub => text().map(const DecimalConverter())();
 
