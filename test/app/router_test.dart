@@ -1,4 +1,7 @@
 import 'package:finanseapp/app/app.dart';
+import 'package:finanseapp/core/di/service_locator.dart';
+import 'package:finanseapp/core/features/analytics/logic/analytics_periods.dart';
+import 'package:finanseapp/core/features/analytics/ui/analytics_view_model.dart';
 import 'package:finanseapp/core/features/dashboard/ui/dashboard_screen.dart';
 import 'package:finanseapp/app/shell_screen.dart';
 import 'package:finanseapp/app/routes.dart';
@@ -17,8 +20,12 @@ void main() {
     l10n = await AppLocalizations.delegate.load(const Locale('ru'));
   });
 
-  Future<GoRouter> pumpApp(WidgetTester tester) async {
+  Future<GoRouter> pumpApp(
+    WidgetTester tester, {
+    void Function(ServiceLocator locator)? onLocator,
+  }) async {
     final locator = await buildTestLocator();
+    onLocator?.call(locator);
     await tester.pumpWidget(FinanseApp(locator: locator));
     await tester.pumpAndSettle();
     addTearDown(() async {
@@ -91,6 +98,41 @@ void main() {
       isFalse,
     );
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('аналитика сохраняет период после возврата с детализации', (
+    tester,
+  ) async {
+    late ServiceLocator locator;
+    late AnalyticsViewModel analytics;
+    final router = await pumpApp(
+      tester,
+      onLocator: (value) {
+        locator = value;
+        analytics = value.get<AnalyticsViewModel>();
+      },
+    );
+
+    router.go(AppRoutes.analytics);
+    await tester.pumpAndSettle();
+    analytics.period.value = AnalyticsPeriod.year;
+    await tester.pumpAndSettle();
+
+    router.push(AppRoutes.analyticsDetails);
+    await tester.pumpAndSettle();
+    router.pop();
+    await tester.pumpAndSettle();
+
+    expect(identical(locator.get<AnalyticsViewModel>(), analytics), isTrue);
+    expect(analytics.period.value, AnalyticsPeriod.year);
+  });
+
+  test('AnalyticsViewModel зарегистрирован как singleton', () async {
+    final locator = await buildTestLocator();
+    final first = locator.get<AnalyticsViewModel>();
+    final second = locator.get<AnalyticsViewModel>();
+    expect(identical(first, second), isTrue);
+    await locator.reset();
   });
 
   testWidgets('кнопка «На главную» возвращает на dashboard', (tester) async {

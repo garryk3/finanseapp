@@ -492,7 +492,10 @@ GoRouter buildRouter({required ServiceLocator locator}) {
                       if (period != null) {
                         viewModel.setInitialPeriod(period);
                       }
-                      return AnalyticsScreen(viewModel: viewModel);
+                      return AnalyticsScreen(
+                        viewModel: viewModel,
+                        disposeViewModel: false,
+                      );
                     },
                   ),
                   GoRoute(
