@@ -2412,6 +2412,14 @@
   "@analyticsCategoriesTitle": {
     "description": "Секция итогов по категориям."
   },
+  "analyticsCategoriesEmptyExpense": "Нет расходов за период",
+  "@analyticsCategoriesEmptyExpense": {
+    "description": "Пустой таб расходов в итогах по категориям."
+  },
+  "analyticsCategoriesEmptyIncome": "Нет доходов за период",
+  "@analyticsCategoriesEmptyIncome": {
+    "description": "Пустой таб доходов в итогах по категориям."
+  },
   "analyticsUnknownCategory": "Без категории",
   "@analyticsUnknownCategory": {
     "description": "Фоллбэк имени категории в аналитике."

@@ -25,6 +25,8 @@ import 'package:finanseapp/core/features/currencies/domain/currency_repository.d
 import 'package:finanseapp/core/features/currencies/domain/exchange_rate_repository.dart';
 import 'package:finanseapp/core/features/settings/domain/settings_repository.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
+import 'package:finanseapp/uikit/app_filter_chip.dart';
+import 'package:finanseapp/uikit/app_segmented_control.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
@@ -270,6 +272,17 @@ Future<void> _pumpRouter(WidgetTester tester, GoRouter router) async {
   await tester.pump(const Duration(milliseconds: 50));
 }
 
+Finder _categoryTab(String label) => find.descendant(
+  of: find.byType(AppSegmentedControl<CashflowKind>),
+  matching: find.text(label),
+);
+
+Set<CashflowKind> _selectedKind(WidgetTester tester) => tester
+    .widget<SegmentedButton<CashflowKind>>(
+      find.byType(SegmentedButton<CashflowKind>),
+    )
+    .selected;
+
 void main() {
   late AppLocalizations l10n;
 
@@ -339,7 +352,7 @@ void main() {
     expect(queries.lastKind, isNull);
   });
 
-  testWidgets('cashflow-секция, категории и фильтр по типу', (tester) async {
+  testWidgets('cashflow-секция, категории и табы по типу', (tester) async {
     final incomeCategory = CashflowCategory(
       id: 1,
       kind: CashflowKind.income,
@@ -384,18 +397,47 @@ void main() {
 
     await _pump(tester, _viewModel(queries, categories: [incomeCategory]));
 
+    final filterIncome = find.widgetWithText(
+      AppFilterChip,
+      l10n.analyticsCashflowIncome,
+    );
+    final filterAll = find.widgetWithText(
+      AppFilterChip,
+      l10n.analyticsCashflowKindAll,
+    );
+
     expect(find.text(l10n.analyticsCashflowTitle), findsOneWidget);
     expect(find.text(l10n.analyticsCategoriesTitle), findsOneWidget);
-    expect(find.text('Зарплата'), findsOneWidget);
-    expect(find.textContaining('100%'), findsOneWidget);
-    expect(find.text(l10n.analyticsCashflowIncome), findsOneWidget);
+    expect(_categoryTab(l10n.analyticsCashflowExpense), findsOneWidget);
+    expect(_categoryTab(l10n.analyticsCashflowIncome), findsOneWidget);
+    expect(_selectedKind(tester), {CashflowKind.expense});
+    expect(find.text(l10n.analyticsCategoriesEmptyExpense), findsOneWidget);
+    expect(find.text('Зарплата'), findsNothing);
+    expect(find.text('100%'), findsNothing);
 
-    await tester.tap(find.text(l10n.analyticsCashflowIncome));
+    await tester.tap(filterIncome);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 50));
 
     expect(queries.lastCashflowFilter?.kind, CashflowKind.income);
     expect(find.text(l10n.analyticsCategoryFilterLabel), findsOneWidget);
+    expect(_selectedKind(tester), {CashflowKind.income});
+    expect(find.text('Зарплата'), findsOneWidget);
+    expect(find.text('100%'), findsOneWidget);
+    expect(find.text('100% · Доходы'), findsNothing);
+    expect(find.text(l10n.analyticsCategoriesEmptyExpense), findsNothing);
+
+    await tester.tap(filterAll);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+
+    expect(_selectedKind(tester), {CashflowKind.income});
+
+    await tester.tap(_categoryTab(l10n.analyticsCashflowExpense));
+    await tester.pump();
+
+    expect(_selectedKind(tester), {CashflowKind.expense});
+    expect(find.text(l10n.analyticsCategoriesEmptyExpense), findsOneWidget);
   });
 
   testWidgets('нет активов, но есть cashflow — показывается cashflow', (

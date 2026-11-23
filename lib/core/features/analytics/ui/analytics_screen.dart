@@ -172,6 +172,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 CategoryTotalsSection(
                   totals: vm.categoryTotals.value,
                   categories: vm.categories.value,
+                  cashflowKind: vm.cashflowKind.value,
                   l10n: l10n,
                   formatMoney: vm.formatMoney,
                   shareOf: vm.categoryShare,
