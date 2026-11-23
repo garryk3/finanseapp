@@ -25,6 +25,7 @@ void main() {
       db.assetsDao,
       db.transactionsDao,
       db.valuationsDao,
+      db.currenciesDao,
     );
     brokerId = await db.referencesDao.createSubgroup(
       SubgroupKind.broker,
@@ -51,7 +52,6 @@ void main() {
         effectiveOn: LocalDate(2026, 1, 2),
         value: const Money(minorUnits: 150000, currencyCode: 'RUB'),
         rateToRub: Decimal.one,
-        fractionDigits: 2,
       ),
     );
     await db.transactionsDao.create(
@@ -86,7 +86,6 @@ void main() {
           effectiveOn: LocalDate(2026, 1, 2),
           value: Money(minorUnits: value, currencyCode: 'RUB'),
           rateToRub: Decimal.one,
-          fractionDigits: 2,
         ),
       );
     }
@@ -103,7 +102,6 @@ void main() {
         effectiveOn: LocalDate(2026, 1, 2),
         value: const Money(minorUnits: 150000, currencyCode: 'RUB'),
         rateToRub: Decimal.one,
-        fractionDigits: 2,
       ),
     );
 
@@ -131,12 +129,27 @@ void main() {
         effectiveOn: LocalDate(2026, 1, 2),
         value: const Money(minorUnits: 1000, currencyCode: 'JPY'),
         rateToRub: Decimal.parse('0.5'),
-        fractionDigits: 0,
       ),
     );
 
     final valuations = await repository.valuations(id);
     expect(valuations.single.valueRub.minorUnits, 50000);
+  });
+
+  test('RUB-снимок оценки берёт fractionDigits из справочника валют', () async {
+    final id = await repository.create(draft(opening: 100000));
+    await repository.recordValuation(
+      AssetValuationDraft(
+        assetId: id,
+        effectiveOn: LocalDate(2026, 1, 2),
+        value: const Money(minorUnits: 1234, currencyCode: 'USD'),
+        rateToRub: Decimal.fromInt(90),
+        // Намеренно неверно: репозиторий должен взять 2 знака из справочника.
+      ),
+    );
+
+    final valuations = await repository.valuations(id);
+    expect(valuations.single.valueRub.minorUnits, 111060);
   });
 
   test('отрицательная и будущая оценка отклоняются', () async {
@@ -148,7 +161,6 @@ void main() {
           effectiveOn: LocalDate(2026, 1, 2),
           value: const Money(minorUnits: -1, currencyCode: 'RUB'),
           rateToRub: Decimal.one,
-          fractionDigits: 2,
         ),
       ),
       throwsA(isA<DomainException>()),
@@ -160,7 +172,6 @@ void main() {
           effectiveOn: LocalDate(2030, 1, 2),
           value: const Money(minorUnits: 100, currencyCode: 'RUB'),
           rateToRub: Decimal.one,
-          fractionDigits: 2,
         ),
       ),
       throwsA(isA<DomainException>()),
@@ -175,7 +186,6 @@ void main() {
         effectiveOn: LocalDate(2026, 1, 2),
         value: const Money(minorUnits: 150000, currencyCode: 'RUB'),
         rateToRub: Decimal.one,
-        fractionDigits: 2,
       ),
     );
 
@@ -193,7 +203,6 @@ void main() {
         effectiveOn: LocalDate(2026, 1, 2),
         value: const Money(minorUnits: 12000, currencyCode: 'EUR'),
         rateToRub: Decimal.fromInt(100),
-        fractionDigits: 2,
       ),
     );
 
@@ -223,7 +232,6 @@ void main() {
         effectiveOn: LocalDate(2026, 1, 2),
         value: const Money(minorUnits: 12000, currencyCode: 'USD'),
         rateToRub: Decimal.fromInt(90),
-        fractionDigits: 2,
       ),
     );
     await db.transactionsDao.create(

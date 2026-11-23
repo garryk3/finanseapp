@@ -677,6 +677,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get investmentCurrentValue => 'Текущая стоимость';
 
   @override
+  String get investmentBreakdownTitle => 'Состав по валютам';
+
+  @override
+  String get investmentTotalBase => 'Итого в базовой валюте';
+
+  @override
   String get investmentValuationHint =>
       'Оценка задаётся на конец дня: операции этой даты применяются после неё.';
 
@@ -694,6 +700,9 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get valuationValueLabel => 'Стоимость';
+
+  @override
+  String get valuationCurrencyLabel => 'Валюта оценки';
 
   @override
   String get valuationDateLabel => 'Дата оценки';
@@ -814,6 +823,9 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get transactionAssetLabel => 'Актив';
+
+  @override
+  String get transactionCurrencyLabel => 'Валюта операции';
 
   @override
   String get transactionKindDeposit => 'Пополнение';

@@ -3,6 +3,7 @@ import 'package:finanseapp/app/theme/app_spacing.dart';
 import 'package:finanseapp/core/domain/common/local_date.dart';
 import 'package:finanseapp/core/domain/common/money.dart';
 import 'package:finanseapp/core/domain/common/result.dart';
+import 'package:finanseapp/core/features/assets/domain/asset.dart';
 import 'package:finanseapp/core/features/assets/ui/account_form_view_model.dart';
 import 'package:finanseapp/core/features/assets/ui/valuation_form_view_model.dart';
 import 'package:finanseapp/core/presentation/date_formatter.dart';
@@ -10,6 +11,7 @@ import 'package:finanseapp/core/presentation/view_state.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
 import 'package:finanseapp/uikit/app_amount_field.dart';
 import 'package:finanseapp/uikit/app_button.dart';
+import 'package:finanseapp/uikit/app_currency_select.dart';
 import 'package:finanseapp/uikit/app_date_picker_field.dart';
 import 'package:finanseapp/uikit/app_error_state.dart';
 import 'package:finanseapp/uikit/app_form_section.dart';
@@ -33,6 +35,7 @@ class ValuationFormScreen extends StatefulWidget {
 class _ValuationFormScreenState extends State<ValuationFormScreen> {
   final _value = TextEditingController();
   final _rate = TextEditingController();
+  String? _currencyCode;
   LocalDate? _date;
   String? _valueError;
   String? _dateError;
@@ -46,6 +49,7 @@ class _ValuationFormScreenState extends State<ValuationFormScreen> {
     widget.viewModel.load().then((_) {
       if (!mounted) return;
       setState(() {
+        _currencyCode = widget.viewModel.asset.value?.currencyCode;
         _date = widget.viewModel.today;
         _loaded = true;
       });
@@ -63,9 +67,13 @@ class _ValuationFormScreenState extends State<ValuationFormScreen> {
   Future<void> _save() async {
     if (widget.viewModel.busy.value) return;
     final l10n = AppLocalizations.of(context);
-    final currency = widget.viewModel.currency.value;
+    final asset = widget.viewModel.asset.value;
     final date = _date;
-    if (currency == null || date == null) return;
+    if (asset == null || date == null) return;
+    final selectedCode = asset.kind == AssetKind.investment
+        ? _currencyCode ?? asset.currencyCode
+        : asset.currencyCode;
+    final currency = widget.viewModel.currencyOf(selectedCode);
     final value = parseOpeningAmount(_value.text, currency);
     if (value == null) {
       setState(() => _valueError = l10n.valuationErrorValue);
@@ -124,8 +132,6 @@ class _ValuationFormScreenState extends State<ValuationFormScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final vm = widget.viewModel;
-    final currency = vm.currency.value;
-    final isRub = currency == null || currency.code == 'RUB';
     return AppScaffold(
       title: l10n.valuationTitle,
       body: SignalBuilder(
@@ -142,6 +148,15 @@ class _ValuationFormScreenState extends State<ValuationFormScreen> {
           if (!_loaded || _date == null) {
             return Center(child: AppSpinner(semanticLabel: l10n.commonLoading));
           }
+          final asset = vm.asset.value;
+          final isInvestment = asset?.kind == AssetKind.investment;
+          final selectedCode = isInvestment
+              ? _currencyCode ?? asset?.currencyCode
+              : asset?.currencyCode;
+          final currency = selectedCode == null
+              ? vm.currency.value
+              : vm.currencyOf(selectedCode);
+          final isRub = currency == null || currency.code == 'RUB';
           return AppListView(
             padding: const EdgeInsets.all(AppSpacing.md),
             children: [
@@ -149,6 +164,25 @@ class _ValuationFormScreenState extends State<ValuationFormScreen> {
                 title: vm.asset.value?.name ?? l10n.valuationTitle,
                 errorText: _formError,
                 children: [
+                  if (asset?.kind == AssetKind.investment)
+                    AppCurrencySelect(
+                      label: l10n.valuationCurrencyLabel,
+                      valueCode: _currencyCode,
+                      items: [
+                        for (final item in vm.currencies.value.values)
+                          AppCurrencyOption(
+                            code: item.code,
+                            name: item.name,
+                            fractionDigits: item.fractionDigits,
+                            enabled: item.isEnabled,
+                          ),
+                      ],
+                      onChanged: (code) => setState(() {
+                        _currencyCode = code;
+                        _rate.clear();
+                        _rateError = null;
+                      }),
+                    ),
                   AppAmountField(
                     controller: _value,
                     label: l10n.valuationValueLabel,

@@ -105,10 +105,28 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
     final isAccount = asset is AccountAsset;
     final isInvestment = asset is InvestmentAsset;
     final isArchived = asset.archivedAt != null;
+    final isMultiCurrency = vm.breakdown.value.length > 1;
+    final base = vm.baseCurrency.value;
     final showBase =
-        vm.baseCurrency.value != null &&
-        (vm.baseCurrency.value!.code != asset.currencyCode ||
-            vm.breakdown.value.length > 1);
+        base != null && !isMultiCurrency && base.code != asset.currencyCode;
+    final showBaseTotal =
+        isInvestment &&
+        isMultiCurrency &&
+        base != null &&
+        !vm.baseRateUnavailable.value;
+    final cardValue = isAccount || !isMultiCurrency
+        ? _money(vm.balance.value)
+        : (showBaseTotal
+              ? _money(vm.baseEquivalent.value, currency: base)
+              : _money(null));
+    final cardSubtitle = isAccount
+        ? '${l10n.accountForecastLabel}: ${_money(vm.forecast.value)}'
+        : isMultiCurrency
+        ? (vm.baseRateUnavailable.value || base == null
+              ? l10n.assetBaseUnavailable
+              : l10n.investmentTotalBase)
+        : null;
+    final shownCurrent = <String>{};
     return AppListView(
       children: [
         AppSection(
@@ -120,12 +138,31 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                 title: isAccount
                     ? l10n.accountBalanceLabel
                     : l10n.investmentCurrentValue,
-                value: _money(vm.balance.value),
-                subtitle: isAccount
-                    ? '${l10n.accountForecastLabel}: '
-                          '${_money(vm.forecast.value)}'
-                    : null,
+                value: cardValue,
+                subtitle: cardSubtitle,
               ),
+              if (isArchived) ...[
+                const SizedBox(height: AppSpacing.sm),
+                Row(children: [AppChip(label: l10n.accountArchivedBadge)]),
+              ],
+              if (isInvestment && isMultiCurrency) ...[
+                AppSectionHeader(
+                  title: l10n.investmentBreakdownTitle,
+                  padded: false,
+                ),
+                for (var i = 0; i < vm.breakdown.value.length; i++) ...[
+                  if (i > 0) const AppDivider(),
+                  AppListTile(
+                    title: _money(vm.breakdown.value[i]),
+                    subtitle: _currencyLabel(
+                      vm.breakdown.value[i].currencyCode,
+                    ),
+                    semanticLabel:
+                        '${_currencyLabel(vm.breakdown.value[i].currencyCode)}: '
+                        '${_money(vm.breakdown.value[i])}',
+                  ),
+                ],
+              ],
               if (isAccount) ...[
                 const SizedBox(height: AppSpacing.xs),
                 AppText(
@@ -164,10 +201,6 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                           currency: vm.baseCurrency.value,
                         ),
                 ),
-              ],
-              if (isArchived) ...[
-                const SizedBox(height: AppSpacing.sm),
-                Row(children: [AppChip(label: l10n.accountArchivedBadge)]),
               ],
               const SizedBox(height: AppSpacing.lg),
               if (!isArchived &&
@@ -267,9 +300,12 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                         if (i > 0) const AppDivider(),
                         _ValuationRow(
                           valuation: vm.valuationHistory.value[i],
-                          current: i == 0,
-                          fractionDigits:
-                              vm.currency.value?.fractionDigits ?? 2,
+                          current: shownCurrent.add(
+                            vm.valuationHistory.value[i].value.currencyCode,
+                          ),
+                          fractionDigits: _currencyFor(
+                            vm.valuationHistory.value[i].value.currencyCode,
+                          ).fractionDigits,
                         ),
                       ],
                     ],
@@ -430,19 +466,26 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
 
   String _money(Money? money, {Currency? currency}) {
     if (money == null) return '—';
-    final effective =
-        currency ??
-        (money.currencyCode == _viewModel.currency.value?.code
-            ? _viewModel.currency.value
-            : null) ??
-        Currency(
-          code: money.currencyCode,
-          name: money.currencyCode,
-          fractionDigits: 2,
-          isPreset: true,
-          isEnabled: true,
-        );
+    final effective = currency ?? _currencyFor(money.currencyCode);
     return const MoneyFormatter().format(money, effective);
+  }
+
+  Currency _currencyFor(String code) =>
+      _viewModel.currencies.value[code] ??
+      (_viewModel.currency.value?.code == code
+          ? _viewModel.currency.value!
+          : null) ??
+      Currency(
+        code: code,
+        name: code,
+        fractionDigits: 2,
+        isPreset: true,
+        isEnabled: true,
+      );
+
+  String _currencyLabel(String code) {
+    final currency = _currencyFor(code);
+    return currency.name == code ? code : '${currency.name} ($code)';
   }
 }
 

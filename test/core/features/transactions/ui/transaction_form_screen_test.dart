@@ -33,6 +33,14 @@ const _rub = Currency(
   isEnabled: true,
 );
 
+const _usd = Currency(
+  code: 'USD',
+  name: 'Доллар',
+  fractionDigits: 2,
+  isPreset: true,
+  isEnabled: true,
+);
+
 AccountAsset _account() => AccountAsset(
   id: 1,
   name: 'Счёт',
@@ -45,24 +53,24 @@ AccountAsset _account() => AccountAsset(
 );
 
 final class FakeAssets implements AssetRepository {
-  FakeAssets(this.asset);
+  FakeAssets(this.items);
 
-  final Asset asset;
+  final List<Asset> items;
+
+  AssetSnapshot _snapshotOf(Asset asset) =>
+      AssetSnapshot(asset: asset, currentValue: asset.openingValue);
 
   @override
   Stream<List<AssetSnapshot>> watchAll({bool includeArchived = false}) =>
-      Stream.value([
-        AssetSnapshot(asset: asset, currentValue: asset.openingValue),
-      ]);
+      Stream.value([for (final asset in items) _snapshotOf(asset)]);
 
   @override
-  Stream<AssetSnapshot?> watchById(int id) => Stream.value(
-    AssetSnapshot(asset: asset, currentValue: asset.openingValue),
-  );
+  Stream<AssetSnapshot?> watchById(int id) =>
+      Stream.value(_snapshotOf(items.firstWhere((asset) => asset.id == id)));
 
   @override
   Future<AssetSnapshot> getById(int id) async =>
-      AssetSnapshot(asset: asset, currentValue: asset.openingValue);
+      _snapshotOf(items.firstWhere((asset) => asset.id == id));
 
   @override
   Future<int> create(AssetDraft draft) async => 1;
@@ -173,11 +181,15 @@ final class FakeCategories implements CategoryRepository {
 }
 
 final class FakeCurrencies implements CurrencyRepository {
-  @override
-  Stream<List<Currency>> watchAll() => Stream.value(const [_rub]);
+  FakeCurrencies([List<Currency>? items]) : items = items ?? const [_rub, _usd];
+
+  final List<Currency> items;
 
   @override
-  Future<List<Currency>> getEnabled() async => const [_rub];
+  Stream<List<Currency>> watchAll() => Stream.value(items);
+
+  @override
+  Future<List<Currency>> getEnabled() async => items;
 
   @override
   Future<int> countReferences(String code) async => 0;
@@ -200,8 +212,23 @@ final class FakeCurrencies implements CurrencyRepository {
 }
 
 final class FakeRates implements ExchangeRateRepository {
+  FakeRates({this.rate});
+
+  final Decimal? rate;
+
   @override
-  Future<ExchangeRate?> find(String currencyCode, LocalDate date) async => null;
+  Future<ExchangeRate?> find(String currencyCode, LocalDate date) async {
+    final value = rate;
+    if (value == null) return null;
+    return ExchangeRate(
+      id: 1,
+      currencyCode: currencyCode,
+      date: date,
+      rateToRub: value,
+      source: ExchangeRateSource.cbr,
+      fetchedAt: DateTime.utc(2026),
+    );
+  }
 
   @override
   Future<ExchangeRate> fetchFromCbr(String currencyCode, LocalDate date) =>
@@ -212,31 +239,47 @@ final class FakeRates implements ExchangeRateRepository {
     String currencyCode,
     LocalDate date,
     Decimal rateToRub,
-  ) => throw const DomainException(DomainErrorCode.validation);
+  ) async => ExchangeRate(
+    id: 1,
+    currencyCode: currencyCode,
+    date: date,
+    rateToRub: rateToRub,
+    source: ExchangeRateSource.manual,
+    fetchedAt: DateTime.utc(2026),
+  );
 }
+
+InvestmentAsset _investmentAsset({
+  int id = 1,
+  String name = 'Инвестиция',
+  String currency = 'RUB',
+}) => InvestmentAsset(
+  id: id,
+  name: name,
+  currencyCode: currency,
+  openingValue: Money(minorUnits: 100000, currencyCode: currency),
+  createdAt: DateTime.utc(2026),
+  brokerId: 1,
+);
 
 TransactionFormViewModel _viewModel(
   FakeTransactions transactions, {
   AssetKind kind = AssetKind.account,
-}) => TransactionFormViewModel(
-  assetRepository: FakeAssets(
-    kind == AssetKind.account
-        ? _account()
-        : InvestmentAsset(
-            id: 1,
-            name: 'Инвестиция',
-            currencyCode: 'RUB',
-            openingValue: const Money(minorUnits: 100000, currencyCode: 'RUB'),
-            createdAt: DateTime.utc(2026),
-            brokerId: 1,
-          ),
-  ),
+}) => _viewModelForAssets(transactions, [
+  if (kind == AssetKind.account) _account() else _investmentAsset(),
+]);
+
+TransactionFormViewModel _viewModelForAssets(
+  FakeTransactions transactions,
+  List<Asset> assets,
+) => TransactionFormViewModel(
+  assetRepository: FakeAssets(assets),
   transactionRepository: transactions,
   categoryRepository: FakeCategories(),
   currencyRepository: FakeCurrencies(),
   rateRepository: FakeRates(),
   today: LocalDate(2026, 1, 3),
-  initialAssetId: 1,
+  initialAssetId: assets.first.id,
 );
 
 Future<void> _pump(
@@ -333,4 +376,117 @@ void main() {
 
     expect(find.text(l10n.transactionErrorNegativeBalance), findsOneWidget);
   });
+
+  testWidgets('инвестиция показывает селектор валюты с валютой актива', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      _viewModel(FakeTransactions(), kind: AssetKind.investment),
+    );
+
+    expect(find.text(l10n.transactionCurrencyLabel), findsOneWidget);
+    expect(find.text('Рубль (RUB)'), findsOneWidget);
+  });
+
+  testWidgets('счёт не показывает селектор валюты операции', (tester) async {
+    await _pump(tester, _viewModel(FakeTransactions()));
+
+    expect(find.text(l10n.transactionCurrencyLabel), findsNothing);
+  });
+
+  testWidgets('выбор USD меняет суффикс суммы и показывает курс', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      _viewModel(FakeTransactions(), kind: AssetKind.investment),
+    );
+
+    await _selectCurrency(tester, from: 'Рубль (RUB)', to: 'Доллар');
+
+    expect(find.text('Доллар (USD)'), findsOneWidget);
+    expect(find.text(l10n.valuationRateLabel), findsOneWidget);
+    final amount = tester.widget<TextField>(find.byType(TextField).first);
+    expect(amount.decoration!.suffixText, 'USD');
+  });
+
+  testWidgets(
+    'USD-операция инвестиции сохраняется с выбранной валютой и курсом',
+    (tester) async {
+      final transactions = FakeTransactions();
+      await _pump(tester, _viewModel(transactions, kind: AssetKind.investment));
+
+      await _selectCurrency(tester, from: 'Рубль (RUB)', to: 'Доллар');
+      await tester.enterText(find.byType(TextField).first, '1000');
+      await tester.enterText(find.byType(TextField).at(1), '90');
+      await tester.ensureVisible(find.text(l10n.commonSave));
+      await tester.tap(find.text(l10n.commonSave));
+      await tester.pump(const Duration(milliseconds: 300));
+
+      final draft = transactions.created.single;
+      expect(draft.amount.currencyCode, 'USD');
+      expect(draft.amount.minorUnits, 100000);
+      expect(draft.rateToRub, Decimal.fromInt(90));
+    },
+  );
+
+  testWidgets('инвестиция в USD по умолчанию выбирает USD', (tester) async {
+    await _pump(
+      tester,
+      _viewModelForAssets(FakeTransactions(), [
+        _investmentAsset(id: 1, name: 'Инвестиция USD', currency: 'USD'),
+      ]),
+    );
+
+    expect(find.text(l10n.transactionCurrencyLabel), findsOneWidget);
+    expect(find.text('Доллар (USD)'), findsOneWidget);
+  });
+
+  testWidgets('смена актива сбрасывает валюту на валюту нового актива и курс', (
+    tester,
+  ) async {
+    final transactions = FakeTransactions();
+    await _pump(
+      tester,
+      _viewModelForAssets(transactions, [
+        _investmentAsset(id: 1, name: 'Инвестиция RUB'),
+        _investmentAsset(id: 2, name: 'Инвестиция USD', currency: 'USD'),
+        _investmentAsset(id: 3, name: 'Инвестиция RUB 2'),
+      ]),
+    );
+
+    await _selectCurrency(tester, from: 'Рубль (RUB)', to: 'Доллар');
+    await tester.enterText(find.byType(TextField).at(1), '90');
+
+    // Повторный выбор текущего актива не должен сбрасывать выбранную валюту.
+    await tester.tap(find.text('Инвестиция RUB').last);
+    await tester.pumpAndSettle();
+    expect(find.text('Доллар (USD)'), findsOneWidget);
+    expect(
+      tester.widget<TextField>(find.byType(TextField).at(1)).controller!.text,
+      '90',
+    );
+
+    // Смена на актив с другой валютой сбрасывает валюту и очищает курс.
+    await tester.tap(find.text('Инвестиция RUB 2'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Рубль (RUB)'), findsOneWidget);
+    expect(
+      tester.widget<TextField>(find.byType(TextField).at(1)).controller!.text,
+      isEmpty,
+    );
+  });
+}
+
+Future<void> _selectCurrency(
+  WidgetTester tester, {
+  required String from,
+  required String to,
+}) async {
+  await tester.tap(find.text(from));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text(to));
+  await tester.pumpAndSettle();
 }

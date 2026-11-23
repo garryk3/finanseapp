@@ -88,6 +88,7 @@ void main() {
       db.assetsDao,
       db.transactionsDao,
       db.valuationsDao,
+      db.currenciesDao,
     );
     cashflow = CashflowRepositoryImpl(db.cashflowDao, db.currenciesDao, db);
     expenseCategoryId = (await db.select(db.categories).get())
@@ -145,7 +146,6 @@ void main() {
         effectiveOn: LocalDate(2026, 1, 2),
         value: const Money(minorUnits: 550000000, currencyCode: 'RUB'),
         rateToRub: Decimal.one,
-        fractionDigits: 2,
       ),
     );
     expect((await assets.getById(id)).currentValue.minorUnits, 550000000);

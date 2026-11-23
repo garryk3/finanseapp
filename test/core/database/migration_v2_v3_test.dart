@@ -65,6 +65,7 @@ void main() {
       db.assetsDao,
       db.transactionsDao,
       db.valuationsDao,
+      db.currenciesDao,
     );
     final snapshot = await repository.getById(2);
     expect(snapshot.currentValue.minorUnits, 70000);

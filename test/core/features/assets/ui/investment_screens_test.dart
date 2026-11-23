@@ -20,6 +20,7 @@ import 'package:finanseapp/core/features/assets/ui/valuation_form_view_model.dar
 import 'package:finanseapp/core/features/currencies/domain/currency_repository.dart';
 import 'package:finanseapp/core/features/currencies/domain/exchange_rate_repository.dart';
 import 'package:finanseapp/core/features/settings/domain/settings_repository.dart';
+import 'package:finanseapp/core/presentation/money_formatter.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
 import 'package:finanseapp/uikit/app_button.dart';
 import 'package:finanseapp/uikit/app_scaffold.dart';
@@ -31,6 +32,30 @@ const _rub = Currency(
   code: 'RUB',
   name: 'Рубль',
   fractionDigits: 2,
+  isPreset: true,
+  isEnabled: true,
+);
+
+const _usd = Currency(
+  code: 'USD',
+  name: 'Доллар',
+  fractionDigits: 2,
+  isPreset: true,
+  isEnabled: true,
+);
+
+const _eur = Currency(
+  code: 'EUR',
+  name: 'Евро',
+  fractionDigits: 2,
+  isPreset: true,
+  isEnabled: true,
+);
+
+const _jpy = Currency(
+  code: 'JPY',
+  name: 'Иена',
+  fractionDigits: 0,
   isPreset: true,
   isEnabled: true,
 );
@@ -120,7 +145,8 @@ final class FakeSubgroups implements SubgroupRepository {
 }
 
 final class FakeCurrencies implements CurrencyRepository {
-  FakeCurrencies([List<Currency>? items]) : items = items ?? const [_rub];
+  FakeCurrencies([List<Currency>? items])
+    : items = items ?? const [_rub, _usd, _eur, _jpy];
 
   final List<Currency> items;
 
@@ -493,6 +519,222 @@ void main() {
     expect(draft.rateToRub, Decimal.one);
   });
 
+  testWidgets(
+    'форма оценки инвестиции показывает селектор валюты с валютой актива',
+    (tester) async {
+      final repository = FakeAssets(_snapshot());
+      final vm = ValuationFormViewModel(
+        repository: repository,
+        rateRepository: FakeRates(),
+        currencyRepository: FakeCurrencies(),
+        assetId: 1,
+        today: LocalDate(2026, 1, 2),
+      );
+      await _pump(tester, ValuationFormScreen(viewModel: vm));
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text(l10n.valuationCurrencyLabel), findsOneWidget);
+      expect(find.text('Рубль (RUB)'), findsOneWidget);
+    },
+  );
+
+  testWidgets('форма оценки USD-инвестиции по умолчанию выбирает USD', (
+    tester,
+  ) async {
+    final repository = FakeAssets(
+      AssetSnapshot(
+        asset: _investment(currency: 'USD'),
+        currentValue: const Money(minorUnits: 100000, currencyCode: 'USD'),
+      ),
+    );
+    final vm = ValuationFormViewModel(
+      repository: repository,
+      rateRepository: FakeRates(),
+      currencyRepository: FakeCurrencies(),
+      assetId: 1,
+      today: LocalDate(2026, 1, 2),
+    );
+    await _pump(tester, ValuationFormScreen(viewModel: vm));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text(l10n.valuationCurrencyLabel), findsOneWidget);
+    expect(find.text('Доллар (USD)'), findsOneWidget);
+  });
+
+  testWidgets(
+    'оценка инвестиции в USD сохраняется с выбранной валютой и курсом',
+    (tester) async {
+      final repository = FakeAssets(_snapshot());
+      final vm = ValuationFormViewModel(
+        repository: repository,
+        rateRepository: FakeRates(),
+        currencyRepository: FakeCurrencies(),
+        assetId: 1,
+        today: LocalDate(2026, 1, 2),
+      );
+      await _pump(tester, ValuationFormScreen(viewModel: vm));
+      await tester.pump(const Duration(milliseconds: 300));
+
+      await tester.tap(find.text('Рубль (RUB)'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Доллар'));
+      await tester.pumpAndSettle();
+      expect(find.text('Доллар (USD)'), findsOneWidget);
+
+      await tester.enterText(find.byType(TextField).first, '120');
+      await tester.enterText(find.byType(TextField).at(1), '90');
+      await tester.ensureVisible(find.text(l10n.commonSave));
+      await tester.tap(find.text(l10n.commonSave));
+      await tester.pump(const Duration(milliseconds: 300));
+
+      final draft = repository.recorded.single;
+      expect(draft.value.currencyCode, 'USD');
+      expect(draft.value.minorUnits, 12000);
+      expect(draft.rateToRub, Decimal.fromInt(90));
+    },
+  );
+
+  testWidgets('форма оценки квартиры не показывает селектор валюты', (
+    tester,
+  ) async {
+    final snapshot = AssetSnapshot(
+      asset: PropertyAsset(
+        id: 1,
+        name: 'Квартира',
+        currencyCode: 'RUB',
+        openingValue: const Money(minorUnits: 100000, currencyCode: 'RUB'),
+        createdAt: DateTime.utc(2026),
+        address: 'Улица',
+      ),
+      currentValue: const Money(minorUnits: 100000, currencyCode: 'RUB'),
+    );
+    final repository = FakeAssets(snapshot);
+    final vm = ValuationFormViewModel(
+      repository: repository,
+      rateRepository: FakeRates(),
+      currencyRepository: FakeCurrencies(),
+      assetId: 1,
+      today: LocalDate(2026, 1, 2),
+    );
+    await _pump(tester, ValuationFormScreen(viewModel: vm));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text(l10n.valuationCurrencyLabel), findsNothing);
+    await tester.enterText(find.byType(TextField).first, '1500');
+    await tester.ensureVisible(find.text(l10n.commonSave));
+    await tester.tap(find.text(l10n.commonSave));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(repository.recorded.single.value.currencyCode, 'RUB');
+  });
+
+  test('оценка квартиры в чужой валюте отклоняется VM', () async {
+    final snapshot = AssetSnapshot(
+      asset: PropertyAsset(
+        id: 1,
+        name: 'Квартира',
+        currencyCode: 'RUB',
+        openingValue: const Money(minorUnits: 100000, currencyCode: 'RUB'),
+        createdAt: DateTime.utc(2026),
+      ),
+      currentValue: const Money(minorUnits: 100000, currencyCode: 'RUB'),
+    );
+    final repository = FakeAssets(snapshot);
+    final vm = ValuationFormViewModel(
+      repository: repository,
+      rateRepository: FakeRates(),
+      currencyRepository: FakeCurrencies(),
+      assetId: 1,
+      today: LocalDate(2026, 1, 2),
+    );
+    await vm.load();
+
+    final result = await vm.save(
+      value: const Money(minorUnits: 12000, currencyCode: 'USD'),
+      effectiveOn: LocalDate(2026, 1, 2),
+      manualRate: Decimal.fromInt(90),
+    );
+
+    expect(result, isA<Failure<void>>());
+    expect(repository.recorded, isEmpty);
+  });
+
+  testWidgets('история оценок форматирует валюту оценки и помечает текущую', (
+    tester,
+  ) async {
+    final repository = FakeAssets(
+      _snapshot(),
+      valuationsHistory: [
+        AssetValuation(
+          id: 4,
+          assetId: 1,
+          effectiveOn: LocalDate(2026, 1, 4),
+          value: const Money(minorUnits: 1234, currencyCode: 'JPY'),
+          rateToRub: Decimal.parse('0.5'),
+          valueRub: const Money(minorUnits: 61700, currencyCode: 'RUB'),
+          createdAt: DateTime.utc(2026),
+        ),
+        AssetValuation(
+          id: 3,
+          assetId: 1,
+          effectiveOn: LocalDate(2026, 1, 3),
+          value: const Money(minorUnits: 15000, currencyCode: 'EUR'),
+          rateToRub: Decimal.fromInt(100),
+          valueRub: const Money(minorUnits: 1500000, currencyCode: 'RUB'),
+          createdAt: DateTime.utc(2026),
+        ),
+        AssetValuation(
+          id: 2,
+          assetId: 1,
+          effectiveOn: LocalDate(2026, 1, 2),
+          value: const Money(minorUnits: 14000, currencyCode: 'EUR'),
+          rateToRub: Decimal.fromInt(100),
+          valueRub: const Money(minorUnits: 1400000, currencyCode: 'RUB'),
+          createdAt: DateTime.utc(2026),
+        ),
+        AssetValuation(
+          id: 1,
+          assetId: 1,
+          effectiveOn: LocalDate(2026, 1, 1),
+          value: const Money(minorUnits: 1000, currencyCode: 'JPY'),
+          rateToRub: Decimal.parse('0.5'),
+          valueRub: const Money(minorUnits: 50000, currencyCode: 'RUB'),
+          createdAt: DateTime.utc(2026),
+        ),
+      ],
+    );
+    final vm = AccountDetailsViewModel(
+      repository: repository,
+      assetId: 1,
+      today: LocalDate(2026, 1, 3),
+      settingsRepository: FakeSettings(),
+      currencyRepository: FakeCurrencies(),
+      rateRepository: FakeRates(),
+    );
+    await _pump(tester, AccountDetailsScreen(viewModel: vm));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(
+      find.text(
+        const MoneyFormatter().format(
+          const Money(minorUnits: 1234, currencyCode: 'JPY'),
+          _jpy,
+        ),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.text(
+        const MoneyFormatter().format(
+          const Money(minorUnits: 15000, currencyCode: 'EUR'),
+          _eur,
+        ),
+      ),
+      findsOneWidget,
+    );
+    expect(find.text(l10n.valuationCurrent), findsNWidgets(2));
+  });
+
   testWidgets('отрицательная оценка отклоняется формой', (tester) async {
     final repository = FakeAssets(_snapshot());
     final vm = ValuationFormViewModel(
@@ -565,15 +807,8 @@ void main() {
   });
 
   testWidgets(
-    'мультивалютная инвестиция показывает base equivalent при RUB base',
+    'мультивалютная инвестиция показывает итог в базовой валюте и состав',
     (tester) async {
-      const usd = Currency(
-        code: 'USD',
-        name: 'Доллар',
-        fractionDigits: 2,
-        isPreset: true,
-        isEnabled: true,
-      );
       final snapshot = AssetSnapshot(
         asset: _investment(),
         currentValue: const Money(minorUnits: 10000000, currencyCode: 'RUB'),
@@ -587,15 +822,75 @@ void main() {
         assetId: 1,
         today: LocalDate(2026, 1, 3),
         settingsRepository: FakeSettings(),
-        currencyRepository: FakeCurrencies([usd, _rub]),
+        currencyRepository: FakeCurrencies(),
         rateRepository: FakeRates(rate: Decimal.fromInt(92)),
       );
       await _pump(tester, AccountDetailsScreen(viewModel: vm));
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(tester.takeException(), isNull);
-      expect(find.text(l10n.assetBaseEquivalent), findsOneWidget);
-      expect(find.textContaining('111'), findsWidgets);
+      expect(find.text(l10n.investmentBreakdownTitle), findsOneWidget);
+      expect(find.text(l10n.investmentTotalBase), findsOneWidget);
+      expect(find.text(l10n.assetBaseEquivalent), findsNothing);
+      expect(
+        find.text(
+          const MoneyFormatter().format(
+            const Money(minorUnits: 11104000, currencyCode: 'RUB'),
+            _rub,
+          ),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.text(
+          const MoneyFormatter().format(
+            const Money(minorUnits: 12000, currencyCode: 'USD'),
+            _usd,
+          ),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        tester.getTopLeft(find.text(l10n.investmentBreakdownTitle)).dy,
+        lessThan(tester.getTopLeft(find.text(l10n.accountEdit)).dy),
+      );
+    },
+  );
+
+  testWidgets(
+    'мультивалютная инвестиция без курса показывает состав и подпись',
+    (tester) async {
+      final snapshot = AssetSnapshot(
+        asset: _investment(),
+        currentValue: const Money(minorUnits: 10000000, currencyCode: 'RUB'),
+        currencyBalances: const [
+          Money(minorUnits: 10000000, currencyCode: 'RUB'),
+          Money(minorUnits: 12000, currencyCode: 'USD'),
+        ],
+      );
+      final vm = AccountDetailsViewModel(
+        repository: FakeAssets(snapshot),
+        assetId: 1,
+        today: LocalDate(2026, 1, 3),
+        settingsRepository: FakeSettings(),
+        currencyRepository: FakeCurrencies(),
+        rateRepository: FakeRates(),
+      );
+      await _pump(tester, AccountDetailsScreen(viewModel: vm));
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text(l10n.investmentBreakdownTitle), findsOneWidget);
+      expect(find.text(l10n.assetBaseUnavailable), findsOneWidget);
+      expect(find.text('—'), findsWidgets);
+      expect(
+        find.text(
+          const MoneyFormatter().format(
+            const Money(minorUnits: 10000000, currencyCode: 'RUB'),
+            _rub,
+          ),
+        ),
+        findsWidgets,
+      );
     },
   );
 

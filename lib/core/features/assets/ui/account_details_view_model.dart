@@ -45,6 +45,7 @@ class AccountDetailsViewModel {
   final Signal<AccountAsset?> account = signal(null);
   final Signal<Asset?> asset = signal(null);
   final Signal<Currency?> currency = signal(null);
+  final Signal<Map<String, Currency>> currencies = signal(const {});
   final Signal<List<AssetValuation>> valuationHistory = signal(const []);
   final Signal<Money?> balance = signal(null);
   final Signal<List<Money>> breakdown = signal(const []);
@@ -104,6 +105,9 @@ class AccountDetailsViewModel {
       final snapshot = await repository.getById(assetId);
       if (_disposed) return;
       final loaded = snapshot.asset;
+      final allCurrencies = await currencyRepository.watchAll().first;
+      if (_disposed) return;
+      currencies.value = {for (final item in allCurrencies) item.code: item};
       final loadedCurrency = await _currencyOf(loaded.currencyCode);
       if (_disposed) return;
       asset.value = loaded;
@@ -192,8 +196,10 @@ class AccountDetailsViewModel {
   }
 
   Future<Currency> _currencyOf(String code) async {
-    final currencies = await currencyRepository.watchAll().first;
-    return currencies.firstWhere(
+    final cached = currencies.value[code];
+    if (cached != null) return cached;
+    final all = await currencyRepository.watchAll().first;
+    return all.firstWhere(
       (currency) => currency.code == code,
       orElse: () => Currency(
         code: code,

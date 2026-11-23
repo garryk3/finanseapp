@@ -22,6 +22,7 @@ void main() {
         db.assetsDao,
         db.transactionsDao,
         db.valuationsDao,
+        db.currenciesDao,
       ),
       today: LocalDate(2026, 11, 17),
     );
@@ -76,6 +77,7 @@ void main() {
         db.assetsDao,
         db.transactionsDao,
         db.valuationsDao,
+        db.currenciesDao,
       ),
       today: LocalDate(2026, 11, 17),
     );

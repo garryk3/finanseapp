@@ -14,6 +14,7 @@ import 'package:finanseapp/l10n/app_localizations.dart';
 import 'package:finanseapp/uikit/app_amount_field.dart';
 import 'package:finanseapp/uikit/app_button.dart';
 import 'package:finanseapp/uikit/app_category_select.dart';
+import 'package:finanseapp/uikit/app_currency_select.dart';
 import 'package:finanseapp/uikit/app_date_picker_field.dart';
 import 'package:finanseapp/uikit/app_error_state.dart';
 import 'package:finanseapp/uikit/app_form_section.dart';
@@ -44,6 +45,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   final _comment = TextEditingController();
   int? _assetId;
   AssetTransactionKind _kind = AssetTransactionKind.deposit;
+  String _currencyCode = 'RUB';
   LocalDate? _date;
   bool _classify = false;
   int? _categoryId;
@@ -61,11 +63,16 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
     super.initState();
     widget.viewModel.load().then((_) {
       if (!mounted) return;
+      final initialId =
+          widget.viewModel.initialAssetId ??
+          widget.viewModel.assets.value.firstOrNull?.id;
+      final initialAsset = initialId == null
+          ? null
+          : widget.viewModel.assetById(initialId);
       setState(() {
-        _assetId =
-            widget.viewModel.initialAssetId ??
-            widget.viewModel.assets.value.firstOrNull?.id;
+        _assetId = initialId;
         _kind = widget.viewModel.initialKind;
+        _currencyCode = initialAsset?.currencyCode ?? 'RUB';
         _date = widget.viewModel.today;
         _loaded = true;
       });
@@ -109,9 +116,14 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
     final asset = _assetId == null
         ? null
         : widget.viewModel.assetById(_assetId!);
-    final currency = asset == null
+    final selectedCode = asset == null
         ? null
-        : widget.viewModel.currencyOf(asset.currencyCode);
+        : (asset.kind == AssetKind.investment
+              ? _currencyCode
+              : asset.currencyCode);
+    final currency = selectedCode == null
+        ? null
+        : widget.viewModel.currencyOf(selectedCode);
     final isRub = currency == null || currency.code == 'RUB';
     final amount = (asset == null || currency == null)
         ? null
@@ -175,6 +187,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
         'validationCategoryKindMismatch' => l10n.transactionErrorKindMismatch,
         'validationClassificationAccountOnly' =>
           l10n.transactionErrorKindMismatch,
+        'validationCurrencyMismatch' => l10n.cashflowErrorCurrencyMismatch,
         _ when result.error.code == DomainErrorCode.negativeBalance =>
           l10n.transactionErrorNegativeBalance,
         _ when result.error.code == DomainErrorCode.rateUnavailable =>
@@ -221,9 +234,13 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
             return Center(child: AppSpinner(semanticLabel: l10n.commonLoading));
           }
           final asset = _assetId == null ? null : vm.assetById(_assetId!);
-          final currency = asset == null
+          final isInvestment = asset?.kind == AssetKind.investment;
+          final selectedCode = isInvestment
+              ? _currencyCode
+              : asset?.currencyCode;
+          final currency = selectedCode == null
               ? null
-              : vm.currencyOf(asset.currencyCode);
+              : vm.currencyOf(selectedCode);
           final isRub = currency == null || currency.code == 'RUB';
           final categoryOptions = [
             for (final category in vm.categories.value)
@@ -257,9 +274,10 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                       _assetId = value;
                       _assetError = null;
                       if (!changed) return;
+                      final selected = vm.assetById(value);
+                      _currencyCode = selected?.currencyCode ?? 'RUB';
                       _rate.clear();
                       _rateError = null;
-                      final selected = vm.assetById(value);
                       if (selected?.kind != AssetKind.account) {
                         _classify = false;
                         _categoryId = null;
@@ -285,6 +303,25 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                     onSelectionChanged: (selection) =>
                         _setKind(selection.single),
                   ),
+                  if (isInvestment)
+                    AppCurrencySelect(
+                      label: l10n.transactionCurrencyLabel,
+                      valueCode: _currencyCode,
+                      items: [
+                        for (final item in vm.currencies.value.values)
+                          AppCurrencyOption(
+                            code: item.code,
+                            name: item.name,
+                            fractionDigits: item.fractionDigits,
+                            enabled: item.isEnabled,
+                          ),
+                      ],
+                      onChanged: (code) => setState(() {
+                        _currencyCode = code;
+                        _rate.clear();
+                        _rateError = null;
+                      }),
+                    ),
                   AppAmountField(
                     controller: _amount,
                     label: l10n.transactionAmountLabel,
