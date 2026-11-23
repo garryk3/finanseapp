@@ -10,6 +10,7 @@ import 'package:finanseapp/core/features/analytics/domain/analytics_queries.dart
 import 'package:finanseapp/core/features/analytics/domain/cashflow_period_point.dart';
 import 'package:finanseapp/core/features/analytics/domain/net_worth_summary.dart';
 import 'package:finanseapp/core/features/analytics/logic/analytics_periods.dart';
+import 'package:finanseapp/core/features/analytics/logic/net_worth_calculator.dart';
 import 'package:finanseapp/core/features/assets/domain/asset.dart';
 import 'package:finanseapp/core/features/assets/domain/asset_repository.dart';
 import 'package:finanseapp/core/features/cashflow/domain/cashflow_entry.dart';
@@ -31,6 +32,7 @@ import 'package:finanseapp/core/features/transactions/domain/asset_transaction_r
 import 'package:finanseapp/core/features/transactions/domain/transaction_filter.dart';
 import 'package:finanseapp/core/presentation/money_formatter.dart';
 import 'package:finanseapp/core/presentation/view_state.dart';
+import 'package:rational/rational.dart';
 import 'package:signals/signals.dart';
 
 /// Цель на главной с прогрессом (статус может быть вычислен, не записан).
@@ -92,6 +94,18 @@ class DashboardViewModel {
   /// Подушка безопасности; null — нет расходов/счетов/курса.
   final Signal<SafetyCushion?> safetyCushion = signal(null);
 
+  /// Есть ли у неархивных инвестиций отметки заблокированных сумм.
+  final Signal<bool> hasLockedAssets = signal(false);
+
+  /// Сумма заблокированных активов в базовой валюте; null — нет расчёта.
+  final Signal<Money?> lockedTotal = signal(null);
+
+  /// Доля заблокированных от инвестиций (0..1, scale 4); null — нет данных.
+  final Signal<Decimal?> lockedShare = signal(null);
+
+  /// Причина, по которой [lockedTotal] не посчитан.
+  final Signal<DomainErrorCode?> lockedError = signal(null);
+
   final CalculateGoalProgress _goalCalculator = const CalculateGoalProgress();
   final Map<String, Decimal> _rateCache = {};
 
@@ -101,6 +115,7 @@ class DashboardViewModel {
   int _goalToken = 0;
   int _netWorthToken = 0;
   int _cashflowToken = 0;
+  int _lockedToken = 0;
   bool _assetsReady = false;
   bool _fatal = false;
   bool _netWorthReady = false;
@@ -132,6 +147,11 @@ class DashboardViewModel {
     _transactionsReady = false;
     state.value = const ViewLoading();
     netWorthError.value = null;
+    lockedError.value = null;
+    hasLockedAssets.value = false;
+    lockedTotal.value = null;
+    lockedShare.value = null;
+    _lockedToken++;
     _loadCurrencies();
     _subscribeBaseCurrency();
     cashflowError.value = null;
@@ -142,6 +162,7 @@ class DashboardViewModel {
       seenRateRevision = revision;
       _rateCache.clear();
       unawaited(_reloadNetWorth());
+      unawaited(_reloadLocked());
       unawaited(_reloadCashflow());
       unawaited(_reloadSafety());
       unawaited(_recomputeGoals());
@@ -183,6 +204,7 @@ class DashboardViewModel {
           };
           unawaited(_recomputeGoals());
           unawaited(_reloadNetWorth());
+          unawaited(_reloadLocked());
         }, onError: _fail);
     _goalsSubscription?.cancel();
     _goalsSubscription = goalRepository.watchAll().listen((goals) {
@@ -222,6 +244,7 @@ class DashboardViewModel {
       final list = await currencyRepository.watchAll().first;
       _currencies = {for (final currency in list) currency.code: currency};
       unawaited(_recomputeGoals());
+      unawaited(_reloadLocked());
     } on Exception {
       // Итоги показываются без эквивалента, если справочник недоступен.
     }
@@ -235,6 +258,7 @@ class DashboardViewModel {
       baseCurrency.value = currency;
       unawaited(_reloadCashflow());
       unawaited(_reloadNetWorth());
+      unawaited(_reloadLocked());
       unawaited(_reloadSafety());
     }, onError: _fail);
   }
@@ -341,6 +365,7 @@ class DashboardViewModel {
       netWorthError.value = null;
       _netWorthReady = true;
       _recomputeSafety();
+      unawaited(_reloadLocked());
       _emit();
     } on DomainException catch (error) {
       if (_disposed || token != _netWorthToken) return;
@@ -348,14 +373,122 @@ class DashboardViewModel {
       netWorthError.value = error.code;
       _netWorthReady = true;
       _recomputeSafety();
+      unawaited(_reloadLocked());
       _emit();
     } on Exception {
       if (_disposed || token != _netWorthToken) return;
       netWorthError.value = DomainErrorCode.storageFailure;
       _netWorthReady = true;
       _recomputeSafety();
+      unawaited(_reloadLocked());
       _emit();
     }
+  }
+
+  /// Сумма отметок неархивных инвестиций в базовой валюте и их доля.
+  ///
+  /// Отметки не уменьшают стоимость инвестиции (D4), поэтому это отдельный
+  /// информационный расчёт. При нехватке курса сумма не показывается частично.
+  Future<void> _reloadLocked() async {
+    final token = ++_lockedToken;
+    final base = baseCurrency.value;
+    var hasLocked = false;
+    final marks = <NetWorthAssetValue>[];
+    for (final snapshot in _snapshots.values) {
+      final asset = snapshot.asset;
+      if (asset.archivedAt != null || asset.kind != AssetKind.investment) {
+        continue;
+      }
+      final locked = snapshot.locked;
+      if (locked.isEmpty) continue;
+      hasLocked = true;
+      if (base == null) continue;
+      for (final value in locked) {
+        final currency = _currencies[value.currencyCode];
+        // Справочник ещё не загружен: дождёмся _loadCurrencies и пересчёта.
+        if (currency == null) return;
+        marks.add(
+          NetWorthAssetValue(
+            kind: AssetKind.investment,
+            value: value,
+            currency: currency,
+          ),
+        );
+      }
+    }
+    if (_disposed || token != _lockedToken) return;
+    hasLockedAssets.value = hasLocked;
+    if (!hasLocked || base == null) {
+      lockedTotal.value = null;
+      lockedShare.value = null;
+      lockedError.value = null;
+      return;
+    }
+    final codes = <String>{
+      for (final mark in marks)
+        if (mark.currency.code != base.code && !mark.currency.isRub)
+          mark.currency.code,
+      if (!base.isRub && marks.any((mark) => mark.currency.code != base.code))
+        base.code,
+    };
+    final rates = <String, Decimal>{};
+    try {
+      for (final code in codes) {
+        final cached = _rateCache[code];
+        if (cached != null) {
+          rates[code] = cached;
+          continue;
+        }
+        final rate = await rateRepository.find(code, today.value);
+        if (_disposed || token != _lockedToken) return;
+        if (rate == null) {
+          throw DomainException(
+            DomainErrorCode.rateUnavailable,
+            fieldErrors: {'currencyCode': code},
+          );
+        }
+        _rateCache[code] = rate.rateToRub;
+        rates[code] = rate.rateToRub;
+      }
+      if (_disposed || token != _lockedToken) return;
+      final total = NetWorthCalculator.calculate(
+        assets: marks,
+        ratesToRub: rates,
+        baseCurrency: base,
+      ).total;
+      lockedTotal.value = total;
+      lockedShare.value = _lockedShareOf(total, base);
+      lockedError.value = null;
+    } on DomainException catch (error) {
+      if (_disposed || token != _lockedToken) return;
+      lockedTotal.value = null;
+      lockedShare.value = null;
+      lockedError.value = error.code;
+    } on Exception {
+      if (_disposed || token != _lockedToken) return;
+      lockedTotal.value = null;
+      lockedShare.value = null;
+      lockedError.value = DomainErrorCode.storageFailure;
+    }
+  }
+
+  Decimal? _lockedShareOf(Money total, Currency base) {
+    final summary = netWorthError.value == null ? netWorth.value : null;
+    final investment = summary?.byAssetKind[AssetKind.investment];
+    if (investment == null ||
+        investment.currencyCode != base.code ||
+        investment.minorUnits <= 0) {
+      return null;
+    }
+    final ratio =
+        Rational.fromInt(total.minorUnits) /
+        Rational.fromInt(investment.minorUnits);
+    final clamped = ratio < Rational.zero
+        ? Rational.zero
+        : ratio > Rational.one
+        ? Rational.one
+        : ratio;
+    return clamped.toDecimal(scaleOnInfinitePrecision: 4);
   }
 
   Future<void> _recomputeGoals() async {
@@ -434,6 +567,7 @@ class DashboardViewModel {
     _disposed = true;
     _goalToken++;
     _netWorthToken++;
+    _lockedToken++;
     _safetyToken++;
     _assetsSubscription?.cancel();
     _goalsSubscription?.cancel();

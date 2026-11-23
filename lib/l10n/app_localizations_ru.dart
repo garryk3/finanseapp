@@ -1892,6 +1892,21 @@ class AppLocalizationsRu extends AppLocalizations {
   String get dashboardNetWorthUnavailable => 'Не удалось рассчитать';
 
   @override
+  String get dashboardLockedTitle => 'Заблокированные активы';
+
+  @override
+  String dashboardLockedShare(String percent) {
+    return '$percent% от инвестиций';
+  }
+
+  @override
+  String get dashboardLockedTooltip =>
+      'Часть стоимости инвестиций, недоступная по внешним причинам. Сумма всех заблокированных активов по инвестиционным счетам в базовой валюте; процент — от общей стоимости инвестиций.';
+
+  @override
+  String get dashboardLockedInfoLabel => 'О заблокированных активах';
+
+  @override
   String get dashboardCashflowTitle => 'Денежный поток';
 
   @override

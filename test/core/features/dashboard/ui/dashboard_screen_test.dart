@@ -34,6 +34,7 @@ import 'package:finanseapp/core/features/transactions/domain/asset_transaction_r
 import 'package:finanseapp/core/features/transactions/domain/transaction_filter.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
 import 'package:finanseapp/uikit/app_cashflow_summary.dart';
+import 'package:finanseapp/uikit/app_icon.dart';
 import 'package:finanseapp/uikit/app_text.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -50,6 +51,14 @@ const _rub = Currency(
 const _usd = Currency(
   code: 'USD',
   name: 'Доллар США',
+  fractionDigits: 2,
+  isPreset: true,
+  isEnabled: true,
+);
+
+const _eur = Currency(
+  code: 'EUR',
+  name: 'Евро',
   fractionDigits: 2,
   isPreset: true,
   isEnabled: true,
@@ -315,10 +324,10 @@ final class _Settings implements SettingsRepository {
 
 final class _Currencies implements CurrencyRepository {
   @override
-  Stream<List<Currency>> watchAll() => Stream.value(const [_rub, _usd]);
+  Stream<List<Currency>> watchAll() => Stream.value(const [_rub, _usd, _eur]);
 
   @override
-  Future<List<Currency>> getEnabled() async => const [_rub, _usd];
+  Future<List<Currency>> getEnabled() async => const [_rub, _usd, _eur];
 
   @override
   Future<int> countReferences(String code) async => 0;
@@ -343,7 +352,7 @@ final class _Currencies implements CurrencyRepository {
 final class _Rates implements ExchangeRateRepository {
   _Rates([this.rates = const {}]);
 
-  final Map<String, Decimal> rates;
+  Map<String, Decimal> rates;
 
   @override
   Future<ExchangeRate?> find(String currencyCode, LocalDate date) async {
@@ -393,22 +402,28 @@ AssetSnapshot _snapshot(
   currentValue: value,
 );
 
-AssetSnapshot _investmentSnapshot(int id, List<Money> balances) =>
-    AssetSnapshot(
-      asset: InvestmentAsset(
-        id: id,
-        name: 'Инвестиция $id',
-        currencyCode: balances.first.currencyCode,
-        openingValue: Money(
-          minorUnits: 0,
-          currencyCode: balances.first.currencyCode,
-        ),
-        createdAt: DateTime.utc(2024, 1, 1),
-        brokerId: 1,
-      ),
-      currentValue: balances.first,
-      currencyBalances: balances,
-    );
+AssetSnapshot _investmentSnapshot(
+  int id,
+  List<Money> balances, {
+  List<Money> locked = const [],
+  DateTime? archivedAt,
+}) => AssetSnapshot(
+  asset: InvestmentAsset(
+    id: id,
+    name: 'Инвестиция $id',
+    currencyCode: balances.first.currencyCode,
+    openingValue: Money(
+      minorUnits: 0,
+      currencyCode: balances.first.currencyCode,
+    ),
+    createdAt: DateTime.utc(2024, 1, 1),
+    brokerId: 1,
+    archivedAt: archivedAt,
+  ),
+  currentValue: balances.first,
+  currencyBalances: balances,
+  lockedBalances: locked.isEmpty ? null : locked,
+);
 
 AssetTransaction _operation(int id, int assetId, int major) => AssetTransaction(
   id: id,
@@ -849,6 +864,325 @@ void main() {
     expect(find.text(l10n.dashboardNetWorthAccounts), findsNothing);
     expect(find.text(l10n.dashboardNetWorthInvestments), findsNothing);
     expect(find.text(l10n.dashboardNetWorthProperty), findsNothing);
+  });
+
+  testWidgets('заблокированные: сумма двух отметок в базовой валюте', (
+    tester,
+  ) async {
+    final vm = await pump(
+      tester,
+      total: _rubles(111040),
+      snapshots: [
+        _investmentSnapshot(
+          1,
+          const [Money(minorUnits: 10000000, currencyCode: 'RUB')],
+          locked: const [Money(minorUnits: 9900, currencyCode: 'USD')],
+        ),
+        _investmentSnapshot(
+          2,
+          const [Money(minorUnits: 500, currencyCode: 'EUR')],
+          locked: const [Money(minorUnits: 500, currencyCode: 'EUR')],
+        ),
+      ],
+      rates: {'USD': Decimal.fromInt(90), 'EUR': Decimal.fromInt(100)},
+    );
+
+    expect(vm.hasLockedAssets.value, isTrue);
+    expect(vm.lockedTotal.value, _rubles(9410));
+    expect(vm.lockedError.value, isNull);
+  });
+
+  testWidgets('заблокированные: доля от инвестиций, архив не учитывается', (
+    tester,
+  ) async {
+    final vm = await pump(
+      tester,
+      total: _rubles(111040),
+      snapshots: [
+        _investmentSnapshot(
+          1,
+          const [
+            Money(minorUnits: 10000000, currencyCode: 'RUB'),
+            Money(minorUnits: 12000, currencyCode: 'USD'),
+          ],
+          locked: const [Money(minorUnits: 9900, currencyCode: 'USD')],
+        ),
+        _investmentSnapshot(
+          2,
+          const [Money(minorUnits: 100000, currencyCode: 'RUB')],
+          locked: const [Money(minorUnits: 5000, currencyCode: 'USD')],
+          archivedAt: DateTime.utc(2026, 11, 1),
+        ),
+      ],
+      rates: {'USD': Decimal.fromInt(92)},
+    );
+
+    expect(vm.hasLockedAssets.value, isTrue);
+    expect(vm.lockedTotal.value, _rubles(9108));
+    expect(vm.lockedShare.value, Decimal.parse('0.0820'));
+  });
+
+  testWidgets('заблокированные: без стоимости инвестиций доля скрыта', (
+    tester,
+  ) async {
+    final vm = await pump(
+      tester,
+      total: _rubles(0),
+      queries: _Queries(
+        _rubles(0),
+        byKind: {
+          AssetKind.account: _rubles(0),
+          AssetKind.investment: _rubles(0),
+          AssetKind.property: _rubles(0),
+        },
+      ),
+      snapshots: [
+        _investmentSnapshot(
+          1,
+          const [Money(minorUnits: 10000000, currencyCode: 'RUB')],
+          locked: const [Money(minorUnits: 9900, currencyCode: 'USD')],
+        ),
+      ],
+      rates: {'USD': Decimal.fromInt(92)},
+    );
+
+    expect(vm.hasLockedAssets.value, isTrue);
+    expect(vm.lockedTotal.value, _rubles(9108));
+    expect(vm.lockedShare.value, isNull);
+  });
+
+  testWidgets('заблокированные: нехватка курса, затем пересчёт', (
+    tester,
+  ) async {
+    final rates = <String, Decimal>{};
+    final vm = await pump(
+      tester,
+      total: _rubles(111040),
+      snapshots: [
+        _investmentSnapshot(
+          1,
+          const [
+            Money(minorUnits: 10000000, currencyCode: 'RUB'),
+            Money(minorUnits: 12000, currencyCode: 'USD'),
+          ],
+          locked: const [Money(minorUnits: 9900, currencyCode: 'USD')],
+        ),
+      ],
+      rates: rates,
+    );
+
+    expect(vm.hasLockedAssets.value, isTrue);
+    expect(vm.lockedTotal.value, isNull);
+    expect(vm.lockedError.value, DomainErrorCode.rateUnavailable);
+    expect(vm.lockedShare.value, isNull);
+
+    rates['USD'] = Decimal.fromInt(92);
+    markExchangeRateChanged();
+    await tester.pumpAndSettle();
+
+    expect(vm.lockedTotal.value, _rubles(9108));
+    expect(vm.lockedError.value, isNull);
+    expect(vm.lockedShare.value, Decimal.parse('0.0820'));
+  });
+
+  testWidgets('заблокированные пересчитываются при смене базовой валюты', (
+    tester,
+  ) async {
+    final settings = StreamController<Currency>.broadcast();
+    addTearDown(settings.close);
+    final queries = _Queries(
+      _rubles(111040),
+      byKind: {
+        AssetKind.account: _rubles(0),
+        AssetKind.investment: _rubles(111040),
+        AssetKind.property: _rubles(0),
+      },
+    );
+    final vm = await pump(
+      tester,
+      queries: queries,
+      settingsController: settings,
+      snapshots: [
+        _investmentSnapshot(
+          1,
+          const [
+            Money(minorUnits: 10000000, currencyCode: 'RUB'),
+            Money(minorUnits: 12000, currencyCode: 'USD'),
+          ],
+          locked: const [Money(minorUnits: 9900, currencyCode: 'USD')],
+        ),
+      ],
+      rates: {'USD': Decimal.fromInt(92)},
+    );
+    settings.add(_rub);
+    await tester.pumpAndSettle();
+    expect(vm.lockedTotal.value, _rubles(9108));
+    expect(vm.lockedShare.value, Decimal.parse('0.0820'));
+
+    queries.total = const Money(minorUnits: 9900, currencyCode: 'USD');
+    queries.byKind = {
+      AssetKind.account: const Money(minorUnits: 0, currencyCode: 'USD'),
+      AssetKind.investment: const Money(minorUnits: 9900, currencyCode: 'USD'),
+      AssetKind.property: const Money(minorUnits: 0, currencyCode: 'USD'),
+    };
+    settings.add(_usd);
+    await tester.pumpAndSettle();
+
+    expect(
+      vm.lockedTotal.value,
+      const Money(minorUnits: 9900, currencyCode: 'USD'),
+    );
+    expect(vm.lockedShare.value, Decimal.one);
+  });
+
+  testWidgets('заблокированные: без отметок блок скрыт', (tester) async {
+    await pump(
+      tester,
+      width: 427,
+      total: _rubles(111040),
+      snapshots: [
+        _investmentSnapshot(1, const [
+          Money(minorUnits: 12000, currencyCode: 'USD'),
+        ]),
+      ],
+      rates: {'USD': Decimal.fromInt(92)},
+    );
+
+    expect(find.text(l10n.dashboardLockedTitle), findsNothing);
+  });
+
+  testWidgets('заблокированные: сумма, доля, тултип и a11y-подпись', (
+    tester,
+  ) async {
+    final vm = await pump(
+      tester,
+      width: 427,
+      total: _rubles(111040),
+      snapshots: [
+        _investmentSnapshot(
+          1,
+          const [
+            Money(minorUnits: 10000000, currencyCode: 'RUB'),
+            Money(minorUnits: 12000, currencyCode: 'USD'),
+          ],
+          locked: const [Money(minorUnits: 9900, currencyCode: 'USD')],
+        ),
+      ],
+      rates: {'USD': Decimal.fromInt(92)},
+    );
+
+    expect(find.text(l10n.dashboardLockedTitle), findsOneWidget);
+    expect(find.text(vm.formatMoney(_rubles(9108))), findsOneWidget);
+    expect(find.text(l10n.dashboardLockedShare('8,2')), findsOneWidget);
+    expect(find.byTooltip(l10n.dashboardLockedTooltip), findsOneWidget);
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is AppIcon &&
+            widget.semanticLabel == l10n.dashboardLockedInfoLabel,
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('заблокированные: без курса — «Курс недоступен», блок виден', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      width: 427,
+      total: _rubles(111040),
+      snapshots: [
+        _investmentSnapshot(
+          1,
+          const [
+            Money(minorUnits: 10000000, currencyCode: 'RUB'),
+            Money(minorUnits: 12000, currencyCode: 'USD'),
+          ],
+          locked: const [Money(minorUnits: 9900, currencyCode: 'USD')],
+        ),
+      ],
+    );
+
+    expect(find.text(l10n.dashboardLockedTitle), findsOneWidget);
+    expect(find.text(l10n.assetBaseUnavailable), findsOneWidget);
+    expect(find.byTooltip(l10n.dashboardLockedTooltip), findsOneWidget);
+    expect(find.textContaining('от инвестиций'), findsNothing);
+  });
+
+  testWidgets('заблокированные: тап открывает экран активов', (tester) async {
+    final vm = viewModel(
+      total: _rubles(111040),
+      snapshots: [
+        _investmentSnapshot(
+          1,
+          const [
+            Money(minorUnits: 10000000, currencyCode: 'RUB'),
+            Money(minorUnits: 12000, currencyCode: 'USD'),
+          ],
+          locked: const [Money(minorUnits: 9900, currencyCode: 'USD')],
+        ),
+      ],
+      rates: {'USD': Decimal.fromInt(92)},
+    );
+    addTearDown(vm.dispose);
+    final router = GoRouter(
+      initialLocation: '/',
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (context, state) => DashboardScreen(viewModel: vm),
+        ),
+        GoRoute(
+          path: '/assets',
+          builder: (context, state) => const AppText('ASSETS'),
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      MaterialApp.router(
+        theme: AppTheme.light(),
+        localizationsDelegates: const [
+          ...GlobalMaterialLocalizations.delegates,
+          AppLocalizations.delegate,
+        ],
+        supportedLocales: const [Locale('ru')],
+        routerConfig: router,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text(l10n.dashboardLockedTitle));
+    await tester.pumpAndSettle();
+
+    expect(find.text('ASSETS'), findsOneWidget);
+  });
+
+  testWidgets('заблокированные: 320dp, 1.3, тёмная тема — без overflow', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      width: 320,
+      dark: true,
+      largeText: true,
+      total: _rubles(111040),
+      snapshots: [
+        _investmentSnapshot(
+          1,
+          const [
+            Money(minorUnits: 10000000, currencyCode: 'RUB'),
+            Money(minorUnits: 12000, currencyCode: 'USD'),
+          ],
+          locked: const [Money(minorUnits: 9900, currencyCode: 'USD')],
+        ),
+      ],
+      rates: {'USD': Decimal.fromInt(92)},
+    );
+
+    expect(tester.takeException(), isNull);
+    expect(find.text(l10n.dashboardLockedTitle), findsOneWidget);
+    expect(find.text(l10n.dashboardLockedShare('8,2')), findsOneWidget);
   });
 
   testWidgets('подушка: runway, цель и срок при прибыли', (tester) async {

@@ -2583,6 +2583,27 @@
   "@dashboardNetWorthUnavailable": {
     "description": "Нейтральная ошибка расчёта net worth."
   },
+  "dashboardLockedTitle": "Заблокированные активы",
+  "@dashboardLockedTitle": {
+    "description": "Карточка заблокированных активов на Главной."
+  },
+  "dashboardLockedShare": "{percent}% от инвестиций",
+  "@dashboardLockedShare": {
+    "description": "Доля заблокированных активов от стоимости инвестиций.",
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboardLockedTooltip": "Часть стоимости инвестиций, недоступная по внешним причинам. Сумма всех заблокированных активов по инвестиционным счетам в базовой валюте; процент — от общей стоимости инвестиций.",
+  "@dashboardLockedTooltip": {
+    "description": "Пояснение к блоку заблокированных активов."
+  },
+  "dashboardLockedInfoLabel": "О заблокированных активах",
+  "@dashboardLockedInfoLabel": {
+    "description": "Доступная подпись info-иконки блока заблокированных активов."
+  },
   "dashboardCashflowTitle": "Денежный поток",
   "@dashboardCashflowTitle": {
     "description": "Секция cashflow месяца на главной."

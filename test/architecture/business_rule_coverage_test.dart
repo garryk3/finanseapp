@@ -111,6 +111,7 @@ const _calcCoverage = <String, List<String>>{
     'test/core/features/assets/domain/investment_value_calculator_test.dart',
   ],
   'CALC-046': ['test/core/features/analytics/data/net_worth_test.dart'],
+  'CALC-047': ['test/core/features/dashboard/ui/dashboard_screen_test.dart'],
 };
 
 /// Расчёты, которые ещё не реализованы; запись обязана объяснить причину.
@@ -191,7 +192,7 @@ void main() {
 
   test('каждая CALC имеет literal-тест или документированный defer', () {
     final ids = _idsIn('docs/architecture/calculations.md', r'CALC-\d{3}');
-    expect(ids, hasLength(46));
+    expect(ids, hasLength(47));
 
     final stale = {
       ..._calcCoverage.keys,

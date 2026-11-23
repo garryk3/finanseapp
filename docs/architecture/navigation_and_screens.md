@@ -156,7 +156,7 @@ VM — ViewModel, создаваемая через DI. «Тест» — мин�
 
 | Экран | VM и данные | Ключевой UI/действия | Обязательный тест |
 |---|---|---|---|
-| Dashboard | DashboardViewModel: net worth, цели, последние операции, cashflow месяца | Summary, charts teaser, quick add | Пустая БД показывает нули и CTA; tap ведёт в нужный prefill |
+| Dashboard | DashboardViewModel: net worth, заблокированные активы (если есть отметки), цели, последние операции, cashflow месяца | Summary, блок заблокированных с долей и тултипом, charts teaser, quick add | Пустая БД показывает нули и CTA; блок скрыт без отметок; сумма/доля и ошибка курса; tap ведёт в нужный prefill |
 | CashflowScreen | CashflowViewModel: watch(filter), summary | Фильтры, date groups, add income/expense | Удалённая запись скрыта; transfer отсутствует |
 | TransactionsScreen | TransactionsViewModel: watch(filter) | Deposit/withdrawal/transfer, filters | Связанный расход имеет badge, но не дублирует сумму cashflow |
 | RecurringRulesScreen | RecurringRulesViewModel: watchActive + справочники | Список правил, следующий платёж, «Ожидает курс», CTA | Автоправило процентов ведёт в детали счёта, без правки |
