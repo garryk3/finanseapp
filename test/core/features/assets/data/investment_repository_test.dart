@@ -260,6 +260,55 @@ void main() {
     expect(all.single.breakdown, snapshot.breakdown);
   });
 
+  test('запрет смены валюты инвестиции при отметках', () async {
+    final id = await repository.create(draft());
+    await repository.setLockedAmount(
+      id,
+      'RUB',
+      const Money(minorUnits: 100, currencyCode: 'RUB'),
+    );
+
+    await expectLater(
+      repository.update(
+        id,
+        InvestmentDraft(
+          name: 'Инвестиция',
+          currencyCode: 'USD',
+          openingValue: const Money(minorUnits: 200000, currencyCode: 'USD'),
+          brokerId: brokerId,
+        ),
+      ),
+      throwsA(
+        isA<DomainException>().having(
+          (error) => error.fieldErrors['currencyCode'],
+          'currencyCode',
+          'validationCurrencyLocked',
+        ),
+      ),
+    );
+    expect((await repository.getById(id)).asset.currencyCode, 'RUB');
+  });
+
+  test('watchById обновляется после setLockedAmount', () async {
+    final id = await repository.create(draft());
+    final initial = await repository.watchById(id).first;
+    expect(initial!.locked, isEmpty);
+
+    final updatedFuture = repository
+        .watchById(id)
+        .firstWhere((snapshot) => snapshot?.locked.isNotEmpty ?? false);
+    await repository.setLockedAmount(
+      id,
+      'RUB',
+      const Money(minorUnits: 100, currencyCode: 'RUB'),
+    );
+
+    final updated = await updatedFuture.timeout(const Duration(seconds: 2));
+    expect(updated!.locked, const [
+      Money(minorUnits: 100, currencyCode: 'RUB'),
+    ]);
+  });
+
   test('update инвестиции и запрет смены валюты при операциях', () async {
     final id = await repository.create(draft());
     await repository.update(id, draft(opening: 200000));

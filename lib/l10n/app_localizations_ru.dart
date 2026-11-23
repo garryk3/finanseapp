@@ -718,7 +718,25 @@ class AppLocalizationsRu extends AppLocalizations {
   String get lockedEditAction => 'Изменить заблокированную сумму';
 
   @override
-  String get lockedErrorExceeds => 'Сумма превышает остаток в этой валюте.';
+  String lockedEditActionFor(String currency) {
+    return 'Изменить заблокированную сумму: $currency';
+  }
+
+  @override
+  String lockedErrorExceeds(String available) {
+    return 'Сумма превышает остаток: доступно $available.';
+  }
+
+  @override
+  String get lockedErrorAmount => 'Введите сумму блокировки.';
+
+  @override
+  String get lockedSaveError =>
+      'Не удалось сохранить отметку. Попробуйте позже.';
+
+  @override
+  String get lockedClearHint =>
+      'Очистите поле или введите 0, чтобы снять отметку.';
 
   @override
   String get lockedSaved => 'Заблокированная сумма сохранена.';

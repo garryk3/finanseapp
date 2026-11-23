@@ -1039,7 +1039,8 @@ void main() {
       findsOneWidget,
     );
     expect(find.text(l10n.lockedNotMarked), findsOneWidget);
-    expect(find.byIcon(Icons.lock_outline), findsNWidgets(3));
+    expect(find.byIcon(Icons.lock), findsNWidgets(2));
+    expect(find.byIcon(Icons.lock_open), findsOneWidget);
     expect(
       tester.getTopLeft(find.text(l10n.lockedAssetsTitle)).dy,
       greaterThan(
@@ -1063,7 +1064,7 @@ void main() {
     await _pump(tester, AccountDetailsScreen(viewModel: vm));
     await tester.pump(const Duration(milliseconds: 300));
 
-    await tester.tap(find.byIcon(Icons.lock_outline).at(1));
+    await tester.tap(find.text('Доллар (USD)').last);
     await tester.pumpAndSettle();
 
     expect(find.text(l10n.lockedEditTitle), findsOneWidget);
@@ -1105,13 +1106,23 @@ void main() {
     await _pump(tester, AccountDetailsScreen(viewModel: vm));
     await tester.pump(const Duration(milliseconds: 300));
 
-    await tester.tap(find.byIcon(Icons.lock_outline).at(1));
+    await tester.tap(find.text('Доллар (USD)').last);
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).last, '121');
     await tester.tap(find.text(l10n.commonSave));
     await tester.pumpAndSettle();
 
-    expect(find.text(l10n.lockedErrorExceeds), findsOneWidget);
+    expect(
+      find.text(
+        l10n.lockedErrorExceeds(
+          const MoneyFormatter().format(
+            const Money(minorUnits: 12000, currencyCode: 'USD'),
+            _usd,
+          ),
+        ),
+      ),
+      findsOneWidget,
+    );
     expect(find.text(l10n.lockedEditTitle), findsOneWidget);
     expect(repository.savedLocked, isEmpty);
   });
@@ -1135,7 +1146,7 @@ void main() {
     await _pump(tester, AccountDetailsScreen(viewModel: vm));
     await tester.pump(const Duration(milliseconds: 300));
 
-    await tester.tap(find.byIcon(Icons.lock_outline).at(1));
+    await tester.tap(find.text('Доллар (USD)').last);
     await tester.pumpAndSettle();
     final field = tester.widget<TextField>(find.byType(TextField).last);
     expect(field.controller!.text, '99');
@@ -1146,6 +1157,82 @@ void main() {
 
     expect(repository.savedLocked.single.isZero, isTrue);
     expect(find.text(l10n.lockedRemoved), findsOneWidget);
+  });
+
+  testWidgets('отметка валюты вне breakdown видна и открывается', (
+    tester,
+  ) async {
+    final snapshot = AssetSnapshot(
+      asset: _investment(),
+      currentValue: const Money(minorUnits: 10000000, currencyCode: 'RUB'),
+      currencyBalances: const [
+        Money(minorUnits: 10000000, currencyCode: 'RUB'),
+      ],
+      lockedBalances: const [Money(minorUnits: 9900, currencyCode: 'USD')],
+    );
+    final vm = AccountDetailsViewModel(
+      repository: FakeAssets(snapshot),
+      assetId: 1,
+      today: LocalDate(2026, 1, 3),
+      settingsRepository: FakeSettings(),
+      currencyRepository: FakeCurrencies(),
+      rateRepository: FakeRates(rate: Decimal.fromInt(92)),
+    );
+    await _pump(tester, AccountDetailsScreen(viewModel: vm));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('Доллар (USD)'), findsOneWidget);
+    await tester.tap(find.text('Доллар (USD)'));
+    await tester.pumpAndSettle();
+
+    expect(find.text(l10n.lockedEditTitle), findsOneWidget);
+    expect(
+      find.text(
+        l10n.lockedAvailableHint(
+          const MoneyFormatter().format(
+            const Money(minorUnits: 0, currencyCode: 'USD'),
+            _usd,
+          ),
+        ),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('секция блокировки на 320dp/1.3/dark без overflow', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 2000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final vm = AccountDetailsViewModel(
+      repository: FakeAssets(_lockedSnapshot()),
+      assetId: 1,
+      today: LocalDate(2026, 1, 3),
+      settingsRepository: FakeSettings(),
+      currencyRepository: FakeCurrencies(),
+      rateRepository: FakeRates(rate: Decimal.fromInt(92)),
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.dark(),
+        localizationsDelegates: const [
+          ...GlobalMaterialLocalizations.delegates,
+          AppLocalizations.delegate,
+        ],
+        supportedLocales: const [Locale('ru')],
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(context)
+              .copyWith(textScaler: const TextScaler.linear(1.3)),
+          child: child!,
+        ),
+        home: AccountDetailsScreen(viewModel: vm),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(tester.takeException(), isNull);
+    expect(find.text(l10n.lockedAssetsTitle), findsOneWidget);
   });
 
   testWidgets('архивная инвестиция показывает отметки без кнопки', (
@@ -1180,7 +1267,8 @@ void main() {
       ),
       findsOneWidget,
     );
-    expect(find.byIcon(Icons.lock_outline), findsNothing);
+    expect(find.byIcon(Icons.lock), findsNothing);
+    expect(find.byIcon(Icons.lock_open), findsNothing);
   });
 }
 

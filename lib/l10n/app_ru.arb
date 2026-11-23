@@ -971,9 +971,35 @@
   "@lockedEditAction": {
     "description": "Действие изменения отметки блокировки валютной позиции."
   },
-  "lockedErrorExceeds": "Сумма превышает остаток в этой валюте.",
+  "lockedEditActionFor": "Изменить заблокированную сумму: {currency}",
+  "@lockedEditActionFor": {
+    "description": "Действие изменения отметки с указанием валюты.",
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "lockedErrorExceeds": "Сумма превышает остаток: доступно {available}.",
   "@lockedErrorExceeds": {
-    "description": "Ошибка превышения баланса валютной позиции."
+    "description": "Ошибка превышения баланса с доступной суммой.",
+    "placeholders": {
+      "available": {
+        "type": "String"
+      }
+    }
+  },
+  "lockedErrorAmount": "Введите сумму блокировки.",
+  "@lockedErrorAmount": {
+    "description": "Ошибка невалидной суммы блокировки."
+  },
+  "lockedSaveError": "Не удалось сохранить отметку. Попробуйте позже.",
+  "@lockedSaveError": {
+    "description": "Ошибка сохранения отметки блокировки."
+  },
+  "lockedClearHint": "Очистите поле или введите 0, чтобы снять отметку.",
+  "@lockedClearHint": {
+    "description": "Пояснение, как снять отметку блокировки."
   },
   "lockedSaved": "Заблокированная сумма сохранена.",
   "@lockedSaved": {

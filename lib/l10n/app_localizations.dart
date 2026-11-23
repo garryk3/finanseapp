@@ -1384,11 +1384,35 @@ abstract class AppLocalizations {
   /// **'Изменить заблокированную сумму'**
   String get lockedEditAction;
 
-  /// Ошибка превышения баланса валютной позиции.
+  /// Действие изменения отметки с указанием валюты.
   ///
   /// In ru, this message translates to:
-  /// **'Сумма превышает остаток в этой валюте.'**
-  String get lockedErrorExceeds;
+  /// **'Изменить заблокированную сумму: {currency}'**
+  String lockedEditActionFor(String currency);
+
+  /// Ошибка превышения баланса с доступной суммой.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сумма превышает остаток: доступно {available}.'**
+  String lockedErrorExceeds(String available);
+
+  /// Ошибка невалидной суммы блокировки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Введите сумму блокировки.'**
+  String get lockedErrorAmount;
+
+  /// Ошибка сохранения отметки блокировки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось сохранить отметку. Попробуйте позже.'**
+  String get lockedSaveError;
+
+  /// Пояснение, как снять отметку блокировки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Очистите поле или введите 0, чтобы снять отметку.'**
+  String get lockedClearHint;
 
   /// Подтверждение сохранения отметки блокировки.
   ///

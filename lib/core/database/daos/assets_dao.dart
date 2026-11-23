@@ -323,7 +323,8 @@ class AssetsDao extends DatabaseAccessor<AppDatabase> with _$AssetsDaoMixin {
       );
     }
     if (currencyCode != asset.currencyCode &&
-        await countReferences(assetId) > 0) {
+        (await countReferences(assetId) > 0 ||
+            (await lockedRowsForAsset(assetId)).isNotEmpty)) {
       throw const DomainException(
         DomainErrorCode.validation,
         fieldErrors: {'currencyCode': 'validationCurrencyLocked'},

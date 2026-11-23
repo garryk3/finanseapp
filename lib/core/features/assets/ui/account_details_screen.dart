@@ -169,12 +169,12 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
               ],
               if (isInvestment) ...[
                 AppSectionHeader(title: l10n.lockedAssetsTitle, padded: false),
-                for (var i = 0; i < vm.breakdown.value.length; i++) ...[
+                for (var i = 0; i < _lockedRows(vm).length; i++) ...[
                   if (i > 0) const AppDivider(),
                   _lockedTile(
                     l10n,
                     vm,
-                    vm.breakdown.value[i],
+                    _lockedRows(vm)[i],
                     readOnly: isArchived,
                   ),
                 ],
@@ -480,28 +480,44 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
     if (context.mounted) context.pop();
   }
 
+  /// Строки блокировки: все позиции breakdown + «осиротевшие» отметки,
+  /// валюта которых уже вышла из breakdown (чтобы их можно было снять).
+  List<Money> _lockedRows(AccountDetailsViewModel vm) {
+    final balances = vm.breakdown.value;
+    final codes = {for (final money in balances) money.currencyCode};
+    final orphanCodes = [
+      for (final money in vm.locked.value)
+        if (!codes.contains(money.currencyCode)) money.currencyCode,
+    ]..sort();
+    return [
+      ...balances,
+      for (final code in orphanCodes) Money(minorUnits: 0, currencyCode: code),
+    ];
+  }
+
   Widget _lockedTile(
     AppLocalizations l10n,
     AccountDetailsViewModel vm,
     Money balance, {
     required bool readOnly,
   }) {
-    final title = _currencyLabel(balance.currencyCode);
+    final currency = _currencyLabel(balance.currencyCode);
     final locked = _lockedFor(vm.locked.value, balance.currencyCode);
-    final subtitle = locked == null
+    final title = locked == null
         ? l10n.lockedNotMarked
         : l10n.lockedAmountSubtitle(_money(locked));
     return AppListTile(
       title: title,
-      subtitle: subtitle,
+      subtitle: currency,
+      onTap: readOnly ? null : () => _editLocked(vm, balance),
       trailing: readOnly
           ? null
           : AppIconButton(
-              icon: Icons.lock_outline,
-              tooltip: l10n.lockedEditAction,
+              icon: locked == null ? Icons.lock_open : Icons.lock,
+              tooltip: l10n.lockedEditActionFor(currency),
               onPressed: vm.busy.value ? null : () => _editLocked(vm, balance),
             ),
-      semanticLabel: '$title, $subtitle',
+      semanticLabel: '$currency, $title',
     );
   }
 
@@ -514,6 +530,7 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
 
   Future<void> _editLocked(AccountDetailsViewModel vm, Money balance) async {
     final l10n = AppLocalizations.of(context);
+    final wasLocked = _lockedFor(vm.locked.value, balance.currencyCode) != null;
     final saved = await showAppDialog<Money>(
       context: context,
       builder: (context) => _LockedAmountDialog(
@@ -524,6 +541,7 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
       ),
     );
     if (!mounted || saved == null) return;
+    if (saved.isZero && !wasLocked) return;
     showAppSnackBar(
       context,
       message: saved.isZero ? l10n.lockedRemoved : l10n.lockedSaved,
@@ -608,7 +626,7 @@ class _LockedAmountDialogState extends State<_LockedAmountDialog> {
     } else {
       final parsed = parseOpeningAmount(raw, widget.currency);
       if (parsed == null) {
-        setState(() => _error = l10n.valuationErrorValue);
+        setState(() => _error = l10n.lockedErrorAmount);
         return;
       }
       amount = parsed;
@@ -626,8 +644,13 @@ class _LockedAmountDialogState extends State<_LockedAmountDialog> {
       setState(() {
         _saving = false;
         _error = key == 'validationLockedExceedsBalance'
-            ? l10n.lockedErrorExceeds
-            : l10n.errorStateMessage;
+            ? l10n.lockedErrorExceeds(
+                const MoneyFormatter().format(
+                  widget.available,
+                  widget.currency,
+                ),
+              )
+            : l10n.lockedSaveError;
       });
       return;
     }
@@ -643,17 +666,30 @@ class _LockedAmountDialogState extends State<_LockedAmountDialog> {
         : '${currency.name} (${currency.code})';
     return AppDialog(
       title: AppText(l10n.lockedEditTitle),
-      content: AppAmountField(
-        controller: _controller,
-        label: label,
-        currencySuffix: currency.code,
-        maxFractionDigits: currency.fractionDigits,
-        helperText: l10n.lockedAvailableHint(
-          const MoneyFormatter().format(widget.available, currency),
-        ),
-        errorText: _error,
-        enabled: !_saving,
-        autofocus: true,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          AppAmountField(
+            controller: _controller,
+            label: label,
+            currencySuffix: currency.code,
+            maxFractionDigits: currency.fractionDigits,
+            helperText: l10n.lockedAvailableHint(
+              const MoneyFormatter().format(widget.available, currency),
+            ),
+            errorText: _error,
+            enabled: !_saving,
+            autofocus: true,
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          AppText(
+            l10n.lockedClearHint,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
       ),
       actions: [
         AppButton(

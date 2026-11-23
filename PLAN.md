@@ -699,6 +699,23 @@
 - **DoD:** общий DoD + миграционный тест v3→v4 + dump v4; task-reviewer +
   design-reviewer; android-tester коротким прогоном; статус `[x]` до PR; e2e — спросить.
 - **Предлагаемый commit:** `task/18.3: заблокированные активы — хранение и маркировка`.
+- **Итог:** схема v4 (таблица `investment_locked_amounts`, PK
+  `(asset_id, currency_code)`, FK RESTRICT, миграция v3→v4, dump/generated);
+  L1–L5: DAO upsert/0→delete/validation, cascade в `deleteIfUnused`,
+  `referenceCounts` без отметок, `readsFrom` для `watchById`;
+  `AssetSnapshot.lockedBalances`/`locked`; репозиторные `setLockedAmount`/
+  `lockedAmounts` с проверкой через `investmentBalances`; VM `locked`/
+  `setLockedAmount`; секция «Заблокированные активы» на экране инвестиции
+  (строки по breakdown + осиротевшие отметки, сумма крупно, lock/lock_open,
+  tap по строке и кнопке, диалог с подсказкой снятия, доступным остатком в
+  ошибке, snackbar только при реальном изменении); архив read-only.
+  По design-review: иерархия суммы, осиротевшие валюты, иконки состояния,
+  a11y-подписи с валютой, 320dp/1.3/dark-тест. По task-review: смена валюты
+  инвестиции с отметками запрещена (`validationCurrencyLocked`), stream-тест
+  `readsFrom`/`watchById` после `setLockedAmount`. 18 новых тестов, всего 838;
+  format/analyze чисто; e2e не запускался.
+- **WILL ROT 18.3:** секция блокировки отдельная по L5 (дублирует валюты из
+  состава; возможное слияние в строки состава — полировка 18.x).
 
 ### 18.4 Заблокированные активы: блок на главном экране — [ ]
 
