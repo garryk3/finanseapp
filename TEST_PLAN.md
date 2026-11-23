@@ -3147,3 +3147,9 @@ versionName 0.1.2 до bump — ожидаемо), эмулятор `emulator-55
   (= 100 000 + 110×90). `logcat`: совпадений `FATAL`/`E/flutter` нет.
 - **Доказательства:** скриншоты `tc200_wrap_valuation.png` (оценка) и
   `tc200_wrap_operation.png` (снятие) — обе строки сообщения читаются.
+
+## E2E Linux (release candidate v0.9.0, 2026-11-23)
+
+`flutter test integration_test -d linux` на main (`3ab1ceb`): **9/9 PASS**
+(cashflow, settings, transactions, analytics — включая табы, goals, app smoke,
+backup, assets).
