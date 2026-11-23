@@ -1,6 +1,6 @@
 # Drift-схема и транзакции записи
 
-Это нормативная схема `AppDatabase.schemaVersion = 3`. Имена таблиц/колонок в Dart —
+Это нормативная схема `AppDatabase.schemaVersion = 4`. Имена таблиц/колонок в Dart —
 lowerCamelCase, в SQLite — snake_case. Ни одна задача не меняет тип, constraint или
 индекс без обновления этого документа, schema dump и миграционного теста.
 
@@ -268,13 +268,15 @@ Unique partial index `(kind, normalizedName) WHERE archivedAt IS NULL`;
 
 - `AppDatabase` принимает `QueryExecutor`; production path —
   `<applicationDocuments>/finanseapp.sqlite` из `app_database_path.dart`.
-- `schemaVersion = 3`, `onCreate`: все таблицы/индексы v1–v3, затем
+- `schemaVersion = 4`, `onCreate`: все таблицы/индексы v1–v4, затем
   `ReferenceSeeder.seed` внутри одной транзакции. `onUpgrade` из v1: создать
   `recurring_cashflow_rules`, добавить `cashflow_entries.recurring_rule_id`, применить
   runtime-DDL `schemaObjectsV2` (частичные unique-индексы), затем добавить
-  `asset_transactions.currency_code` и `asset_valuations.currency_code`. Из v2:
-  те же две nullable-колонки. Runtime-DDL v3 не нужен: FK на `currencies.code`
-  объявлен в таблицах и создаётся вместе с ними.
+  `asset_transactions.currency_code` и `asset_valuations.currency_code`, затем создать
+  `investment_locked_amounts`. Из v2: те же две nullable-колонки и таблица отметок.
+  Из v3: только `createTable(investment_locked_amounts)`. Runtime-DDL v3/v4 не нужен:
+  FK на `currencies.code` объявлен в таблицах и создаётся вместе с ними, PK отметок
+  `(asset_id, currency_code)` создаётся вместе с таблицей.
 - `beforeOpen`: `PRAGMA foreign_keys = ON`; в release не выполняются destructive fallback,
   `deleteAllTables` или молчаливая подмена схемы.
 - После каждой схемной задачи: `dart run build_runner build --delete-conflicting-outputs`,
@@ -283,6 +285,8 @@ Unique partial index `(kind, normalizedName) WHERE archivedAt IS NULL`;
   `PRAGMA integrity_check`; seed запускается дважды без дублей и перезаписи rename.
   Тест v2→v3 на файловой БД проверяет `user_version`, наличие nullable-колонок
   (`PRAGMA table_info`), целостность старых строк и чтение их в валюте актива.
+  Тест v3→v4 проверяет `user_version = 4`, колонки/PK/CHECK/FK `investment_locked_amounts`,
+  целостность старых строк и установку отметки через репозиторий после апгрейда.
 - При будущем импорте более старой схемы она открывается только через новый AppDatabase,
   который выполняет последовательный upgrade **до** открытия приложения.
 
@@ -384,3 +388,25 @@ catch-up: ставка > 0 и актив не архивный → upsert (ма�
 soft delete; повторное включение восстанавливает ту же строку с маркером, поэтому
 проценты не дублируются. Начисления — обычные связанные пары `deposit + income`
 с `recurring_rule_id`; сумма считается от фактического баланса на дату.
+
+## 11. Заблокированные активы (schema v4)
+
+### `investment_locked_amounts`
+
+| Колонка | Тип / ограничения |
+|---|---|
+| `assetId` | INTEGER NOT NULL → assets RESTRICT |
+| `currencyCode` | TEXT NOT NULL → currencies RESTRICT |
+| `amountMinor` | INTEGER NOT NULL `> 0` |
+| `createdAt` / `updatedAt` | TEXT NOT NULL UTC |
+
+PK `(assetId, currencyCode)` — одна отметка на валюту инвестиции. Повторная установка
+делает upsert (`updatedAt` обновляется, `createdAt` сохраняется); `amountMinor = 0`
+удаляет строку. SQL не проверяет kind актива: инвестицию, известную валюту и баланс
+проверяют DAO и репозиторий до записи (BR-A-9): `0 < amount <=` баланс валютной
+позиции из `investmentBalances`. Отметка не пересчитывается при последующем изменении
+баланса и не входит в `referenceCounts` (BR-A-5), потому что удаляется вместе с
+активом в той же транзакции `deleteIfUnused` (FK RESTRICT). Архивация отметки
+сохраняет; UI архивной инвестиции работает read-only. Стоимость актива, `net worth`
+и валютные позиции отметки не меняют (D4). Индексов нет: выборки идут по PK
+`asset_id` и батчем по всем строкам для снапшотов.

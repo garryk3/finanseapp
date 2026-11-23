@@ -49,6 +49,7 @@ class AccountDetailsViewModel {
   final Signal<List<AssetValuation>> valuationHistory = signal(const []);
   final Signal<Money?> balance = signal(null);
   final Signal<List<Money>> breakdown = signal(const []);
+  final Signal<List<Money>> locked = signal(const []);
   final Signal<Money?> forecast = signal(null);
   final Signal<bool> busy = signal(false);
   final Signal<String?> error = signal(null);
@@ -114,6 +115,7 @@ class AccountDetailsViewModel {
       currency.value = loadedCurrency;
       balance.value = snapshot.currentValue;
       breakdown.value = snapshot.breakdown;
+      locked.value = snapshot.locked;
       if (loaded is AccountAsset) {
         account.value = loaded;
         forecast.value = AccountForecastCalculator.call(
@@ -209,6 +211,28 @@ class AccountDetailsViewModel {
         isEnabled: true,
       ),
     );
+  }
+
+  /// Сохраняет/снимает отметку блокировки по валюте (L2).
+  ///
+  /// Ноль удаляет отметку. После записи снимок и сигнал [locked]
+  /// обновляются через существующий стрим `watchById` и явный reload.
+  Future<Result<void>> setLockedAmount(
+    String currencyCode,
+    Money amount,
+  ) async {
+    busy.value = true;
+    try {
+      await repository.setLockedAmount(assetId, currencyCode, amount);
+      await load();
+      return const Success(null);
+    } on DomainException catch (error) {
+      return Failure(error);
+    } on Exception {
+      return const Failure(DomainException(DomainErrorCode.storageFailure));
+    } finally {
+      busy.value = false;
+    }
   }
 
   Future<Result<void>> archive() async {

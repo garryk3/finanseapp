@@ -177,6 +177,16 @@ final class _Assets implements AssetRepository {
 
   @override
   Future<List<AssetValuation>> valuations(int id) => throw UnimplementedError();
+
+  @override
+  Future<void> setLockedAmount(
+    int assetId,
+    String currencyCode,
+    Money amount,
+  ) async {}
+
+  @override
+  Future<List<Money>> lockedAmounts(int assetId) async => const [];
 }
 
 final class _Categories implements CategoryRepository {

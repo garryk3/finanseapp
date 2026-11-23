@@ -2,21 +2,25 @@ import 'package:finanseapp/app/routes.dart';
 import 'package:finanseapp/app/theme/app_spacing.dart';
 import 'package:finanseapp/core/domain/common/currency.dart';
 import 'package:finanseapp/core/domain/common/money.dart';
+import 'package:finanseapp/core/domain/common/money_math.dart';
 import 'package:finanseapp/core/domain/common/result.dart';
 import 'package:finanseapp/core/features/assets/domain/asset.dart';
 import 'package:finanseapp/core/features/assets/domain/asset_valuation.dart';
 import 'package:finanseapp/core/features/assets/ui/account_details_view_model.dart';
+import 'package:finanseapp/core/features/assets/ui/account_form_view_model.dart';
 import 'package:finanseapp/core/features/assets/ui/property_cashflow_section.dart';
 import 'package:finanseapp/core/features/recurring/ui/recurring_rules_section.dart';
 import 'package:finanseapp/core/presentation/date_formatter.dart';
 import 'package:finanseapp/core/presentation/money_formatter.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
+import 'package:finanseapp/uikit/app_amount_field.dart';
 import 'package:finanseapp/uikit/app_button.dart';
 import 'package:finanseapp/uikit/app_chip.dart';
 import 'package:finanseapp/uikit/app_confirm_dialog.dart';
 import 'package:finanseapp/uikit/app_dialog.dart';
 import 'package:finanseapp/uikit/app_divider.dart';
 import 'package:finanseapp/uikit/app_error_state.dart';
+import 'package:finanseapp/uikit/app_icon_button.dart';
 import 'package:finanseapp/uikit/app_list_tile.dart';
 import 'package:finanseapp/uikit/app_list_view.dart';
 import 'package:finanseapp/uikit/app_money_text.dart';
@@ -160,6 +164,18 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                     semanticLabel:
                         '${_currencyLabel(vm.breakdown.value[i].currencyCode)}: '
                         '${_money(vm.breakdown.value[i])}',
+                  ),
+                ],
+              ],
+              if (isInvestment) ...[
+                AppSectionHeader(title: l10n.lockedAssetsTitle, padded: false),
+                for (var i = 0; i < _lockedRows(vm).length; i++) ...[
+                  if (i > 0) const AppDivider(),
+                  _lockedTile(
+                    l10n,
+                    vm,
+                    _lockedRows(vm)[i],
+                    readOnly: isArchived,
                   ),
                 ],
               ],
@@ -464,6 +480,74 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
     if (context.mounted) context.pop();
   }
 
+  /// Строки блокировки: все позиции breakdown + «осиротевшие» отметки,
+  /// валюта которых уже вышла из breakdown (чтобы их можно было снять).
+  List<Money> _lockedRows(AccountDetailsViewModel vm) {
+    final balances = vm.breakdown.value;
+    final codes = {for (final money in balances) money.currencyCode};
+    final orphanCodes = [
+      for (final money in vm.locked.value)
+        if (!codes.contains(money.currencyCode)) money.currencyCode,
+    ]..sort();
+    return [
+      ...balances,
+      for (final code in orphanCodes) Money(minorUnits: 0, currencyCode: code),
+    ];
+  }
+
+  Widget _lockedTile(
+    AppLocalizations l10n,
+    AccountDetailsViewModel vm,
+    Money balance, {
+    required bool readOnly,
+  }) {
+    final currency = _currencyLabel(balance.currencyCode);
+    final locked = _lockedFor(vm.locked.value, balance.currencyCode);
+    final title = locked == null
+        ? l10n.lockedNotMarked
+        : l10n.lockedAmountSubtitle(_money(locked));
+    return AppListTile(
+      title: title,
+      subtitle: currency,
+      onTap: readOnly ? null : () => _editLocked(vm, balance),
+      trailing: readOnly
+          ? null
+          : AppIconButton(
+              icon: locked == null ? Icons.lock_open : Icons.lock,
+              tooltip: l10n.lockedEditActionFor(currency),
+              onPressed: vm.busy.value ? null : () => _editLocked(vm, balance),
+            ),
+      semanticLabel: '$currency, $title',
+    );
+  }
+
+  Money? _lockedFor(List<Money> items, String currencyCode) {
+    for (final item in items) {
+      if (item.currencyCode == currencyCode) return item;
+    }
+    return null;
+  }
+
+  Future<void> _editLocked(AccountDetailsViewModel vm, Money balance) async {
+    final l10n = AppLocalizations.of(context);
+    final wasLocked = _lockedFor(vm.locked.value, balance.currencyCode) != null;
+    final saved = await showAppDialog<Money>(
+      context: context,
+      builder: (context) => _LockedAmountDialog(
+        currency: _currencyFor(balance.currencyCode),
+        available: balance,
+        initialAmount: _lockedFor(vm.locked.value, balance.currencyCode),
+        onSave: (amount) => vm.setLockedAmount(balance.currencyCode, amount),
+      ),
+    );
+    if (!mounted || saved == null) return;
+    if (saved.isZero && !wasLocked) return;
+    showAppSnackBar(
+      context,
+      message: saved.isZero ? l10n.lockedRemoved : l10n.lockedSaved,
+    );
+  }
+
   String _money(Money? money, {Currency? currency}) {
     if (money == null) return '—';
     final effective = currency ?? _currencyFor(money.currencyCode);
@@ -486,6 +570,136 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
   String _currencyLabel(String code) {
     final currency = _currencyFor(code);
     return currency.name == code ? code : '${currency.name} ($code)';
+  }
+}
+
+/// Ввод заблокированной суммы в валюте позиции (L5).
+///
+/// Пустое поле или 0 снимают отметку; ошибка превышения показывается
+/// под полем, диалог остаётся открытым. Возвращает сохранённую сумму.
+class _LockedAmountDialog extends StatefulWidget {
+  const _LockedAmountDialog({
+    required this.currency,
+    required this.available,
+    required this.onSave,
+    this.initialAmount,
+  });
+
+  final Currency currency;
+  final Money available;
+  final Money? initialAmount;
+  final Future<Result<void>> Function(Money amount) onSave;
+
+  @override
+  State<_LockedAmountDialog> createState() => _LockedAmountDialogState();
+}
+
+class _LockedAmountDialogState extends State<_LockedAmountDialog> {
+  late final TextEditingController _controller;
+  String? _error;
+  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final initial = widget.initialAmount;
+    _controller = TextEditingController(
+      text: initial == null
+          ? ''
+          : MoneyMath.toDecimal(initial, widget.currency).toString(),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    if (_saving) return;
+    final l10n = AppLocalizations.of(context);
+    final raw = _controller.text.trim();
+    final Money amount;
+    if (raw.isEmpty) {
+      amount = Money(minorUnits: 0, currencyCode: widget.currency.code);
+    } else {
+      final parsed = parseOpeningAmount(raw, widget.currency);
+      if (parsed == null) {
+        setState(() => _error = l10n.lockedErrorAmount);
+        return;
+      }
+      amount = parsed;
+    }
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
+    final result = await widget.onSave(amount);
+    if (!mounted) return;
+    if (result is Failure<void>) {
+      final key = result.error.fieldErrors.values.isEmpty
+          ? ''
+          : result.error.fieldErrors.values.first;
+      setState(() {
+        _saving = false;
+        _error = key == 'validationLockedExceedsBalance'
+            ? l10n.lockedErrorExceeds(
+                const MoneyFormatter().format(
+                  widget.available,
+                  widget.currency,
+                ),
+              )
+            : l10n.lockedSaveError;
+      });
+      return;
+    }
+    Navigator.of(context).pop(amount);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final currency = widget.currency;
+    final label = currency.name == currency.code
+        ? currency.code
+        : '${currency.name} (${currency.code})';
+    return AppDialog(
+      title: AppText(l10n.lockedEditTitle),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          AppAmountField(
+            controller: _controller,
+            label: label,
+            currencySuffix: currency.code,
+            maxFractionDigits: currency.fractionDigits,
+            helperText: l10n.lockedAvailableHint(
+              const MoneyFormatter().format(widget.available, currency),
+            ),
+            errorText: _error,
+            enabled: !_saving,
+            autofocus: true,
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          AppText(
+            l10n.lockedClearHint,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        AppButton(
+          label: l10n.commonCancel,
+          variant: AppButtonVariant.text,
+          onPressed: _saving ? null : () => Navigator.of(context).pop(),
+        ),
+        AppButton(label: l10n.commonSave, pending: _saving, onPressed: _submit),
+      ],
+    );
   }
 }
 

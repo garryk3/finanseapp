@@ -17,7 +17,7 @@ import '../../generated_migrations/schema_v2.dart' as v2;
 /// проверяется отсутствие новых объектов, наличие nullable-колонок и целостность
 /// старых строк.
 void main() {
-  test('v2→v3: user_version=3, currency_code и данные целы', () async {
+  test('v2→текущая: user_version=4, currency_code и данные целы', () async {
     final directory = await Directory.systemTemp.createTemp(
       'finanseapp_migration_',
     );
@@ -33,7 +33,15 @@ void main() {
     await db.customSelect('SELECT 1').get();
 
     final version = await db.customSelect('PRAGMA user_version').getSingle();
-    expect(version.read<int>('user_version'), 3);
+    expect(version.read<int>('user_version'), 4);
+
+    final tables = await db
+        .customSelect("SELECT name FROM sqlite_master WHERE type = 'table'")
+        .get();
+    expect(
+      tables.map((row) => row.read<String>('name')),
+      contains('investment_locked_amounts'),
+    );
 
     for (final table in ['asset_transactions', 'asset_valuations']) {
       final columns = await db

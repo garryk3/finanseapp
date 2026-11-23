@@ -38,6 +38,7 @@ import 'package:finanseapp/core/database/tables/currencies.dart';
 import 'package:finanseapp/core/database/tables/exchange_rates.dart';
 import 'package:finanseapp/core/database/tables/goal_assets.dart';
 import 'package:finanseapp/core/database/tables/goals.dart';
+import 'package:finanseapp/core/database/tables/investment_locked_amounts.dart';
 import 'package:finanseapp/core/database/tables/recurring_cashflow_rules.dart';
 import 'package:finanseapp/core/database/tables/subgroups.dart';
 
@@ -47,7 +48,7 @@ part 'app_database.g.dart';
 const appDatabaseApplicationId = 0x464E4150;
 
 /// Текущая версия схемы БД; используется backup-валидацией.
-const appDatabaseSchemaVersion = 3;
+const appDatabaseSchemaVersion = 4;
 
 /// Схема v1 FinanseApp (data_schema).
 ///
@@ -73,6 +74,7 @@ const appDatabaseSchemaVersion = 3;
     GoalAssets,
     AppSettings,
     RecurringCashflowRules,
+    InvestmentLockedAmounts,
   ],
   daos: [
     AssetsDao,
@@ -135,6 +137,11 @@ class AppDatabase extends _$AppDatabase {
         // Валюта операции/оценки (M1); новые runtime-DDL объекты не нужны.
         await m.addColumn(assetTransactions, assetTransactions.currencyCode);
         await m.addColumn(assetValuations, assetValuations.currencyCode);
+      }
+      if (from < 4) {
+        // Отметки заблокированных сумм по валютам инвестиции (L1).
+        // PK создаётся вместе с таблицей; runtime-DDL не нужен.
+        await m.createTable(investmentLockedAmounts);
       }
     },
     beforeOpen: (details) async {

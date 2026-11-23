@@ -1,3 +1,4 @@
+import 'package:finanseapp/core/domain/common/money.dart';
 import 'package:finanseapp/core/features/assets/domain/asset.dart';
 import 'package:finanseapp/core/features/assets/domain/asset_draft.dart';
 import 'package:finanseapp/core/features/assets/domain/asset_valuation.dart';
@@ -47,4 +48,13 @@ abstract interface class AssetRepository {
 
   /// История абсолютных оценок по `(effectiveOn, id)`.
   Future<List<AssetValuation>> valuations(int id);
+
+  /// Устанавливает/снимает отметку заблокированной суммы по валюте (L2).
+  ///
+  /// Нулевая [amount] удаляет отметку. Сумма больше баланса позиции или
+  /// позиции нет — `DomainException(validationLockedExceedsBalance)`.
+  Future<void> setLockedAmount(int assetId, String currencyCode, Money amount);
+
+  /// Отметки заблокированных сумм инвестиции по валютам.
+  Future<List<Money>> lockedAmounts(int assetId);
 }

@@ -8669,6 +8669,407 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettingRow> {
   }
 }
 
+class $InvestmentLockedAmountsTable extends InvestmentLockedAmounts
+    with TableInfo<$InvestmentLockedAmountsTable, InvestmentLockedAmountRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $InvestmentLockedAmountsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _assetIdMeta = const VerificationMeta(
+    'assetId',
+  );
+  @override
+  late final GeneratedColumn<int> assetId = GeneratedColumn<int>(
+    'asset_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES assets (id) ON UPDATE RESTRICT ON DELETE RESTRICT',
+    ),
+  );
+  static const VerificationMeta _currencyCodeMeta = const VerificationMeta(
+    'currencyCode',
+  );
+  @override
+  late final GeneratedColumn<String> currencyCode = GeneratedColumn<String>(
+    'currency_code',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES currencies (code) ON UPDATE RESTRICT ON DELETE RESTRICT',
+    ),
+  );
+  static const VerificationMeta _amountMinorMeta = const VerificationMeta(
+    'amountMinor',
+  );
+  @override
+  late final GeneratedColumn<int> amountMinor = GeneratedColumn<int>(
+    'amount_minor',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (amount_minor > 0)',
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<DateTime, String> createdAt =
+      GeneratedColumn<String>(
+        'created_at',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<DateTime>(
+        $InvestmentLockedAmountsTable.$convertercreatedAt,
+      );
+  @override
+  late final GeneratedColumnWithTypeConverter<DateTime, String> updatedAt =
+      GeneratedColumn<String>(
+        'updated_at',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<DateTime>(
+        $InvestmentLockedAmountsTable.$converterupdatedAt,
+      );
+  @override
+  List<GeneratedColumn> get $columns => [
+    assetId,
+    currencyCode,
+    amountMinor,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'investment_locked_amounts';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<InvestmentLockedAmountRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('asset_id')) {
+      context.handle(
+        _assetIdMeta,
+        assetId.isAcceptableOrUnknown(data['asset_id']!, _assetIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_assetIdMeta);
+    }
+    if (data.containsKey('currency_code')) {
+      context.handle(
+        _currencyCodeMeta,
+        currencyCode.isAcceptableOrUnknown(
+          data['currency_code']!,
+          _currencyCodeMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_currencyCodeMeta);
+    }
+    if (data.containsKey('amount_minor')) {
+      context.handle(
+        _amountMinorMeta,
+        amountMinor.isAcceptableOrUnknown(
+          data['amount_minor']!,
+          _amountMinorMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_amountMinorMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {assetId, currencyCode};
+  @override
+  InvestmentLockedAmountRow map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return InvestmentLockedAmountRow(
+      assetId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}asset_id'],
+      )!,
+      currencyCode: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}currency_code'],
+      )!,
+      amountMinor: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}amount_minor'],
+      )!,
+      createdAt: $InvestmentLockedAmountsTable.$convertercreatedAt.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}created_at'],
+        )!,
+      ),
+      updatedAt: $InvestmentLockedAmountsTable.$converterupdatedAt.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}updated_at'],
+        )!,
+      ),
+    );
+  }
+
+  @override
+  $InvestmentLockedAmountsTable createAlias(String alias) {
+    return $InvestmentLockedAmountsTable(attachedDatabase, alias);
+  }
+
+  static TypeConverter<DateTime, String> $convertercreatedAt =
+      const UtcTimestampConverter();
+  static TypeConverter<DateTime, String> $converterupdatedAt =
+      const UtcTimestampConverter();
+}
+
+class InvestmentLockedAmountRow extends DataClass
+    implements Insertable<InvestmentLockedAmountRow> {
+  final int assetId;
+  final String currencyCode;
+  final int amountMinor;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const InvestmentLockedAmountRow({
+    required this.assetId,
+    required this.currencyCode,
+    required this.amountMinor,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['asset_id'] = Variable<int>(assetId);
+    map['currency_code'] = Variable<String>(currencyCode);
+    map['amount_minor'] = Variable<int>(amountMinor);
+    {
+      map['created_at'] = Variable<String>(
+        $InvestmentLockedAmountsTable.$convertercreatedAt.toSql(createdAt),
+      );
+    }
+    {
+      map['updated_at'] = Variable<String>(
+        $InvestmentLockedAmountsTable.$converterupdatedAt.toSql(updatedAt),
+      );
+    }
+    return map;
+  }
+
+  InvestmentLockedAmountsCompanion toCompanion(bool nullToAbsent) {
+    return InvestmentLockedAmountsCompanion(
+      assetId: Value(assetId),
+      currencyCode: Value(currencyCode),
+      amountMinor: Value(amountMinor),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory InvestmentLockedAmountRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return InvestmentLockedAmountRow(
+      assetId: serializer.fromJson<int>(json['assetId']),
+      currencyCode: serializer.fromJson<String>(json['currencyCode']),
+      amountMinor: serializer.fromJson<int>(json['amountMinor']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'assetId': serializer.toJson<int>(assetId),
+      'currencyCode': serializer.toJson<String>(currencyCode),
+      'amountMinor': serializer.toJson<int>(amountMinor),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  InvestmentLockedAmountRow copyWith({
+    int? assetId,
+    String? currencyCode,
+    int? amountMinor,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => InvestmentLockedAmountRow(
+    assetId: assetId ?? this.assetId,
+    currencyCode: currencyCode ?? this.currencyCode,
+    amountMinor: amountMinor ?? this.amountMinor,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  InvestmentLockedAmountRow copyWithCompanion(
+    InvestmentLockedAmountsCompanion data,
+  ) {
+    return InvestmentLockedAmountRow(
+      assetId: data.assetId.present ? data.assetId.value : this.assetId,
+      currencyCode: data.currencyCode.present
+          ? data.currencyCode.value
+          : this.currencyCode,
+      amountMinor: data.amountMinor.present
+          ? data.amountMinor.value
+          : this.amountMinor,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('InvestmentLockedAmountRow(')
+          ..write('assetId: $assetId, ')
+          ..write('currencyCode: $currencyCode, ')
+          ..write('amountMinor: $amountMinor, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(assetId, currencyCode, amountMinor, createdAt, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is InvestmentLockedAmountRow &&
+          other.assetId == this.assetId &&
+          other.currencyCode == this.currencyCode &&
+          other.amountMinor == this.amountMinor &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class InvestmentLockedAmountsCompanion
+    extends UpdateCompanion<InvestmentLockedAmountRow> {
+  final Value<int> assetId;
+  final Value<String> currencyCode;
+  final Value<int> amountMinor;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const InvestmentLockedAmountsCompanion({
+    this.assetId = const Value.absent(),
+    this.currencyCode = const Value.absent(),
+    this.amountMinor = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  InvestmentLockedAmountsCompanion.insert({
+    required int assetId,
+    required String currencyCode,
+    required int amountMinor,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : assetId = Value(assetId),
+       currencyCode = Value(currencyCode),
+       amountMinor = Value(amountMinor),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<InvestmentLockedAmountRow> custom({
+    Expression<int>? assetId,
+    Expression<String>? currencyCode,
+    Expression<int>? amountMinor,
+    Expression<String>? createdAt,
+    Expression<String>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (assetId != null) 'asset_id': assetId,
+      if (currencyCode != null) 'currency_code': currencyCode,
+      if (amountMinor != null) 'amount_minor': amountMinor,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  InvestmentLockedAmountsCompanion copyWith({
+    Value<int>? assetId,
+    Value<String>? currencyCode,
+    Value<int>? amountMinor,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return InvestmentLockedAmountsCompanion(
+      assetId: assetId ?? this.assetId,
+      currencyCode: currencyCode ?? this.currencyCode,
+      amountMinor: amountMinor ?? this.amountMinor,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (assetId.present) {
+      map['asset_id'] = Variable<int>(assetId.value);
+    }
+    if (currencyCode.present) {
+      map['currency_code'] = Variable<String>(currencyCode.value);
+    }
+    if (amountMinor.present) {
+      map['amount_minor'] = Variable<int>(amountMinor.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<String>(
+        $InvestmentLockedAmountsTable.$convertercreatedAt.toSql(
+          createdAt.value,
+        ),
+      );
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<String>(
+        $InvestmentLockedAmountsTable.$converterupdatedAt.toSql(
+          updatedAt.value,
+        ),
+      );
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('InvestmentLockedAmountsCompanion(')
+          ..write('assetId: $assetId, ')
+          ..write('currencyCode: $currencyCode, ')
+          ..write('amountMinor: $amountMinor, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -8701,6 +9102,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $GoalsTable goals = $GoalsTable(this);
   late final $GoalAssetsTable goalAssets = $GoalAssetsTable(this);
   late final $AppSettingsTable appSettings = $AppSettingsTable(this);
+  late final $InvestmentLockedAmountsTable investmentLockedAmounts =
+      $InvestmentLockedAmountsTable(this);
   late final Index assetsKindArchived = Index(
     'assets_kind_archived',
     'CREATE INDEX assets_kind_archived ON assets (kind, archived_at)',
@@ -8872,6 +9275,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     goals,
     goalAssets,
     appSettings,
+    investmentLockedAmounts,
     assetsKindArchived,
     assetsCurrency,
     assetsArchivedName,
@@ -9073,6 +9477,34 @@ final class $$CurrenciesTableReferences
     );
 
     final cache = $_typedResult.readTableOrNull(_goalsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $InvestmentLockedAmountsTable,
+    List<InvestmentLockedAmountRow>
+  >
+  _investmentLockedAmountsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.investmentLockedAmounts,
+        aliasName: 'currencies__code__investment_locked_amounts__currency_code',
+      );
+
+  $$InvestmentLockedAmountsTableProcessedTableManager
+  get investmentLockedAmountsRefs {
+    final manager =
+        $$InvestmentLockedAmountsTableTableManager(
+          $_db,
+          $_db.investmentLockedAmounts,
+        ).filter(
+          (f) => f.currencyCode.code.sqlEquals($_itemColumn<String>('code')!),
+        );
+
+    final cache = $_typedResult.readTableOrNull(
+      _investmentLockedAmountsRefsTable($_db),
+    );
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -9291,6 +9723,32 @@ class $$CurrenciesTableFilterComposer
                 $removeJoinBuilderFromRootComposer,
           ),
     );
+    return f(composer);
+  }
+
+  Expression<bool> investmentLockedAmountsRefs(
+    Expression<bool> Function($$InvestmentLockedAmountsTableFilterComposer f) f,
+  ) {
+    final $$InvestmentLockedAmountsTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.code,
+          referencedTable: $db.investmentLockedAmounts,
+          getReferencedColumn: (t) => t.currencyCode,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$InvestmentLockedAmountsTableFilterComposer(
+                $db: $db,
+                $table: $db.investmentLockedAmounts,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
     return f(composer);
   }
 }
@@ -9542,6 +10000,33 @@ class $$CurrenciesTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> investmentLockedAmountsRefs<T extends Object>(
+    Expression<T> Function($$InvestmentLockedAmountsTableAnnotationComposer a)
+    f,
+  ) {
+    final $$InvestmentLockedAmountsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.code,
+          referencedTable: $db.investmentLockedAmounts,
+          getReferencedColumn: (t) => t.currencyCode,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$InvestmentLockedAmountsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.investmentLockedAmounts,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
 }
 
 class $$CurrenciesTableTableManager
@@ -9565,6 +10050,7 @@ class $$CurrenciesTableTableManager
             bool cashflowEntriesRefs,
             bool exchangeRatesRefs,
             bool goalsRefs,
+            bool investmentLockedAmountsRefs,
           })
         > {
   $$CurrenciesTableTableManager(_$AppDatabase db, $CurrenciesTable table)
@@ -9631,6 +10117,7 @@ class $$CurrenciesTableTableManager
                 cashflowEntriesRefs = false,
                 exchangeRatesRefs = false,
                 goalsRefs = false,
+                investmentLockedAmountsRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
@@ -9642,6 +10129,7 @@ class $$CurrenciesTableTableManager
                     if (cashflowEntriesRefs) db.cashflowEntries,
                     if (exchangeRatesRefs) db.exchangeRates,
                     if (goalsRefs) db.goals,
+                    if (investmentLockedAmountsRefs) db.investmentLockedAmounts,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -9786,6 +10274,26 @@ class $$CurrenciesTableTableManager
                           referencedColumn: 'currency_code',
                           typedResults: items,
                         ),
+                      if (investmentLockedAmountsRefs)
+                        await $_getPrefetchedDataByColumns<
+                          CurrencyRow,
+                          $CurrenciesTable,
+                          InvestmentLockedAmountRow,
+                          $InvestmentLockedAmountsTable
+                        >(
+                          currentTable: table,
+                          referencedTable: $$CurrenciesTableReferences
+                              ._investmentLockedAmountsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$CurrenciesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).investmentLockedAmountsRefs,
+                          currentColumn: 'code',
+                          referencedColumn: 'currency_code',
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -9814,6 +10322,7 @@ typedef $$CurrenciesTableProcessedTableManager =
         bool cashflowEntriesRefs,
         bool exchangeRatesRefs,
         bool goalsRefs,
+        bool investmentLockedAmountsRefs,
       })
     >;
 typedef $$AssetsTableCreateCompanionBuilder = AssetsCompanion Function({
@@ -10054,6 +10563,31 @@ final class $$AssetsTableReferences
     ).filter((f) => f.assetId.id.sqlEquals($_itemColumn<int>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_goalAssetsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $InvestmentLockedAmountsTable,
+    List<InvestmentLockedAmountRow>
+  >
+  _investmentLockedAmountsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.investmentLockedAmounts,
+        aliasName: 'assets__id__investment_locked_amounts__asset_id',
+      );
+
+  $$InvestmentLockedAmountsTableProcessedTableManager
+  get investmentLockedAmountsRefs {
+    final manager = $$InvestmentLockedAmountsTableTableManager(
+      $_db,
+      $_db.investmentLockedAmounts,
+    ).filter((f) => f.assetId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _investmentLockedAmountsRefsTable($_db),
+    );
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -10374,6 +10908,32 @@ class $$AssetsTableFilterComposer
                 $removeJoinBuilderFromRootComposer,
           ),
     );
+    return f(composer);
+  }
+
+  Expression<bool> investmentLockedAmountsRefs(
+    Expression<bool> Function($$InvestmentLockedAmountsTableFilterComposer f) f,
+  ) {
+    final $$InvestmentLockedAmountsTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.investmentLockedAmounts,
+          getReferencedColumn: (t) => t.assetId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$InvestmentLockedAmountsTableFilterComposer(
+                $db: $db,
+                $table: $db.investmentLockedAmounts,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
     return f(composer);
   }
 }
@@ -10749,6 +11309,33 @@ class $$AssetsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> investmentLockedAmountsRefs<T extends Object>(
+    Expression<T> Function($$InvestmentLockedAmountsTableAnnotationComposer a)
+    f,
+  ) {
+    final $$InvestmentLockedAmountsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.investmentLockedAmounts,
+          getReferencedColumn: (t) => t.assetId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$InvestmentLockedAmountsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.investmentLockedAmounts,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
 }
 
 class $$AssetsTableTableManager
@@ -10776,6 +11363,7 @@ class $$AssetsTableTableManager
             bool propertyEntries,
             bool accountEntries,
             bool goalAssetsRefs,
+            bool investmentLockedAmountsRefs,
           })
         > {
   $$AssetsTableTableManager(_$AppDatabase db, $AssetsTable table)
@@ -10846,6 +11434,7 @@ class $$AssetsTableTableManager
                 propertyEntries = false,
                 accountEntries = false,
                 goalAssetsRefs = false,
+                investmentLockedAmountsRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
@@ -10860,6 +11449,7 @@ class $$AssetsTableTableManager
                     if (propertyEntries) db.cashflowEntries,
                     if (accountEntries) db.cashflowEntries,
                     if (goalAssetsRefs) db.goalAssets,
+                    if (investmentLockedAmountsRefs) db.investmentLockedAmounts,
                   ],
                   addJoins:
                       <
@@ -11093,6 +11683,26 @@ class $$AssetsTableTableManager
                           referencedColumn: 'asset_id',
                           typedResults: items,
                         ),
+                      if (investmentLockedAmountsRefs)
+                        await $_getPrefetchedDataByColumns<
+                          AssetRow,
+                          $AssetsTable,
+                          InvestmentLockedAmountRow,
+                          $InvestmentLockedAmountsTable
+                        >(
+                          currentTable: table,
+                          referencedTable: $$AssetsTableReferences
+                              ._investmentLockedAmountsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$AssetsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).investmentLockedAmountsRefs,
+                          currentColumn: 'id',
+                          referencedColumn: 'asset_id',
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -11125,6 +11735,7 @@ typedef $$AssetsTableProcessedTableManager =
         bool propertyEntries,
         bool accountEntries,
         bool goalAssetsRefs,
+        bool investmentLockedAmountsRefs,
       })
     >;
 typedef $$SubgroupsTableCreateCompanionBuilder = SubgroupsCompanion Function({
@@ -18818,6 +19429,438 @@ typedef $$AppSettingsTableProcessedTableManager =
       AppSettingRow,
       PrefetchHooks Function()
     >;
+typedef $$InvestmentLockedAmountsTableCreateCompanionBuilder =
+    InvestmentLockedAmountsCompanion Function({
+      required int assetId,
+      required String currencyCode,
+      required int amountMinor,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$InvestmentLockedAmountsTableUpdateCompanionBuilder =
+    InvestmentLockedAmountsCompanion Function({
+      Value<int> assetId,
+      Value<String> currencyCode,
+      Value<int> amountMinor,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+final class $$InvestmentLockedAmountsTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $InvestmentLockedAmountsTable,
+          InvestmentLockedAmountRow
+        > {
+  $$InvestmentLockedAmountsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $AssetsTable _assetIdTable(_$AppDatabase db) =>
+      db.assets.createAlias('investment_locked_amounts__asset_id__assets__id');
+
+  $$AssetsTableProcessedTableManager get assetId {
+    final $_column = $_itemColumn<int>('asset_id')!;
+
+    final manager = $$AssetsTableTableManager(
+      $_db,
+      $_db.assets,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_assetIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $CurrenciesTable _currencyCodeTable(_$AppDatabase db) =>
+      db.currencies.createAlias(
+        'investment_locked_amounts__currency_code__currencies__code',
+      );
+
+  $$CurrenciesTableProcessedTableManager get currencyCode {
+    final $_column = $_itemColumn<String>('currency_code')!;
+
+    final manager = $$CurrenciesTableTableManager(
+      $_db,
+      $_db.currencies,
+    ).filter((f) => f.code.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_currencyCodeTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$InvestmentLockedAmountsTableFilterComposer
+    extends Composer<_$AppDatabase, $InvestmentLockedAmountsTable> {
+  $$InvestmentLockedAmountsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<DateTime, DateTime, String> get createdAt =>
+      $composableBuilder(
+        column: $table.createdAt,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnWithTypeConverterFilters<DateTime, DateTime, String> get updatedAt =>
+      $composableBuilder(
+        column: $table.updatedAt,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  $$AssetsTableFilterComposer get assetId {
+    final $$AssetsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.assetId,
+      referencedTable: $db.assets,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AssetsTableFilterComposer(
+            $db: $db,
+            $table: $db.assets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$CurrenciesTableFilterComposer get currencyCode {
+    final $$CurrenciesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.currencyCode,
+      referencedTable: $db.currencies,
+      getReferencedColumn: (t) => t.code,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CurrenciesTableFilterComposer(
+            $db: $db,
+            $table: $db.currencies,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$InvestmentLockedAmountsTableOrderingComposer
+    extends Composer<_$AppDatabase, $InvestmentLockedAmountsTable> {
+  $$InvestmentLockedAmountsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$AssetsTableOrderingComposer get assetId {
+    final $$AssetsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.assetId,
+      referencedTable: $db.assets,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AssetsTableOrderingComposer(
+            $db: $db,
+            $table: $db.assets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$CurrenciesTableOrderingComposer get currencyCode {
+    final $$CurrenciesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.currencyCode,
+      referencedTable: $db.currencies,
+      getReferencedColumn: (t) => t.code,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CurrenciesTableOrderingComposer(
+            $db: $db,
+            $table: $db.currencies,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$InvestmentLockedAmountsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $InvestmentLockedAmountsTable> {
+  $$InvestmentLockedAmountsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => column,
+  );
+
+  GeneratedColumnWithTypeConverter<DateTime, String> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<DateTime, String> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$AssetsTableAnnotationComposer get assetId {
+    final $$AssetsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.assetId,
+      referencedTable: $db.assets,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AssetsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.assets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$CurrenciesTableAnnotationComposer get currencyCode {
+    final $$CurrenciesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.currencyCode,
+      referencedTable: $db.currencies,
+      getReferencedColumn: (t) => t.code,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CurrenciesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.currencies,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$InvestmentLockedAmountsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $InvestmentLockedAmountsTable,
+          InvestmentLockedAmountRow,
+          $$InvestmentLockedAmountsTableFilterComposer,
+          $$InvestmentLockedAmountsTableOrderingComposer,
+          $$InvestmentLockedAmountsTableAnnotationComposer,
+          $$InvestmentLockedAmountsTableCreateCompanionBuilder,
+          $$InvestmentLockedAmountsTableUpdateCompanionBuilder,
+          (InvestmentLockedAmountRow, $$InvestmentLockedAmountsTableReferences),
+          InvestmentLockedAmountRow,
+          PrefetchHooks Function({bool assetId, bool currencyCode})
+        > {
+  $$InvestmentLockedAmountsTableTableManager(
+    _$AppDatabase db,
+    $InvestmentLockedAmountsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$InvestmentLockedAmountsTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$InvestmentLockedAmountsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$InvestmentLockedAmountsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> assetId = const Value.absent(),
+                Value<String> currencyCode = const Value.absent(),
+                Value<int> amountMinor = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => InvestmentLockedAmountsCompanion(
+                assetId: assetId,
+                currencyCode: currencyCode,
+                amountMinor: amountMinor,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required int assetId,
+                required String currencyCode,
+                required int amountMinor,
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => InvestmentLockedAmountsCompanion.insert(
+                assetId: assetId,
+                currencyCode: currencyCode,
+                amountMinor: amountMinor,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<
+                    $InvestmentLockedAmountsTable,
+                    InvestmentLockedAmountRow
+                  >(table),
+                  $$InvestmentLockedAmountsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({assetId = false, currencyCode = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (assetId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.assetId,
+                        referencedTable:
+                            $$InvestmentLockedAmountsTableReferences
+                                ._assetIdTable(db),
+                        referencedColumn:
+                            $$InvestmentLockedAmountsTableReferences
+                                ._assetIdTable(db)
+                                .id,
+                      ) as T;
+                    }
+                    if (currencyCode) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.currencyCode,
+                        referencedTable:
+                            $$InvestmentLockedAmountsTableReferences
+                                ._currencyCodeTable(db),
+                        referencedColumn:
+                            $$InvestmentLockedAmountsTableReferences
+                                ._currencyCodeTable(db)
+                                .code,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$InvestmentLockedAmountsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $InvestmentLockedAmountsTable,
+      InvestmentLockedAmountRow,
+      $$InvestmentLockedAmountsTableFilterComposer,
+      $$InvestmentLockedAmountsTableOrderingComposer,
+      $$InvestmentLockedAmountsTableAnnotationComposer,
+      $$InvestmentLockedAmountsTableCreateCompanionBuilder,
+      $$InvestmentLockedAmountsTableUpdateCompanionBuilder,
+      (InvestmentLockedAmountRow, $$InvestmentLockedAmountsTableReferences),
+      InvestmentLockedAmountRow,
+      PrefetchHooks Function({bool assetId, bool currencyCode})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -18867,4 +19910,9 @@ class $AppDatabaseManager {
       $$GoalAssetsTableTableManager(_db, _db.goalAssets);
   $$AppSettingsTableTableManager get appSettings =>
       $$AppSettingsTableTableManager(_db, _db.appSettings);
+  $$InvestmentLockedAmountsTableTableManager get investmentLockedAmounts =>
+      $$InvestmentLockedAmountsTableTableManager(
+        _db,
+        _db.investmentLockedAmounts,
+      );
 }
