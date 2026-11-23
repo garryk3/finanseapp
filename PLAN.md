@@ -45,6 +45,7 @@
 | 15 | Регулярные платежи и капитализация вкладов | 15.1–15.5 | ✅ | 2026-11-22: QA recheck TC-143…145 PASS; короткий QA 10 SKIP, полный QA v0.1.2 не проводился (решение владельца) |
 | 16 | Видео-заставка при запуске | 16.1 | ✅ | 2026-11-22 |
 | 17 | Числовые поля форм без стартового нуля | 17.1–17.2 | ✅ | 2026-11-22 |
+| 18 | Мультивалютные инвестиции, заблокированные активы, аналитика (v0.9.0) | 18.1–18.8 | 🚧 | — |
 
 ## Этап 16 — Видео-заставка при запуске
 
@@ -215,9 +216,786 @@
   design-reviewer — APPROVE (Medium по `purchasePrice` исправлен); e2e
   не запускался по решению владельца.
 
+## Этап 18 — Мультивалютные инвестиции, заблокированные активы, аналитика (v0.9.0)
+
+**Источник:** TASKS.md 2026-11-22 (перенесено 2026-11-23). Шесть пожеланий владельца:
+мультивалютность инвестиционных счетов; маркировка заблокированных активов + блок на
+главном; «Детализация за месяц» отдельной страницей с фильтрацией пустых периодов;
+табы расходы/доходы в итогах по категориям; цветовая окраска сумм операций; релиз 0.9.0.
+
+**Граф зависимостей:** 18.1 → 18.2 → 18.3 → 18.4; 18.5 → 18.6; 18.7 независима;
+18.8 после всех. Задачи выполнять строго по одной (ветка → PR → squash merge),
+не параллелить задачи, трогающие одни файлы.
+
+**Решения и допущения этапа (не менять молча):**
+- **D1.** Мультивалютность — только инвестиции (`AssetKind.investment`). Обычные счета
+  и квартиры остаются одновалютными; селектор валюты в формах операций/оценок
+  появляется только для инвестиции.
+- **D2.** Заблокированную сумму нельзя ввести больше остатка позиции в этой валюте
+  на момент ввода; при последующем уменьшении остатка отметка не пересчитывается.
+  **Подтверждено владельцем 2026-11-23.**
+- **D3.** «Детализация за месяц» показывает список бакетов выбранного периода
+  (в режиме «Месяц» — дни, в длинных периодах — месяцы, как сейчас), пустые бакеты
+  скрыты; если весь выбранный месяц пуст — «Нет операций за месяц».
+- **D4.** Заблокированные активы не уменьшают стоимость инвестиции и net worth —
+  это только информационная маркировка.
+- **D5.** Релиз — `v0.9.0` без суффикса (последний тег `v0.1.2` без суффикса),
+  версия в pubspec `0.9.0+4` (build-номер +1; versionCode берётся из `+N`).
+- **D6.** Селектор валюты в форме пополнения/снятия по умолчанию заполняется
+  **валютой инвестиции** (основной валютой счёта), а не базовой валютой приложения.
+  **Подтверждено владельцем 2026-11-23** (уточнение формулировки TASKS.md
+  «по умолчанию заполнена базовой»).
+
+### 18.1 Мультивалютные инвестиции: схема v3, расчёты, репозитории — [ ]
+
+- **Приоритет/зависимости:** P1; первая задача этапа, зависимостей нет.
+- **Суть:** инвестиция хранит позиции в нескольких валютах. Операции и оценки
+  получают собственную валюту (по умолчанию — валюта актива). Стоимость считается
+  по каждой валюте отдельно; все итоги (net worth, цели, базовый эквивалент)
+  суммируют позиции с конвертацией в базовую валюту. UI не меняется (кроме
+  автоматического следования данным) — новые элементы UI в 18.2.
+- **Решения (контракты, не менять молча):**
+  - **M1.** Валюта операции/оценки хранится в новой nullable-колонке `currency_code`;
+    `NULL` = валюта актива (совместимость со старыми строками). При записи, если
+    валюта совпадает с валютой актива, пишется `NULL` (нормализация).
+  - **M2.** Для счёта/квартиры операция/оценка в валюте, отличной от валюты актива,
+    → `DomainException(validation, fieldErrors: {'currencyCode':
+    'validationCurrencyMismatch'})`. Для инвестиции допустима любая валюта из
+    справочника (существование проверяет `_rubMinor`/DAO).
+  - **M3.** Стоимость инвестиции по валюте C: последняя оценка в валюте C
+    (`effectiveOn`, тай-брейк `id`) + операции в валюте C с `occurredOn >=` даты
+    оценки (операция той же даты — после оценки, как сейчас). Старт: для валюты
+    актива — `openingValue`, для остальных валют — 0. Удалённые операции игнорируются.
+  - **M4.** `AssetSnapshot.currentValue` остаётся стоимостью в основной валюте
+    актива (первая позиция). Новое опциональное поле `currencyBalances: List<Money>?`
+    и геттер `List<Money> get breakdown => currencyBalances ?? [currentValue]`.
+    Порядок breakdown: основная валюта актива всегда первая (даже с нулём),
+    остальные — по алфавиту кода, только с ненулевым балансом.
+  - **M5.** Итоги считают по `breakdown`: каждая позиция конвертируется отдельно,
+    exact A→RUB→base, одно округление на итог — через `NetWorthCalculator.calculate`
+    (он уже принимает список значений и суммирует по видам). Частичная сумма при
+    нехватке курса не показывается (как в целях): `rateUnavailable`/«Курс недоступен».
+  - **M6.** Переводы — только между счетами (без изменений). Классификация
+    доход/расход — только счета (без изменений). RUB-снимок операции
+    (`amountRubMinor`) считается от валюты операции по её курсу.
+  - **M7.** Snapshot ревизии получает аддитивный ключ `currencyCode` (String?,
+    null = валюта актива); `snapshotSchemaVersion` остаётся 1. Декодер аудита
+    читает ключ с fallback на валюту актива.
+  - **M8.** Фильтр журнала по валюте матчит валюту операции:
+    `t.currency_code = :code OR (t.currency_code IS NULL AND a.currency_code = :code)`.
+- **Files:**
+  - Modify (схема): `lib/core/database/tables/asset_transactions.dart`
+    (+`TextColumn get currencyCode => text().nullable().references(Currencies, #code,
+    onUpdate: KeyAction.restrict, onDelete: KeyAction.restrict)()`),
+    `lib/core/database/tables/asset_valuations.dart` (аналогичная колонка),
+    `lib/core/database/app_database.dart` (`appDatabaseSchemaVersion = 3`;
+    `onUpgrade`: `if (from < 3) { await m.addColumn(assetTransactions,
+    assetTransactions.currencyCode); await m.addColumn(assetValuations,
+    assetValuations.currencyCode); }`; `onCreate` без новых runtime-DDL —
+    список `schemaObjectsV3` не нужен).
+  - Modify (data/domain): `lib/core/database/daos/transactions_dao.dart`
+    (`AssetTransactionInput` +`String? currencyCode`; `create`/`revise` пишут колонку;
+    `_writeRevision` передаёт `currencyCode` в snapshot; `watchFiltered` — фильтр
+    валюты по M8, строки 131–133), `lib/core/database/daos/valuations_dao.dart`
+    (`create` +параметр `String? currencyCode`, запись в Companion),
+    `lib/core/database/revision_snapshots.dart` (`assetTransactionSnapshotFields`
+    +параметр и ключ `currencyCode`), `lib/core/features/transactions/data/
+    asset_transaction_mapper.dart` (`currencyCode: row.currencyCode ?? currencyCode`
+    — параметр остаётся fallback-валютой актива),
+    `lib/core/features/transactions/data/asset_transaction_repository_impl.dart`
+    (`_createTransaction`/`_reviseTransaction`: валюта = `draft.amount.currencyCode`,
+    валидация M2, нормализация M1, `_rubMinor(draft.amount, валютаОперации, rate)`),
+    `lib/core/features/assets/domain/asset.dart` (`AssetSnapshot` по M4),
+    `lib/core/features/assets/domain/asset_value_calculator.dart`
+    (+`static List<Money> investmentBalances(InvestmentAsset asset,
+    List<AssetValuation> valuations, List<AssetTransaction> transactions)` по M3/M4;
+    существующий `investment()` оставить как обёртку — баланс основной валюты),
+    `lib/core/features/assets/data/asset_repository_impl.dart`
+    (`recordValuation`: валюта = `draft.value.currencyCode`, валидация M2 для
+    квартиры, нормализация M1; `_valuationFrom`: `row.currencyCode ?? currencyCode`;
+    `_buildSnapshot` ветка investment: `investmentBalances` → `currentValue` =
+    первая позиция, `currencyBalances` = список),
+    `lib/core/features/audit/data/revision_decoder.dart`
+    (`decodeAssetTransactionSnapshot`: `data['currencyCode'] as String? ?? currencyCode`).
+  - Modify (аналитика): `lib/core/features/analytics/data/analytics_mappers.dart`
+    (+`static Map<String, int> investmentValuesByCurrency(AssetRow asset,
+    Iterable<AssetValuationRow> valuations, Iterable<AssetTransactionRow> transactions,
+    LocalDate onDate)` — группировка строк по `currencyCode ?? asset.currencyCode`,
+    на каждую валюту формула M3 срезом `<= onDate`; `investmentValueMinor` оставить
+    обёрткой основной валюты; `valueMinor` не менять),
+    `lib/core/features/analytics/data/analytics_queries_impl.dart` (`_summaryAt`,
+    строки 135–185: для investment — по записи `NetWorthAssetValue` на каждую валюту
+    из `investmentValuesByCurrency`; валюта каждой позиции берётся из
+    `data.currencies`, при отсутствии — `currencyNotFound`; курсы `_rateFor`
+    грузятся на каждую валюту позиции != базовой; account/property — без изменений).
+  - Modify (потребители): `lib/core/features/goals/logic/goal_calculator.dart`
+    (`assetValues: Map<int, List<Money>>`; суммирование всех Money всех списков),
+    `lib/core/features/goals/logic/calculate_goal_progress.dart` (`load`/`calculate`:
+    тот же тип; конвертация каждого Money списка; нехватка курса любой позиции →
+    `null` целиком), `lib/core/features/goals/ui/goals_view_model.dart:145` и
+    `lib/core/features/goals/ui/goal_details_view_model.dart:131` и
+    `lib/core/features/dashboard/ui/dashboard_view_model.dart:264`
+    (`values[assetId] = snapshot.breakdown`),
+    `lib/core/features/assets/ui/assets_view_model.dart` (`_ensureRates`: коды из
+    `breakdown` всех снапшотов; `baseEquivalent`: при `breakdown.length > 1` —
+    итог всех позиций в базовой валюте через `NetWorthCalculator.calculate`
+    (kind = вид актива), показывается даже если базовая валюта = валюта актива;
+    при одном значении — текущее поведение),
+    `lib/core/features/assets/ui/account_details_view_model.dart`
+    (+сигнал `breakdown: Signal<List<Money>>` из снапшота; `_loadBaseEquivalent`
+    принимает снапшот и суммирует breakdown через `NetWorthCalculator.calculate`;
+    курсы `rateRepository.find(code, today)` на все коды breakdown + базовую;
+    нехватка любого курса → `baseRateUnavailable = true`; при `breakdown.length > 1`
+    базовый эквивалент показывается и при совпадении валют).
+  - Modify (l10n): не требуется (новых строк нет).
+  - Generated (коммитить): `lib/core/database/app_database.g.dart`,
+    `lib/core/database/daos/transactions_dao.g.dart`,
+    `lib/core/database/daos/valuations_dao.g.dart` (`dart run build_runner build`);
+    `drift_schemas/drift_schema_v3.json` (`dart run drift_dev schema dump`);
+    `test/generated_migrations/schema_v3.dart` + обновление
+    `test/generated_migrations/schema.dart` (`dart run drift_dev schema generate`).
+  - Test (create): `test/core/database/migration_v2_v3_test.dart` — образец
+    `test/core/database/migration_v1_v2_test.dart`: файловая БД v2 из
+    `schema_v2.dart` с фикстурами (счёт + инвестиция + операции + оценки),
+    открытие как `AppDatabase` → `user_version = 3`, колонки `currency_code` есть
+    в обеих таблицах (`PRAGMA table_info`), данные целы, старые строки читаются
+    с валютой актива.
+  - Test (modify): `test/core/features/assets/domain/investment_value_calculator_test.dart`
+    (+кейсы `investmentBalances`), `test/core/features/assets/data/
+    investment_repository_test.dart` и `asset_repository_test.dart` (запись валюты,
+    валидация M2, breakdown снапшота), `test/core/database/revision_transaction_test.dart`
+    (ключ `currencyCode` в snapshot), `test/core/features/transactions/data/
+    asset_transaction_repository_test.dart` (RUB-снимок от валюты операции;
+    операция по счёту в чужой валюте → validation),
+    `test/core/features/transactions/ui/transactions_journal_test.dart` или
+    `test/core/features/transactions/data/` (фильтр по валюте операции M8),
+    `test/core/features/analytics/data/net_worth_test.dart` и `net_worth_series_test.dart`
+    (мультивалютная инвестиция в итоге и исторических точках),
+    `test/core/features/goals/logic/goal_calculator_test.dart`,
+    `test/core/features/goals/ui/goals_view_model_test.dart` и
+    `goal_details_view_model_test.dart` (тип `Map<int, List<Money>>`),
+    `test/core/features/assets/ui/assets_view_model_test.dart` и
+    `account_details_view_model_test.dart` (базовый эквивалент = сумма позиций),
+    `test/core/features/dashboard/ui/dashboard_screen_test.dart` (фейки снапшотов —
+    поле опциональное, существующие не ломаются; добавить кейс мультивалютной
+    инвестиции в net worth), тесты аудита (`test/core/features/audit/`) — декодер с ключом и без.
+- **Consumes:** `Money`, `MoneyMath`, `CurrencyConverter`, `NetWorthCalculator`,
+  `ResolveExchangeRate` (без изменений), `AssetsDao`/`TransactionsDao`/`ValuationsDao`.
+- **Produces:** схема v3; `AssetSnapshot.breakdown`; `investmentBalances`;
+  мультивалютные операции/оценки инвестиции; net worth/цели/базовые эквиваленты
+  учитывают все позиции; журнал и аудит показывают валюту операции.
+- **TDD (сначала failing tests, затем реализация):**
+  1. `investmentBalances`: opening 100 000 RUB + deposit 100 USD →
+     `[100 000 RUB, 100 USD]`; оценка 120 USD меняет только USD-позицию;
+     операция той же даты, что оценка, применяется после неё; withdrawal 100 USD
+     обнуляет USD-позицию → она исчезает из списка, RUB остаётся первой;
+     удалённые операции не учитываются; основная валюта присутствует даже с нулём.
+  2. Репозиторий: deposit по инвестиции в USD → в строке `currency_code = 'USD'`,
+     `amount_rub_minor` = сумма × курс USD; deposit в USD по счёту RUB →
+     `validationCurrencyMismatch`; deposit в валюте актива → `currency_code IS NULL`;
+     оценка инвестиции в EUR пишется с `currency_code = 'EUR'`; оценка квартиры
+     в чужой валюте → validation.
+  3. `getById`/`watchAll` снапшот мультивалютной инвестиции: `currentValue` =
+     позиция основной валюты, `breakdown` = все позиции по M4.
+  4. Миграция v2→v3 (см. Test create): данные целы, колонки на месте.
+  5. Snapshot ревизии содержит `currencyCode` (null для валюты актива); декодер
+     аудита возвращает валюту операции и для старых snapshot без ключа.
+  6. `netWorth`: инвестиция 100 000 RUB + 120 USD при курсе 92, базовая RUB →
+     вклад инвестиции 111 040 RUB (CALC-042); историческая точка на дату до
+     USD-операции содержит только RUB-позицию; нехватка курса USD → `rateUnavailable`.
+  7. Цели: прогресс по инвестиции с двумя позициями = сумма конвертированных
+     позиций; нехватка курса одной позиции → прогресс не считается целиком.
+  8. `baseEquivalent` (assets VM и account details VM): мультивалютная инвестиция →
+     итог всех позиций в базовой валюте, в т.ч. когда базовая = основная валюта.
+  9. Фильтр журнала по валюте USD находит USD-операцию инвестиции с основной
+     валютой RUB и не находит RUB-операции.
+- **Рабочий план:**
+  1. Написать failing tests 1–3 (domain + репозиторий), убедиться в причине падения.
+  2. Схема: колонки в двух таблицах, `appDatabaseSchemaVersion = 3`, `onUpgrade`;
+     `build_runner`; schema dump v3; `schema generate` (schema_v3.dart + schema.dart);
+     миграционный тест v2→v3.
+  3. DAO: `AssetTransactionInput.currencyCode`, запись в `create`/`revise`,
+     `_writeRevision` + ключ snapshot; `ValuationsDao.create` + параметр;
+     `watchFiltered` по M8.
+  4. Domain: `AssetSnapshot.currencyBalances`/`breakdown`;
+     `AssetValueCalculator.investmentBalances` (группировка по валюте, сортировка
+     оценок `(effectiveOn, id)`, старт opening/0, фильтр `>= from`);
+     mapper операции и `_valuationFrom` — fallback на валюту актива.
+  5. Репозитории: валидация M2, нормализация M1, `_rubMinor` от валюты операции;
+     `recordValuation` с валютой оценки; `_buildSnapshot` investment через
+     `investmentBalances`; декодер аудита.
+  6. Аналитика: `investmentValuesByCurrency` + `_summaryAt` по позициям.
+  7. Потребители: цели (тип `Map<int, List<Money>>` + три call-site), assets VM и
+     account details VM (базовый эквивалент суммой позиций, курсы на все коды).
+  8. Прогнать весь `flutter test`, починить регрессии (ожидания не подгонять под
+     ошибочную реализацию); docs; гейты DoD.
+- **Docs:** `docs/architecture/data_schema.md` §3 (`asset_valuations` +колонка),
+  §4 (`asset_transactions` +колонка, убрать фразу «отдельной currencyCode у
+  транзакции нет», snapshot +ключ), §7 (миграция v3); `docs/architecture/
+  domain_model.md` §4 (`AssetSnapshot.breakdown`), §5 (валюта операции), §9
+  (контракты); `docs/architecture/calculations.md` §3 «Инвестиция» — per-currency
+  формула + примеры CALC-041 (opening 100 000 RUB + 100 USD по 90, оценка 120 USD
+  по 92 → позиции 100 000 RUB и 120 USD) и CALC-042 (net worth базовая RUB →
+  111 040 RUB от инвестиции); `docs/architecture/business_rules.md` — BR-A-8
+  (мультивалютность только инвестиций; per-currency расчёт; конвертация на уровне
+  итогов) и BR-T-11 (валюта операции инвестиции выбирается, по умолчанию валюта
+  актива; у счёта/квартиры всегда валюта актива).
+- **DoD:** общий DoD (шапка плана) + миграционный тест v2→v3 зелёный + schema dump
+  закоммичен; task-reviewer; design-reviewer — по diff (меняются VM в `ui/` и
+  поведение отображаемых сумм, новых виджетов нет); android-tester коротким
+  прогоном после merge (append TEST_PLAN.md); статус `[x]` + дата до PR;
+  e2e — спросить владельца.
+- **Предлагаемый commit:** `task/18.1: мультивалютные инвестиции — схема v3 и расчёты`.
+
+### 18.2 Мультивалютные инвестиции: UI форм и экрана инвестиции — [ ]
+
+- **Приоритет/зависимости:** P1; после 18.1.
+- **Суть:** селектор валюты в форме операции и форме оценки (только для инвестиции,
+  по умолчанию валюта актива); на экране инвестиции — состав по валютам и общая
+  стоимость в базовой валюте (пример владельца: «100 000 ₽, 100 $, общее 108 000»).
+- **Решения:**
+  - **U1.** Селектор валюты — `AppCurrencySelect` (уже есть в uikit), список —
+    включённые валюты (`currencyRepository.getEnabled()`), значение по умолчанию —
+    валюта выбранного актива (D6, подтверждено владельцем). Для счёта/квартиры
+    селектор не показывается.
+    При смене актива в форме операции валюта сбрасывается на валюту нового актива,
+    поле ручного курса очищается.
+  - **U2.** `AppAmountField` (suffix, `maxFractionDigits`) и видимость поля ручного
+    курса следуют за выбранной валютой (курс показывается, когда валюта != RUB).
+    `ResolveExchangeRate` вызывается с выбранной валютой (не с валютой актива).
+  - **U3.** Экран инвестиции (`account_details_screen.dart`): при
+    `breakdown.length > 1` карточка «Текущая стоимость» показывает итог в базовой
+    валюте (`vm.baseEquivalent`); под карточкой — секция «Состав по валютам»
+    (`AppSection` + строки `AppListTile`: сумма позиции в её валюте). Старый блок
+    «В базовой валюте» (строки 155–166) для мультивалютной инвестиции не
+    показывается (итог уже в карточке). При `baseRateUnavailable` — карточка
+    показывает баланс основной валюты + «Курс недоступен», состав показывается.
+    При `breakdown.length == 1` — всё как сейчас.
+  - **U4.** История оценок: сумма форматируется валютой самой оценки
+    (`fractionDigits` из справочника, не из валюты актива); чип «Текущая» —
+    у последней оценки каждой валюты (список уже отсортирован newest-first:
+    первая строка каждого `currencyCode`).
+  - **U5.** Карточка инвестиции в списке активов не меняется: `amountText` —
+    основная валюта, `baseAmountText` — итог всех позиций (поведение 18.1).
+- **Files:**
+  - Modify: `lib/core/features/transactions/ui/transaction_form_screen.dart`
+    (состояние `_currencyCode`; `AppCurrencySelect` между селектом актива и
+    суммой, только когда `asset?.kind == AssetKind.investment`; `_save` строит
+    `Money` в выбранной валюте; сброс валюты/курса в `onChanged` актива,
+    строки 255–268), `lib/core/features/transactions/ui/
+    transaction_form_view_model.dart` (`save`: `ResolveExchangeRate.call(
+    rateRepository, amount.currencyCode, ...)` вместо `asset.currencyCode`,
+    строки 143–148; маппинг ошибки `validationCurrencyMismatch`),
+    `lib/core/features/assets/ui/valuation_form_screen.dart` (`AppCurrencySelect`
+    для инвестиции; сохранение в выбранной валюте),
+    `lib/core/features/assets/ui/valuation_form_view_model.dart`
+    (+сигнал `currencies: Signal<Map<String, Currency>>` из `getEnabled()`;
+    `save`: курс и draft от `value.currencyCode`; для квартиры — валидация
+    совпадения валюты с активом), `lib/core/features/assets/ui/
+    account_details_screen.dart` (U3/U4), `lib/core/features/assets/ui/
+    account_details_view_model.dart` (+сигнал `currencies: Signal<Map<String,
+    Currency>>` для fractionDigits строк состава/оценок; заполнять в `_reload`).
+  - Modify (l10n): `lib/l10n/app_ru.arb` + generated:
+    `transactionCurrencyLabel` = «Валюта операции»;
+    `valuationCurrencyLabel` = «Валюта оценки»;
+    `investmentBreakdownTitle` = «Состав по валютам»;
+    `investmentTotalBase` = «Итого в базовой валюте» (subtitle карточки при
+    мультивалютности, если нужен — по решению design-reviewer).
+  - Test (modify): `test/core/features/transactions/ui/transaction_form_screen_test.dart`
+    (селектор виден для инвестиции, скрыт для счёта; дефолт = валюта актива;
+    смена актива сбрасывает валюту; сохранение USD-операции по RUB-инвестиции
+    передаёт `Money(..., 'USD')` и курс USD), `test/core/features/assets/ui/
+    investment_screens_test.dart` (форма оценки: селектор, сохранение в выбранной
+    валюте; экран инвестиции: состав по валютам, итог в базовой, «Курс недоступен»,
+    чип «Текущая» per-currency), `test/core/features/assets/ui/
+    account_details_view_model_test.dart` (currencies/breakdown).
+- **Consumes:** `AppCurrencySelect`/`AppCurrencyOption`, `AppAmountField`,
+  `AppSection`, `AppListTile`, `AppSummaryCard`, `AppMoneyText`, `MoneyFormatter`,
+  `AssetSnapshot.breakdown` (18.1), `ResolveExchangeRate`.
+- **Produces:** пользователь может пополнить/снять инвестицию в любой валюте и
+  задать оценку в любой валюте; экран инвестиции показывает состав и общий итог
+  в базовой валюте.
+- **TDD:**
+  1. Форма операции: выбрана инвестиция RUB → селектор валюты виден, дефолт RUB;
+     выбор USD → suffix «USD», поле курса появилось; сохранение → draft в USD.
+  2. Форма операции: выбран счёт → селектора нет; поведение не регрессирует.
+  3. Смена актива инвестиции RUB → инвестиции USD сбрасывает выбранную валюту
+     на USD и очищает ручной курс.
+  4. Форма оценки инвестиции: селектор валюты, дефолт = валюта актива; оценка
+     120 USD сохраняется с курсом USD; для квартиры селектора нет.
+  5. Экран инвестиции с breakdown `[100 000 RUB, 100 USD]`, базовая RUB, курс 90 →
+     карточка «108 000,00 ₽», секция «Состав по валютам» с двумя строками;
+     старый блок «В базовой валюте» отсутствует.
+  6. Курс USD недоступен → карточка показывает 100 000,00 ₽ + «Курс недоступен»,
+     состав виден.
+  7. История оценок: оценка EUR форматируется с fractionDigits EUR; чип «Текущая»
+     у последней оценки каждой валюты.
+- **Рабочий план:**
+  1. Failing widget-тесты 1–4 (формы), затем реализация селекторов и правок VM.
+  2. Failing тесты 5–7 (экран инвестиции), затем U3/U4 в экране и VM.
+  3. l10n-ключи + `flutter gen-l10n`; прогон тестов; docs; гейты.
+- **Docs:** `docs/architecture/navigation_and_screens.md` §5 (матрица: форма
+  операции/оценки — селектор валюты для инвестиции; экран инвестиции — состав),
+  `docs/architecture/domain_model.md` §11 (сигналы VM, если перечислены).
+- **DoD:** общий DoD; task-reviewer + design-reviewer (UI); android-tester коротким
+  прогоном; статус `[x]` до PR; e2e — спросить.
+- **Предлагаемый commit:** `task/18.2: мультивалютные инвестиции — UI`.
+
+### 18.3 Заблокированные активы: схема v4 и маркировка на экране инвестиции — [ ]
+
+- **Приоритет/зависимости:** P1; после 18.2 (общие файлы экрана/VM инвестиции).
+- **Суть:** по каждой валюте инвестиции можно отметить сумму заблокированных
+  активов (пример владельца: счёт 100 000 ₽ + 100 $ + 10 €, отметить 99 $ и 5 €).
+  Маркировка хранится в БД, видна на экране инвестиции; блок на главной — 18.4.
+- **Решения:**
+  - **L1.** Новая таблица `investment_locked_amounts`: `asset_id` INTEGER NOT NULL
+    → assets.id RESTRICT, `currency_code` TEXT NOT NULL → currencies.code RESTRICT,
+    `amount_minor` INTEGER NOT NULL CHECK (`> 0`), `created_at`/`updated_at` TEXT
+    NOT NULL UTC; PK `(asset_id, currency_code)`. Одна отметка на валюту;
+    повторная установка — upsert; сумма 0 — удаление строки.
+  - **L2.** Валидация при установке: актив — инвестиция; валюта есть в справочнике;
+    `0 < amount <=` баланс позиции в этой валюте (из `investmentBalances`);
+    позиции нет или баланс меньше → `DomainException(validation, fieldErrors:
+    {'amount': 'validationLockedExceedsBalance'})`. При последующем изменении
+    баланса отметка не пересчитывается (D2).
+  - **L3.** Отметки не входят в `referenceCounts` (BR-A-5) и физически удаляются
+    вместе с активом в `deleteIfUnused` (в той же транзакции). Архивация отметки
+    сохраняет; на архивной инвестиции UI read-only.
+  - **L4.** `AssetSnapshot` +опциональное поле `lockedBalances: List<Money>?`
+    и геттер `List<Money> get locked => lockedBalances ?? const []`;
+    репозиторий наполняет поле из таблицы (батч в `_snapshotsOf`, одиночный
+    запрос в `_snapshotOf`). Стоимость актива и net worth отметки не меняют (D4).
+  - **L5.** UI: на экране инвестиции (только `AssetKind.investment`) секция
+    «Заблокированные активы» после сводной карточки: строка `AppListTile` на
+    каждую валюту breakdown — title: название/код валюты, subtitle:
+    «Заблокировано: {сумма}» или «Не отмечено», trailing: `AppIconButton`
+    (иконка `Icons.lock_outline`, semanticLabel «Изменить заблокированную сумму»)
+    → диалог `showAppDialog` + `AppDialog` с `AppAmountField` (валюта строки,
+    hint «Доступно: {баланс позиции}»), кнопки «Сохранить»/«Отмена»; пустое поле
+    или 0 → снятие отметки. Ошибка валидации — текст под полем.
+- **Files:**
+  - Create: `lib/core/database/tables/investment_locked_amounts.dart`
+    (`@DataClassName('InvestmentLockedAmountRow')`, конвертер
+    `UtcTimestampConverter`, FK как в `asset_details.dart`);
+    `test/core/database/migration_v3_v4_test.dart` (образец v1→v2/v2→v3).
+  - Modify (схема): `lib/core/database/app_database.dart` (+таблица в
+    `@DriftDatabase(tables: [...])`, `appDatabaseSchemaVersion = 4`, `onUpgrade`:
+    `if (from < 4) { await m.createTable(investmentLockedAmounts); }` —
+    `@TableIndex` нет, PK создаётся с таблицей; runtime-DDL не нужен).
+  - Modify (data/domain): `lib/core/database/daos/assets_dao.dart`
+    (+`InvestmentLockedAmounts` в `@DriftAccessor(tables: [...])`;
+    `Future<void> setLockedAmount({required int assetId, required String
+    currencyCode, required int amountMinor})` — upsert/delete, валидация kind и
+    валюты; `Future<List<InvestmentLockedAmountRow>> lockedRowsForAsset(int
+    assetId)`; `Future<List<InvestmentLockedAmountRow>> allLockedRows()`;
+    `deleteIfUnused` (строка 310) — удаление отметок актива в транзакции),
+    `lib/core/features/assets/domain/asset.dart` (`AssetSnapshot.lockedBalances`),
+    `lib/core/features/assets/domain/asset_repository.dart`
+    (+`Future<void> setLockedAmount(int assetId, String currencyCode, Money
+    amount)` — 0 удаляет; +`Future<List<Money>> lockedAmounts(int assetId)`),
+    `lib/core/features/assets/data/asset_repository_impl.dart`
+    (реализация: проверка L2 через `investmentBalances` снапшота; наполнение
+    `lockedBalances` в `_snapshotOf`/`_snapshotsOf`).
+  - Modify (UI): `lib/core/features/assets/ui/account_details_screen.dart`
+    (секция L5, только инвестиция; archived — без кнопки редактирования),
+    `lib/core/features/assets/ui/account_details_view_model.dart`
+    (+сигнал `locked: Signal<List<Money>>`; метод `Future<Result<void>>
+    setLockedAmount(String currencyCode, Money amount)` с маппингом
+    `DomainException` → `Failure`; обновление после записи через существующий
+    стрим `watchById`).
+  - Modify (l10n): `lib/l10n/app_ru.arb` + generated:
+    `lockedAssetsTitle` = «Заблокированные активы»;
+    `lockedAmountSubtitle` = «Заблокировано: {amount}» (placeholder String);
+    `lockedNotMarked` = «Не отмечено»;
+    `lockedEditTitle` = «Заблокированная сумма»;
+    `lockedAvailableHint` = «Доступно: {amount}» (placeholder String);
+    `lockedEditAction` = «Изменить заблокированную сумму»;
+    `lockedErrorExceeds` = «Сумма превышает остаток в этой валюте.»;
+    `lockedSaved` = «Заблокированная сумма сохранена.»;
+    `lockedRemoved` = «Отметка о блокировке снята.».
+  - Generated: `app_database.g.dart`, `assets_dao.g.dart`,
+    `drift_schemas/drift_schema_v4.json`, `test/generated_migrations/schema_v4.dart`
+    + `schema.dart`.
+  - Test (modify/create): `test/core/features/assets/data/investment_repository_test.dart`
+    (upsert, 0 → удаление, L2-валидации, `lockedBalances` снапшота,
+    `deleteIfUnused` чистит отметки, `referenceCounts` не считает отметки),
+    `test/core/features/assets/ui/account_details_view_model_test.dart`
+    (`setLockedAmount` success/failure), `test/core/features/assets/ui/
+    investment_screens_test.dart` (секция, диалог, снятие отметки, archived
+    read-only), `test/core/database/migration_v3_v4_test.dart`.
+- **Consumes:** `investmentBalances`/`AssetSnapshot.breakdown` (18.1),
+  `AppDialog`/`showAppDialog`, `AppAmountField`, `AppListTile`, `AppIconButton`,
+  `AppSection`, `MoneyFormatter`, `UtcTimestampConverter`.
+- **Produces:** маркировка заблокированных сумм по валютам инвестиции; данные
+  доступны снапшотом для дашборда (18.4).
+- **TDD:**
+  1. DAO/репозиторий: установка 99 USD при позиции 100 USD → строка; повторная
+     установка 50 USD → upsert; 0 → строки нет; 101 USD →
+     `validationLockedExceedsBalance`; отметка по валюте без позиции → validation;
+     отметка по счёту/квартире → validation.
+  2. Снапшот инвестиции содержит `lockedBalances` `[99 USD, 5 EUR]`; у счёта — пусто.
+  3. `deleteIfUnused` инвестиции с отметками (без других связей) удаляет актив и
+     отметки; `referenceCounts` отметки не учитывает.
+  4. Миграция v3→v4: таблица создана, `user_version = 4`, данные целы.
+  5. VM: `setLockedAmount` → Success и обновление сигнала `locked`; превышение →
+     Failure с `validationLockedExceedsBalance`.
+  6. Widget: секция показывает «Заблокировано: 99,00 $» и «Не отмечено»; диалог
+     сохраняет сумму; пустой ввод снимает отметку (snackbar «Отметка снята»);
+     архивная инвестиция — без кнопки редактирования.
+- **Рабочий план:**
+  1. Failing тесты 1–4 → таблица, DAO, миграция, generated, dump.
+  2. Domain/repository: `setLockedAmount`/`lockedAmounts`, `lockedBalances`
+     снапшота, валидация L2, cascade в `deleteIfUnused`.
+  3. Failing тесты 5–6 → VM и секция UI с диалогом.
+  4. l10n + gen; прогон; docs; гейты.
+- **Docs:** `docs/architecture/data_schema.md` — новый раздел «§11. Заблокированные
+  активы (schema v4)» (таблица, PK, CHECK, cascade-удаление), §7 миграция v4;
+  `docs/architecture/domain_model.md` §4/§9 (`lockedBalances`, методы репозитория);
+  `docs/architecture/business_rules.md` — BR-A-9 (L2/L3/D4 словами правила).
+- **DoD:** общий DoD + миграционный тест v3→v4 + dump v4; task-reviewer +
+  design-reviewer; android-tester коротким прогоном; статус `[x]` до PR; e2e — спросить.
+- **Предлагаемый commit:** `task/18.3: заблокированные активы — хранение и маркировка`.
+
+### 18.4 Заблокированные активы: блок на главном экране — [ ]
+
+- **Приоритет/зависимости:** P1; после 18.3 (и 18.1 — мультивалютный итог инвестиций).
+- **Суть:** на дашборде — общая сумма заблокированных активов по всем инвестициям
+  в базовой валюте + процент от общей стоимости инвестиций, с тултипом-пояснением.
+  Если заблокированных нет — блок не показывается.
+- **Решения:**
+  - **B1.** Источник данных — `assetRepository.watchAll(includeArchived: true)`
+    (уже подписан в `DashboardViewModel`, строки 143–157): берутся только
+    неархивные инвестиции с непустым `lockedBalances`.
+  - **B2.** `lockedTotal` = сумма всех отметок, конвертированная в базовую валюту
+    через `NetWorthCalculator.calculate` (каждая отметка — `NetWorthAssetValue(
+    kind: AssetKind.investment, value: Money, currency)`); курсы —
+    `rateRepository.find(code, today)` с кэшем `_rateCache`. Знаменатель процента —
+    `netWorth.byAssetKind[AssetKind.investment]` (уже вычисляется).
+    `lockedShare` = Rational(lockedTotal.minorUnits) / Rational(investmentTotal.minorUnits)
+    → Decimal scale 4, clamp 0..1; при investmentTotal <= 0 → null.
+  - **B3.** Новые сигналы VM: `hasLockedAssets: Signal<bool>`,
+    `lockedTotal: Signal<Money?>`, `lockedShare: Signal<Decimal?>`,
+    `lockedError: Signal<DomainErrorCode?>`. Пересчёт — везде, где вызывается
+    `_reloadNetWorth` (стримы активов/курсов, смена базовой валюты,
+    `exchangeRateRevision`). При `rateUnavailable`: `hasLockedAssets = true`,
+    `lockedTotal = null`, `lockedError = rateUnavailable` → карточка показывает
+    «Курс недоступен» (как net worth-карточка).
+  - **B4.** UI: новый виджет `DashboardLockedAssets` — `AppSummaryCard(
+    title: l10n.dashboardLockedTitle, value: итог или «Курс недоступен»,
+    subtitle: «{X,X}% от инвестиций» (одна десятичная, запятая; при share null —
+    subtitle отсутствует), trailing: AppTooltip(message: пояснение, child:
+    AppIcon(Icons.info_outline, semanticLabel: l10n.dashboardLockedInfoLabel)),
+    onTap: context.push(AppRoutes.assets))`. Размещается в `AppAdaptiveGrid`
+    сразу после секции обзора (net worth), только при `vm.hasLockedAssets.value`.
+  - **B5.** Текст тултипа (l10n `dashboardLockedTooltip`): «Часть стоимости
+    инвестиций, недоступная по внешним причинам. Сумма всех заблокированных
+    активов по инвестиционным счетам в базовой валюте; процент — от общей
+    стоимости инвестиций.»
+- **Files:**
+  - Create: `lib/core/features/dashboard/ui/dashboard_locked_assets.dart`;
+    тесты в `test/core/features/dashboard/ui/dashboard_screen_test.dart` (modify).
+  - Modify: `lib/core/features/dashboard/ui/dashboard_view_model.dart`
+    (сигналы B3 + метод `_reloadLocked()`; вызовы рядом с `_reloadNetWorth`,
+    строки 127–172, 232–254), `lib/core/features/dashboard/ui/
+    dashboard_screen.dart` (`_body`: вставка блока после net worth-секции,
+    строки 111–123), `lib/l10n/app_ru.arb` + generated:
+    `dashboardLockedTitle` = «Заблокированные активы»;
+    `dashboardLockedShare` = «{percent}% от инвестиций» (placeholder String);
+    `dashboardLockedTooltip` = текст B5;
+    `dashboardLockedInfoLabel` = «О заблокированных активах».
+  - Test: `test/core/features/dashboard/ui/dashboard_screen_test.dart` — фейк
+    `_Assets` отдаёт снапшоты с `lockedBalances`; кейсы: без отметок блок скрыт;
+    с отметками — сумма и процент; тултип с текстом B5; ошибка курса — «Курс
+    недоступен», блок виден; пересчёт после изменения курса/базовой валюты;
+    320dp/1.3/dark без overflow.
+- **Consumes:** `AssetSnapshot.lockedBalances` (18.3), `NetWorthSummary.byAssetKind`
+  (18.1 корректно считает мультивалютные инвестиции), `NetWorthCalculator`,
+  `AppSummaryCard` (trailing/tone), `AppTooltip` (`lib/uikit/app_tooltip.dart`),
+  `AppIcon`, `MoneyFormatter`.
+- **Produces:** информационный блок заблокированных активов на дашборде.
+- **TDD:**
+  1. VM: две инвестиции с отметками 99 USD (курс 90) и 5 EUR (курс 100), базовая
+     RUB → `lockedTotal` = 9 410,00 ₽; `hasLockedAssets` true; нет отметок → false,
+     `lockedTotal` null.
+  2. VM: `lockedShare` = lockedTotal / byAssetKind[investment] (пример CALC-043:
+     инвестиция 100 000 RUB + 120 USD по 92 = 111 040 ₽, заблокировано 99 USD по
+     92 = 9 108 ₽ → доля ≈ 0,0820); архивная инвестиция с отметками не учитывается.
+  3. VM: нехватка курса → `lockedError = rateUnavailable`, `lockedTotal` null,
+     `hasLockedAssets` true; после появления курса — пересчёт.
+  4. Widget: блок скрыт без отметок; с отметками — title, сумма, «8,2% от
+     инвестиций», info-иконка с тултипом B5; тап ведёт на экран активов.
+- **Рабочий план:**
+  1. Failing VM-тесты 1–3 → `_reloadLocked` + сигналы + подключение к существующим
+     триггерам пересчёта.
+  2. Failing widget-тест 4 → `DashboardLockedAssets` + вставка в `_body`.
+  3. l10n + gen; прогон; docs; гейты.
+- **Docs:** `DESIGN.md` §6 Dashboard (+блок), `docs/architecture/
+  navigation_and_screens.md` §5 (матрица дашборда), `docs/architecture/
+  calculations.md` — CALC-043 (пример B/тест 2).
+- **DoD:** общий DoD; task-reviewer + design-reviewer; android-tester коротким
+  прогоном; статус `[x]` до PR; e2e — спросить.
+- **Предлагаемый commit:** `task/18.4: заблокированные активы — блок на главном`.
+
+### 18.5 Аналитика: «Детализация за месяц» отдельной страницей — [ ]
+
+- **Приоритет/зависимости:** P2; независима от 18.1–18.4; 18.6 после неё.
+- **Суть:** список значений по периодам (сейчас внутри `CashflowChartSection`,
+  заголовок «Значения по периодам») переносится на отдельную страницу
+  «Детализация за месяц»; на экране аналитики остаётся ссылка. Пустые периоды
+  (доход = 0 и расход = 0) не показываются. Если за выбранный месяц вообще нет
+  операций — «Нет операций за месяц».
+- **Решения:**
+  - **A1.** Новый роут `/more/analytics/details` (name `cashflow-details`),
+    query-параметры: `period` (allowlist `month|3m|6m|year|all`, default `month`),
+    `kind` (`income|expense`), `categoryId` (int). VM создаётся inline в builder
+    роутера (образец `comparison`, `lib/app/router.dart:468–479`).
+  - **A2.** Новые файлы: `cashflow_details_view_model.dart` (зависимости:
+    `AnalyticsQueries`, `SettingsRepository`, `CurrencyRepository`,
+    `ExchangeRateRepository`, `LocalDate Function() now`; сигналы: `state`,
+    `period`, `cashflowKind`, `categoryId`, `points` (уже отфильтрованные),
+    `summary`, `baseCurrency`, `currencies`, `missingRate`; логика — образец
+    `AnalyticsViewModel._reload`: `analyticsRange` + `CashflowFilter` →
+    `queries.cashflowSeries` + `queries.cashflow`; фильтрация пустых бакетов:
+    оставить точки, у которых `!(income.isZero && expense.isZero)`; сортировка
+    по `periodStart` по убыванию; `submitManualRate` — как в `AnalyticsViewModel`),
+    `cashflow_details_screen.dart` (AppScaffold title «Детализация за месяц»;
+    чипы периода `AppFilterBar`+`AppFilterChip` по `AnalyticsPeriod.values` →
+    `vm.selectPeriod`; список; empty state; ошибка курса — `AppErrorState` +
+    `showManualRateDialog`, образец `analytics_screen.dart:267–299`),
+    `cashflow_period_list.dart` (общий виджет списка периодов: строка = дата +
+    «Доход: …» + «Расход: …» + «Итого: …», текущая вёрстка
+    `cashflow_chart_section.dart:151–176`; принимает точки и `formatMoney`).
+  - **A3.** Из `CashflowChartSection` удаляются: список периодов (строки 141–188),
+    `_expanded`/`_collapsedCount`, кнопки «Показать все периоды»/«Свернуть».
+    Секция оставляет summary + график + легенду. Поведение «вся серия нулевая →
+    AppEmptyState» не меняется. Список дат net worth («Значения по датам»,
+    `net_worth_chart_section.dart`) НЕ трогать.
+  - **A4.** На экране аналитики после cashflow-секции — `AppListTile(
+    title: l10n.analyticsDetailsTitle, trailing: AppIcon(Icons.chevron_right,
+    semanticLabel: null), onTap: push cashflowDetailsPath с текущими
+    vm.period/vm.cashflowKind/vm.categoryId)`. Показывается при
+    `vm.baseCurrency.value != null` (как секция категорий), независимо от
+    наличия точек.
+  - **A5.** Empty state страницы: отфильтрованный список пуст → при
+    `period == month` — `AppEmptyState(title: «Нет операций за месяц», message:
+    «Добавьте операцию или измените период.»)`; иначе — существующие
+    `analyticsCashflowEmptyTitle/Message`. Фильтры kind/category наследуются
+    через query и на странице не редактируются (меняются на экране аналитики).
+  - **A6.** `CashflowAnalytics.series` не менять: нулевые бакеты нужны графику;
+    фильтрация — только в VM страницы детализации.
+- **Files:**
+  - Create: `lib/core/features/analytics/ui/cashflow_details_screen.dart`,
+    `lib/core/features/analytics/ui/cashflow_details_view_model.dart`,
+    `lib/core/features/analytics/ui/cashflow_period_list.dart`;
+    `test/core/features/analytics/ui/cashflow_details_screen_test.dart`,
+    `test/core/features/analytics/ui/cashflow_details_view_model_test.dart`.
+  - Modify: `lib/app/routes.dart` (+`cashflowDetails = '/more/analytics/details'`,
+    +хелпер `cashflowDetailsPath({String period = 'month', String? kind,
+    int? categoryId})` — образец `categoriesPath`; строки period — те же токены
+    `month|3m|6m|year|all`, что парсит роутер; вызывающий мапит enum в строку,
+    routes.dart от фич не зависит), `lib/app/router.dart`
+    (+GoRoute внутри ветки `/more` рядом с analytics; парсинг query — образец
+    `_analyticsPeriod` и `parseAllowlisted`), `lib/core/features/analytics/ui/
+    cashflow_chart_section.dart` (A3), `lib/core/features/analytics/ui/
+    analytics_screen.dart` (A4), `lib/l10n/app_ru.arb` + generated:
+    +`analyticsDetailsTitle` = «Детализация за месяц»;
+    +`analyticsCashflowEmptyMonthTitle` = «Нет операций за месяц»;
+    +`analyticsCashflowEmptyMonthMessage` = «Добавьте операцию или измените период.»;
+    −`analyticsPeriodsTitle`, −`analyticsShowAllPeriods`, −`analyticsCollapsePeriods`
+    (больше не используются; проверить grep перед удалением).
+  - Test (modify): `test/core/features/analytics/ui/cashflow_chart_section_test.dart`
+    (убрать кейсы списка/сворачивания; оставить summary/график/пустую серию),
+    `test/core/features/analytics/ui/analytics_screen_test.dart` (ссылка видна,
+    push с текущими фильтрами), `test/app/` навигационные тесты роутера (если
+    есть паттерн проверки query — добавить разбор нового роута).
+- **Consumes:** `AnalyticsQueries.cashflowSeries/cashflow`, `analyticsRange`,
+  `CashflowFilter`, `CashflowPeriodPoint`, `AppFilterBar`/`AppFilterChip`,
+  `AppEmptyState`, `AppListTile`, `AppErrorState`, `showManualRateDialog`,
+  `MoneyFormatter`, `DateFormatter`.
+- **Produces:** страница «Детализация за месяц» без пустых периодов; ссылка на
+  неё на экране аналитики; cashflow-секция аналитики компактнее.
+- **TDD:**
+  1. VM: серия с нулевыми месяцами → `points` содержит только ненулевые,
+     newest-first; kind/category из query попадают в `CashflowFilter`.
+  2. VM: период month, все бакеты нулевые → `points` пуст; экран показывает
+     «Нет операций за месяц»; период year, все нулевые → «Нет операций за период».
+  3. VM: смена периода чипами перезагружает серию; ошибка курса → `missingRate`,
+     `submitManualRate` перезагружает.
+  4. Widget: ссылка на экране аналитики пушит роут с query текущих фильтров;
+     страница рендерит строки дата/доход/расход/итого; пустых строк нет.
+  5. `CashflowChartSection` больше не содержит список периодов и кнопки
+     «Показать все периоды»; график и summary не регрессируют.
+- **Рабочий план:**
+  1. Failing VM-тесты 1–3 → VM страницы (копировать паттерны `AnalyticsViewModel`,
+     не наследоваться от него).
+  2. Роут + routes-хелпер + парсинг query.
+  3. Failing widget-тесты 4–5 → `CashflowPeriodList`, экран страницы, удаление
+     списка из `CashflowChartSection`, ссылка в `analytics_screen`.
+  4. l10n (+новые, −устаревшие) + gen; прогон; docs; гейты.
+- **Docs:** `docs/architecture/navigation_and_screens.md` §2 (карта routes),
+  §3 (query parameters), §5 (матрица экранов: новая страница).
+- **DoD:** общий DoD; task-reviewer + design-reviewer; android-tester коротким
+  прогоном; статус `[x]` до PR; e2e — спросить.
+- **Предлагаемый commit:** `task/18.5: детализация за месяц — отдельная страница`.
+
+### 18.6 Аналитика: табы «Расходы»/«Доходы» в итогах по категориям — [ ]
+
+- **Приоритет/зависимости:** P2; после 18.5 (общий файл `analytics_screen.dart`).
+- **Суть:** в секции «Итоги по категориям» доходы и расходы не смешиваются:
+  переключатель (табы) «Расходы» | «Доходы».
+- **Решения:**
+  - **C1.** `CategoryTotalsSection` становится `StatefulWidget` с локальным
+    `_kind: CashflowKind` (default `expense`). Переключатель —
+    `AppSegmentedControl<CashflowKind>` (single-select; сегменты: «Расходы» =
+    `l10n.analyticsCashflowExpense`, «Доходы» = `l10n.analyticsCashflowIncome`;
+    порядок — расходы первые). Образец использования —
+    `asset_comparison_screen.dart:114–128`.
+  - **C2.** Новый параметр `cashflowKind: CashflowKind?` (из
+    `vm.cashflowKind.value`): если задан — таб принудительно следует за фильтром
+    (в `didUpdateWidget` и при первом build); пользователь может переключать таб
+    только когда фильтр «Все операции». При активном фильтре kind список и так
+    сужен — таб показывает этот kind.
+  - **C3.** Список фильтруется по `categories[total.categoryId]?.kind == _kind`;
+    сортировка по убыванию суммы сохраняется. Доли (`shareOf`) уже считаются
+    раздельно по kind (`AnalyticsViewModel.categoryShare`) — не менять.
+  - **C4.** Пустой таб → `AppText(l10n.analyticsCategoriesEmptyExpense/Income)`
+    вместо списка (секция с заголовком и табами остаётся). Если `totals` пуст
+    целиком — секция по-прежнему `SizedBox.shrink()`.
+  - **C5.** Из подзаголовка строки убрать суффикс «· Доходы/Расходы»
+    (`_shareText`, строки 41–48) — kind теперь задаётся табом; процент и бейдж
+    архива оставить. Тон суммы (`AppMoneyTone.income/expense`) сохраняется.
+- **Files:**
+  - Modify: `lib/core/features/analytics/ui/category_totals_section.dart`
+    (C1–C5), `lib/core/features/analytics/ui/analytics_screen.dart` (передача
+    `cashflowKind: vm.cashflowKind.value`, строки 154–162),
+    `lib/l10n/app_ru.arb` + generated:
+    +`analyticsCategoriesEmptyExpense` = «Нет расходов за период»;
+    +`analyticsCategoriesEmptyIncome` = «Нет доходов за период».
+  - Test (create): `test/core/features/analytics/ui/category_totals_section_test.dart`
+    (переключение табов фильтрует список; дефолт — расходы; preselect из
+    `cashflowKind`; пустой таб — текст; доли знаменатель по kind; архивный бейдж).
+  - Test (modify): `test/core/features/analytics/ui/analytics_screen_test.dart`
+    (тест «cashflow-секция, категории и фильтр по типу», строка ~320: ожидания
+    под табы; при фильтре «Доходы» таб следует за фильтром).
+- **Consumes:** `AppSegmentedControl`/`AppSegment`, `CategoryTotal`,
+  `CashflowCategory.kind`, `AppMoneyText`/`AppMoneyTone`, `AppChip`.
+- **Produces:** итоги по категориям разделены на расходы и доходы.
+- **TDD:**
+  1. Смешанные totals (2 расхода + 1 доход) → дефолтный таб «Расходы» показывает
+     только расходы; переключение на «Доходы» — только доход.
+  2. `cashflowKind = income` → таб «Доходы» выбран; смена фильтра на expense →
+     таб следует; при «Все операции» таб переключается пользователем.
+  3. Пустой таб → текст «Нет расходов за период»/«Нет доходов за период»;
+     пустые totals → секция скрыта.
+  4. Доли: расходы 25 000 и 75 000 → 25%/75% (CALC-035 не регрессирует);
+     суффикс «· Расходы» в строке отсутствует.
+- **Рабочий план:**
+  1. Failing тесты новой секции → реализация C1–C5.
+  2. Передача `cashflowKind` с экрана; правка существующего screen-теста.
+  3. l10n + gen; прогон; docs (при необходимости §5 матрицы); гейты.
+- **DoD:** общий DoD; task-reviewer + design-reviewer; android-tester коротким
+  прогоном; статус `[x]` до PR; e2e — спросить.
+- **Предлагаемый commit:** `task/18.6: итоги по категориям — табы расходы/доходы`.
+
+### 18.7 Цветовая окраска сумм операций по типам — [ ]
+
+- **Приоритет/зависимости:** P2; независима (можно параллелить с 18.5/18.6,
+  файлы не пересекаются).
+- **Суть:** суммы разных типов операций сливаются. Причина найдена: в
+  `AppOperationListTile` тон суммы перебивается явным `style.color`
+  (`lib/uikit/app_operation_list_tile.dart:140–146`, `primaryText` = `onSurface`),
+  поэтому во всех журналах сумма монохромная, цвет есть только у иконки. Плюс
+  карточки деталей операций не передают тон.
+- **Решения:**
+  - **K1.** `AppOperationListTile`: для неудалённых операций убрать явный
+    `color: primaryText` из style суммы (тон `AppMoneyTone` применяется через
+    `resolveMoneyToneColor`); для deleted сохранить приглушение (явный цвет —
+    намеренный приоритет, документирован в `AppMoneyText`). Иконка уже
+    окрашивается тоном — не менять. Знаки «+»/«−» экраны уже добавляют — не менять.
+  - **K2.** `transaction_details_screen.dart:116–123`: `AppSummaryCard` получает
+    `tone` по виду операции: deposit → income, withdrawal → expense,
+    transferOut/transferIn → transfer (маппинг как `_tone` в
+    `dashboard_recent_operations.dart:82–87`).
+  - **K3.** `cashflow_details_screen.dart:117–124`: `AppSummaryCard` получает
+    `tone: income ? AppMoneyTone.income : AppMoneyTone.expense` (флаг `income`
+    уже вычислен, строка 112).
+  - **K4.** `dashboard_recent_operations.dart`: добавить знак к сумме
+    («+» deposit/transferIn, «−» withdrawal/transferOut) — образец
+    `transactions_screen.dart:313`; тон уже применяется.
+  - **K5.** Не трогать: балансы/карточки активов (это не операции), аудит
+    (deleted-приглушение by design), метрики итогов (тон уже есть), токены
+    `AppSemanticColors` (income → primary, expense → tertiary, НЕ error —
+    контракт DESIGN.md §2 не менять).
+- **Files:**
+  - Modify: `lib/uikit/app_operation_list_tile.dart` (K1),
+    `lib/core/features/transactions/ui/transaction_details_screen.dart` (K2),
+    `lib/core/features/cashflow/ui/cashflow_details_screen.dart` (K3),
+    `lib/core/features/dashboard/ui/dashboard_recent_operations.dart` (K4).
+  - Test (modify): `test/uikit/finance_test.dart` (сумма `AppOperationListTile`
+    окрашена тоном: income/expense/transfer дают разные цвета; deleted —
+    приглушение), `test/core/features/dashboard/ui/dashboard_screen_test.dart`
+    (знаки +/− в последних операциях), тесты деталей операций/денежного потока
+    (`test/core/features/transactions/ui/`, `test/core/features/cashflow/ui/` —
+    тон карточки), `test/uikit/accessibility_test.dart` (контраст тонов не
+    регрессирует, если там есть проверки).
+  - Docs: `lib/uikit/design/finance.md` — зафиксировать, что сумма операции
+    окрашивается тоном (explicit color только для deleted/archived приглушения).
+- **Consumes:** `AppMoneyTone`, `resolveMoneyToneColor`, `AppMoneyText`,
+  `AppSummaryCard.tone`.
+- **Produces:** суммы доходов/расходов/переводов визуально различимы во всех
+  журналах и деталях операций.
+- **TDD:**
+  1. `AppOperationListTile` с tone income/expense/transfer → цвет текста суммы
+     равен `resolveMoneyToneColor(context, tone)` (три разных цвета); deleted →
+     приглушённый цвет, не тон.
+  2. Детали операции deposit → карточка с tone income; withdrawal → expense;
+     transfer → transfer.
+  3. Детали денежного потока: доход → income, расход → expense.
+  4. Последние операции дашборда: deposit «+…», withdrawal «−…».
+- **Рабочий план:**
+  1. Failing тесты 1–4.
+  2. K1–K4 (минимальные правки, без рефакторинга виджетов).
+  3. Прогон всех тестов (цветовые ожидания в существующих тестах могли
+     фиксировать монохром — обновлять только там, где контракт изменился
+     осознанно); docs; гейты.
+- **DoD:** общий DoD; task-reviewer + design-reviewer (обязательно: цвет/контраст);
+  android-tester коротким прогоном; статус `[x]` до PR; e2e — спросить.
+- **Предлагаемый commit:** `task/18.7: цветовая окраска сумм операций`.
+
+### 18.8 Релиз v0.9.0 — [ ]
+
+- **Приоритет/зависимости:** P1; после merge 18.1–18.7. Исполнитель —
+  `release-manager` (`.agents/agents/release-manager.md`) с отклонением от
+  штатного patch-bump: версия задана владельцем — **0.9.0** (D5).
+- **Чек-лист:**
+  1. Все задачи 18.1–18.7 закрыты (`[x]` + дата), PR смержены в main, CI зелёный;
+     `task-reviewer`/`design-reviewer` пройдены по каждой задаче.
+  2. **Спросить владельца:** запускать ли полный QA-прогон `android-tester`
+     (~час; обязательно спросить, отказ не блокирует; решение зафиксировать).
+     **Спросить про e2e** (`flutter test integration_test -d linux`).
+  3. `plan-review` по задачам этапа 18; блокирующие замечания — стоп.
+  4. Локально: `dart format --output=none --set-exit-if-changed lib test tool
+     integration_test`; `flutter analyze --fatal-infos`; `dart analyze lib
+     --fatal-infos`; `flutter test`; `flutter build apk --release`.
+  5. В `main`: `pubspec.yaml` → `version: 0.9.0+4`; отдельный коммит
+     `release: поднять версию до v0.9.0`; запушить до тега.
+  6. Аннотированный тег `v0.9.0` на bump-коммите; проверка
+     `git show v0.9.0:pubspec.yaml | grep 'version:'` → `0.9.0+4`;
+     `git log -1 --format=%s v0.9.0` → `release: поднять версию до v0.9.0`;
+     пуш тега → `.github/workflows/release.yml`.
+  7. Проверить `gh release list` / `gh run list`: workflow прошёл, APK опубликован.
+  8. Сжатие `PLAN.md`: завершённые этапы 16–18 → `PLAN_ARCHIVE.md` (дословно,
+     индекс и нумерация сохраняются); коммит `chore: сжатие PLAN.md — архив этапов NN`.
+- **DoD:** релиз опубликован, версия в APK 0.9.0 (versionCode 4), PLAN сжат,
+  отчёт release-manager владельцу.
+- **Предлагаемый commit:** `release: поднять версию до v0.9.0`.
+
 ## Текущий этап
 
-Этап 16 «Видео-заставка при запуске» — задача 16.1 закрыта и смержена
-(2026-11-22, PR #68). Этап 17: 17.1 закрыта (PR #69), 17.2 закрыта —
-нулевые числовые поля форм активов показываются пустыми. Завершённые
-этапы 1–15 — `PLAN_ARCHIVE.md`.
+Этап 18 «Мультивалютные инвестиции, заблокированные активы, аналитика (v0.9.0)» —
+задачи 18.1–18.8 запланированы 2026-11-23 из TASKS.md, реализация не начата.
+Порядок: 18.1 → 18.2 → 18.3 → 18.4; 18.5 → 18.6; 18.7 независима; 18.8 после всех.
+D2 и D6 подтверждены владельцем 2026-11-23; остальные допущения (D1, D3–D5)
+действуют по умолчанию, при возражениях владельца — править план до кода.
+Этапы 16 (16.1) и 17 (17.1–17.2) закрыты 2026-11-22, ожидают сжатия после
+релиза v0.9.0. Завершённые этапы 1–15 — `PLAN_ARCHIVE.md`.
