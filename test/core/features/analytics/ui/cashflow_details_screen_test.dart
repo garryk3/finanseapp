@@ -263,6 +263,39 @@ void main() {
     expect(find.text('Март 2026'), findsOneWidget);
   });
 
+  testWidgets('«Всё время» с коротким диапазоном — дневные подписи', (
+    tester,
+  ) async {
+    final queries = _Queries(
+      series: [
+        _point(LocalDate(2026, 11, 1), income: 100000),
+        _point(LocalDate(2026, 11, 2), expense: 50000),
+      ],
+    );
+    final vm = viewModel(queries)..setInitialPeriod(AnalyticsPeriod.all);
+    await pump(tester, vm);
+
+    expect(find.text('01.11.2026'), findsOneWidget);
+    expect(find.text('02.11.2026'), findsOneWidget);
+    expect(find.text('Ноябрь 2026'), findsNothing);
+  });
+
+  testWidgets('«Всё время» с диапазоном >62 дней — месячные подписи', (
+    tester,
+  ) async {
+    final queries = _Queries(
+      series: [
+        _point(LocalDate(2026, 7, 1), income: 100000),
+        _point(LocalDate(2026, 11, 1), income: 50000),
+      ],
+    );
+    final vm = viewModel(queries)..setInitialPeriod(AnalyticsPeriod.all);
+    await pump(tester, vm);
+
+    expect(find.text('Июль 2026'), findsOneWidget);
+    expect(find.text('Ноябрь 2026'), findsOneWidget);
+  });
+
   testWidgets('унаследованные фильтры видны и сбрасываются', (tester) async {
     final queries = _Queries(
       series: [_point(LocalDate(2026, 11, 1), expense: 50000)],

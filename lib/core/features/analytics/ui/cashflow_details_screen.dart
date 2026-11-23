@@ -162,7 +162,7 @@ class _CashflowDetailsScreenState extends State<CashflowDetailsScreen> {
                   points: vm.points.value,
                   l10n: l10n,
                   formatMoney: vm.formatMoney,
-                  monthly: vm.period.value != AnalyticsPeriod.month,
+                  monthly: vm.monthlyBuckets,
                 ),
               ),
           ],

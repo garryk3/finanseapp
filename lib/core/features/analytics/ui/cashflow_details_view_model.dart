@@ -71,6 +71,25 @@ final class CashflowDetailsViewModel {
     _reload();
   }
 
+  /// Месячная ли бакетизация фактической серии.
+  ///
+  /// Для «Всё время» диапазон считается по отфильтрованным операциям, и
+  /// `cashflowSeries` группирует по месяцам только при диапазоне >62 дней
+  /// (`CashflowAnalytics._groupByMonth`).
+  bool get monthlyBuckets {
+    if (period.value == AnalyticsPeriod.month) return false;
+    if (period.value != AnalyticsPeriod.all) return true;
+    final points = this.points.value;
+    if (points.length < 2) return false;
+    final days =
+        points.first.periodStart
+            .toUtcDateTime()
+            .difference(points.last.periodStart.toUtcDateTime())
+            .inDays +
+        1;
+    return days > 62;
+  }
+
   /// Сбрасывает и период, и унаследованные фильтры типа/категории.
   void resetFilters() {
     period.value = AnalyticsPeriod.month;

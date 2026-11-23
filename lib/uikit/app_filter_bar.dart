@@ -125,15 +125,13 @@ class _AppFilterBarState extends State<AppFilterBar> {
             children: [
               ScrollbarTheme(
                 data: Theme.of(context).scrollbarTheme.copyWith(
-                  thumbColor: WidgetStatePropertyAll(scheme.primary),
-                  trackColor: WidgetStatePropertyAll(
-                    scheme.surfaceContainerHighest,
-                  ),
+                  thumbColor: WidgetStatePropertyAll(scheme.onSurfaceVariant),
+                  trackColor: const WidgetStatePropertyAll(Colors.transparent),
                 ),
                 child: Scrollbar(
                   controller: _controller,
                   thumbVisibility: true,
-                  trackVisibility: true,
+                  trackVisibility: false,
                   thickness: 3,
                   radius: const Radius.circular(3),
                   child: SingleChildScrollView(
