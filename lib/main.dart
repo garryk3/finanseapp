@@ -98,8 +98,8 @@ Future<ServiceLocator> buildAppLocator() async {
         now: () => LocalDate.fromDateTime(DateTime.now()),
       ),
     )
-    ..registerFactory<AnalyticsViewModel>(
-      () => AnalyticsViewModel(
+    ..register<AnalyticsViewModel>(
+      AnalyticsViewModel(
         queries: locator.get<AnalyticsQueries>(),
         settingsRepository: locator.get<SettingsRepository>(),
         currencyRepository: locator.get<CurrencyRepository>(),
@@ -107,6 +107,7 @@ Future<ServiceLocator> buildAppLocator() async {
         categoryRepository: locator.get<CategoryRepository>(),
         now: () => LocalDate.fromDateTime(DateTime.now()),
       ),
+      dispose: (viewModel) => viewModel.dispose(),
     )
     ..registerFactory<SettingsViewModel>(
       () => SettingsViewModel(repository: locator.get<SettingsRepository>()),
