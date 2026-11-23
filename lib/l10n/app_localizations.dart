@@ -3213,6 +3213,24 @@ abstract class AppLocalizations {
   /// **'Чистый капитал'**
   String get dashboardNetWorthTitle;
 
+  /// Разбивка чистого капитала: счета.
+  ///
+  /// In ru, this message translates to:
+  /// **'Счета'**
+  String get dashboardNetWorthAccounts;
+
+  /// Разбивка чистого капитала: инвестиции.
+  ///
+  /// In ru, this message translates to:
+  /// **'Инвестиции'**
+  String get dashboardNetWorthInvestments;
+
+  /// Разбивка чистого капитала: недвижимость.
+  ///
+  /// In ru, this message translates to:
+  /// **'Недвижимость'**
+  String get dashboardNetWorthProperty;
+
   /// Секция быстрых действий.
   ///
   /// In ru, this message translates to:

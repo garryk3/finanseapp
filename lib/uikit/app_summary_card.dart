@@ -9,7 +9,7 @@ import 'package:finanseapp/uikit/app_money_text.dart';
 import 'package:finanseapp/uikit/app_text.dart';
 
 /// Summary-карточка «заголовок — главное значение — подпись» с опциональными
-/// leading/trailing и tap (карточки ведут к отфильтрованным данным,
+/// leading/trailing, footer и tap (карточки ведут к отфильтрованным данным,
 /// DESIGN.md §6 Dashboard).
 ///
 /// Экраны: Dashboard (net worth, cashflow месяца, цели — тизер),
@@ -22,13 +22,14 @@ class AppSummaryCard extends StatelessWidget {
     this.subtitle,
     this.leading,
     this.trailing,
+    this.footer,
     this.onTap,
     this.tone = AppMoneyTone.neutral,
   });
 
   final String title, value;
   final String? subtitle;
-  final Widget? leading, trailing;
+  final Widget? leading, trailing, footer;
   final VoidCallback? onTap;
   final AppMoneyTone tone;
 
@@ -85,6 +86,10 @@ class AppSummaryCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               softWrap: true,
             ),
+          ],
+          if (footer != null) ...<Widget>[
+            const SizedBox(height: AppSpacing.sm),
+            footer!,
           ],
         ],
       ),
