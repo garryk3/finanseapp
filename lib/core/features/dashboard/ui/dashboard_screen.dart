@@ -142,9 +142,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             DashboardLockedAssets(
               total: vm.lockedTotal.value,
               share: vm.lockedShare.value,
+              error: vm.lockedError.value,
               l10n: l10n,
               formatMoney: vm.formatMoney,
-              onTap: () => context.push(AppRoutes.assets),
+              onTap: () => context.go(AppRoutes.assets),
             ),
           _quickActions(context, l10n),
           if (overdue.isNotEmpty)

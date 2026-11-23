@@ -34,7 +34,6 @@ import 'package:finanseapp/core/features/transactions/domain/asset_transaction_r
 import 'package:finanseapp/core/features/transactions/domain/transaction_filter.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
 import 'package:finanseapp/uikit/app_cashflow_summary.dart';
-import 'package:finanseapp/uikit/app_icon.dart';
 import 'package:finanseapp/uikit/app_text.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -323,8 +322,13 @@ final class _Settings implements SettingsRepository {
 }
 
 final class _Currencies implements CurrencyRepository {
+  _Currencies([this.controller]);
+
+  final StreamController<List<Currency>>? controller;
+
   @override
-  Stream<List<Currency>> watchAll() => Stream.value(const [_rub, _usd, _eur]);
+  Stream<List<Currency>> watchAll() =>
+      controller?.stream ?? Stream.value(const [_rub, _usd, _eur]);
 
   @override
   Future<List<Currency>> getEnabled() async => const [_rub, _usd, _eur];
@@ -470,6 +474,7 @@ void main() {
     Currency base = _rub,
     _Queries? queries,
     StreamController<Currency>? settingsController,
+    StreamController<List<Currency>>? currencyController,
     Map<String, Decimal> rates = const {},
   }) => DashboardViewModel(
     queries:
@@ -496,7 +501,7 @@ void main() {
     ),
     cashflowRepository: _Cashflows(),
     settingsRepository: _Settings(controller: settingsController, base: base),
-    currencyRepository: _Currencies(),
+    currencyRepository: _Currencies(currencyController),
     rateRepository: _Rates(rates),
     now: () => _today,
   );
@@ -512,6 +517,7 @@ void main() {
     Currency base = _rub,
     _Queries? queries,
     StreamController<Currency>? settingsController,
+    StreamController<List<Currency>>? currencyController,
     Map<String, Decimal> rates = const {},
     double width = 1000,
     bool dark = false,
@@ -527,6 +533,7 @@ void main() {
       base: base,
       queries: queries,
       settingsController: settingsController,
+      currencyController: currencyController,
       rates: rates,
     );
     tester.view.physicalSize = Size(width, 2000);
@@ -1074,15 +1081,14 @@ void main() {
     expect(find.text(l10n.dashboardLockedTitle), findsOneWidget);
     expect(find.text(vm.formatMoney(_rubles(9108))), findsOneWidget);
     expect(find.text(l10n.dashboardLockedShare('8,2')), findsOneWidget);
-    expect(find.byTooltip(l10n.dashboardLockedTooltip), findsOneWidget);
-    expect(
-      find.byWidgetPredicate(
-        (widget) =>
-            widget is AppIcon &&
-            widget.semanticLabel == l10n.dashboardLockedInfoLabel,
-      ),
-      findsOneWidget,
-    );
+    expect(find.byTooltip(l10n.dashboardLockedInfoLabel), findsOneWidget);
+    expect(find.byIcon(Icons.info_outline), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.info_outline));
+    await tester.pumpAndSettle();
+    expect(find.text(l10n.dashboardLockedTooltip), findsOneWidget);
+    await tester.tap(find.text(l10n.commonDone));
+    await tester.pumpAndSettle();
   });
 
   testWidgets('заблокированные: без курса — «Курс недоступен», блок виден', (
@@ -1106,8 +1112,47 @@ void main() {
 
     expect(find.text(l10n.dashboardLockedTitle), findsOneWidget);
     expect(find.text(l10n.assetBaseUnavailable), findsOneWidget);
-    expect(find.byTooltip(l10n.dashboardLockedTooltip), findsOneWidget);
+    expect(find.byTooltip(l10n.dashboardLockedInfoLabel), findsOneWidget);
     expect(find.textContaining('от инвестиций'), findsNothing);
+  });
+
+  testWidgets('заблокированные: кастомная валюта появляется после эмита', (
+    tester,
+  ) async {
+    const kzt = Currency(
+      code: 'KZT',
+      name: 'Тенге',
+      fractionDigits: 2,
+      isPreset: true,
+      isEnabled: true,
+    );
+    final currencies = StreamController<List<Currency>>.broadcast();
+    addTearDown(currencies.close);
+    final vm = await pump(
+      tester,
+      width: 427,
+      total: _rubles(111040),
+      snapshots: [
+        _investmentSnapshot(
+          1,
+          const [
+            Money(minorUnits: 10000000, currencyCode: 'RUB'),
+            Money(minorUnits: 500000, currencyCode: 'KZT'),
+          ],
+          locked: const [Money(minorUnits: 10000, currencyCode: 'KZT')],
+        ),
+      ],
+      rates: {'KZT': Decimal.parse('0.2')},
+      currencyController: currencies,
+    );
+
+    expect(find.text(l10n.dashboardLockedTitle), findsNothing);
+
+    currencies.add(const [_rub, _usd, _eur, kzt]);
+    await tester.pumpAndSettle();
+
+    expect(find.text(l10n.dashboardLockedTitle), findsOneWidget);
+    expect(find.text(vm.formatMoney(_rubles(20))), findsOneWidget);
   });
 
   testWidgets('заблокированные: тап открывает экран активов', (tester) async {
@@ -1152,7 +1197,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text(l10n.dashboardLockedTitle));
+    await tester.tap(find.text(vm.formatMoney(_rubles(9108))));
     await tester.pumpAndSettle();
 
     expect(find.text('ASSETS'), findsOneWidget);

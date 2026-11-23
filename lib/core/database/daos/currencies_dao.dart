@@ -49,6 +49,8 @@ class CurrenciesDao extends DatabaseAccessor<AppDatabase>
       '(SELECT COUNT(*) FROM asset_valuations v '
       'JOIN assets a ON a.id = v.asset_id '
       'WHERE COALESCE(v.currency_code, a.currency_code) = ?1) + '
+      '(SELECT COUNT(*) FROM investment_locked_amounts '
+      'WHERE currency_code = ?1) + '
       '(SELECT COUNT(*) FROM goals WHERE currency_code = ?1) + '
       '$ratesSql'
       '(SELECT COUNT(*) FROM app_settings '

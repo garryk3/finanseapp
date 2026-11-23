@@ -537,6 +537,19 @@ void main() {
       expect(await db.assetsDao.findById(id), isNull);
     },
   );
+  test('L3: валюта отметки учитывается в ссылках валюты', () async {
+    final id = await repository.create(draft());
+    await db.assetsDao.setLockedAmount(
+      assetId: id,
+      currencyCode: 'EUR',
+      amountMinor: 100,
+    );
+
+    expect(
+      await db.currenciesDao.countReferences('EUR', includeRates: false),
+      1,
+    );
+  });
 }
 
 Matcher _lockedFailure(String fieldKey) => isA<DomainException>().having(

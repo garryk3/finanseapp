@@ -130,6 +130,7 @@ class DashboardViewModel {
   StreamSubscription<Currency>? _baseSubscription;
   StreamSubscription<List<CashflowEntry>>? _cashflowSubscription;
   StreamSubscription<List<CashflowEntry>>? _safetySubscription;
+  StreamSubscription<List<Currency>>? _currenciesSubscription;
   EffectCleanup? _rateCleanup;
 
   CashflowSummary? _safetySummary;
@@ -152,7 +153,7 @@ class DashboardViewModel {
     lockedTotal.value = null;
     lockedShare.value = null;
     _lockedToken++;
-    _loadCurrencies();
+    _subscribeCurrencies();
     _subscribeBaseCurrency();
     cashflowError.value = null;
     _rateCleanup?.call();
@@ -239,15 +240,20 @@ class DashboardViewModel {
     overdueAccounts.value = overdue;
   }
 
-  Future<void> _loadCurrencies() async {
-    try {
-      final list = await currencyRepository.watchAll().first;
-      _currencies = {for (final currency in list) currency.code: currency};
-      unawaited(_recomputeGoals());
-      unawaited(_reloadLocked());
-    } on Exception {
-      // Итоги показываются без эквивалента, если справочник недоступен.
-    }
+  /// Справочник валют обновляется подпиской: кастомная валюта, добавленная
+  /// после старта, должна попасть в подушку/заблокированные/прогресс целей.
+  void _subscribeCurrencies() {
+    _currenciesSubscription?.cancel();
+    _currenciesSubscription = currencyRepository.watchAll().listen(
+      (list) {
+        _currencies = {for (final currency in list) currency.code: currency};
+        unawaited(_recomputeGoals());
+        unawaited(_reloadLocked());
+      },
+      onError: (_) {
+        // Итоги показываются без эквивалента, если справочник недоступен.
+      },
+    );
   }
 
   void _subscribeBaseCurrency() {
@@ -405,7 +411,7 @@ class DashboardViewModel {
       if (base == null) continue;
       for (final value in locked) {
         final currency = _currencies[value.currencyCode];
-        // Справочник ещё не загружен: дождёмся _loadCurrencies и пересчёта.
+        // Справочник ещё не загружен: дождёмся _subscribeCurrencies и пересчёта.
         if (currency == null) return;
         marks.add(
           NetWorthAssetValue(
@@ -574,6 +580,7 @@ class DashboardViewModel {
     _transactionsSubscription?.cancel();
     _cashflowSubscription?.cancel();
     _safetySubscription?.cancel();
+    _currenciesSubscription?.cancel();
     _baseSubscription?.cancel();
     _rateCleanup?.call();
     _rateCleanup = null;
