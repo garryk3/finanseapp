@@ -24,6 +24,7 @@ import 'package:finanseapp/core/features/currencies/domain/currency_repository.d
 import 'package:finanseapp/core/features/currencies/domain/exchange_rate_repository.dart';
 import 'package:finanseapp/core/features/currencies/logic/exchange_rate_events.dart';
 import 'package:finanseapp/core/features/dashboard/ui/dashboard_screen.dart';
+import 'package:finanseapp/core/features/dashboard/ui/dashboard_net_worth.dart';
 import 'package:finanseapp/core/features/dashboard/ui/dashboard_view_model.dart';
 import 'package:finanseapp/core/features/goals/domain/financial_goal.dart';
 import 'package:finanseapp/core/features/goals/domain/goal_repository.dart';
@@ -477,6 +478,57 @@ void main() {
     expect(find.text(l10n.dashboardCashflowEmpty), findsOneWidget);
     expect(find.text(l10n.dashboardAddExpense), findsOneWidget);
     expect(find.text(l10n.dashboardEmptyTitle), findsNothing);
+  });
+
+  testWidgets('на 427dp контент Главной имеет отступ 16dp, как на Операциях', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      width: 427,
+      total: _rubles(100),
+      snapshots: [_snapshot(1, _rubles(100))],
+    );
+
+    expect(tester.getTopLeft(find.byType(DashboardNetWorth)).dx, 16);
+    for (final title in [
+      l10n.dashboardOverview,
+      l10n.dashboardQuickActions,
+      l10n.dashboardCashflowTitle,
+      l10n.dashboardGoalsTitle,
+      l10n.dashboardRecentTitle,
+    ]) {
+      expect(tester.getTopLeft(find.text(title).first).dx, 16, reason: title);
+    }
+  });
+
+  testWidgets('на 640dp отступ Главной 24dp, как в дизайн-системе', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      width: 640,
+      total: _rubles(100),
+      snapshots: [_snapshot(1, _rubles(100))],
+    );
+
+    expect(tester.getTopLeft(find.byType(DashboardNetWorth)).dx, 24);
+  });
+
+  testWidgets('на 1000dp Главная в две колонки', (tester) async {
+    await pump(
+      tester,
+      width: 1000,
+      total: _rubles(100),
+      snapshots: [_snapshot(1, _rubles(100))],
+    );
+
+    final overview = tester.getTopLeft(find.text(l10n.dashboardOverview).first);
+    final quickActions = tester.getTopLeft(
+      find.text(l10n.dashboardQuickActions).first,
+    );
+    expect(overview.dy, quickActions.dy);
+    expect(overview.dx, lessThan(quickActions.dx));
   });
 
   testWidgets('данные: net worth, достигнутая цель и последняя операция', (

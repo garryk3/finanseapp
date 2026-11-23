@@ -23,6 +23,7 @@ class DashboardRecentOperations extends StatelessWidget {
     required this.onOpen,
     required this.onAll,
     required this.unknownAssetName,
+    this.padded = true,
   });
 
   final List<AssetTransaction> operations;
@@ -33,10 +34,14 @@ class DashboardRecentOperations extends StatelessWidget {
   final VoidCallback onAll;
   final String unknownAssetName;
 
+  /// false — секция внутри контейнера с готовым горизонтальным отступом.
+  final bool padded;
+
   @override
   Widget build(BuildContext context) {
     return AppSection(
       header: l10n.dashboardRecentTitle,
+      padded: padded,
       child: operations.isEmpty
           ? Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
