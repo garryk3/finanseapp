@@ -1,7 +1,7 @@
 import 'package:finanseapp/app/app.dart';
 import 'package:finanseapp/core/di/service_locator.dart';
-import 'package:finanseapp/core/features/analytics/logic/analytics_periods.dart';
 import 'package:finanseapp/core/features/analytics/ui/analytics_view_model.dart';
+import 'package:finanseapp/core/features/categories/domain/category.dart';
 import 'package:finanseapp/core/features/dashboard/ui/dashboard_screen.dart';
 import 'package:finanseapp/app/shell_screen.dart';
 import 'package:finanseapp/app/routes.dart';
@@ -100,7 +100,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('аналитика сохраняет период после возврата с детализации', (
+  testWidgets('аналитика сохраняет фильтры после возврата с детализации', (
     tester,
   ) async {
     late ServiceLocator locator;
@@ -115,16 +115,38 @@ void main() {
 
     router.go(AppRoutes.analytics);
     await tester.pumpAndSettle();
-    analytics.period.value = AnalyticsPeriod.year;
+
+    await tester.tap(
+      find.widgetWithText(AppFilterChip, l10n.analyticsPeriodYear),
+    );
+    analytics.cashflowKind.value = CashflowKind.income;
+    analytics.categoryId.value = 42;
     await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<AppFilterChip>(
+            find.widgetWithText(AppFilterChip, l10n.analyticsPeriodYear),
+          )
+          .selected,
+      isTrue,
+    );
 
     router.push(AppRoutes.analyticsDetails);
     await tester.pumpAndSettle();
     router.pop();
     await tester.pumpAndSettle();
 
+    expect(
+      tester
+          .widget<AppFilterChip>(
+            find.widgetWithText(AppFilterChip, l10n.analyticsPeriodYear),
+          )
+          .selected,
+      isTrue,
+    );
+    expect(analytics.cashflowKind.value, CashflowKind.income);
+    expect(analytics.categoryId.value, 42);
     expect(identical(locator.get<AnalyticsViewModel>(), analytics), isTrue);
-    expect(analytics.period.value, AnalyticsPeriod.year);
   });
 
   test('AnalyticsViewModel зарегистрирован как singleton', () async {
