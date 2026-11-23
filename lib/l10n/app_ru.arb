@@ -2350,6 +2350,14 @@
   "@analyticsDetailsTitle": {
     "description": "Ссылка на экране аналитики и заголовок страницы детализации."
   },
+  "analyticsDetailsCategoryFilter": "Фильтр по категории",
+  "@analyticsDetailsCategoryFilter": {
+    "description": "Read-only чип унаследованного фильтра по категории."
+  },
+  "analyticsDetailsEmptyFilteredMessage": "Добавьте операцию или измените фильтры.",
+  "@analyticsDetailsEmptyFilteredMessage": {
+    "description": "Пояснение пустой детализации при активных унаследованных фильтрах."
+  },
   "analyticsCashflowChartSummary": "Период: {period}. Доход: {income}. Расход: {expense}. Итог: {net}.",
   "@analyticsCashflowChartSummary": {
     "description": "Доступное описание cashflow-графика.",

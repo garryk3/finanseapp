@@ -122,7 +122,8 @@ Progress bar + exact current/target/status. При >100% bar полон, тек�
 
 Line chart для net worth, grouped bars для income/expense. ChartSeriesColors из theme;
 series различаются labels/dash/markers. Tooltip показывает exact formatted values, axes не
-перегружены. Под каждым графиком доступен expandable text list тех же точек и summary.
+перегружены. Для net worth под графиком доступен expandable text list тех же точек; для
+cashflow текстовая альтернатива — отдельная страница «Детализация» (ссылка под графиком).
 Empty/single/zero range обрабатываются без бесконечных coordinates. Подробнее — `charts.md`.
 
 ## 8. Accessibility и platform

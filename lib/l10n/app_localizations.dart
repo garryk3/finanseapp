@@ -3238,6 +3238,18 @@ abstract class AppLocalizations {
   /// **'Детализация за месяц'**
   String get analyticsDetailsTitle;
 
+  /// Read-only чип унаследованного фильтра по категории.
+  ///
+  /// In ru, this message translates to:
+  /// **'Фильтр по категории'**
+  String get analyticsDetailsCategoryFilter;
+
+  /// Пояснение пустой детализации при активных унаследованных фильтрах.
+  ///
+  /// In ru, this message translates to:
+  /// **'Добавьте операцию или измените фильтры.'**
+  String get analyticsDetailsEmptyFilteredMessage;
+
   /// Доступное описание cashflow-графика.
   ///
   /// In ru, this message translates to:

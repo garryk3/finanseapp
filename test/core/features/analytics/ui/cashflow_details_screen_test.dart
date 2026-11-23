@@ -15,6 +15,7 @@ import 'package:finanseapp/core/features/analytics/ui/cashflow_details_view_mode
 import 'package:finanseapp/core/features/assets/domain/asset.dart';
 import 'package:finanseapp/core/features/cashflow/domain/cashflow_filter.dart';
 import 'package:finanseapp/core/features/cashflow/domain/cashflow_summary.dart';
+import 'package:finanseapp/core/features/categories/domain/category.dart';
 import 'package:finanseapp/core/features/currencies/domain/currency_repository.dart';
 import 'package:finanseapp/core/features/currencies/domain/exchange_rate_repository.dart';
 import 'package:finanseapp/core/features/settings/domain/settings_repository.dart';
@@ -259,7 +260,44 @@ void main() {
         today: LocalDate(2026, 11, 19),
       ),
     );
-    expect(find.text('01.03.2026'), findsOneWidget);
+    expect(find.text('Март 2026'), findsOneWidget);
+  });
+
+  testWidgets('унаследованные фильтры видны и сбрасываются', (tester) async {
+    final queries = _Queries(
+      series: [_point(LocalDate(2026, 11, 1), expense: 50000)],
+    );
+    final vm = viewModel(queries)
+      ..setInitialKind(CashflowKind.expense)
+      ..setInitialCategoryId(7);
+    await pump(tester, vm);
+
+    expect(find.text(l10n.analyticsCashflowExpense), findsOneWidget);
+    expect(find.text(l10n.analyticsDetailsCategoryFilter), findsOneWidget);
+
+    await tester.tap(find.text(l10n.assetsResetFilters));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+
+    expect(find.text(l10n.analyticsDetailsCategoryFilter), findsNothing);
+    expect(vm.cashflowKind.value, isNull);
+    expect(vm.categoryId.value, isNull);
+    expect(queries.lastFilter?.kind, isNull);
+    expect(queries.lastFilter?.categoryId, isNull);
+  });
+
+  testWidgets('пусто при унаследованном фильтре — подсказка про фильтры', (
+    tester,
+  ) async {
+    final queries = _Queries(series: [_point(LocalDate(2026, 11, 1))]);
+    final vm = viewModel(queries)..setInitialKind(CashflowKind.income);
+    await pump(tester, vm);
+
+    expect(
+      find.text(l10n.analyticsDetailsEmptyFilteredMessage),
+      findsOneWidget,
+    );
+    expect(find.text(l10n.analyticsCashflowEmptyMonthMessage), findsNothing);
   });
 
   testWidgets('ошибка курса — AppErrorState и «Ввести курс»', (tester) async {

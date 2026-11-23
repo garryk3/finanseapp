@@ -1730,6 +1730,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get analyticsDetailsTitle => 'Детализация за месяц';
 
   @override
+  String get analyticsDetailsCategoryFilter => 'Фильтр по категории';
+
+  @override
+  String get analyticsDetailsEmptyFilteredMessage =>
+      'Добавьте операцию или измените фильтры.';
+
+  @override
   String analyticsCashflowChartSummary(
     String period,
     String income,

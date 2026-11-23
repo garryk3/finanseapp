@@ -124,6 +124,81 @@ void main() {
       );
       expect(find.text('Сбросить фильтры'), findsOneWidget);
     });
+
+    testWidgets('выбранный чип подводится в видимую область на узком экране', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(320, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        testApp(
+          AppFilterBar(
+            children: <Widget>[
+              for (final label in <String>[
+                'Месяц',
+                '3 месяца',
+                '6 месяцев',
+                'Год',
+                'Всё время',
+              ])
+                AppFilterChip(
+                  label: label,
+                  selected: label == 'Всё время',
+                  onSelected: (_) {},
+                ),
+            ],
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final rect = tester.getRect(find.text('Всё время'));
+      expect(rect.left, greaterThanOrEqualTo(0));
+      expect(rect.right, lessThanOrEqualTo(320));
+      expect(find.byType(Scrollbar), findsOneWidget);
+    });
+
+    testWidgets('программный сброс подводит первый чип в видимую область', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(320, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final selected = ValueNotifier<String>('Всё время');
+      addTearDown(selected.dispose);
+      await tester.pumpWidget(
+        testApp(
+          ValueListenableBuilder<String>(
+            valueListenable: selected,
+            builder: (context, value, _) => AppFilterBar(
+              children: <Widget>[
+                for (final label in <String>[
+                  'Месяц',
+                  '3 месяца',
+                  '6 месяцев',
+                  'Год',
+                  'Всё время',
+                ])
+                  AppFilterChip(
+                    label: label,
+                    selected: label == value,
+                    onSelected: (_) {},
+                  ),
+              ],
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      selected.value = 'Месяц';
+      await tester.pumpAndSettle();
+
+      final rect = tester.getRect(find.text('Месяц'));
+      expect(rect.left, greaterThanOrEqualTo(0));
+      expect(rect.right, lessThanOrEqualTo(320));
+    });
   });
 
   group('AppFormSection', () {

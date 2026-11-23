@@ -3,10 +3,12 @@ import 'package:finanseapp/core/domain/common/result.dart';
 import 'package:finanseapp/core/features/analytics/logic/analytics_periods.dart';
 import 'package:finanseapp/core/features/analytics/ui/cashflow_details_view_model.dart';
 import 'package:finanseapp/core/features/analytics/ui/cashflow_period_list.dart';
+import 'package:finanseapp/core/features/categories/domain/category.dart';
 import 'package:finanseapp/core/features/currencies/ui/manual_rate_dialog.dart';
 import 'package:finanseapp/core/presentation/date_formatter.dart';
 import 'package:finanseapp/core/presentation/view_state.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
+import 'package:finanseapp/uikit/app_chip.dart';
 import 'package:finanseapp/uikit/app_empty_state.dart';
 import 'package:finanseapp/uikit/app_error_state.dart';
 import 'package:finanseapp/uikit/app_filter_bar.dart';
@@ -68,6 +70,10 @@ class _CashflowDetailsScreenState extends State<CashflowDetailsScreen> {
     CashflowDetailsViewModel vm,
   ) {
     final state = vm.state.value;
+    final kind = vm.cashflowKind.value;
+    final hasInheritedFilters = kind != null || vm.categoryId.value != null;
+    final filtersActive =
+        vm.period.value != AnalyticsPeriod.month || hasInheritedFilters;
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: AppSpacing.contentMaxWidth),
@@ -80,10 +86,8 @@ class _CashflowDetailsScreenState extends State<CashflowDetailsScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
               child: AppFilterBar(
-                activeCount: vm.period.value == AnalyticsPeriod.month ? 0 : 1,
-                onReset: vm.period.value == AnalyticsPeriod.month
-                    ? null
-                    : () => vm.selectPeriod(AnalyticsPeriod.month),
+                activeCount: filtersActive ? 1 : 0,
+                onReset: filtersActive ? vm.resetFilters : null,
                 resetLabel: l10n.assetsResetFilters,
                 children: [
                   for (final period in AnalyticsPeriod.values)
@@ -95,6 +99,32 @@ class _CashflowDetailsScreenState extends State<CashflowDetailsScreen> {
                 ],
               ),
             ),
+            if (hasInheritedFilters)
+              Padding(
+                padding: const EdgeInsets.only(
+                  left: AppSpacing.md,
+                  right: AppSpacing.md,
+                  top: AppSpacing.xs,
+                ),
+                child: Wrap(
+                  spacing: AppSpacing.xs,
+                  runSpacing: AppSpacing.xxs,
+                  children: [
+                    if (kind != null)
+                      AppChip(
+                        label: kind == CashflowKind.income
+                            ? l10n.analyticsCashflowIncome
+                            : l10n.analyticsCashflowExpense,
+                        icon: Icons.filter_alt_outlined,
+                      ),
+                    if (vm.categoryId.value != null)
+                      AppChip(
+                        label: l10n.analyticsDetailsCategoryFilter,
+                        icon: Icons.category_outlined,
+                      ),
+                  ],
+                ),
+              ),
             const SizedBox(height: AppSpacing.md),
             if (state is ViewLoading)
               Padding(
@@ -102,7 +132,10 @@ class _CashflowDetailsScreenState extends State<CashflowDetailsScreen> {
                 child: Column(
                   children: [
                     for (var i = 0; i < 4; i++) ...[
-                      const AppSkeleton(width: double.infinity, height: 48),
+                      const AppSkeleton(
+                        width: double.infinity,
+                        height: AppSpacing.minTouchTarget,
+                      ),
                       const SizedBox(height: AppSpacing.xs),
                     ],
                   ],
@@ -116,7 +149,9 @@ class _CashflowDetailsScreenState extends State<CashflowDetailsScreen> {
                 title: vm.period.value == AnalyticsPeriod.month
                     ? l10n.analyticsCashflowEmptyMonthTitle
                     : l10n.analyticsCashflowEmptyTitle,
-                message: vm.period.value == AnalyticsPeriod.month
+                message: hasInheritedFilters
+                    ? l10n.analyticsDetailsEmptyFilteredMessage
+                    : vm.period.value == AnalyticsPeriod.month
                     ? l10n.analyticsCashflowEmptyMonthMessage
                     : l10n.analyticsCashflowEmptyMessage,
               )
@@ -127,6 +162,7 @@ class _CashflowDetailsScreenState extends State<CashflowDetailsScreen> {
                   points: vm.points.value,
                   l10n: l10n,
                   formatMoney: vm.formatMoney,
+                  monthly: vm.period.value != AnalyticsPeriod.month,
                 ),
               ),
           ],

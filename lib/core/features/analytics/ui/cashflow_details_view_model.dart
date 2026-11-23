@@ -71,6 +71,14 @@ final class CashflowDetailsViewModel {
     _reload();
   }
 
+  /// Сбрасывает и период, и унаследованные фильтры типа/категории.
+  void resetFilters() {
+    period.value = AnalyticsPeriod.month;
+    cashflowKind.value = null;
+    categoryId.value = null;
+    _reload();
+  }
+
   void reload() {
     _today = now();
     _reload();
