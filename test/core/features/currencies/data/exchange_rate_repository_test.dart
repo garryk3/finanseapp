@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:decimal/decimal.dart';
 import 'package:finanseapp/core/database/app_database.dart';
 import 'package:finanseapp/core/database/daos/cashflow_dao.dart';
+import 'package:finanseapp/core/database/daos/transactions_dao.dart';
 import 'package:finanseapp/core/domain/common/exchange_rate.dart';
 import 'package:finanseapp/core/domain/common/local_date.dart';
 import 'package:finanseapp/core/domain/common/result.dart';
@@ -11,6 +12,7 @@ import 'package:finanseapp/core/features/currencies/data/cbr_exchange_rate_clien
 import 'package:finanseapp/core/features/currencies/data/exchange_rate_repository_impl.dart';
 import 'package:finanseapp/core/features/currencies/domain/exchange_rate_repository.dart';
 import 'package:finanseapp/core/features/currencies/logic/exchange_rate_events.dart';
+import 'package:finanseapp/core/features/transactions/domain/asset_transaction.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -117,6 +119,52 @@ void main() {
     );
     expect(requests, 0);
   });
+
+  test(
+    'валюта операции/оценки инвестиции учитывается в ссылках (BR-C-3/4)',
+    () async {
+      final investmentId = await createInvestment(db);
+      final usedDate = LocalDate(2026, 11, 17);
+      await repository.saveManual('USD', usedDate, Decimal.parse('90'));
+      await db.transactionsDao.create(
+        AssetTransactionInput(
+          assetId: investmentId,
+          kind: AssetTransactionKind.deposit,
+          amountMinor: 10000,
+          currencyCode: 'USD',
+          occurredOn: usedDate,
+          rateToRub: Decimal.parse('90'),
+          amountRubMinor: 900000,
+        ),
+      );
+      await db.valuationsDao.create(
+        assetId: investmentId,
+        effectiveOn: usedDate,
+        valueMinor: 12000,
+        currencyCode: 'EUR',
+        rateToRub: Decimal.parse('100'),
+        valueRubMinor: 1200000,
+      );
+
+      expect(
+        await db.currenciesDao.countReferences('USD', includeRates: false),
+        1,
+      );
+      expect(await db.currenciesDao.countReferences('EUR'), 1);
+      expect(await db.currenciesDao.countRateReferences('USD', usedDate), 1);
+      expect(await db.currenciesDao.countRateReferences('EUR', usedDate), 1);
+      await expectLater(
+        repository.saveManual('USD', usedDate, Decimal.parse('91')),
+        throwsA(
+          isA<DomainException>().having(
+            (error) => error.code,
+            'code',
+            DomainErrorCode.conflict,
+          ),
+        ),
+      );
+    },
+  );
 
   test('использованный курс изменить нельзя (BR-C-3)', () async {
     final usedDate = LocalDate(2026, 1, 10);

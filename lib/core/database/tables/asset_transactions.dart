@@ -5,6 +5,7 @@ import 'package:finanseapp/core/database/converters/local_date_converter.dart';
 import 'package:finanseapp/core/database/converters/utc_timestamp_converter.dart';
 import 'package:finanseapp/core/database/tables/assets.dart';
 import 'package:finanseapp/core/database/tables/asset_transfers.dart';
+import 'package:finanseapp/core/database/tables/currencies.dart';
 
 /// Операция по активу; current projection с soft delete (data_schema §4).
 ///
@@ -40,6 +41,14 @@ class AssetTransactions extends Table {
 
   IntColumn get amountMinor =>
       integer().customConstraint('NOT NULL CHECK (amount_minor > 0)')();
+
+  /// Валюта операции (M1); `NULL` — валюта актива.
+  TextColumn get currencyCode => text().nullable().references(
+    Currencies,
+    #code,
+    onUpdate: KeyAction.restrict,
+    onDelete: KeyAction.restrict,
+  )();
 
   TextColumn get occurredOn => text().map(const LocalDateConverter())();
 

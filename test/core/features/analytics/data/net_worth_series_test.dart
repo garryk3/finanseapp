@@ -158,6 +158,40 @@ void main() {
     },
   );
 
+  test('до USD-операции точка содержит только RUB-позицию', () async {
+    final investment = await createInvestment(
+      db,
+      currencyCode: 'RUB',
+      openingValueMinor: 10000000,
+    );
+    await setCreatedAt(investment, start);
+    await db.transactionsDao.create(
+      AssetTransactionInput(
+        assetId: investment,
+        kind: AssetTransactionKind.deposit,
+        amountMinor: 12000,
+        currencyCode: 'USD',
+        occurredOn: LocalDate(2026, 11, 12),
+        rateToRub: Decimal.fromInt(92),
+        amountRubMinor: 1104000,
+      ),
+    );
+    // Курс есть только на дату операции: нулевая USD-позиция до неё не
+    // должна требовать курса и попадать в точку.
+    await saveRate('USD', LocalDate(2026, 11, 12), 92);
+
+    final points = await queries.netWorthSeries(
+      period: DateRange(start: start, end: LocalDate(2026, 11, 13)),
+    );
+
+    expect(
+      [for (final point in points) point.date],
+      [LocalDate(2026, 11, 10), LocalDate(2026, 11, 12)],
+    );
+    expect(points[0].value.minorUnits, 10000000);
+    expect(points[1].value.minorUnits, 11104000);
+  });
+
   test('kind-фильтр исключает чужие активы и их события', () async {
     final account = await createAccount(
       db,

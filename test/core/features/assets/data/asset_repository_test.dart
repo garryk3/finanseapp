@@ -8,6 +8,7 @@ import 'package:finanseapp/core/domain/common/result.dart';
 import 'package:finanseapp/core/features/assets/data/asset_repository_impl.dart';
 import 'package:finanseapp/core/features/assets/domain/asset.dart';
 import 'package:finanseapp/core/features/assets/domain/asset_draft.dart';
+import 'package:finanseapp/core/features/assets/domain/asset_valuation.dart';
 import 'package:finanseapp/core/features/assets/domain/subgroup.dart';
 import 'package:finanseapp/core/features/categories/domain/category.dart';
 import 'package:finanseapp/core/features/transactions/domain/asset_transaction.dart';
@@ -95,6 +96,37 @@ void main() {
       repository.update(id, draft(end: LocalDate(2025, 12, 31))),
       throwsA(isA<DomainException>()),
     );
+  });
+
+  test('оценка квартиры в чужой валюте отклоняется (M2)', () async {
+    final id = await repository.create(
+      const PropertyDraft(
+        name: 'Квартира',
+        currencyCode: 'RUB',
+        openingValue: Money(minorUnits: 500000000, currencyCode: 'RUB'),
+      ),
+    );
+
+    await expectLater(
+      repository.recordValuation(
+        AssetValuationDraft(
+          assetId: id,
+          effectiveOn: LocalDate(2026, 1, 2),
+          value: const Money(minorUnits: 100000, currencyCode: 'USD'),
+          rateToRub: Decimal.fromInt(90),
+          fractionDigits: 2,
+        ),
+      ),
+      throwsA(
+        isA<DomainException>().having(
+          (error) => error.fieldErrors,
+          'fieldErrors',
+          containsPair('currencyCode', 'validationCurrencyMismatch'),
+        ),
+      ),
+    );
+
+    expect(await db.select(db.assetValuations).get(), isEmpty);
   });
 
   test('смена валюты запрещена при операциях (BR-VAL-8)', () async {

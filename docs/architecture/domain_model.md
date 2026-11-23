@@ -248,9 +248,15 @@ final class PropertyAsset extends Asset {
 }
 
 final class AssetSnapshot {
-  const AssetSnapshot({required this.asset, required this.currentValue});
+  const AssetSnapshot({
+    required this.asset,
+    required this.currentValue,
+    this.currencyBalances,
+  });
   final Asset asset;
-  final Money currentValue;
+  final Money currentValue; // основная валюта актива
+  final List<Money>? currencyBalances; // позиции инвестиции; null — одна валюта
+  List<Money> get breakdown => currencyBalances ?? [currentValue];
 }
 
 final class AssetValuation {
@@ -278,6 +284,13 @@ Draft-типы имеют те же обязательные поля, но бе
 `AssetValuationDraft` содержит `assetId`, `effectiveOn`, `value` и уже разрешённый
 `rateToRub`; repository вычисляет `valueRub` перед записью.
 
+`AssetSnapshot.currentValue` — стоимость в основной валюте актива (первая позиция
+`breakdown`, M4). Для инвестиции `currencyBalances` содержит все валютные позиции:
+основная валюта всегда первая (даже с нулём), остальные — по алфавиту кода и только с
+ненулевым балансом. Для счёта и квартиры поле `null`, `breakdown` равен одной позиции.
+Итоги (net worth, цели, базовые эквиваленты) суммируют `breakdown`, конвертируя каждую
+позицию отдельно через RUB в базовую валюту с одним округлением на итог (M5).
+
 ## 5. Транзакции активов и переводы
 
 ```dart
@@ -303,7 +316,7 @@ final class AssetTransaction {
   final int id;
   final int assetId;
   final AssetTransactionKind kind;
-  final Money amount; // всегда >0
+  final Money amount; // всегда >0; валюта операции (NULL в БД = валюта актива)
   final LocalDate occurredOn;
   final Decimal rateToRub;
   final Money amountRub; // абсолютное значение >0
@@ -357,6 +370,12 @@ final class TransferDraft {
 
 Для одновалютного перевода `amount == destinationAmount`. Обе суммы >0, счета различны,
 виды ног фиксированы. Сумма RUB каждой ноги считается независимо по своему курсу.
+
+`AssetTransaction.amount.currencyCode` — валюта операции: у инвестиции выбирается из
+справочника (по умолчанию — валюта актива), у счёта всегда равна валюте актива
+(`validationCurrencyMismatch` иначе). При записи совпадение с валютой актива
+нормализуется в `NULL`; mapper и декодер аудита используют валюту актива как fallback.
+`amountRub` считается от валюты операции по её курсу.
 
 ```dart
 enum RevisionAction { create, edit, delete, restore }
@@ -662,6 +681,9 @@ final class CashflowPeriodPoint {
 
 Все `watch*` исключают soft-deleted/archived по умолчанию и эмитят новый immutable
 snapshot после commit. Методы записи выбрасывают `DomainException`; UI не вызывает DAO.
+`AssetSnapshot.currentValue` — основная валюта актива, полный набор позиций — `breakdown`
+(для мультивалютной инвестиции). `TransactionFilter.currencyCode` матчит валюту операции:
+`currency_code = :code OR (currency_code IS NULL AND assets.currency_code = :code)` (M8).
 
 ```dart
 abstract interface class AssetRepository {

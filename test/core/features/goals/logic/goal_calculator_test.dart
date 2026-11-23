@@ -64,7 +64,10 @@ void main() {
     test('CALC-026: 50 000 из 100 000 — deficit 50 000, ratio 0,5', () {
       final progress = GoalCalculator.calculate(
         goal: _goal(),
-        assetValues: {1: _rubles(30000), 2: _rubles(20000)},
+        assetValues: {
+          1: [_rubles(30000)],
+          2: [_rubles(20000)],
+        },
         currency: _rub,
         today: _today,
       );
@@ -79,7 +82,9 @@ void main() {
     test('CALC-027: 120 000 — surplus 20 000 и ratio 1,2 (не clamp)', () {
       final progress = GoalCalculator.calculate(
         goal: _goal(),
-        assetValues: {1: _rubles(120000)},
+        assetValues: {
+          1: [_rubles(120000)],
+        },
         currency: _rub,
         today: _today,
       );
@@ -99,13 +104,17 @@ void main() {
     test('CALC-028: 12 000 / 6 месяцев → 2 000; 9 500 / 5 → 1 900', () {
       final first = GoalCalculator.calculate(
         goal: _goal(targetDate: LocalDate(2027, 4, 19)),
-        assetValues: {1: _rubles(88000)},
+        assetValues: {
+          1: [_rubles(88000)],
+        },
         currency: _rub,
         today: _today,
       );
       final second = GoalCalculator.calculate(
         goal: _goal(target: 12000, targetDate: LocalDate(2027, 3, 19)),
-        assetValues: {1: _rubles(2500)},
+        assetValues: {
+          1: [_rubles(2500)],
+        },
         currency: _rub,
         today: _today,
       );
@@ -119,7 +128,9 @@ void main() {
     test('CALC-029: просроченная дата при дефиците — monthly null', () {
       final progress = GoalCalculator.calculate(
         goal: _goal(targetDate: LocalDate(2026, 11, 18)),
-        assetValues: {1: _rubles(10000)},
+        assetValues: {
+          1: [_rubles(10000)],
+        },
         currency: _rub,
         today: _today,
       );
@@ -131,13 +142,17 @@ void main() {
     test('дата сегодня — один месяц; нулевой дефицит — monthly null', () {
       final today = GoalCalculator.calculate(
         goal: _goal(targetDate: _today),
-        assetValues: {1: _rubles(90000)},
+        assetValues: {
+          1: [_rubles(90000)],
+        },
         currency: _rub,
         today: _today,
       );
       final noDeficit = GoalCalculator.calculate(
         goal: _goal(targetDate: LocalDate(2027, 4, 19)),
-        assetValues: {1: _rubles(100000)},
+        assetValues: {
+          1: [_rubles(100000)],
+        },
         currency: _rub,
         today: _today,
       );
@@ -146,16 +161,34 @@ void main() {
       expect(noDeficit.monthlyContribution, isNull);
     });
 
+    test('суммирует все позиции списков', () {
+      final progress = GoalCalculator.calculate(
+        goal: _goal(),
+        assetValues: {
+          1: [_rubles(50000), _rubles(30000)],
+          2: [_rubles(20000)],
+        },
+        currency: _rub,
+        today: _today,
+      );
+
+      expect(progress.progress, _rubles(100000));
+    });
+
     test('closed остаётся closed, achieved снижается до active', () {
       final achieved = GoalCalculator.calculate(
         goal: _goal(target: 100, status: GoalStatus.closed),
-        assetValues: {1: _rubles(200)},
+        assetValues: {
+          1: [_rubles(200)],
+        },
         currency: _rub,
         today: _today,
       );
       final dropped = GoalCalculator.calculate(
         goal: _goal(status: GoalStatus.achieved),
-        assetValues: {1: _rubles(50000)},
+        assetValues: {
+          1: [_rubles(50000)],
+        },
         currency: _rub,
         today: _today,
       );
@@ -180,7 +213,9 @@ void main() {
       expect(
         () => GoalCalculator.calculate(
           goal: _goal(),
-          assetValues: {1: const Money(minorUnits: 100, currencyCode: 'USD')},
+          assetValues: {
+            1: [const Money(minorUnits: 100, currencyCode: 'USD')],
+          },
           currency: _rub,
           today: _today,
         ),
@@ -206,8 +241,8 @@ void main() {
       final progress = calculator.calculate(
         goal: _goal(), // RUB
         assetValues: {
-          1: const Money(minorUnits: 2000, currencyCode: 'USD'),
-          2: _rubles(1000),
+          1: [const Money(minorUnits: 2000, currencyCode: 'USD')],
+          2: [_rubles(1000)],
         },
         currencies: currencies,
         ratesToRub: {'USD': Decimal.fromInt(90)},
@@ -218,12 +253,46 @@ void main() {
       expect(progress!.progress, _rubles(2800));
     });
 
+    test('две позиции одного актива конвертируются по отдельности', () {
+      final progress = calculator.calculate(
+        goal: _goal(),
+        assetValues: {
+          1: [
+            _rubles(1000),
+            const Money(minorUnits: 2000, currencyCode: 'USD'),
+          ],
+        },
+        currencies: currencies,
+        ratesToRub: {'USD': Decimal.fromInt(90)},
+        today: _today,
+      );
+
+      expect(progress!.progress, _rubles(2800));
+    });
+
+    test('нехватка курса одной позиции — прогресс null целиком', () {
+      final progress = calculator.calculate(
+        goal: _goal(),
+        assetValues: {
+          1: [
+            _rubles(1000),
+            const Money(minorUnits: 2000, currencyCode: 'USD'),
+          ],
+        },
+        currencies: currencies,
+        ratesToRub: const {},
+        today: _today,
+      );
+
+      expect(progress, isNull);
+    });
+
     test('цель в USD: RUB и USD складываются после конверсии', () {
       final progress = calculator.calculate(
         goal: _goal(currency: 'USD'),
         assetValues: {
-          1: _rubles(9000),
-          2: const Money(minorUnits: 5000, currencyCode: 'USD'),
+          1: [_rubles(9000)],
+          2: [const Money(minorUnits: 5000, currencyCode: 'USD')],
         },
         currencies: currencies,
         ratesToRub: {'USD': Decimal.fromInt(90)},
@@ -240,8 +309,8 @@ void main() {
       final progress = calculator.calculate(
         goal: _goal(currency: 'EUR'),
         assetValues: {
-          1: _rubles(900),
-          2: const Money(minorUnits: 4500, currencyCode: 'USD'),
+          1: [_rubles(900)],
+          2: [const Money(minorUnits: 4500, currencyCode: 'USD')],
         },
         currencies: currencies,
         ratesToRub: {'USD': Decimal.fromInt(90), 'EUR': Decimal.fromInt(100)},
@@ -257,7 +326,9 @@ void main() {
     test('нет курса — прогресс не считается (не частичная сумма)', () {
       final progress = calculator.calculate(
         goal: _goal(),
-        assetValues: {1: const Money(minorUnits: 2000, currencyCode: 'USD')},
+        assetValues: {
+          1: [const Money(minorUnits: 2000, currencyCode: 'USD')],
+        },
         currencies: currencies,
         ratesToRub: const {},
         today: _today,
@@ -281,7 +352,9 @@ void main() {
     test('одна валюта с целью не требует курсов', () {
       final progress = calculator.calculate(
         goal: _goal(currency: 'JPY'),
-        assetValues: {1: const Money(minorUnits: 1000, currencyCode: 'JPY')},
+        assetValues: {
+          1: [const Money(minorUnits: 1000, currencyCode: 'JPY')],
+        },
         currencies: currencies,
         ratesToRub: const {},
         today: _today,

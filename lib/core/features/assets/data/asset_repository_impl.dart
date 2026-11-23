@@ -147,6 +147,8 @@ final class AssetRepositoryImpl implements AssetRepository {
 
   @override
   Future<void> recordValuation(AssetValuationDraft draft) async {
+    final asset = await _assetsDao.getById(draft.assetId);
+    final currencyCode = _valuationCurrency(asset, draft.value);
     final decimalValue = MoneyMath.toDecimal(
       draft.value,
       Currency(
@@ -165,9 +167,22 @@ final class AssetRepositoryImpl implements AssetRepository {
       assetId: draft.assetId,
       effectiveOn: draft.effectiveOn,
       valueMinor: draft.value.minorUnits,
+      currencyCode: currencyCode,
       rateToRub: draft.rateToRub,
       valueRubMinor: valueRub.minorUnits,
     );
+  }
+
+  /// M1/M2: `NULL` для валюты актива; чужая валюта — только инвестиции.
+  static String? _valuationCurrency(AssetRow asset, Money value) {
+    if (value.currencyCode == asset.currencyCode) return null;
+    if (asset.kind != AssetKind.investment) {
+      throw const DomainException(
+        DomainErrorCode.validation,
+        fieldErrors: {'currencyCode': 'validationCurrencyMismatch'},
+      );
+    }
+    return value.currencyCode;
   }
 
   Future<AssetSnapshot> _snapshotOf(AssetRow row) async {
@@ -291,13 +306,15 @@ final class AssetRepositoryImpl implements AssetRepository {
           archivedAt: row.archivedAt,
           brokerId: investment.brokerId,
         );
+        final balances = AssetValueCalculator.investmentBalances(
+          asset,
+          valuations,
+          transactions,
+        );
         return AssetSnapshot(
           asset: asset,
-          currentValue: AssetValueCalculator.investment(
-            asset,
-            valuations,
-            transactions,
-          ),
+          currentValue: balances.first,
+          currencyBalances: balances,
         );
       case AssetKind.property:
         final asset = PropertyAsset(
@@ -351,7 +368,10 @@ final class AssetRepositoryImpl implements AssetRepository {
     id: row.id,
     assetId: row.assetId,
     effectiveOn: row.effectiveOn,
-    value: Money(minorUnits: row.valueMinor, currencyCode: currencyCode),
+    value: Money(
+      minorUnits: row.valueMinor,
+      currencyCode: row.currencyCode ?? currencyCode,
+    ),
     rateToRub: row.rateToRub,
     valueRub: Money(minorUnits: row.valueRubMinor, currencyCode: 'RUB'),
     createdAt: row.createdAt,

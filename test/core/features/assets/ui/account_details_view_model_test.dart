@@ -39,6 +39,22 @@ AssetSnapshot _account(int value) => AssetSnapshot(
   currentValue: _rubles(value),
 );
 
+AssetSnapshot _investment(List<Money> balances) => AssetSnapshot(
+  asset: InvestmentAsset(
+    id: 1,
+    name: 'Инвестиция',
+    currencyCode: balances.first.currencyCode,
+    openingValue: Money(
+      minorUnits: 0,
+      currencyCode: balances.first.currencyCode,
+    ),
+    createdAt: DateTime.utc(2026, 1, 1),
+    brokerId: 1,
+  ),
+  currentValue: balances.first,
+  currencyBalances: balances,
+);
+
 final class _Assets implements AssetRepository {
   _Assets(this.snapshot);
 
@@ -131,8 +147,23 @@ final class _Settings implements SettingsRepository {
 }
 
 final class _Rates implements ExchangeRateRepository {
+  _Rates([this.rates = const {}]);
+
+  final Map<String, Decimal> rates;
+
   @override
-  Future<ExchangeRate?> find(String code, LocalDate date) async => null;
+  Future<ExchangeRate?> find(String code, LocalDate date) async {
+    final rate = rates[code];
+    if (rate == null) return null;
+    return ExchangeRate(
+      id: 1,
+      currencyCode: code,
+      date: date,
+      rateToRub: rate,
+      source: ExchangeRateSource.manual,
+      fetchedAt: DateTime.utc(2026, 1, 1),
+    );
+  }
 
   @override
   Future<ExchangeRate> fetchFromCbr(String code, LocalDate date) =>
@@ -183,6 +214,59 @@ void main() {
     await pumpEventQueue();
 
     expect(vm.error.value, 'storageFailure');
+  });
+
+  test(
+    'базовый эквивалент мультивалютной инвестиции — сумма позиций',
+    () async {
+      final assets = _Assets(
+        _investment(const [
+          Money(minorUnits: 10000000, currencyCode: 'RUB'),
+          Money(minorUnits: 12000, currencyCode: 'USD'),
+        ]),
+      );
+      final vm = AccountDetailsViewModel(
+        repository: assets,
+        assetId: 1,
+        today: LocalDate(2026, 11, 19),
+        settingsRepository: _Settings(),
+        currencyRepository: _Currencies(),
+        rateRepository: _Rates({'USD': Decimal.fromInt(92)}),
+      );
+      addTearDown(vm.dispose);
+
+      await vm.load();
+
+      expect(vm.breakdown.value, const [
+        Money(minorUnits: 10000000, currencyCode: 'RUB'),
+        Money(minorUnits: 12000, currencyCode: 'USD'),
+      ]);
+      expect(vm.baseEquivalent.value, _rubles(111040));
+      expect(vm.baseRateUnavailable.value, isFalse);
+    },
+  );
+
+  test('мультивалютная инвестиция без курса позиции — unavailable', () async {
+    final assets = _Assets(
+      _investment(const [
+        Money(minorUnits: 10000000, currencyCode: 'RUB'),
+        Money(minorUnits: 12000, currencyCode: 'USD'),
+      ]),
+    );
+    final vm = AccountDetailsViewModel(
+      repository: assets,
+      assetId: 1,
+      today: LocalDate(2026, 11, 19),
+      settingsRepository: _Settings(),
+      currencyRepository: _Currencies(),
+      rateRepository: _Rates(),
+    );
+    addTearDown(vm.dispose);
+
+    await vm.load();
+
+    expect(vm.baseEquivalent.value, isNull);
+    expect(vm.baseRateUnavailable.value, isTrue);
   });
 
   test('после dispose эмиссия не меняет баланс', () async {

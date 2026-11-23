@@ -55,7 +55,7 @@ void main() {
     await check.close();
   });
 
-  test('v1-копия импортируется и мигрирует до v2', () async {
+  test('v1-копия импортируется и мигрирует до текущей версии', () async {
     final v1Path = '${dir.path}/v1.sqlite';
     final old = v1.DatabaseAtV1(NativeDatabase(File(v1Path)));
     await old.customStatement(
@@ -77,7 +77,7 @@ void main() {
 
     final check = open();
     final version = await check.customSelect('PRAGMA user_version').getSingle();
-    expect(version.read<int>('user_version'), 2);
+    expect(version.read<int>('user_version'), appDatabaseSchemaVersion);
     expect((await check.settingsDao.getBaseCurrency()).code, 'USD');
     await check.close();
   });

@@ -4,6 +4,7 @@ import 'package:decimal/decimal.dart';
 import 'package:finanseapp/core/domain/common/currency.dart';
 import 'package:finanseapp/core/domain/common/exchange_rate.dart';
 import 'package:finanseapp/core/domain/common/local_date.dart';
+import 'package:finanseapp/core/domain/common/money.dart';
 import 'package:finanseapp/core/domain/common/result.dart';
 import 'package:finanseapp/core/features/assets/domain/asset.dart';
 import 'package:finanseapp/core/features/assets/domain/asset_draft.dart';
@@ -139,6 +140,53 @@ final class _NoRates implements ExchangeRateRepository {
   ) => throw const DomainException(DomainErrorCode.validation);
 }
 
+final class _Rates implements ExchangeRateRepository {
+  _Rates(this.rates);
+
+  final Map<String, Decimal> rates;
+
+  @override
+  Future<ExchangeRate?> find(String currencyCode, LocalDate date) async {
+    final rate = rates[currencyCode];
+    if (rate == null) return null;
+    return ExchangeRate(
+      id: 1,
+      currencyCode: currencyCode,
+      date: date,
+      rateToRub: rate,
+      source: ExchangeRateSource.manual,
+      fetchedAt: DateTime.utc(2026, 1, 1),
+    );
+  }
+
+  @override
+  Future<ExchangeRate> fetchFromCbr(String currencyCode, LocalDate date) =>
+      throw UnimplementedError();
+
+  @override
+  Future<ExchangeRate> saveManual(
+    String currencyCode,
+    LocalDate date,
+    Decimal rateToRub,
+  ) => throw UnimplementedError();
+}
+
+AssetSnapshot _investment(List<Money> balances) => AssetSnapshot(
+  asset: InvestmentAsset(
+    id: 1,
+    name: 'Инвестиция',
+    currencyCode: balances.first.currencyCode,
+    openingValue: Money(
+      minorUnits: 0,
+      currencyCode: balances.first.currencyCode,
+    ),
+    createdAt: DateTime.utc(2026, 1, 1),
+    brokerId: 1,
+  ),
+  currentValue: balances.first,
+  currencyBalances: balances,
+);
+
 void main() {
   test('реагирует на смену базовой валюты и справочника', () async {
     final assets = StreamController<List<AssetSnapshot>>.broadcast();
@@ -200,6 +248,75 @@ void main() {
     await assets.close();
     await base.close();
     await currencies.close();
+  });
+
+  test(
+    'базовый эквивалент мультивалютной инвестиции — сумма позиций',
+    () async {
+      final assets = StreamController<List<AssetSnapshot>>.broadcast();
+      final base = StreamController<Currency>.broadcast();
+      final currencies = StreamController<List<Currency>>.broadcast();
+      final vm = AssetsViewModel(
+        repository: _StreamAssets(assets),
+        currencyRepository: _StreamCurrencies(currencies),
+        settingsRepository: _StreamSettings(base),
+        rateRepository: _Rates({'USD': Decimal.fromInt(92)}),
+        today: LocalDate(2026, 1, 3),
+      );
+      addTearDown(() async {
+        await vm.dispose();
+        await assets.close();
+        await base.close();
+        await currencies.close();
+      });
+
+      final snapshot = _investment(const [
+        Money(minorUnits: 10000000, currencyCode: 'RUB'),
+        Money(minorUnits: 12000, currencyCode: 'USD'),
+      ]);
+      vm.init();
+      base.add(_rub);
+      currencies.add(const [_rub, _usd]);
+      assets.add([snapshot]);
+      await pumpEventQueue(times: 10);
+
+      final result = vm.baseEquivalent(snapshot);
+      expect(result.unavailable, isFalse);
+      expect(result.text, '111\u00A0040,00 ₽');
+    },
+  );
+
+  test('базовый эквивалент без курса позиции — unavailable', () async {
+    final assets = StreamController<List<AssetSnapshot>>.broadcast();
+    final base = StreamController<Currency>.broadcast();
+    final currencies = StreamController<List<Currency>>.broadcast();
+    final vm = AssetsViewModel(
+      repository: _StreamAssets(assets),
+      currencyRepository: _StreamCurrencies(currencies),
+      settingsRepository: _StreamSettings(base),
+      rateRepository: _NoRates(),
+      today: LocalDate(2026, 1, 3),
+    );
+    addTearDown(() async {
+      await vm.dispose();
+      await assets.close();
+      await base.close();
+      await currencies.close();
+    });
+
+    final snapshot = _investment(const [
+      Money(minorUnits: 10000000, currencyCode: 'RUB'),
+      Money(minorUnits: 12000, currencyCode: 'USD'),
+    ]);
+    vm.init();
+    base.add(_rub);
+    currencies.add(const [_rub, _usd]);
+    assets.add([snapshot]);
+    await pumpEventQueue(times: 10);
+
+    final result = vm.baseEquivalent(snapshot);
+    expect(result.unavailable, isTrue);
+    expect(result.text, isNull);
   });
 
   test('повторный init не оставляет старых подписок', () async {

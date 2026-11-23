@@ -2167,6 +2167,20 @@ class $AssetValuationsTable extends AssetValuations
     requiredDuringInsert: true,
     $customConstraints: 'NOT NULL CHECK (value_minor >= 0)',
   );
+  static const VerificationMeta _currencyCodeMeta = const VerificationMeta(
+    'currencyCode',
+  );
+  @override
+  late final GeneratedColumn<String> currencyCode = GeneratedColumn<String>(
+    'currency_code',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES currencies (code) ON UPDATE RESTRICT ON DELETE RESTRICT',
+    ),
+  );
   @override
   late final GeneratedColumnWithTypeConverter<Decimal, String> rateToRub =
       GeneratedColumn<String>(
@@ -2203,6 +2217,7 @@ class $AssetValuationsTable extends AssetValuations
     assetId,
     effectiveOn,
     valueMinor,
+    currencyCode,
     rateToRub,
     valueRubMinor,
     createdAt,
@@ -2237,6 +2252,15 @@ class $AssetValuationsTable extends AssetValuations
       );
     } else if (isInserting) {
       context.missing(_valueMinorMeta);
+    }
+    if (data.containsKey('currency_code')) {
+      context.handle(
+        _currencyCodeMeta,
+        currencyCode.isAcceptableOrUnknown(
+          data['currency_code']!,
+          _currencyCodeMeta,
+        ),
+      );
     }
     if (data.containsKey('value_rub_minor')) {
       context.handle(
@@ -2276,6 +2300,10 @@ class $AssetValuationsTable extends AssetValuations
         DriftSqlType.int,
         data['${effectivePrefix}value_minor'],
       )!,
+      currencyCode: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}currency_code'],
+      ),
       rateToRub: $AssetValuationsTable.$converterrateToRub.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.string,
@@ -2314,6 +2342,9 @@ class AssetValuationRow extends DataClass
   final int assetId;
   final LocalDate effectiveOn;
   final int valueMinor;
+
+  /// Валюта оценки (M1); `NULL` — валюта актива.
+  final String? currencyCode;
   final Decimal rateToRub;
   final int valueRubMinor;
   final DateTime createdAt;
@@ -2322,6 +2353,7 @@ class AssetValuationRow extends DataClass
     required this.assetId,
     required this.effectiveOn,
     required this.valueMinor,
+    this.currencyCode,
     required this.rateToRub,
     required this.valueRubMinor,
     required this.createdAt,
@@ -2337,6 +2369,9 @@ class AssetValuationRow extends DataClass
       );
     }
     map['value_minor'] = Variable<int>(valueMinor);
+    if (!nullToAbsent || currencyCode != null) {
+      map['currency_code'] = Variable<String>(currencyCode);
+    }
     {
       map['rate_to_rub'] = Variable<String>(
         $AssetValuationsTable.$converterrateToRub.toSql(rateToRub),
@@ -2357,6 +2392,9 @@ class AssetValuationRow extends DataClass
       assetId: Value(assetId),
       effectiveOn: Value(effectiveOn),
       valueMinor: Value(valueMinor),
+      currencyCode: currencyCode == null && nullToAbsent
+          ? const Value.absent()
+          : Value(currencyCode),
       rateToRub: Value(rateToRub),
       valueRubMinor: Value(valueRubMinor),
       createdAt: Value(createdAt),
@@ -2373,6 +2411,7 @@ class AssetValuationRow extends DataClass
       assetId: serializer.fromJson<int>(json['assetId']),
       effectiveOn: serializer.fromJson<LocalDate>(json['effectiveOn']),
       valueMinor: serializer.fromJson<int>(json['valueMinor']),
+      currencyCode: serializer.fromJson<String?>(json['currencyCode']),
       rateToRub: serializer.fromJson<Decimal>(json['rateToRub']),
       valueRubMinor: serializer.fromJson<int>(json['valueRubMinor']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
@@ -2386,6 +2425,7 @@ class AssetValuationRow extends DataClass
       'assetId': serializer.toJson<int>(assetId),
       'effectiveOn': serializer.toJson<LocalDate>(effectiveOn),
       'valueMinor': serializer.toJson<int>(valueMinor),
+      'currencyCode': serializer.toJson<String?>(currencyCode),
       'rateToRub': serializer.toJson<Decimal>(rateToRub),
       'valueRubMinor': serializer.toJson<int>(valueRubMinor),
       'createdAt': serializer.toJson<DateTime>(createdAt),
@@ -2397,6 +2437,7 @@ class AssetValuationRow extends DataClass
     int? assetId,
     LocalDate? effectiveOn,
     int? valueMinor,
+    Value<String?> currencyCode = const Value.absent(),
     Decimal? rateToRub,
     int? valueRubMinor,
     DateTime? createdAt,
@@ -2405,6 +2446,7 @@ class AssetValuationRow extends DataClass
     assetId: assetId ?? this.assetId,
     effectiveOn: effectiveOn ?? this.effectiveOn,
     valueMinor: valueMinor ?? this.valueMinor,
+    currencyCode: currencyCode.present ? currencyCode.value : this.currencyCode,
     rateToRub: rateToRub ?? this.rateToRub,
     valueRubMinor: valueRubMinor ?? this.valueRubMinor,
     createdAt: createdAt ?? this.createdAt,
@@ -2419,6 +2461,9 @@ class AssetValuationRow extends DataClass
       valueMinor: data.valueMinor.present
           ? data.valueMinor.value
           : this.valueMinor,
+      currencyCode: data.currencyCode.present
+          ? data.currencyCode.value
+          : this.currencyCode,
       rateToRub: data.rateToRub.present ? data.rateToRub.value : this.rateToRub,
       valueRubMinor: data.valueRubMinor.present
           ? data.valueRubMinor.value
@@ -2434,6 +2479,7 @@ class AssetValuationRow extends DataClass
           ..write('assetId: $assetId, ')
           ..write('effectiveOn: $effectiveOn, ')
           ..write('valueMinor: $valueMinor, ')
+          ..write('currencyCode: $currencyCode, ')
           ..write('rateToRub: $rateToRub, ')
           ..write('valueRubMinor: $valueRubMinor, ')
           ..write('createdAt: $createdAt')
@@ -2447,6 +2493,7 @@ class AssetValuationRow extends DataClass
     assetId,
     effectiveOn,
     valueMinor,
+    currencyCode,
     rateToRub,
     valueRubMinor,
     createdAt,
@@ -2459,6 +2506,7 @@ class AssetValuationRow extends DataClass
           other.assetId == this.assetId &&
           other.effectiveOn == this.effectiveOn &&
           other.valueMinor == this.valueMinor &&
+          other.currencyCode == this.currencyCode &&
           other.rateToRub == this.rateToRub &&
           other.valueRubMinor == this.valueRubMinor &&
           other.createdAt == this.createdAt);
@@ -2469,6 +2517,7 @@ class AssetValuationsCompanion extends UpdateCompanion<AssetValuationRow> {
   final Value<int> assetId;
   final Value<LocalDate> effectiveOn;
   final Value<int> valueMinor;
+  final Value<String?> currencyCode;
   final Value<Decimal> rateToRub;
   final Value<int> valueRubMinor;
   final Value<DateTime> createdAt;
@@ -2477,6 +2526,7 @@ class AssetValuationsCompanion extends UpdateCompanion<AssetValuationRow> {
     this.assetId = const Value.absent(),
     this.effectiveOn = const Value.absent(),
     this.valueMinor = const Value.absent(),
+    this.currencyCode = const Value.absent(),
     this.rateToRub = const Value.absent(),
     this.valueRubMinor = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -2486,6 +2536,7 @@ class AssetValuationsCompanion extends UpdateCompanion<AssetValuationRow> {
     required int assetId,
     required LocalDate effectiveOn,
     required int valueMinor,
+    this.currencyCode = const Value.absent(),
     required Decimal rateToRub,
     required int valueRubMinor,
     required DateTime createdAt,
@@ -2500,6 +2551,7 @@ class AssetValuationsCompanion extends UpdateCompanion<AssetValuationRow> {
     Expression<int>? assetId,
     Expression<String>? effectiveOn,
     Expression<int>? valueMinor,
+    Expression<String>? currencyCode,
     Expression<String>? rateToRub,
     Expression<int>? valueRubMinor,
     Expression<String>? createdAt,
@@ -2509,6 +2561,7 @@ class AssetValuationsCompanion extends UpdateCompanion<AssetValuationRow> {
       if (assetId != null) 'asset_id': assetId,
       if (effectiveOn != null) 'effective_on': effectiveOn,
       if (valueMinor != null) 'value_minor': valueMinor,
+      if (currencyCode != null) 'currency_code': currencyCode,
       if (rateToRub != null) 'rate_to_rub': rateToRub,
       if (valueRubMinor != null) 'value_rub_minor': valueRubMinor,
       if (createdAt != null) 'created_at': createdAt,
@@ -2520,6 +2573,7 @@ class AssetValuationsCompanion extends UpdateCompanion<AssetValuationRow> {
     Value<int>? assetId,
     Value<LocalDate>? effectiveOn,
     Value<int>? valueMinor,
+    Value<String?>? currencyCode,
     Value<Decimal>? rateToRub,
     Value<int>? valueRubMinor,
     Value<DateTime>? createdAt,
@@ -2529,6 +2583,7 @@ class AssetValuationsCompanion extends UpdateCompanion<AssetValuationRow> {
       assetId: assetId ?? this.assetId,
       effectiveOn: effectiveOn ?? this.effectiveOn,
       valueMinor: valueMinor ?? this.valueMinor,
+      currencyCode: currencyCode ?? this.currencyCode,
       rateToRub: rateToRub ?? this.rateToRub,
       valueRubMinor: valueRubMinor ?? this.valueRubMinor,
       createdAt: createdAt ?? this.createdAt,
@@ -2551,6 +2606,9 @@ class AssetValuationsCompanion extends UpdateCompanion<AssetValuationRow> {
     }
     if (valueMinor.present) {
       map['value_minor'] = Variable<int>(valueMinor.value);
+    }
+    if (currencyCode.present) {
+      map['currency_code'] = Variable<String>(currencyCode.value);
     }
     if (rateToRub.present) {
       map['rate_to_rub'] = Variable<String>(
@@ -2575,6 +2633,7 @@ class AssetValuationsCompanion extends UpdateCompanion<AssetValuationRow> {
           ..write('assetId: $assetId, ')
           ..write('effectiveOn: $effectiveOn, ')
           ..write('valueMinor: $valueMinor, ')
+          ..write('currencyCode: $currencyCode, ')
           ..write('rateToRub: $rateToRub, ')
           ..write('valueRubMinor: $valueRubMinor, ')
           ..write('createdAt: $createdAt')
@@ -2894,6 +2953,20 @@ class $AssetTransactionsTable extends AssetTransactions
     requiredDuringInsert: true,
     $customConstraints: 'NOT NULL CHECK (amount_minor > 0)',
   );
+  static const VerificationMeta _currencyCodeMeta = const VerificationMeta(
+    'currencyCode',
+  );
+  @override
+  late final GeneratedColumn<String> currencyCode = GeneratedColumn<String>(
+    'currency_code',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES currencies (code) ON UPDATE RESTRICT ON DELETE RESTRICT',
+    ),
+  );
   @override
   late final GeneratedColumnWithTypeConverter<LocalDate, String> occurredOn =
       GeneratedColumn<String>(
@@ -2994,6 +3067,7 @@ class $AssetTransactionsTable extends AssetTransactions
     assetId,
     kind,
     amountMinor,
+    currencyCode,
     occurredOn,
     rateToRub,
     amountRubMinor,
@@ -3037,6 +3111,15 @@ class $AssetTransactionsTable extends AssetTransactions
       );
     } else if (isInserting) {
       context.missing(_amountMinorMeta);
+    }
+    if (data.containsKey('currency_code')) {
+      context.handle(
+        _currencyCodeMeta,
+        currencyCode.isAcceptableOrUnknown(
+          data['currency_code']!,
+          _currencyCodeMeta,
+        ),
+      );
     }
     if (data.containsKey('amount_rub_minor')) {
       context.handle(
@@ -3096,6 +3179,10 @@ class $AssetTransactionsTable extends AssetTransactions
         DriftSqlType.int,
         data['${effectivePrefix}amount_minor'],
       )!,
+      currencyCode: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}currency_code'],
+      ),
       occurredOn: $AssetTransactionsTable.$converteroccurredOn.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.string,
@@ -3172,6 +3259,9 @@ class AssetTransactionRow extends DataClass
   final int assetId;
   final AssetTransactionKind kind;
   final int amountMinor;
+
+  /// Валюта операции (M1); `NULL` — валюта актива.
+  final String? currencyCode;
   final LocalDate occurredOn;
   final Decimal rateToRub;
   final int amountRubMinor;
@@ -3186,6 +3276,7 @@ class AssetTransactionRow extends DataClass
     required this.assetId,
     required this.kind,
     required this.amountMinor,
+    this.currencyCode,
     required this.occurredOn,
     required this.rateToRub,
     required this.amountRubMinor,
@@ -3207,6 +3298,9 @@ class AssetTransactionRow extends DataClass
       );
     }
     map['amount_minor'] = Variable<int>(amountMinor);
+    if (!nullToAbsent || currencyCode != null) {
+      map['currency_code'] = Variable<String>(currencyCode);
+    }
     {
       map['occurred_on'] = Variable<String>(
         $AssetTransactionsTable.$converteroccurredOn.toSql(occurredOn),
@@ -3249,6 +3343,9 @@ class AssetTransactionRow extends DataClass
       assetId: Value(assetId),
       kind: Value(kind),
       amountMinor: Value(amountMinor),
+      currencyCode: currencyCode == null && nullToAbsent
+          ? const Value.absent()
+          : Value(currencyCode),
       occurredOn: Value(occurredOn),
       rateToRub: Value(rateToRub),
       amountRubMinor: Value(amountRubMinor),
@@ -3277,6 +3374,7 @@ class AssetTransactionRow extends DataClass
       assetId: serializer.fromJson<int>(json['assetId']),
       kind: serializer.fromJson<AssetTransactionKind>(json['kind']),
       amountMinor: serializer.fromJson<int>(json['amountMinor']),
+      currencyCode: serializer.fromJson<String?>(json['currencyCode']),
       occurredOn: serializer.fromJson<LocalDate>(json['occurredOn']),
       rateToRub: serializer.fromJson<Decimal>(json['rateToRub']),
       amountRubMinor: serializer.fromJson<int>(json['amountRubMinor']),
@@ -3296,6 +3394,7 @@ class AssetTransactionRow extends DataClass
       'assetId': serializer.toJson<int>(assetId),
       'kind': serializer.toJson<AssetTransactionKind>(kind),
       'amountMinor': serializer.toJson<int>(amountMinor),
+      'currencyCode': serializer.toJson<String?>(currencyCode),
       'occurredOn': serializer.toJson<LocalDate>(occurredOn),
       'rateToRub': serializer.toJson<Decimal>(rateToRub),
       'amountRubMinor': serializer.toJson<int>(amountRubMinor),
@@ -3313,6 +3412,7 @@ class AssetTransactionRow extends DataClass
     int? assetId,
     AssetTransactionKind? kind,
     int? amountMinor,
+    Value<String?> currencyCode = const Value.absent(),
     LocalDate? occurredOn,
     Decimal? rateToRub,
     int? amountRubMinor,
@@ -3327,6 +3427,7 @@ class AssetTransactionRow extends DataClass
     assetId: assetId ?? this.assetId,
     kind: kind ?? this.kind,
     amountMinor: amountMinor ?? this.amountMinor,
+    currencyCode: currencyCode.present ? currencyCode.value : this.currencyCode,
     occurredOn: occurredOn ?? this.occurredOn,
     rateToRub: rateToRub ?? this.rateToRub,
     amountRubMinor: amountRubMinor ?? this.amountRubMinor,
@@ -3345,6 +3446,9 @@ class AssetTransactionRow extends DataClass
       amountMinor: data.amountMinor.present
           ? data.amountMinor.value
           : this.amountMinor,
+      currencyCode: data.currencyCode.present
+          ? data.currencyCode.value
+          : this.currencyCode,
       occurredOn: data.occurredOn.present
           ? data.occurredOn.value
           : this.occurredOn,
@@ -3372,6 +3476,7 @@ class AssetTransactionRow extends DataClass
           ..write('assetId: $assetId, ')
           ..write('kind: $kind, ')
           ..write('amountMinor: $amountMinor, ')
+          ..write('currencyCode: $currencyCode, ')
           ..write('occurredOn: $occurredOn, ')
           ..write('rateToRub: $rateToRub, ')
           ..write('amountRubMinor: $amountRubMinor, ')
@@ -3391,6 +3496,7 @@ class AssetTransactionRow extends DataClass
     assetId,
     kind,
     amountMinor,
+    currencyCode,
     occurredOn,
     rateToRub,
     amountRubMinor,
@@ -3409,6 +3515,7 @@ class AssetTransactionRow extends DataClass
           other.assetId == this.assetId &&
           other.kind == this.kind &&
           other.amountMinor == this.amountMinor &&
+          other.currencyCode == this.currencyCode &&
           other.occurredOn == this.occurredOn &&
           other.rateToRub == this.rateToRub &&
           other.amountRubMinor == this.amountRubMinor &&
@@ -3425,6 +3532,7 @@ class AssetTransactionsCompanion extends UpdateCompanion<AssetTransactionRow> {
   final Value<int> assetId;
   final Value<AssetTransactionKind> kind;
   final Value<int> amountMinor;
+  final Value<String?> currencyCode;
   final Value<LocalDate> occurredOn;
   final Value<Decimal> rateToRub;
   final Value<int> amountRubMinor;
@@ -3439,6 +3547,7 @@ class AssetTransactionsCompanion extends UpdateCompanion<AssetTransactionRow> {
     this.assetId = const Value.absent(),
     this.kind = const Value.absent(),
     this.amountMinor = const Value.absent(),
+    this.currencyCode = const Value.absent(),
     this.occurredOn = const Value.absent(),
     this.rateToRub = const Value.absent(),
     this.amountRubMinor = const Value.absent(),
@@ -3454,6 +3563,7 @@ class AssetTransactionsCompanion extends UpdateCompanion<AssetTransactionRow> {
     required int assetId,
     required AssetTransactionKind kind,
     required int amountMinor,
+    this.currencyCode = const Value.absent(),
     required LocalDate occurredOn,
     required Decimal rateToRub,
     required int amountRubMinor,
@@ -3477,6 +3587,7 @@ class AssetTransactionsCompanion extends UpdateCompanion<AssetTransactionRow> {
     Expression<int>? assetId,
     Expression<String>? kind,
     Expression<int>? amountMinor,
+    Expression<String>? currencyCode,
     Expression<String>? occurredOn,
     Expression<String>? rateToRub,
     Expression<int>? amountRubMinor,
@@ -3492,6 +3603,7 @@ class AssetTransactionsCompanion extends UpdateCompanion<AssetTransactionRow> {
       if (assetId != null) 'asset_id': assetId,
       if (kind != null) 'kind': kind,
       if (amountMinor != null) 'amount_minor': amountMinor,
+      if (currencyCode != null) 'currency_code': currencyCode,
       if (occurredOn != null) 'occurred_on': occurredOn,
       if (rateToRub != null) 'rate_to_rub': rateToRub,
       if (amountRubMinor != null) 'amount_rub_minor': amountRubMinor,
@@ -3509,6 +3621,7 @@ class AssetTransactionsCompanion extends UpdateCompanion<AssetTransactionRow> {
     Value<int>? assetId,
     Value<AssetTransactionKind>? kind,
     Value<int>? amountMinor,
+    Value<String?>? currencyCode,
     Value<LocalDate>? occurredOn,
     Value<Decimal>? rateToRub,
     Value<int>? amountRubMinor,
@@ -3524,6 +3637,7 @@ class AssetTransactionsCompanion extends UpdateCompanion<AssetTransactionRow> {
       assetId: assetId ?? this.assetId,
       kind: kind ?? this.kind,
       amountMinor: amountMinor ?? this.amountMinor,
+      currencyCode: currencyCode ?? this.currencyCode,
       occurredOn: occurredOn ?? this.occurredOn,
       rateToRub: rateToRub ?? this.rateToRub,
       amountRubMinor: amountRubMinor ?? this.amountRubMinor,
@@ -3552,6 +3666,9 @@ class AssetTransactionsCompanion extends UpdateCompanion<AssetTransactionRow> {
     }
     if (amountMinor.present) {
       map['amount_minor'] = Variable<int>(amountMinor.value);
+    }
+    if (currencyCode.present) {
+      map['currency_code'] = Variable<String>(currencyCode.value);
     }
     if (occurredOn.present) {
       map['occurred_on'] = Variable<String>(
@@ -3600,6 +3717,7 @@ class AssetTransactionsCompanion extends UpdateCompanion<AssetTransactionRow> {
           ..write('assetId: $assetId, ')
           ..write('kind: $kind, ')
           ..write('amountMinor: $amountMinor, ')
+          ..write('currencyCode: $currencyCode, ')
           ..write('occurredOn: $occurredOn, ')
           ..write('rateToRub: $rateToRub, ')
           ..write('amountRubMinor: $amountRubMinor, ')
@@ -8832,6 +8950,50 @@ final class $$CurrenciesTableReferences
     );
   }
 
+  static MultiTypedResultKey<$AssetValuationsTable, List<AssetValuationRow>>
+  _assetValuationsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.assetValuations,
+    aliasName: 'currencies__code__asset_valuations__currency_code',
+  );
+
+  $$AssetValuationsTableProcessedTableManager get assetValuationsRefs {
+    final manager =
+        $$AssetValuationsTableTableManager($_db, $_db.assetValuations).filter(
+          (f) => f.currencyCode.code.sqlEquals($_itemColumn<String>('code')!),
+        );
+
+    final cache = $_typedResult.readTableOrNull(
+      _assetValuationsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$AssetTransactionsTable, List<AssetTransactionRow>>
+  _assetTransactionsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.assetTransactions,
+        aliasName: 'currencies__code__asset_transactions__currency_code',
+      );
+
+  $$AssetTransactionsTableProcessedTableManager get assetTransactionsRefs {
+    final manager =
+        $$AssetTransactionsTableTableManager(
+          $_db,
+          $_db.assetTransactions,
+        ).filter(
+          (f) => f.currencyCode.code.sqlEquals($_itemColumn<String>('code')!),
+        );
+
+    final cache = $_typedResult.readTableOrNull(
+      _assetTransactionsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
   static MultiTypedResultKey<
     $RecurringCashflowRulesTable,
     List<RecurringCashflowRuleRow>
@@ -8972,6 +9134,56 @@ class $$CurrenciesTableFilterComposer
           }) => $$AssetsTableFilterComposer(
             $db: $db,
             $table: $db.assets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> assetValuationsRefs(
+    Expression<bool> Function($$AssetValuationsTableFilterComposer f) f,
+  ) {
+    final $$AssetValuationsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.code,
+      referencedTable: $db.assetValuations,
+      getReferencedColumn: (t) => t.currencyCode,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AssetValuationsTableFilterComposer(
+            $db: $db,
+            $table: $db.assetValuations,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> assetTransactionsRefs(
+    Expression<bool> Function($$AssetTransactionsTableFilterComposer f) f,
+  ) {
+    final $$AssetTransactionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.code,
+      referencedTable: $db.assetTransactions,
+      getReferencedColumn: (t) => t.currencyCode,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AssetTransactionsTableFilterComposer(
+            $db: $db,
+            $table: $db.assetTransactions,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -9179,6 +9391,57 @@ class $$CurrenciesTableAnnotationComposer
     return f(composer);
   }
 
+  Expression<T> assetValuationsRefs<T extends Object>(
+    Expression<T> Function($$AssetValuationsTableAnnotationComposer a) f,
+  ) {
+    final $$AssetValuationsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.code,
+      referencedTable: $db.assetValuations,
+      getReferencedColumn: (t) => t.currencyCode,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AssetValuationsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.assetValuations,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> assetTransactionsRefs<T extends Object>(
+    Expression<T> Function($$AssetTransactionsTableAnnotationComposer a) f,
+  ) {
+    final $$AssetTransactionsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.code,
+          referencedTable: $db.assetTransactions,
+          getReferencedColumn: (t) => t.currencyCode,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$AssetTransactionsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.assetTransactions,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
   Expression<T> recurringCashflowRulesRefs<T extends Object>(
     Expression<T> Function($$RecurringCashflowRulesTableAnnotationComposer a) f,
   ) {
@@ -9296,6 +9559,8 @@ class $$CurrenciesTableTableManager
           CurrencyRow,
           PrefetchHooks Function({
             bool assetsRefs,
+            bool assetValuationsRefs,
+            bool assetTransactionsRefs,
             bool recurringCashflowRulesRefs,
             bool cashflowEntriesRefs,
             bool exchangeRatesRefs,
@@ -9360,6 +9625,8 @@ class $$CurrenciesTableTableManager
           prefetchHooksCallback:
               ({
                 assetsRefs = false,
+                assetValuationsRefs = false,
+                assetTransactionsRefs = false,
                 recurringCashflowRulesRefs = false,
                 cashflowEntriesRefs = false,
                 exchangeRatesRefs = false,
@@ -9369,6 +9636,8 @@ class $$CurrenciesTableTableManager
                   db: db,
                   explicitlyWatchedTables: [
                     if (assetsRefs) db.assets,
+                    if (assetValuationsRefs) db.assetValuations,
+                    if (assetTransactionsRefs) db.assetTransactions,
                     if (recurringCashflowRulesRefs) db.recurringCashflowRules,
                     if (cashflowEntriesRefs) db.cashflowEntries,
                     if (exchangeRatesRefs) db.exchangeRates,
@@ -9393,6 +9662,46 @@ class $$CurrenciesTableTableManager
                                 table,
                                 p0,
                               ).assetsRefs,
+                          currentColumn: 'code',
+                          referencedColumn: 'currency_code',
+                          typedResults: items,
+                        ),
+                      if (assetValuationsRefs)
+                        await $_getPrefetchedDataByColumns<
+                          CurrencyRow,
+                          $CurrenciesTable,
+                          AssetValuationRow,
+                          $AssetValuationsTable
+                        >(
+                          currentTable: table,
+                          referencedTable: $$CurrenciesTableReferences
+                              ._assetValuationsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$CurrenciesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).assetValuationsRefs,
+                          currentColumn: 'code',
+                          referencedColumn: 'currency_code',
+                          typedResults: items,
+                        ),
+                      if (assetTransactionsRefs)
+                        await $_getPrefetchedDataByColumns<
+                          CurrencyRow,
+                          $CurrenciesTable,
+                          AssetTransactionRow,
+                          $AssetTransactionsTable
+                        >(
+                          currentTable: table,
+                          referencedTable: $$CurrenciesTableReferences
+                              ._assetTransactionsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$CurrenciesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).assetTransactionsRefs,
                           currentColumn: 'code',
                           referencedColumn: 'currency_code',
                           typedResults: items,
@@ -9499,6 +9808,8 @@ typedef $$CurrenciesTableProcessedTableManager =
       CurrencyRow,
       PrefetchHooks Function({
         bool assetsRefs,
+        bool assetValuationsRefs,
+        bool assetTransactionsRefs,
         bool recurringCashflowRulesRefs,
         bool cashflowEntriesRefs,
         bool exchangeRatesRefs,
@@ -12264,6 +12575,7 @@ typedef $$AssetValuationsTableCreateCompanionBuilder =
       required int assetId,
       required LocalDate effectiveOn,
       required int valueMinor,
+      Value<String?> currencyCode,
       required Decimal rateToRub,
       required int valueRubMinor,
       required DateTime createdAt,
@@ -12274,6 +12586,7 @@ typedef $$AssetValuationsTableUpdateCompanionBuilder =
       Value<int> assetId,
       Value<LocalDate> effectiveOn,
       Value<int> valueMinor,
+      Value<String?> currencyCode,
       Value<Decimal> rateToRub,
       Value<int> valueRubMinor,
       Value<DateTime> createdAt,
@@ -12303,6 +12616,23 @@ final class $$AssetValuationsTableReferences
       $_db.assets,
     ).filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_assetIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $CurrenciesTable _currencyCodeTable(_$AppDatabase db) => db.currencies
+      .createAlias('asset_valuations__currency_code__currencies__code');
+
+  $$CurrenciesTableProcessedTableManager? get currencyCode {
+    final $_column = $_itemColumn<String>('currency_code');
+    if ($_column == null) return null;
+    final manager = $$CurrenciesTableTableManager(
+      $_db,
+      $_db.currencies,
+    ).filter((f) => f.code.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_currencyCodeTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: [item]),
@@ -12374,6 +12704,29 @@ class $$AssetValuationsTableFilterComposer
     );
     return composer;
   }
+
+  $$CurrenciesTableFilterComposer get currencyCode {
+    final $$CurrenciesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.currencyCode,
+      referencedTable: $db.currencies,
+      getReferencedColumn: (t) => t.code,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CurrenciesTableFilterComposer(
+            $db: $db,
+            $table: $db.currencies,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$AssetValuationsTableOrderingComposer
@@ -12429,6 +12782,29 @@ class $$AssetValuationsTableOrderingComposer
           }) => $$AssetsTableOrderingComposer(
             $db: $db,
             $table: $db.assets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$CurrenciesTableOrderingComposer get currencyCode {
+    final $$CurrenciesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.currencyCode,
+      referencedTable: $db.currencies,
+      getReferencedColumn: (t) => t.code,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CurrenciesTableOrderingComposer(
+            $db: $db,
+            $table: $db.currencies,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -12495,6 +12871,29 @@ class $$AssetValuationsTableAnnotationComposer
     );
     return composer;
   }
+
+  $$CurrenciesTableAnnotationComposer get currencyCode {
+    final $$CurrenciesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.currencyCode,
+      referencedTable: $db.currencies,
+      getReferencedColumn: (t) => t.code,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CurrenciesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.currencies,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$AssetValuationsTableTableManager
@@ -12510,7 +12909,7 @@ class $$AssetValuationsTableTableManager
           $$AssetValuationsTableUpdateCompanionBuilder,
           (AssetValuationRow, $$AssetValuationsTableReferences),
           AssetValuationRow,
-          PrefetchHooks Function({bool assetId})
+          PrefetchHooks Function({bool assetId, bool currencyCode})
         > {
   $$AssetValuationsTableTableManager(
     _$AppDatabase db,
@@ -12531,6 +12930,7 @@ class $$AssetValuationsTableTableManager
                 Value<int> assetId = const Value.absent(),
                 Value<LocalDate> effectiveOn = const Value.absent(),
                 Value<int> valueMinor = const Value.absent(),
+                Value<String?> currencyCode = const Value.absent(),
                 Value<Decimal> rateToRub = const Value.absent(),
                 Value<int> valueRubMinor = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
@@ -12539,6 +12939,7 @@ class $$AssetValuationsTableTableManager
                 assetId: assetId,
                 effectiveOn: effectiveOn,
                 valueMinor: valueMinor,
+                currencyCode: currencyCode,
                 rateToRub: rateToRub,
                 valueRubMinor: valueRubMinor,
                 createdAt: createdAt,
@@ -12549,6 +12950,7 @@ class $$AssetValuationsTableTableManager
                 required int assetId,
                 required LocalDate effectiveOn,
                 required int valueMinor,
+                Value<String?> currencyCode = const Value.absent(),
                 required Decimal rateToRub,
                 required int valueRubMinor,
                 required DateTime createdAt,
@@ -12557,6 +12959,7 @@ class $$AssetValuationsTableTableManager
                 assetId: assetId,
                 effectiveOn: effectiveOn,
                 valueMinor: valueMinor,
+                currencyCode: currencyCode,
                 rateToRub: rateToRub,
                 valueRubMinor: valueRubMinor,
                 createdAt: createdAt,
@@ -12569,7 +12972,7 @@ class $$AssetValuationsTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({assetId = false}) {
+          prefetchHooksCallback: ({assetId = false, currencyCode = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [],
@@ -12600,6 +13003,17 @@ class $$AssetValuationsTableTableManager
                             .id,
                       ) as T;
                     }
+                    if (currencyCode) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.currencyCode,
+                        referencedTable: $$AssetValuationsTableReferences
+                            ._currencyCodeTable(db),
+                        referencedColumn: $$AssetValuationsTableReferences
+                            ._currencyCodeTable(db)
+                            .code,
+                      ) as T;
+                    }
 
                     return state;
                   },
@@ -12624,7 +13038,7 @@ typedef $$AssetValuationsTableProcessedTableManager =
       $$AssetValuationsTableUpdateCompanionBuilder,
       (AssetValuationRow, $$AssetValuationsTableReferences),
       AssetValuationRow,
-      PrefetchHooks Function({bool assetId})
+      PrefetchHooks Function({bool assetId, bool currencyCode})
     >;
 typedef $$AssetTransfersTableCreateCompanionBuilder =
     AssetTransfersCompanion Function({
@@ -12905,6 +13319,7 @@ typedef $$AssetTransactionsTableCreateCompanionBuilder =
       required int assetId,
       required AssetTransactionKind kind,
       required int amountMinor,
+      Value<String?> currencyCode,
       required LocalDate occurredOn,
       required Decimal rateToRub,
       required int amountRubMinor,
@@ -12921,6 +13336,7 @@ typedef $$AssetTransactionsTableUpdateCompanionBuilder =
       Value<int> assetId,
       Value<AssetTransactionKind> kind,
       Value<int> amountMinor,
+      Value<String?> currencyCode,
       Value<LocalDate> occurredOn,
       Value<Decimal> rateToRub,
       Value<int> amountRubMinor,
@@ -12956,6 +13372,23 @@ final class $$AssetTransactionsTableReferences
       $_db.assets,
     ).filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_assetIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $CurrenciesTable _currencyCodeTable(_$AppDatabase db) => db.currencies
+      .createAlias('asset_transactions__currency_code__currencies__code');
+
+  $$CurrenciesTableProcessedTableManager? get currencyCode {
+    final $_column = $_itemColumn<String>('currency_code');
+    if ($_column == null) return null;
+    final manager = $$CurrenciesTableTableManager(
+      $_db,
+      $_db.currencies,
+    ).filter((f) => f.code.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_currencyCodeTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: [item]),
@@ -13116,6 +13549,29 @@ class $$AssetTransactionsTableFilterComposer
           }) => $$AssetsTableFilterComposer(
             $db: $db,
             $table: $db.assets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$CurrenciesTableFilterComposer get currencyCode {
+    final $$CurrenciesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.currencyCode,
+      referencedTable: $db.currencies,
+      getReferencedColumn: (t) => t.code,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CurrenciesTableFilterComposer(
+            $db: $db,
+            $table: $db.currencies,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -13288,6 +13744,29 @@ class $$AssetTransactionsTableOrderingComposer
     return composer;
   }
 
+  $$CurrenciesTableOrderingComposer get currencyCode {
+    final $$CurrenciesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.currencyCode,
+      referencedTable: $db.currencies,
+      getReferencedColumn: (t) => t.code,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CurrenciesTableOrderingComposer(
+            $db: $db,
+            $table: $db.currencies,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
   $$AssetTransfersTableOrderingComposer get transferId {
     final $$AssetTransfersTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -13377,6 +13856,29 @@ class $$AssetTransactionsTableAnnotationComposer
           }) => $$AssetsTableAnnotationComposer(
             $db: $db,
             $table: $db.assets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$CurrenciesTableAnnotationComposer get currencyCode {
+    final $$CurrenciesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.currencyCode,
+      referencedTable: $db.currencies,
+      getReferencedColumn: (t) => t.code,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CurrenciesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.currencies,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -13477,6 +13979,7 @@ class $$AssetTransactionsTableTableManager
           AssetTransactionRow,
           PrefetchHooks Function({
             bool assetId,
+            bool currencyCode,
             bool transferId,
             bool assetTransactionRevisionsRefs,
             bool cashflowEntriesRefs,
@@ -13504,6 +14007,7 @@ class $$AssetTransactionsTableTableManager
                 Value<int> assetId = const Value.absent(),
                 Value<AssetTransactionKind> kind = const Value.absent(),
                 Value<int> amountMinor = const Value.absent(),
+                Value<String?> currencyCode = const Value.absent(),
                 Value<LocalDate> occurredOn = const Value.absent(),
                 Value<Decimal> rateToRub = const Value.absent(),
                 Value<int> amountRubMinor = const Value.absent(),
@@ -13518,6 +14022,7 @@ class $$AssetTransactionsTableTableManager
                 assetId: assetId,
                 kind: kind,
                 amountMinor: amountMinor,
+                currencyCode: currencyCode,
                 occurredOn: occurredOn,
                 rateToRub: rateToRub,
                 amountRubMinor: amountRubMinor,
@@ -13534,6 +14039,7 @@ class $$AssetTransactionsTableTableManager
                 required int assetId,
                 required AssetTransactionKind kind,
                 required int amountMinor,
+                Value<String?> currencyCode = const Value.absent(),
                 required LocalDate occurredOn,
                 required Decimal rateToRub,
                 required int amountRubMinor,
@@ -13548,6 +14054,7 @@ class $$AssetTransactionsTableTableManager
                 assetId: assetId,
                 kind: kind,
                 amountMinor: amountMinor,
+                currencyCode: currencyCode,
                 occurredOn: occurredOn,
                 rateToRub: rateToRub,
                 amountRubMinor: amountRubMinor,
@@ -13571,6 +14078,7 @@ class $$AssetTransactionsTableTableManager
           prefetchHooksCallback:
               ({
                 assetId = false,
+                currencyCode = false,
                 transferId = false,
                 assetTransactionRevisionsRefs = false,
                 cashflowEntriesRefs = false,
@@ -13607,6 +14115,17 @@ class $$AssetTransactionsTableTableManager
                             referencedColumn: $$AssetTransactionsTableReferences
                                 ._assetIdTable(db)
                                 .id,
+                          ) as T;
+                        }
+                        if (currencyCode) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.currencyCode,
+                            referencedTable: $$AssetTransactionsTableReferences
+                                ._currencyCodeTable(db),
+                            referencedColumn: $$AssetTransactionsTableReferences
+                                ._currencyCodeTable(db)
+                                .code,
                           ) as T;
                         }
                         if (transferId) {
@@ -13687,6 +14206,7 @@ typedef $$AssetTransactionsTableProcessedTableManager =
       AssetTransactionRow,
       PrefetchHooks Function({
         bool assetId,
+        bool currencyCode,
         bool transferId,
         bool assetTransactionRevisionsRefs,
         bool cashflowEntriesRefs,

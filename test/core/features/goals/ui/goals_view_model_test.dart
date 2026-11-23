@@ -67,6 +67,23 @@ AssetSnapshot _snapshot(int id, Money value) => AssetSnapshot(
   currentValue: value,
 );
 
+AssetSnapshot _investmentSnapshot(int id, List<Money> balances) =>
+    AssetSnapshot(
+      asset: InvestmentAsset(
+        id: id,
+        name: 'Инвестиция $id',
+        currencyCode: balances.first.currencyCode,
+        openingValue: Money(
+          minorUnits: 0,
+          currencyCode: balances.first.currencyCode,
+        ),
+        createdAt: DateTime.utc(2026, 1, 1),
+        brokerId: 1,
+      ),
+      currentValue: balances.first,
+      currencyBalances: balances,
+    );
+
 final class _FakeGoals implements GoalRepository {
   _FakeGoals(this._goals);
 
@@ -354,6 +371,22 @@ void main() {
         (viewModel.state.value as ViewData<List<GoalView>>).value.single;
     expect(second.progress!.progress, _rubles(3800));
     expect(rates.requested, ['USD']);
+  });
+
+  test('мультивалютная инвестиция конвертируется по позициям', () async {
+    viewModel.init();
+    goals.emit([_goal()]);
+    assets.emit([
+      _investmentSnapshot(1, [
+        _rubles(1000),
+        const Money(minorUnits: 2000, currencyCode: 'USD'),
+      ]),
+    ]);
+    await pump();
+
+    final view =
+        (viewModel.state.value as ViewData<List<GoalView>>).value.single;
+    expect(view.progress!.progress, _rubles(2800));
   });
 
   test('сортировка active → achieved → closed', () async {

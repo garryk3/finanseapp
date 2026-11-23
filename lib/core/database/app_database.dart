@@ -47,7 +47,7 @@ part 'app_database.g.dart';
 const appDatabaseApplicationId = 0x464E4150;
 
 /// Текущая версия схемы БД; используется backup-валидацией.
-const appDatabaseSchemaVersion = 2;
+const appDatabaseSchemaVersion = 3;
 
 /// Схема v1 FinanseApp (data_schema).
 ///
@@ -130,6 +130,11 @@ class AppDatabase extends _$AppDatabase {
         for (final statement in schemaObjectsV2) {
           await customStatement(statement);
         }
+      }
+      if (from < 3) {
+        // Валюта операции/оценки (M1); новые runtime-DDL объекты не нужны.
+        await m.addColumn(assetTransactions, assetTransactions.currencyCode);
+        await m.addColumn(assetValuations, assetValuations.currencyCode);
       }
     },
     beforeOpen: (details) async {

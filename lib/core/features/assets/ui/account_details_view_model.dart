@@ -2,10 +2,10 @@ import 'dart:async';
 
 import 'package:decimal/decimal.dart';
 import 'package:finanseapp/core/domain/common/currency.dart';
-import 'package:finanseapp/core/domain/common/currency_converter.dart';
 import 'package:finanseapp/core/domain/common/local_date.dart';
 import 'package:finanseapp/core/domain/common/money.dart';
 import 'package:finanseapp/core/domain/common/result.dart';
+import 'package:finanseapp/core/features/analytics/logic/net_worth_calculator.dart';
 import 'package:finanseapp/core/features/assets/domain/asset.dart';
 import 'package:finanseapp/core/features/assets/domain/asset_repository.dart';
 import 'package:finanseapp/core/features/assets/domain/asset_valuation.dart';
@@ -47,6 +47,7 @@ class AccountDetailsViewModel {
   final Signal<Currency?> currency = signal(null);
   final Signal<List<AssetValuation>> valuationHistory = signal(const []);
   final Signal<Money?> balance = signal(null);
+  final Signal<List<Money>> breakdown = signal(const []);
   final Signal<Money?> forecast = signal(null);
   final Signal<bool> busy = signal(false);
   final Signal<String?> error = signal(null);
@@ -108,6 +109,7 @@ class AccountDetailsViewModel {
       asset.value = loaded;
       currency.value = loadedCurrency;
       balance.value = snapshot.currentValue;
+      breakdown.value = snapshot.breakdown;
       if (loaded is AccountAsset) {
         account.value = loaded;
         forecast.value = AccountForecastCalculator.call(
@@ -124,7 +126,7 @@ class AccountDetailsViewModel {
       final counts = await repository.referenceCounts(assetId);
       if (_disposed) return;
       referenceCounts.value = counts;
-      await _loadBaseEquivalent(snapshot.currentValue, loaded.currencyCode);
+      await _loadBaseEquivalent(snapshot);
     } on DomainException catch (exception) {
       error.value = exception.code.name;
     } on Exception {
@@ -138,35 +140,49 @@ class AccountDetailsViewModel {
     }
   }
 
-  Future<void> _loadBaseEquivalent(Money value, String sourceCode) async {
+  Future<void> _loadBaseEquivalent(AssetSnapshot snapshot) async {
     if (_disposed) return;
     try {
       final base = await settingsRepository.getBaseCurrency();
       if (_disposed) return;
       baseCurrency.value = base;
-      if (base.code == sourceCode) {
-        baseEquivalent.value = value;
-        baseRateUnavailable.value = false;
-        return;
-      }
-      final source = await _currencyOf(sourceCode);
-      final sourceRate = sourceCode == 'RUB'
-          ? Decimal.one
-          : (await rateRepository.find(sourceCode, today))?.rateToRub;
-      final baseRate = base.code == 'RUB'
-          ? Decimal.one
-          : (await rateRepository.find(base.code, today))?.rateToRub;
-      if (sourceRate == null || baseRate == null) {
-        baseRateUnavailable.value = true;
-        return;
-      }
-      baseEquivalent.value = CurrencyConverter.convertWithRates(
-        value: value,
-        source: source,
-        target: base,
-        sourceRateToRub: sourceRate,
-        targetRateToRub: baseRate,
+      final breakdown = snapshot.breakdown;
+      final needsConversion = breakdown.any(
+        (money) => money.currencyCode != base.code,
       );
+      final rates = <String, Decimal>{};
+      if (needsConversion) {
+        final codes = <String>{
+          for (final money in breakdown)
+            if (money.currencyCode != base.code && money.currencyCode != 'RUB')
+              money.currencyCode,
+          if (base.code != 'RUB') base.code,
+        };
+        for (final code in codes) {
+          final rate = await rateRepository.find(code, today);
+          if (rate == null) {
+            baseRateUnavailable.value = true;
+            return;
+          }
+          rates[code] = rate.rateToRub;
+        }
+      }
+      final values = <NetWorthAssetValue>[];
+      for (final money in breakdown) {
+        values.add(
+          NetWorthAssetValue(
+            kind: snapshot.asset.kind,
+            value: money,
+            currency: await _currencyOf(money.currencyCode),
+          ),
+        );
+        if (_disposed) return;
+      }
+      baseEquivalent.value = NetWorthCalculator.calculate(
+        assets: values,
+        ratesToRub: rates,
+        baseCurrency: base,
+      ).total;
       baseRateUnavailable.value = false;
     } on DomainException {
       baseRateUnavailable.value = true;

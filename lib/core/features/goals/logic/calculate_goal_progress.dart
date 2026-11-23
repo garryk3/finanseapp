@@ -20,7 +20,7 @@ final class CalculateGoalProgress {
   /// требуют сети) и считает прогресс. [rateCache] разделяется между целями.
   Future<GoalProgress?> load({
     required FinancialGoal goal,
-    required Map<int, Money> assetValues,
+    required Map<int, List<Money>> assetValues,
     required Map<String, Currency> currencies,
     required ExchangeRateRepository rateRepository,
     required LocalDate today,
@@ -28,11 +28,12 @@ final class CalculateGoalProgress {
   }) async {
     final targetCode = goal.targetAmount.currencyCode;
     final needsConversion = assetValues.values.any(
-      (value) => value.currencyCode != targetCode,
+      (values) => values.any((value) => value.currencyCode != targetCode),
     );
     final codes = <String>{
-      for (final value in assetValues.values)
-        if (value.currencyCode != targetCode) value.currencyCode,
+      for (final values in assetValues.values)
+        for (final value in values)
+          if (value.currencyCode != targetCode) value.currencyCode,
       if (needsConversion && targetCode != Currency.rubCode) targetCode,
     }..remove(Currency.rubCode);
 
@@ -65,38 +66,43 @@ final class CalculateGoalProgress {
   /// Чистая конверсия по уже загруженным курсам (для тестов и переиспользования).
   GoalProgress? calculate({
     required FinancialGoal goal,
-    required Map<int, Money> assetValues,
+    required Map<int, List<Money>> assetValues,
     required Map<String, Currency> currencies,
     required Map<String, Decimal> ratesToRub,
     required LocalDate today,
   }) {
     final target = currencies[goal.targetAmount.currencyCode];
     if (target == null) return null;
-    final converted = <int, Money>{};
+    final converted = <int, List<Money>>{};
     for (final entry in assetValues.entries) {
-      final value = entry.value;
-      if (value.currencyCode == target.code) {
-        converted[entry.key] = value;
-        continue;
+      final values = <Money>[];
+      for (final value in entry.value) {
+        if (value.currencyCode == target.code) {
+          values.add(value);
+          continue;
+        }
+        final source = currencies[value.currencyCode];
+        if (source == null) return null;
+        final sourceRate = source.isRub ? Decimal.one : ratesToRub[source.code];
+        final targetRate = target.isRub ? null : ratesToRub[target.code];
+        if (sourceRate == null || (!target.isRub && targetRate == null)) {
+          return null;
+        }
+        try {
+          values.add(
+            CurrencyConverter.convertWithRates(
+              value: value,
+              source: source,
+              target: target,
+              sourceRateToRub: sourceRate,
+              targetRateToRub: targetRate,
+            ),
+          );
+        } on DomainException {
+          return null;
+        }
       }
-      final source = currencies[value.currencyCode];
-      if (source == null) return null;
-      final sourceRate = source.isRub ? Decimal.one : ratesToRub[source.code];
-      final targetRate = target.isRub ? null : ratesToRub[target.code];
-      if (sourceRate == null || (!target.isRub && targetRate == null)) {
-        return null;
-      }
-      try {
-        converted[entry.key] = CurrencyConverter.convertWithRates(
-          value: value,
-          source: source,
-          target: target,
-          sourceRateToRub: sourceRate,
-          targetRateToRub: targetRate,
-        );
-      } on DomainException {
-        return null;
-      }
+      converted[entry.key] = values;
     }
     return GoalCalculator.calculate(
       goal: goal,

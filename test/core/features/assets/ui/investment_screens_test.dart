@@ -564,6 +564,41 @@ void main() {
     expect(find.textContaining('90'), findsWidgets);
   });
 
+  testWidgets(
+    'мультивалютная инвестиция показывает base equivalent при RUB base',
+    (tester) async {
+      const usd = Currency(
+        code: 'USD',
+        name: 'Доллар',
+        fractionDigits: 2,
+        isPreset: true,
+        isEnabled: true,
+      );
+      final snapshot = AssetSnapshot(
+        asset: _investment(),
+        currentValue: const Money(minorUnits: 10000000, currencyCode: 'RUB'),
+        currencyBalances: const [
+          Money(minorUnits: 10000000, currencyCode: 'RUB'),
+          Money(minorUnits: 12000, currencyCode: 'USD'),
+        ],
+      );
+      final vm = AccountDetailsViewModel(
+        repository: FakeAssets(snapshot),
+        assetId: 1,
+        today: LocalDate(2026, 1, 3),
+        settingsRepository: FakeSettings(),
+        currencyRepository: FakeCurrencies([usd, _rub]),
+        rateRepository: FakeRates(rate: Decimal.fromInt(92)),
+      );
+      await _pump(tester, AccountDetailsScreen(viewModel: vm));
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(tester.takeException(), isNull);
+      expect(find.text(l10n.assetBaseEquivalent), findsOneWidget);
+      expect(find.textContaining('111'), findsWidgets);
+    },
+  );
+
   testWidgets('архивная инвестиция только для чтения', (tester) async {
     final snapshot = AssetSnapshot(
       asset: _investment(archived: true),
