@@ -1776,6 +1776,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get analyticsCategoriesTitle => 'Итоги по категориям';
 
   @override
+  String get analyticsCategoriesEmptyExpense => 'Нет расходов за период';
+
+  @override
+  String get analyticsCategoriesEmptyIncome => 'Нет доходов за период';
+
+  @override
   String get analyticsUnknownCategory => 'Без категории';
 
   @override

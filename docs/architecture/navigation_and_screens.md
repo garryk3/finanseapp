@@ -181,7 +181,7 @@ VM — ViewModel, создаваемая через DI. «Тест» — мин�
 | GoalForm | GoalFormViewModel: eligible assets | Name/category/target/date/multi-select | Property и несоответствующий kind недоступны |
 | GoalDetails | GoalDetailsViewModel: progress | Progress/deficit/surplus/monthly contribution | Нулевые месяцы → null, не infinity |
 | MoreScreen | MoreViewModel: локальная навигация | Аналитика, справочники, настройки, аудит, о приложении | Все tiles ведут по named route |
-| AnalyticsScreen | AnalyticsViewModel: net worth/cashflow queries | Period, kind/category filters, charts + accessible values, ссылка «Детализация за месяц» | Пустой период/нет курса имеет отдельные состояния |
+| AnalyticsScreen | AnalyticsViewModel: net worth/cashflow queries | Period, kind/category filters, charts + accessible values, итоги по категориям с табами «Расходы»/«Доходы», ссылка «Детализация за месяц» | Пустой период/нет курса имеет отдельные состояния; таб следует за фильтром типа |
 | AnalyticsDetails | CashflowDetailsViewModel (inline в builder): cashflowSeries/cashflow + period/kind/category из query | Чипы периода, список дата/доход/расход/итог, empty month/period | Нулевые бакеты скрыты, newest-first; ошибка курса + ручной ввод |
 | CategoriesScreen | CategoriesViewModel | Income/expense tabs, add/edit/archive | Использованная категория предлагает archive или move |
 | CategoryForm | CategoryFormViewModel | Kind/name/colorKey/iconKey | Duplicate внутри kind отклонён, другое kind разрешено |

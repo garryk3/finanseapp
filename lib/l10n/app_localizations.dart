@@ -3315,6 +3315,18 @@ abstract class AppLocalizations {
   /// **'Итоги по категориям'**
   String get analyticsCategoriesTitle;
 
+  /// Пустой таб расходов в итогах по категориям.
+  ///
+  /// In ru, this message translates to:
+  /// **'Нет расходов за период'**
+  String get analyticsCategoriesEmptyExpense;
+
+  /// Пустой таб доходов в итогах по категориям.
+  ///
+  /// In ru, this message translates to:
+  /// **'Нет доходов за период'**
+  String get analyticsCategoriesEmptyIncome;
+
   /// Фоллбэк имени категории в аналитике.
   ///
   /// In ru, this message translates to:
