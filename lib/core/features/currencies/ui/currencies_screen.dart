@@ -179,14 +179,14 @@ class _CurrenciesScreenState extends State<CurrenciesScreen> {
 
   Future<void> _toggle(Currency currency) async {
     if (currency.code == 'RUB') {
-      await _explainProtected();
+      await _explainProtected(currency);
       return;
     }
     if (currency.isEnabled) {
       final references = await _viewModel.countReferences(currency.code);
       if (!mounted) return;
       if (references > 0) {
-        await _explainProtected();
+        await _explainProtected(currency);
         return;
       }
     }
@@ -215,13 +215,13 @@ class _CurrenciesScreenState extends State<CurrenciesScreen> {
   Future<void> _delete(Currency currency) async {
     final l10n = _l10n;
     if (currency.code == 'RUB') {
-      await _explainProtected();
+      await _explainProtected(currency);
       return;
     }
     final references = await _viewModel.countReferences(currency.code);
     if (!mounted) return;
     if (references > 0) {
-      await _explainProtected();
+      await _explainProtected(currency);
       return;
     }
     final confirmed = await showAppDialog<bool>(
@@ -242,11 +242,15 @@ class _CurrenciesScreenState extends State<CurrenciesScreen> {
     _report(result, success: l10n.currencyDeleted);
   }
 
-  Future<void> _explainProtected() => showAppDialog<void>(
+  Future<void> _explainProtected(Currency currency) => showAppDialog<void>(
     context: context,
     builder: (context) => AppDialog(
       title: AppText(_l10n.currencyErrorInUse),
-      content: AppText(_l10n.currencyErrorRub),
+      content: AppText(
+        currency.code == 'RUB'
+            ? _l10n.currencyErrorRub
+            : _l10n.currencyErrorInUseCode(currency.code),
+      ),
       actions: [
         AppButton(
           label: _l10n.commonCancel,

@@ -441,6 +441,28 @@ void main() {
     },
   );
 
+  testWidgets('неизменяемый курс показывает понятное сообщение', (
+    tester,
+  ) async {
+    final transactions = FakeTransactions(
+      failure: const DomainException(
+        DomainErrorCode.conflict,
+        fieldErrors: {'rate': 'validationRateImmutable'},
+      ),
+    );
+    await _pump(tester, _viewModel(transactions, kind: AssetKind.investment));
+
+    await _selectCurrency(tester, from: 'Рубль (RUB)', to: 'Доллар');
+    await tester.enterText(find.byType(TextField).first, '1000');
+    await tester.enterText(find.byType(TextField).at(1), '90');
+    await tester.ensureVisible(find.text(l10n.commonSave));
+    await tester.tap(find.text(l10n.commonSave));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text(l10n.rateErrorImmutable), findsOneWidget);
+    expect(find.byType(TransactionFormScreen), findsOneWidget);
+  });
+
   testWidgets('инвестиция в USD по умолчанию выбирает USD', (tester) async {
     await _pump(
       tester,

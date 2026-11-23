@@ -69,6 +69,7 @@ final class FakeAssets implements AssetRepository {
   final List<Money> locked;
   final List<Money> savedLocked = [];
   final List<AssetValuationDraft> recorded = [];
+  DomainException? valuationFailure;
   AssetDraft? savedDraft;
 
   AssetSnapshot _withLocked() => AssetSnapshot(
@@ -108,6 +109,8 @@ final class FakeAssets implements AssetRepository {
   @override
   Future<void> recordValuation(AssetValuationDraft draft) async {
     recorded.add(draft);
+    final failure = valuationFailure;
+    if (failure != null) throw failure;
   }
 
   @override
@@ -577,6 +580,38 @@ void main() {
       expect(find.text('Рубль (RUB)'), findsOneWidget);
     },
   );
+
+  testWidgets('неизменяемый курс показывает понятное сообщение', (
+    tester,
+  ) async {
+    final repository = FakeAssets(_snapshot())
+      ..valuationFailure = const DomainException(
+        DomainErrorCode.conflict,
+        fieldErrors: {'rate': 'validationRateImmutable'},
+      );
+    final vm = ValuationFormViewModel(
+      repository: repository,
+      rateRepository: FakeRates(),
+      currencyRepository: FakeCurrencies(),
+      assetId: 1,
+      today: LocalDate(2026, 1, 2),
+    );
+    await _pump(tester, ValuationFormScreen(viewModel: vm));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await tester.tap(find.text('Рубль (RUB)'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Доллар'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, '120');
+    await tester.enterText(find.byType(TextField).at(1), '92');
+    await tester.ensureVisible(find.text(l10n.commonSave));
+    await tester.tap(find.text(l10n.commonSave));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text(l10n.rateErrorImmutable), findsOneWidget);
+    expect(find.byType(ValuationFormScreen), findsOneWidget);
+  });
 
   testWidgets('форма оценки USD-инвестиции по умолчанию выбирает USD', (
     tester,

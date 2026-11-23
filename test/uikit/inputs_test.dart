@@ -58,6 +58,21 @@ void main() {
       expect(find.text('Обязательное поле'), findsOneWidget);
     });
 
+    testWidgets('длинная ошибка переносится, а не обрезается', (tester) async {
+      await tester.pumpWidget(
+        testApp(
+          const AppTextField(
+            label: 'Курс',
+            errorText:
+                'Курс на эту дату уже используется операциями и не может быть '
+                'изменён. Оставьте поле пустым, чтобы взять сохранённый курс.',
+          ),
+        ),
+      );
+      final field = tester.widget<TextField>(find.byType(TextField));
+      expect(field.decoration?.errorMaxLines, 4);
+    });
+
     testWidgets('onChanged приходит с введённым текстом', (tester) async {
       var captured = '';
       await tester.pumpWidget(

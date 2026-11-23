@@ -188,6 +188,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
         'validationClassificationAccountOnly' =>
           l10n.transactionErrorKindMismatch,
         'validationCurrencyMismatch' => l10n.cashflowErrorCurrencyMismatch,
+        'validationRateImmutable' => l10n.rateErrorImmutable,
         _ when result.error.code == DomainErrorCode.negativeBalance =>
           l10n.transactionErrorNegativeBalance,
         _ when result.error.code == DomainErrorCode.rateUnavailable =>
@@ -201,6 +202,8 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
           case 'validationAmountPositive':
           case 'validationAmountNegative':
             _amountError = message;
+          case 'validationRateImmutable':
+            _rateError = message;
           case 'validationCategoryKindMismatch':
             _categoryError = message;
           default:

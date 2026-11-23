@@ -42,6 +42,9 @@ const _eur = Currency(
 );
 
 final class FakeCurrencyRepository implements CurrencyRepository {
+  FakeCurrencyRepository({this.referenced = const {}});
+
+  final Set<String> referenced;
   final StreamController<List<Currency>> _controller =
       StreamController.broadcast(sync: true);
 
@@ -54,7 +57,8 @@ final class FakeCurrencyRepository implements CurrencyRepository {
   Future<List<Currency>> getEnabled() async => const [_rub, _usd, _eur];
 
   @override
-  Future<int> countReferences(String code) async => 0;
+  Future<int> countReferences(String code) async =>
+      referenced.contains(code) ? 1 : 0;
 
   @override
   Future<void> createCustom(
@@ -139,6 +143,34 @@ void main() {
     expect(find.text('USD · Доллар США'), findsOneWidget);
     // Базовая валюта помечена в подписи (BR-C-5).
     expect(find.textContaining(l10n.baseCurrencyCurrent), findsOneWidget);
+  });
+
+  testWidgets('отключение используемой не-RUB валюты называет её код', (
+    tester,
+  ) async {
+    final repository = FakeCurrencyRepository(referenced: {'USD'});
+    final viewModel = CurrenciesViewModel(
+      repository: repository,
+      settingsRepository: FakeSettingsRepository('RUB'),
+    );
+    addTearDown(viewModel.dispose);
+
+    await pumpScreen(tester, CurrenciesScreen(viewModel: viewModel));
+    repository.emit(const [_rub, _usd]);
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await tester.tap(
+      find.descendant(
+        of: find.byKey(const ValueKey('USD')),
+        matching: find.byTooltip(l10n.currencyActionsTooltip),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l10n.currencyToggleDisable));
+    await tester.pumpAndSettle();
+
+    expect(find.text(l10n.currencyErrorInUseCode('USD')), findsOneWidget);
+    expect(find.text(l10n.currencyErrorRub), findsNothing);
   });
 
   testWidgets('базовая валюта выбирается и сохраняется', (tester) async {

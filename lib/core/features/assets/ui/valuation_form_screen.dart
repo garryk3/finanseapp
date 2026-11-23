@@ -107,6 +107,7 @@ class _ValuationFormScreenState extends State<ValuationFormScreen> {
       final message = switch (key) {
         'validationDateInFuture' => l10n.valuationErrorDate,
         'validationAmountNegative' => l10n.valuationErrorValue,
+        'validationRateImmutable' => l10n.rateErrorImmutable,
         _ =>
           result.error.code == DomainErrorCode.rateUnavailable
               ? l10n.valuationErrorRate
@@ -118,6 +119,8 @@ class _ValuationFormScreenState extends State<ValuationFormScreen> {
             _dateError = message;
           case 'validationAmountNegative':
             _valueError = message;
+          case 'validationRateImmutable':
+            _rateError = message;
           default:
             _formError = message;
         }
