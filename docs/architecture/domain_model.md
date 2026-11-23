@@ -282,7 +282,10 @@ final class AssetValuation {
 Draft-типы имеют те же обязательные поля, но без `id`, `createdAt`, `archivedAt`:
 `AccountDraft`, `InvestmentDraft`, `PropertyDraft`, объединённые `sealed class AssetDraft`.
 `AssetValuationDraft` содержит `assetId`, `effectiveOn`, `value` и уже разрешённый
-`rateToRub`; repository вычисляет `valueRub` перед записью.
+`rateToRub`; repository вычисляет `valueRub` перед записью. Для инвестиции `value`
+может быть в любой включённой валюте (валюта актива нормализуется в `NULL`); `valueRub`
+считается по `fractionDigits` валюты оценки из справочника, а не из валюты актива.
+Для счёта и квартиры валюта оценки обязана совпадать с валютой актива.
 
 `AssetSnapshot.currentValue` — стоимость в основной валюте актива (первая позиция
 `breakdown`, M4). Для инвестиции `currencyBalances` содержит все валютные позиции:
@@ -891,3 +894,8 @@ ViewModel создаётся factory в DI; Stateful owner вызывает `dis
 Формы имеют отдельный immutable `<Form>State`: поля ввода, `isSaving`, `fieldErrors`,
 `generalErrorCode`, `availableRate`, `isManualRateRequired`. После успешного Save ViewModel
 выставляет одноразовое `completed` событие; View выполняет `context.pop()` и SnackBar.
+
+ViewModel форм инвестиции/оценки отдаёт `currencies: Signal<Map<String, Currency>>` из
+включённого справочника для селектора валюты; `AccountDetailsViewModel` дополнительно
+отдаёт `breakdown: Signal<List<Money>>` (позиции) и тот же `currencies` для форматирования
+строк состава и истории оценок без обращения к валюте актива.

@@ -1312,6 +1312,18 @@ abstract class AppLocalizations {
   /// **'Текущая стоимость'**
   String get investmentCurrentValue;
 
+  /// Секция состава мультивалютной инвестиции по валютам.
+  ///
+  /// In ru, this message translates to:
+  /// **'Состав по валютам'**
+  String get investmentBreakdownTitle;
+
+  /// Подпись итога мультивалютной инвестиции в базовой валюте.
+  ///
+  /// In ru, this message translates to:
+  /// **'Итого в базовой валюте'**
+  String get investmentTotalBase;
+
   /// Пояснение к абсолютной оценке.
   ///
   /// In ru, this message translates to:
@@ -1347,6 +1359,12 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Стоимость'**
   String get valuationValueLabel;
+
+  /// Поле выбора валюты оценки инвестиции.
+  ///
+  /// In ru, this message translates to:
+  /// **'Валюта оценки'**
+  String get valuationCurrencyLabel;
 
   /// Поле даты оценки.
   ///
@@ -1569,6 +1587,12 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Актив'**
   String get transactionAssetLabel;
+
+  /// Поле выбора валюты операции инвестиции.
+  ///
+  /// In ru, this message translates to:
+  /// **'Валюта операции'**
+  String get transactionCurrencyLabel;
 
   /// Вид операции: пополнение.
   ///

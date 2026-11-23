@@ -27,6 +27,7 @@ void main() {
       db.assetsDao,
       db.transactionsDao,
       db.valuationsDao,
+      db.currenciesDao,
     );
     bankId = await db.referencesDao.createSubgroup(SubgroupKind.bank, 'Банк');
   });
@@ -114,7 +115,6 @@ void main() {
           effectiveOn: LocalDate(2026, 1, 2),
           value: const Money(minorUnits: 100000, currencyCode: 'USD'),
           rateToRub: Decimal.fromInt(90),
-          fractionDigits: 2,
         ),
       ),
       throwsA(

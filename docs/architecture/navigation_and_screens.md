@@ -164,13 +164,13 @@ VM — ViewModel, создаваемая через DI. «Тест» — мин�
 | RecurringRulesSection | watchByAccount/watchByProperty | Правила объекта/счёта + CTA | Архивный актив → readOnly |
 | AssetsScreen | AssetsViewModel: watchAll + filters | Три kind, архив filter, add menu | Account/investment/property имеют корректные стоимости |
 | AccountForm | AccountFormViewModel: banks, currencies, save | Name, bank, currency, opening, annualRate, start/end | 0%, end<start, used currency lock |
-| AccountDetails | AccountDetailsViewModel: snapshot, tx, forecast | Баланс, RUB/base equivalent, прогноз, history | После tx прогноз обновляется; archive read-only |
+| AccountDetails | AccountDetailsViewModel: snapshot, tx, forecast, breakdown/currencies | Баланс, состав по валютам, итог в базовой, прогноз, history | После tx прогноз обновляется; мультивалютный итог и состав; archive read-only |
 | InvestmentForm | InvestmentFormViewModel | Name, broker, currency, opening | Занятый broker нельзя удалить из связанного flow |
-| InvestmentDetails | InvestmentDetailsViewModel: valuations + tx | Текущая оценка, add valuation/tx | Последняя оценка + более поздние tx |
+| InvestmentDetails | InvestmentDetailsViewModel: valuations + tx + breakdown | Текущая стоимость, состав по валютам, add valuation/tx | Итог в базовой только при rate; чип «Текущая» per-currency |
 | PropertyForm | PropertyFormViewModel | Name, address, currency, opening, purchase price | Пустой address → null; нет annualRate |
 | PropertyDetails | PropertyDetailsViewModel: valuations + cashflow | Оценка, поток за period, add income/expense | Ремонт не меняет valuation |
-| ValuationForm | ValuationFormViewModel: asset + rate resolver | Absolute value, date, manual rate | Две оценки одной даты: больший id последний |
-| TransactionForm | TransactionFormViewModel: asset/rate/category | Amount/date/kind/comment; optional linked cashflow | Недостаток средств оставляет обе записи неизменными |
+| ValuationForm | ValuationFormViewModel: asset, currencies + rate resolver | Absolute value, currency for investment, date, manual rate | Селектор только инвестиции; две оценки одной даты: больший id последний |
+| TransactionForm | TransactionFormViewModel: asset/rate/category | Amount/date/kind/currency for investment/comment; optional linked cashflow | Селектор валюты только инвестиции; USD-операция сохраняется с курсом USD; недостаток средств оставляет обе записи |
 | TransferForm | TransferFormViewModel: from/to accounts/rates | Amount, destinationAmount, date, comment | Разные валюты, две ноги, ни одной cashflow |
 | TransactionDetails | TransactionDetailsViewModel: tx + linked entry + revisions | Исходная/RUB/base, edit/delete, audit | Transfer edit ведёт по transferId, не одиночной ноге |
 | CashflowForm | CashflowFormViewModel: category/account/property/rate | Kind, category, amount/date, affectsBalance | Off→on создаёт новую tx, старая остаётся deleted |

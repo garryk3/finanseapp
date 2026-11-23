@@ -23,6 +23,14 @@ const _rub = Currency(
   isEnabled: true,
 );
 
+const _usd = Currency(
+  code: 'USD',
+  name: 'Доллар',
+  fractionDigits: 2,
+  isPreset: true,
+  isEnabled: true,
+);
+
 Money _rubles(int major) => Money(minorUnits: major * 100, currencyCode: 'RUB');
 
 AssetSnapshot _account(int value) => AssetSnapshot(
@@ -113,11 +121,15 @@ final class _Assets implements AssetRepository {
 }
 
 final class _Currencies implements CurrencyRepository {
-  @override
-  Stream<List<Currency>> watchAll() => Stream.value(const [_rub]);
+  _Currencies([this.items = const [_rub]]);
+
+  final List<Currency> items;
 
   @override
-  Future<List<Currency>> getEnabled() async => const [_rub];
+  Stream<List<Currency>> watchAll() => Stream.value(items);
+
+  @override
+  Future<List<Currency>> getEnabled() async => items;
 
   @override
   Future<int> countReferences(String code) async => 0;
@@ -267,6 +279,29 @@ void main() {
 
     expect(vm.baseEquivalent.value, isNull);
     expect(vm.baseRateUnavailable.value, isTrue);
+  });
+
+  test('VM загружает справочник валют для форматирования строк', () async {
+    final assets = _Assets(
+      _investment(const [
+        Money(minorUnits: 10000000, currencyCode: 'RUB'),
+        Money(minorUnits: 12000, currencyCode: 'USD'),
+      ]),
+    );
+    final vm = AccountDetailsViewModel(
+      repository: assets,
+      assetId: 1,
+      today: LocalDate(2026, 11, 19),
+      settingsRepository: _Settings(),
+      currencyRepository: _Currencies(const [_rub, _usd]),
+      rateRepository: _Rates({'USD': Decimal.fromInt(92)}),
+    );
+    addTearDown(vm.dispose);
+
+    await vm.load();
+
+    expect(vm.currencies.value['RUB'], _rub);
+    expect(vm.currencies.value['USD'], _usd);
   });
 
   test('после dispose эмиссия не меняет баланс', () async {

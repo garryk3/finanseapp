@@ -29,6 +29,7 @@ void main() {
       db.assetsDao,
       db.transactionsDao,
       db.valuationsDao,
+      db.currenciesDao,
     );
     brokerId = await db.referencesDao.createSubgroup(
       SubgroupKind.broker,
@@ -82,7 +83,6 @@ void main() {
           effectiveOn: LocalDate(2026, 1, 2),
           value: const Money(minorUnits: 150000, currencyCode: 'RUB'),
           rateToRub: Decimal.one,
-          fractionDigits: 2,
         ),
       );
 
@@ -196,7 +196,6 @@ void main() {
         effectiveOn: LocalDate(2026, 1, 2),
         value: const Money(minorUnits: 150000, currencyCode: 'RUB'),
         rateToRub: Decimal.one,
-        fractionDigits: 2,
       ),
     );
     await db.transactionsDao.create(

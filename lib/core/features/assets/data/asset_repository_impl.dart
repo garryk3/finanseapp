@@ -2,6 +2,7 @@ import 'package:decimal/decimal.dart';
 import 'package:drift/drift.dart';
 import 'package:finanseapp/core/database/app_database.dart';
 import 'package:finanseapp/core/database/daos/assets_dao.dart';
+import 'package:finanseapp/core/database/daos/currencies_dao.dart';
 import 'package:finanseapp/core/database/daos/transactions_dao.dart';
 import 'package:finanseapp/core/database/daos/valuations_dao.dart';
 import 'package:finanseapp/core/domain/common/currency.dart';
@@ -22,11 +23,13 @@ final class AssetRepositoryImpl implements AssetRepository {
     this._assetsDao,
     this._transactionsDao,
     this._valuationsDao,
+    this._currenciesDao,
   );
 
   final AssetsDao _assetsDao;
   final TransactionsDao _transactionsDao;
   final ValuationsDao _valuationsDao;
+  final CurrenciesDao _currenciesDao;
 
   @override
   Stream<List<AssetSnapshot>> watchAll({bool includeArchived = false}) =>
@@ -149,14 +152,21 @@ final class AssetRepositoryImpl implements AssetRepository {
   Future<void> recordValuation(AssetValuationDraft draft) async {
     final asset = await _assetsDao.getById(draft.assetId);
     final currencyCode = _valuationCurrency(asset, draft.value);
+    final currencyRow = await _currenciesDao.find(draft.value.currencyCode);
+    if (currencyRow == null) {
+      throw const DomainException(
+        DomainErrorCode.notFound,
+        fieldErrors: {'currencyCode': 'validationCurrencyNotFound'},
+      );
+    }
     final decimalValue = MoneyMath.toDecimal(
       draft.value,
       Currency(
-        code: draft.value.currencyCode,
-        name: draft.value.currencyCode,
-        fractionDigits: draft.fractionDigits,
-        isPreset: true,
-        isEnabled: true,
+        code: currencyRow.code,
+        name: currencyRow.name,
+        fractionDigits: currencyRow.fractionDigits,
+        isPreset: currencyRow.isPreset,
+        isEnabled: currencyRow.isEnabled,
       ),
     );
     final valueRub = MoneyMath.fromDecimal(

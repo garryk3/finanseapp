@@ -31,14 +31,15 @@ class ValuationFormViewModel {
   final Signal<ViewState<void>> state = signal(const ViewLoading());
   final Signal<Asset?> asset = signal(null);
   final Signal<Currency?> currency = signal(null);
+  final Signal<Map<String, Currency>> currencies = signal(const {});
   final Signal<bool> busy = signal(false);
 
   Future<void> load() async {
     try {
       final snapshot = await repository.getById(assetId);
       asset.value = snapshot.asset;
-      final currencies = await currencyRepository.watchAll().first;
-      currency.value = currencies.firstWhere(
+      final all = await currencyRepository.watchAll().first;
+      currency.value = all.firstWhere(
         (item) => item.code == snapshot.asset.currencyCode,
         orElse: () => Currency(
           code: snapshot.asset.currencyCode,
@@ -48,6 +49,8 @@ class ValuationFormViewModel {
           isEnabled: true,
         ),
       );
+      final enabled = await currencyRepository.getEnabled();
+      currencies.value = {for (final item in enabled) item.code: item};
       state.value = const ViewData(null);
     } on DomainException catch (error) {
       state.value = ViewError(error.code);
@@ -56,14 +59,35 @@ class ValuationFormViewModel {
     }
   }
 
+  /// Валюта по коду: справочник включённых, затем валюта актива.
+  Currency currencyOf(String code) =>
+      currencies.value[code] ??
+      (currency.value?.code == code ? currency.value! : null) ??
+      Currency(
+        code: code,
+        name: code,
+        fractionDigits: 2,
+        isPreset: true,
+        isEnabled: true,
+      );
+
   Future<Result<void>> save({
     required Money value,
     required LocalDate effectiveOn,
     Decimal? manualRate,
   }) async {
-    final code = asset.value?.currencyCode;
-    if (code == null) {
+    final loadedAsset = asset.value;
+    if (loadedAsset == null) {
       return const Failure(DomainException(DomainErrorCode.notFound));
+    }
+    if (loadedAsset.kind != AssetKind.investment &&
+        value.currencyCode != loadedAsset.currencyCode) {
+      return const Failure(
+        DomainException(
+          DomainErrorCode.validation,
+          fieldErrors: {'currencyCode': 'validationCurrencyMismatch'},
+        ),
+      );
     }
     if (effectiveOn.compareTo(today) > 0) {
       return const Failure(
@@ -80,7 +104,7 @@ class ValuationFormViewModel {
     try {
       final rate = await ResolveExchangeRate.call(
         rateRepository,
-        code,
+        value.currencyCode,
         effectiveOn,
         manualRate: manualRate,
       );
@@ -90,7 +114,6 @@ class ValuationFormViewModel {
           effectiveOn: effectiveOn,
           value: value,
           rateToRub: rate.rateToRub,
-          fractionDigits: currency.value?.fractionDigits ?? 2,
         ),
       );
       return const Success(null);

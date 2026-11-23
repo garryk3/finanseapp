@@ -30,14 +30,10 @@ final class AssetValuationDraft {
     required this.effectiveOn,
     required this.value,
     required this.rateToRub,
-    required this.fractionDigits,
   });
 
   final int assetId;
   final LocalDate effectiveOn;
   final Money value;
   final Decimal rateToRub;
-
-  /// Знаков после запятой у валюты оценки — для точного рублёвого snapshot.
-  final int fractionDigits;
 }

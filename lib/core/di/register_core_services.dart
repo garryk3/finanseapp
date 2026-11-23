@@ -82,7 +82,12 @@ Future<ServiceLocator> registerCoreServices(
 
   locator.register<CbrExchangeRateClient>(CbrExchangeRateClient());
   locator.register<AssetRepository>(
-    AssetRepositoryImpl(db.assetsDao, db.transactionsDao, db.valuationsDao),
+    AssetRepositoryImpl(
+      db.assetsDao,
+      db.transactionsDao,
+      db.valuationsDao,
+      db.currenciesDao,
+    ),
   );
   locator.register<AssetTransactionRepository>(
     AssetTransactionRepositoryImpl(db),

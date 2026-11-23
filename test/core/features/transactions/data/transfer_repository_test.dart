@@ -24,6 +24,7 @@ void main() {
       db.assetsDao,
       db.transactionsDao,
       db.valuationsDao,
+      db.currenciesDao,
     );
     fromId = await createAccount(db, name: 'Счёт А', openingValueMinor: 500000);
     toId = await createAccount(db, name: 'Счёт Б', openingValueMinor: 0);

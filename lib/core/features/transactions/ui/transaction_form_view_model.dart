@@ -142,7 +142,7 @@ class TransactionFormViewModel {
     try {
       final rate = await ResolveExchangeRate.call(
         rateRepository,
-        asset.currencyCode,
+        amount.currencyCode,
         occurredOn,
         manualRate: manualRate,
       );

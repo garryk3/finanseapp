@@ -913,6 +913,14 @@
   "@investmentCurrentValue": {
     "description": "Подпись текущей стоимости инвестиции."
   },
+  "investmentBreakdownTitle": "Состав по валютам",
+  "@investmentBreakdownTitle": {
+    "description": "Секция состава мультивалютной инвестиции по валютам."
+  },
+  "investmentTotalBase": "Итого в базовой валюте",
+  "@investmentTotalBase": {
+    "description": "Подпись итога мультивалютной инвестиции в базовой валюте."
+  },
   "investmentValuationHint": "Оценка задаётся на конец дня: операции этой даты применяются после неё.",
   "@investmentValuationHint": {
     "description": "Пояснение к абсолютной оценке."
@@ -936,6 +944,10 @@
   "valuationValueLabel": "Стоимость",
   "@valuationValueLabel": {
     "description": "Поле абсолютной стоимости."
+  },
+  "valuationCurrencyLabel": "Валюта оценки",
+  "@valuationCurrencyLabel": {
+    "description": "Поле выбора валюты оценки инвестиции."
   },
   "valuationDateLabel": "Дата оценки",
   "@valuationDateLabel": {
@@ -1094,6 +1106,10 @@
   "transactionAssetLabel": "Актив",
   "@transactionAssetLabel": {
     "description": "Поле выбора актива."
+  },
+  "transactionCurrencyLabel": "Валюта операции",
+  "@transactionCurrencyLabel": {
+    "description": "Поле выбора валюты операции инвестиции."
   },
   "transactionKindDeposit": "Пополнение",
   "@transactionKindDeposit": {

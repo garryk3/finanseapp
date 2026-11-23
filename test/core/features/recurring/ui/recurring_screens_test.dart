@@ -81,6 +81,7 @@ void main() {
       db.assetsDao,
       db.transactionsDao,
       db.valuationsDao,
+      db.currenciesDao,
     ),
     rateRepository: ExchangeRateRepositoryImpl(
       db.currenciesDao,
