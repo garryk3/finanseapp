@@ -252,11 +252,14 @@ final class AssetSnapshot {
     required this.asset,
     required this.currentValue,
     this.currencyBalances,
+    this.lockedBalances,
   });
   final Asset asset;
   final Money currentValue; // основная валюта актива
   final List<Money>? currencyBalances; // позиции инвестиции; null — одна валюта
+  final List<Money>? lockedBalances; // отметки блокировки; null — отметок нет
   List<Money> get breakdown => currencyBalances ?? [currentValue];
+  List<Money> get locked => lockedBalances ?? const [];
 }
 
 final class AssetValuation {
@@ -293,6 +296,11 @@ Draft-типы имеют те же обязательные поля, но бе
 ненулевым балансом. Для счёта и квартиры поле `null`, `breakdown` равен одной позиции.
 Итоги (net worth, цели, базовые эквиваленты) суммируют `breakdown`, конвертируя каждую
 позицию отдельно через RUB в базовую валюту с одним округлением на итог (M5).
+
+`AssetSnapshot.locked` — отмеченные заблокированные суммы инвестиции по валютам
+(schema v4, BR-A-9); для счёта/квартиры и при отсутствии отметок список пуст
+(`lockedBalances == null`). Отметки не входят в `currentValue`/`breakdown` и не
+меняют стоимость актива или net worth (D4).
 
 ## 5. Транзакции активов и переводы
 
@@ -685,7 +693,12 @@ final class CashflowPeriodPoint {
 Все `watch*` исключают soft-deleted/archived по умолчанию и эмитят новый immutable
 snapshot после commit. Методы записи выбрасывают `DomainException`; UI не вызывает DAO.
 `AssetSnapshot.currentValue` — основная валюта актива, полный набор позиций — `breakdown`
-(для мультивалютной инвестиции). `TransactionFilter.currencyCode` матчит валюту операции:
+(для мультивалютной инвестиции). `AssetSnapshot.locked` — отметки блокировки, которые
+заполняются из `investment_locked_amounts` (BR-A-9). `setLockedAmount` принимает только
+инвестицию и известную валюту; `0 < amount <=` баланс позиции, иначе
+`DomainException(validationLockedExceedsBalance)`; ноль удаляет отметку.
+`lockedAmounts` читает отметки напрямую (без снапшота) для форм/повторной загрузки.
+`TransactionFilter.currencyCode` матчит валюту операции:
 `currency_code = :code OR (currency_code IS NULL AND assets.currency_code = :code)` (M8).
 
 ```dart
@@ -698,6 +711,8 @@ abstract interface class AssetRepository {
   Future<void> deleteIfUnused(int id);
   Future<void> archive(int id);
   Future<void> recordValuation(AssetValuationDraft draft);
+  Future<void> setLockedAmount(int assetId, String currencyCode, Money amount);
+  Future<List<Money>> lockedAmounts(int assetId);
 }
 
 abstract interface class SubgroupRepository {

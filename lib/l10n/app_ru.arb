@@ -937,6 +937,52 @@
   "@investmentAddValuation": {
     "description": "Действие добавления оценки."
   },
+  "lockedAssetsTitle": "Заблокированные активы",
+  "@lockedAssetsTitle": {
+    "description": "Секция заблокированных сумм инвестиции по валютам."
+  },
+  "lockedAmountSubtitle": "Заблокировано: {amount}",
+  "@lockedAmountSubtitle": {
+    "description": "Подпись отмеченной заблокированной суммы в валюте.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "lockedNotMarked": "Не отмечено",
+  "@lockedNotMarked": {
+    "description": "Подпись валюты без отметки блокировки."
+  },
+  "lockedEditTitle": "Заблокированная сумма",
+  "@lockedEditTitle": {
+    "description": "Заголовок диалога ввода заблокированной суммы."
+  },
+  "lockedAvailableHint": "Доступно: {amount}",
+  "@lockedAvailableHint": {
+    "description": "Подсказка о доступном остатке позиции в диалоге блокировки.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "lockedEditAction": "Изменить заблокированную сумму",
+  "@lockedEditAction": {
+    "description": "Действие изменения отметки блокировки валютной позиции."
+  },
+  "lockedErrorExceeds": "Сумма превышает остаток в этой валюте.",
+  "@lockedErrorExceeds": {
+    "description": "Ошибка превышения баланса валютной позиции."
+  },
+  "lockedSaved": "Заблокированная сумма сохранена.",
+  "@lockedSaved": {
+    "description": "Подтверждение сохранения отметки блокировки."
+  },
+  "lockedRemoved": "Отметка о блокировке снята.",
+  "@lockedRemoved": {
+    "description": "Подтверждение снятия отметки блокировки."
+  },
   "valuationTitle": "Новая оценка",
   "@valuationTitle": {
     "description": "Заголовок формы оценки."

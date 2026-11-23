@@ -3,6 +3,7 @@ import 'package:finanseapp/core/database/app_database.dart';
 import 'package:finanseapp/core/database/tables/assets.dart';
 import 'package:finanseapp/core/database/tables/asset_details.dart';
 import 'package:finanseapp/core/database/tables/cashflow_entries.dart';
+import 'package:finanseapp/core/database/tables/investment_locked_amounts.dart';
 import 'package:finanseapp/core/database/tables/recurring_cashflow_rules.dart';
 import 'package:decimal/decimal.dart';
 import 'package:finanseapp/core/domain/common/local_date.dart';
@@ -19,6 +20,7 @@ part 'assets_dao.g.dart';
     AccountDetails,
     InvestmentDetails,
     PropertyDetails,
+    InvestmentLockedAmounts,
     RecurringCashflowRules,
     CashflowEntries,
   ],
@@ -36,6 +38,7 @@ class AssetsDao extends DatabaseAccessor<AppDatabase> with _$AssetsDaoMixin {
         assets,
         attachedDatabase.assetValuations,
         attachedDatabase.assetTransactions,
+        investmentLockedAmounts,
       },
     ).watch().map((rows) => [for (final row in rows) assets.map(row.data)]);
   }
@@ -47,6 +50,7 @@ class AssetsDao extends DatabaseAccessor<AppDatabase> with _$AssetsDaoMixin {
       assets,
       attachedDatabase.assetValuations,
       attachedDatabase.assetTransactions,
+      investmentLockedAmounts,
     },
   ).watchSingleOrNull().map((row) => row == null ? null : assets.map(row.data));
 
@@ -123,6 +127,92 @@ class AssetsDao extends DatabaseAccessor<AppDatabase> with _$AssetsDaoMixin {
   Future<AccountDetailRow?> accountDetailsFor(int assetId) => (select(
     accountDetails,
   )..where((d) => d.assetId.equals(assetId))).getSingleOrNull();
+
+  /// Устанавливает отметку заблокированной суммы инвестиции (L1/L2).
+  ///
+  /// Положительная сумма — upsert по `(assetId, currencyCode)`; ноль —
+  /// удаление строки. Отметка допустима только для инвестиции и известной
+  /// валюты; баланс позиции проверяет репозиторий.
+  Future<void> setLockedAmount({
+    required int assetId,
+    required String currencyCode,
+    required int amountMinor,
+  }) => transaction(() async {
+    final asset = await getById(assetId);
+    if (asset.kind != AssetKind.investment) {
+      throw const DomainException(
+        DomainErrorCode.validation,
+        fieldErrors: {'kind': 'validationAssetKindImmutable'},
+      );
+    }
+    final currency = await (select(
+      attachedDatabase.currencies,
+    )..where((c) => c.code.equals(currencyCode))).getSingleOrNull();
+    if (currency == null) {
+      throw const DomainException(
+        DomainErrorCode.validation,
+        fieldErrors: {'currencyCode': 'validationCurrencyNotFound'},
+      );
+    }
+    if (amountMinor < 0) {
+      throw const DomainException(
+        DomainErrorCode.validation,
+        fieldErrors: {'amount': 'validationAmountNegative'},
+      );
+    }
+    final matching = select(investmentLockedAmounts)
+      ..where(
+        (row) =>
+            row.assetId.equals(assetId) & row.currencyCode.equals(currencyCode),
+      );
+    if (amountMinor == 0) {
+      await (delete(investmentLockedAmounts)..where(
+            (row) =>
+                row.assetId.equals(assetId) &
+                row.currencyCode.equals(currencyCode),
+          ))
+          .go();
+      return;
+    }
+    final now = attachedDatabase.clock();
+    final existing = await matching.getSingleOrNull();
+    if (existing == null) {
+      await into(investmentLockedAmounts).insert(
+        InvestmentLockedAmountsCompanion.insert(
+          assetId: assetId,
+          currencyCode: currencyCode,
+          amountMinor: amountMinor,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+      return;
+    }
+    await (update(investmentLockedAmounts)..where(
+          (row) =>
+              row.assetId.equals(assetId) &
+              row.currencyCode.equals(currencyCode),
+        ))
+        .write(
+          InvestmentLockedAmountsCompanion(
+            amountMinor: Value(amountMinor),
+            updatedAt: Value(now),
+          ),
+        );
+  });
+
+  Future<List<InvestmentLockedAmountRow>> lockedRowsForAsset(int assetId) =>
+      (select(investmentLockedAmounts)
+            ..where((row) => row.assetId.equals(assetId))
+            ..orderBy([(row) => OrderingTerm.asc(row.currencyCode)]))
+          .get();
+
+  Future<List<InvestmentLockedAmountRow>> allLockedRows() =>
+      (select(investmentLockedAmounts)..orderBy([
+            (row) => OrderingTerm.asc(row.assetId),
+            (row) => OrderingTerm.asc(row.currencyCode),
+          ]))
+          .get();
 
   /// Обновляет счёт; смена валюты запрещена при связях (BR-VAL-8).
   Future<void> updateAccount({
@@ -315,6 +405,11 @@ class AssetsDao extends DatabaseAccessor<AppDatabase> with _$AssetsDaoMixin {
       );
     }
     final asset = await getById(assetId);
+    // Отметки блокировки не входят в referenceCounts (L3), но физически
+    // удаляются вместе с активом в той же транзакции (FK RESTRICT).
+    await (delete(
+      investmentLockedAmounts,
+    )..where((row) => row.assetId.equals(assetId))).go();
     // Активных правил нет (проверено выше). Soft-deleted правила не должны
     // блокировать удаление через FK RESTRICT: у перевешенных автоопераций
     // очищаем текущую ссылку (ревизии сохраняют snapshot), затем удаляем

@@ -36,11 +36,11 @@ void main() {
       expect(await db.customSelect('PRAGMA foreign_key_check').get(), isEmpty);
     });
 
-    test('application_id = FNAP, schemaVersion = 3', () async {
+    test('application_id = FNAP, schemaVersion = 4', () async {
       final appId = await db.customSelect('PRAGMA application_id').getSingle();
       expect(appId.read<int>('application_id'), appDatabaseApplicationId);
       expect(appDatabaseApplicationId, 0x464E4150);
-      expect(db.schemaVersion, 3);
+      expect(db.schemaVersion, 4);
     });
 
     test('UTC timestamp хранится фиксированной ширины', () {

@@ -5,6 +5,7 @@ import 'package:finanseapp/core/domain/common/currency.dart';
 import 'package:finanseapp/core/domain/common/exchange_rate.dart';
 import 'package:finanseapp/core/domain/common/local_date.dart';
 import 'package:finanseapp/core/domain/common/money.dart';
+import 'package:finanseapp/core/domain/common/result.dart';
 import 'package:finanseapp/core/features/assets/domain/asset.dart';
 import 'package:finanseapp/core/features/assets/domain/asset_draft.dart';
 import 'package:finanseapp/core/features/assets/domain/asset_repository.dart';
@@ -64,10 +65,18 @@ AssetSnapshot _investment(List<Money> balances) => AssetSnapshot(
 );
 
 final class _Assets implements AssetRepository {
-  _Assets(this.snapshot);
+  _Assets(this.snapshot) : locked = [...snapshot.locked];
 
   AssetSnapshot snapshot;
+  final List<Money> locked;
   final StreamController<void> _changes = StreamController<void>.broadcast();
+
+  AssetSnapshot _withLocked() => AssetSnapshot(
+    asset: snapshot.asset,
+    currentValue: snapshot.currentValue,
+    currencyBalances: snapshot.currencyBalances,
+    lockedBalances: locked.isEmpty ? null : List.of(locked),
+  );
 
   void emit(int value) {
     snapshot = _account(value);
@@ -78,18 +87,18 @@ final class _Assets implements AssetRepository {
 
   @override
   Stream<AssetSnapshot?> watchById(int id) async* {
-    yield snapshot;
+    yield _withLocked();
     await for (final _ in _changes.stream) {
-      yield snapshot;
+      yield _withLocked();
     }
   }
 
   @override
-  Future<AssetSnapshot> getById(int id) async => snapshot;
+  Future<AssetSnapshot> getById(int id) async => _withLocked();
 
   @override
   Stream<List<AssetSnapshot>> watchAll({bool includeArchived = false}) =>
-      Stream.value([snapshot]);
+      Stream.value([_withLocked()]);
 
   @override
   Future<int> create(AssetDraft draft) => throw UnimplementedError();
@@ -118,6 +127,36 @@ final class _Assets implements AssetRepository {
 
   @override
   Future<List<AssetValuation>> valuations(int id) async => const [];
+
+  @override
+  Future<void> setLockedAmount(
+    int assetId,
+    String currencyCode,
+    Money amount,
+  ) async {
+    if (amount.isZero) {
+      locked.removeWhere((item) => item.currencyCode == currencyCode);
+      _changes.add(null);
+      return;
+    }
+    int? balance;
+    for (final item in snapshot.breakdown) {
+      if (item.currencyCode == currencyCode) balance = item.minorUnits;
+    }
+    if (balance == null || amount.minorUnits > balance) {
+      throw const DomainException(
+        DomainErrorCode.validation,
+        fieldErrors: {'amount': 'validationLockedExceedsBalance'},
+      );
+    }
+    locked
+      ..removeWhere((item) => item.currencyCode == currencyCode)
+      ..add(amount);
+    _changes.add(null);
+  }
+
+  @override
+  Future<List<Money>> lockedAmounts(int assetId) async => List.of(locked);
 }
 
 final class _Currencies implements CurrencyRepository {
@@ -321,5 +360,68 @@ void main() {
     await pumpEventQueue();
 
     expect(vm.balance.value, _rubles(100));
+  });
+
+  test('setLockedAmount сохраняет отметку и обновляет locked', () async {
+    final assets = _Assets(
+      _investment(const [
+        Money(minorUnits: 10000000, currencyCode: 'RUB'),
+        Money(minorUnits: 12000, currencyCode: 'USD'),
+      ]),
+    );
+    final vm = AccountDetailsViewModel(
+      repository: assets,
+      assetId: 1,
+      today: LocalDate(2026, 11, 19),
+      settingsRepository: _Settings(),
+      currencyRepository: _Currencies(),
+      rateRepository: _Rates(),
+    );
+    addTearDown(vm.dispose);
+    await vm.load();
+    expect(vm.locked.value, isEmpty);
+
+    final result = await vm.setLockedAmount(
+      'USD',
+      const Money(minorUnits: 9900, currencyCode: 'USD'),
+    );
+
+    expect(result, isA<Success<void>>());
+    expect(assets.locked, const [Money(minorUnits: 9900, currencyCode: 'USD')]);
+    await pumpEventQueue();
+    expect(vm.locked.value, const [
+      Money(minorUnits: 9900, currencyCode: 'USD'),
+    ]);
+  });
+
+  test('setLockedAmount: превышение баланса — Failure и locked пуст', () async {
+    final assets = _Assets(
+      _investment(const [
+        Money(minorUnits: 10000000, currencyCode: 'RUB'),
+        Money(minorUnits: 12000, currencyCode: 'USD'),
+      ]),
+    );
+    final vm = AccountDetailsViewModel(
+      repository: assets,
+      assetId: 1,
+      today: LocalDate(2026, 11, 19),
+      settingsRepository: _Settings(),
+      currencyRepository: _Currencies(),
+      rateRepository: _Rates(),
+    );
+    addTearDown(vm.dispose);
+    await vm.load();
+
+    final result = await vm.setLockedAmount(
+      'USD',
+      const Money(minorUnits: 12001, currencyCode: 'USD'),
+    );
+
+    expect(result, isA<Failure<void>>());
+    expect(
+      (result as Failure<void>).error.fieldErrors['amount'],
+      'validationLockedExceedsBalance',
+    );
+    expect(vm.locked.value, isEmpty);
   });
 }

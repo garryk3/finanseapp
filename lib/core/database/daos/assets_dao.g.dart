@@ -11,6 +11,8 @@ mixin _$AssetsDaoMixin on DatabaseAccessor<AppDatabase> {
   $InvestmentDetailsTable get investmentDetails =>
       attachedDatabase.investmentDetails;
   $PropertyDetailsTable get propertyDetails => attachedDatabase.propertyDetails;
+  $InvestmentLockedAmountsTable get investmentLockedAmounts =>
+      attachedDatabase.investmentLockedAmounts;
   $CategoriesTable get categories => attachedDatabase.categories;
   $RecurringCashflowRulesTable get recurringCashflowRules =>
       attachedDatabase.recurringCashflowRules;
@@ -44,6 +46,11 @@ class AssetsDaoManager {
       $$PropertyDetailsTableTableManager(
         _db.attachedDatabase,
         _db.propertyDetails,
+      );
+  $$InvestmentLockedAmountsTableTableManager get investmentLockedAmounts =>
+      $$InvestmentLockedAmountsTableTableManager(
+        _db.attachedDatabase,
+        _db.investmentLockedAmounts,
       );
   $$CategoriesTableTableManager get categories =>
       $$CategoriesTableTableManager(_db.attachedDatabase, _db.categories);

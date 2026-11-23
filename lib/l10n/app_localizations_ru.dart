@@ -696,6 +696,37 @@ class AppLocalizationsRu extends AppLocalizations {
   String get investmentAddValuation => 'Добавить оценку';
 
   @override
+  String get lockedAssetsTitle => 'Заблокированные активы';
+
+  @override
+  String lockedAmountSubtitle(String amount) {
+    return 'Заблокировано: $amount';
+  }
+
+  @override
+  String get lockedNotMarked => 'Не отмечено';
+
+  @override
+  String get lockedEditTitle => 'Заблокированная сумма';
+
+  @override
+  String lockedAvailableHint(String amount) {
+    return 'Доступно: $amount';
+  }
+
+  @override
+  String get lockedEditAction => 'Изменить заблокированную сумму';
+
+  @override
+  String get lockedErrorExceeds => 'Сумма превышает остаток в этой валюте.';
+
+  @override
+  String get lockedSaved => 'Заблокированная сумма сохранена.';
+
+  @override
+  String get lockedRemoved => 'Отметка о блокировке снята.';
+
+  @override
   String get valuationTitle => 'Новая оценка';
 
   @override

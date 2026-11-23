@@ -1348,6 +1348,60 @@ abstract class AppLocalizations {
   /// **'Добавить оценку'**
   String get investmentAddValuation;
 
+  /// Секция заблокированных сумм инвестиции по валютам.
+  ///
+  /// In ru, this message translates to:
+  /// **'Заблокированные активы'**
+  String get lockedAssetsTitle;
+
+  /// Подпись отмеченной заблокированной суммы в валюте.
+  ///
+  /// In ru, this message translates to:
+  /// **'Заблокировано: {amount}'**
+  String lockedAmountSubtitle(String amount);
+
+  /// Подпись валюты без отметки блокировки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не отмечено'**
+  String get lockedNotMarked;
+
+  /// Заголовок диалога ввода заблокированной суммы.
+  ///
+  /// In ru, this message translates to:
+  /// **'Заблокированная сумма'**
+  String get lockedEditTitle;
+
+  /// Подсказка о доступном остатке позиции в диалоге блокировки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Доступно: {amount}'**
+  String lockedAvailableHint(String amount);
+
+  /// Действие изменения отметки блокировки валютной позиции.
+  ///
+  /// In ru, this message translates to:
+  /// **'Изменить заблокированную сумму'**
+  String get lockedEditAction;
+
+  /// Ошибка превышения баланса валютной позиции.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сумма превышает остаток в этой валюте.'**
+  String get lockedErrorExceeds;
+
+  /// Подтверждение сохранения отметки блокировки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Заблокированная сумма сохранена.'**
+  String get lockedSaved;
+
+  /// Подтверждение снятия отметки блокировки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отметка о блокировке снята.'**
+  String get lockedRemoved;
+
   /// Заголовок формы оценки.
   ///
   /// In ru, this message translates to:

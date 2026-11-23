@@ -15,7 +15,7 @@ import '../../generated_migrations/schema_v1.dart' as v1;
 /// (`schemaObjectsV1/V2` — частичные индексы и триггеры), поэтому семантическое
 /// сравнение дало бы ложный SchemaMismatch. Состояние v2 проверяется явно.
 void main() {
-  test('v1→текущая: user_version=3, объекты v2/v3 и данные целы', () async {
+  test('v1→текущая: user_version=4, объекты v2/v3/v4 и данные целы', () async {
     final directory = await Directory.systemTemp.createTemp(
       'finanseapp_migration_',
     );
@@ -31,7 +31,7 @@ void main() {
     await db.customSelect('SELECT 1').get();
 
     final version = await db.customSelect('PRAGMA user_version').getSingle();
-    expect(version.read<int>('user_version'), 3);
+    expect(version.read<int>('user_version'), 4);
 
     for (final table in ['asset_transactions', 'asset_valuations']) {
       final columns = await db
@@ -47,10 +47,9 @@ void main() {
     final tables = await db
         .customSelect("SELECT name FROM sqlite_master WHERE type = 'table'")
         .get();
-    expect(
-      tables.map((row) => row.read<String>('name')),
-      contains('recurring_cashflow_rules'),
-    );
+    final tableNames = tables.map((row) => row.read<String>('name')).toList();
+    expect(tableNames, contains('recurring_cashflow_rules'));
+    expect(tableNames, contains('investment_locked_amounts'));
 
     final columns = await db
         .customSelect("PRAGMA table_info('cashflow_entries')")

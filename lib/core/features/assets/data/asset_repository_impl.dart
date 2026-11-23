@@ -207,6 +207,9 @@ final class AssetRepositoryImpl implements AssetRepository {
     final property = row.kind == AssetKind.property
         ? await _assetsDao.propertyDetailsFor(row.id)
         : null;
+    final locked = row.kind == AssetKind.investment
+        ? await _assetsDao.lockedRowsForAsset(row.id)
+        : const <InvestmentLockedAmountRow>[];
     return _buildSnapshot(
       row,
       transactions,
@@ -214,6 +217,7 @@ final class AssetRepositoryImpl implements AssetRepository {
       account: account,
       investment: investment,
       property: property,
+      lockedRows: locked,
     );
   }
 
@@ -233,6 +237,10 @@ final class AssetRepositoryImpl implements AssetRepository {
       for (final detail in await _assetsDao.allPropertyDetails())
         detail.assetId: detail,
     };
+    final lockedByAsset = <int, List<InvestmentLockedAmountRow>>{};
+    for (final row in await _assetsDao.allLockedRows()) {
+      lockedByAsset.putIfAbsent(row.assetId, () => []).add(row);
+    }
     final currencyByAsset = {for (final row in rows) row.id: row.currencyCode};
     final transactionsByAsset = <int, List<AssetTransaction>>{};
     for (final row in transactions) {
@@ -260,6 +268,7 @@ final class AssetRepositoryImpl implements AssetRepository {
           account: accounts[row.id],
           investment: investments[row.id],
           property: properties[row.id],
+          lockedRows: lockedByAsset[row.id] ?? const [],
         ),
     ];
   }
@@ -271,6 +280,7 @@ final class AssetRepositoryImpl implements AssetRepository {
     AccountDetailRow? account,
     InvestmentDetailRow? investment,
     PropertyDetailRow? property,
+    List<InvestmentLockedAmountRow> lockedRows = const [],
   }) {
     final opening = Money(
       minorUnits: row.openingValueMinor,
@@ -321,10 +331,12 @@ final class AssetRepositoryImpl implements AssetRepository {
           valuations,
           transactions,
         );
+        final locked = _lockedOf(lockedRows);
         return AssetSnapshot(
           asset: asset,
           currentValue: balances.first,
           currencyBalances: balances,
+          lockedBalances: locked.isEmpty ? null : locked,
         );
       case AssetKind.property:
         final asset = PropertyAsset(
@@ -362,6 +374,77 @@ final class AssetRepositoryImpl implements AssetRepository {
     final row = await _assetsDao.getById(id);
     return _valuationsFor(id, row.currencyCode);
   }
+
+  @override
+  Future<void> setLockedAmount(
+    int assetId,
+    String currencyCode,
+    Money amount,
+  ) async {
+    final asset = await _assetsDao.getById(assetId);
+    if (asset.kind != AssetKind.investment) {
+      throw const DomainException(
+        DomainErrorCode.validation,
+        fieldErrors: {'kind': 'validationAssetKindImmutable'},
+      );
+    }
+    if (amount.isNegative) {
+      throw const DomainException(
+        DomainErrorCode.validation,
+        fieldErrors: {'amount': 'validationAmountNegative'},
+      );
+    }
+    if (amount.currencyCode != currencyCode) {
+      throw const DomainException(
+        DomainErrorCode.validation,
+        fieldErrors: {'currencyCode': 'validationCurrencyMismatch'},
+      );
+    }
+    if (amount.isZero) {
+      await _assetsDao.setLockedAmount(
+        assetId: assetId,
+        currencyCode: currencyCode,
+        amountMinor: 0,
+      );
+      return;
+    }
+    if (await _currenciesDao.find(currencyCode) == null) {
+      throw const DomainException(
+        DomainErrorCode.validation,
+        fieldErrors: {'currencyCode': 'validationCurrencyNotFound'},
+      );
+    }
+    final snapshot = await _snapshotOf(asset);
+    int? balance;
+    for (final money in snapshot.breakdown) {
+      if (money.currencyCode == currencyCode) {
+        balance = money.minorUnits;
+        break;
+      }
+    }
+    if (balance == null || amount.minorUnits > balance) {
+      throw const DomainException(
+        DomainErrorCode.validation,
+        fieldErrors: {'amount': 'validationLockedExceedsBalance'},
+      );
+    }
+    await _assetsDao.setLockedAmount(
+      assetId: assetId,
+      currencyCode: currencyCode,
+      amountMinor: amount.minorUnits,
+    );
+  }
+
+  @override
+  Future<List<Money>> lockedAmounts(int assetId) async {
+    final rows = await _assetsDao.lockedRowsForAsset(assetId);
+    return _lockedOf(rows);
+  }
+
+  static List<Money> _lockedOf(List<InvestmentLockedAmountRow> rows) => [
+    for (final row in rows)
+      Money(minorUnits: row.amountMinor, currencyCode: row.currencyCode),
+  ];
 
   Future<List<AssetTransaction>> _transactionsFor(
     int assetId,

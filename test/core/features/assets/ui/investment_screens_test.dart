@@ -61,22 +61,32 @@ const _jpy = Currency(
 );
 
 final class FakeAssets implements AssetRepository {
-  FakeAssets(this.snapshot, {this.valuationsHistory = const []});
+  FakeAssets(this.snapshot, {this.valuationsHistory = const []})
+    : locked = [...snapshot.locked];
 
-  final AssetSnapshot snapshot;
+  AssetSnapshot snapshot;
   final List<AssetValuation> valuationsHistory;
+  final List<Money> locked;
+  final List<Money> savedLocked = [];
   final List<AssetValuationDraft> recorded = [];
   AssetDraft? savedDraft;
 
+  AssetSnapshot _withLocked() => AssetSnapshot(
+    asset: snapshot.asset,
+    currentValue: snapshot.currentValue,
+    currencyBalances: snapshot.currencyBalances,
+    lockedBalances: locked.isEmpty ? null : List.of(locked),
+  );
+
   @override
   Stream<List<AssetSnapshot>> watchAll({bool includeArchived = false}) =>
-      Stream.value([snapshot]);
+      Stream.value([_withLocked()]);
 
   @override
-  Stream<AssetSnapshot?> watchById(int id) => Stream.value(snapshot);
+  Stream<AssetSnapshot?> watchById(int id) => Stream.value(_withLocked());
 
   @override
-  Future<AssetSnapshot> getById(int id) async => snapshot;
+  Future<AssetSnapshot> getById(int id) async => _withLocked();
 
   @override
   Future<int> create(AssetDraft draft) async {
@@ -111,6 +121,36 @@ final class FakeAssets implements AssetRepository {
 
   @override
   Future<List<AssetValuation>> valuations(int id) async => valuationsHistory;
+
+  @override
+  Future<void> setLockedAmount(
+    int assetId,
+    String currencyCode,
+    Money amount,
+  ) async {
+    if (amount.isZero) {
+      savedLocked.add(amount);
+      locked.removeWhere((item) => item.currencyCode == currencyCode);
+      return;
+    }
+    int? balance;
+    for (final item in snapshot.breakdown) {
+      if (item.currencyCode == currencyCode) balance = item.minorUnits;
+    }
+    if (balance == null || amount.minorUnits > balance) {
+      throw const DomainException(
+        DomainErrorCode.validation,
+        fieldErrors: {'amount': 'validationLockedExceedsBalance'},
+      );
+    }
+    savedLocked.add(amount);
+    locked
+      ..removeWhere((item) => item.currencyCode == currencyCode)
+      ..add(amount);
+  }
+
+  @override
+  Future<List<Money>> lockedAmounts(int assetId) async => List.of(locked);
 }
 
 final class FakeSubgroups implements SubgroupRepository {
@@ -950,4 +990,210 @@ void main() {
     expect(find.text(l10n.investmentAddValuation), findsOneWidget);
     expect(find.text(l10n.accountForecastLabel), findsNothing);
   });
+
+  testWidgets('инвестиция показывает заблокированные суммы по валютам', (
+    tester,
+  ) async {
+    final repository = FakeAssets(
+      _lockedSnapshot(
+        locked: const [
+          Money(minorUnits: 9900, currencyCode: 'USD'),
+          Money(minorUnits: 500, currencyCode: 'EUR'),
+        ],
+      ),
+    );
+    final vm = AccountDetailsViewModel(
+      repository: repository,
+      assetId: 1,
+      today: LocalDate(2026, 1, 3),
+      settingsRepository: FakeSettings(),
+      currencyRepository: FakeCurrencies(),
+      rateRepository: FakeRates(rate: Decimal.fromInt(92)),
+    );
+    await _pump(tester, AccountDetailsScreen(viewModel: vm));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text(l10n.lockedAssetsTitle), findsOneWidget);
+    // Доллар (USD) есть и в составе, и в строке заблокированной суммы.
+    expect(find.text('Доллар (USD)'), findsNWidgets(2));
+    expect(
+      find.text(
+        l10n.lockedAmountSubtitle(
+          const MoneyFormatter().format(
+            const Money(minorUnits: 9900, currencyCode: 'USD'),
+            _usd,
+          ),
+        ),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.text(
+        l10n.lockedAmountSubtitle(
+          const MoneyFormatter().format(
+            const Money(minorUnits: 500, currencyCode: 'EUR'),
+            _eur,
+          ),
+        ),
+      ),
+      findsOneWidget,
+    );
+    expect(find.text(l10n.lockedNotMarked), findsOneWidget);
+    expect(find.byIcon(Icons.lock_outline), findsNWidgets(3));
+    expect(
+      tester.getTopLeft(find.text(l10n.lockedAssetsTitle)).dy,
+      greaterThan(
+        tester.getTopLeft(find.text(l10n.investmentBreakdownTitle)).dy,
+      ),
+    );
+  });
+
+  testWidgets('диалог заблокированной суммы сохраняет значение', (
+    tester,
+  ) async {
+    final repository = FakeAssets(_lockedSnapshot());
+    final vm = AccountDetailsViewModel(
+      repository: repository,
+      assetId: 1,
+      today: LocalDate(2026, 1, 3),
+      settingsRepository: FakeSettings(),
+      currencyRepository: FakeCurrencies(),
+      rateRepository: FakeRates(rate: Decimal.fromInt(92)),
+    );
+    await _pump(tester, AccountDetailsScreen(viewModel: vm));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await tester.tap(find.byIcon(Icons.lock_outline).at(1));
+    await tester.pumpAndSettle();
+
+    expect(find.text(l10n.lockedEditTitle), findsOneWidget);
+    expect(
+      find.text(
+        l10n.lockedAvailableHint(
+          const MoneyFormatter().format(
+            const Money(minorUnits: 12000, currencyCode: 'USD'),
+            _usd,
+          ),
+        ),
+      ),
+      findsOneWidget,
+    );
+
+    await tester.enterText(find.byType(TextField).last, '99');
+    await tester.tap(find.text(l10n.commonSave));
+    await tester.pumpAndSettle();
+
+    expect(
+      repository.savedLocked.single,
+      const Money(minorUnits: 9900, currencyCode: 'USD'),
+    );
+    expect(find.text(l10n.lockedSaved), findsOneWidget);
+  });
+
+  testWidgets('превышение баланса показывается под полем диалога', (
+    tester,
+  ) async {
+    final repository = FakeAssets(_lockedSnapshot());
+    final vm = AccountDetailsViewModel(
+      repository: repository,
+      assetId: 1,
+      today: LocalDate(2026, 1, 3),
+      settingsRepository: FakeSettings(),
+      currencyRepository: FakeCurrencies(),
+      rateRepository: FakeRates(rate: Decimal.fromInt(92)),
+    );
+    await _pump(tester, AccountDetailsScreen(viewModel: vm));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await tester.tap(find.byIcon(Icons.lock_outline).at(1));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last, '121');
+    await tester.tap(find.text(l10n.commonSave));
+    await tester.pumpAndSettle();
+
+    expect(find.text(l10n.lockedErrorExceeds), findsOneWidget);
+    expect(find.text(l10n.lockedEditTitle), findsOneWidget);
+    expect(repository.savedLocked, isEmpty);
+  });
+
+  testWidgets('пустой ввод снимает отметку и показывает snackbar', (
+    tester,
+  ) async {
+    final repository = FakeAssets(
+      _lockedSnapshot(
+        locked: const [Money(minorUnits: 9900, currencyCode: 'USD')],
+      ),
+    );
+    final vm = AccountDetailsViewModel(
+      repository: repository,
+      assetId: 1,
+      today: LocalDate(2026, 1, 3),
+      settingsRepository: FakeSettings(),
+      currencyRepository: FakeCurrencies(),
+      rateRepository: FakeRates(rate: Decimal.fromInt(92)),
+    );
+    await _pump(tester, AccountDetailsScreen(viewModel: vm));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await tester.tap(find.byIcon(Icons.lock_outline).at(1));
+    await tester.pumpAndSettle();
+    final field = tester.widget<TextField>(find.byType(TextField).last);
+    expect(field.controller!.text, '99');
+
+    await tester.enterText(find.byType(TextField).last, '');
+    await tester.tap(find.text(l10n.commonSave));
+    await tester.pumpAndSettle();
+
+    expect(repository.savedLocked.single.isZero, isTrue);
+    expect(find.text(l10n.lockedRemoved), findsOneWidget);
+  });
+
+  testWidgets('архивная инвестиция показывает отметки без кнопки', (
+    tester,
+  ) async {
+    final repository = FakeAssets(
+      _lockedSnapshot(
+        archived: true,
+        locked: const [Money(minorUnits: 9900, currencyCode: 'USD')],
+      ),
+    );
+    final vm = AccountDetailsViewModel(
+      repository: repository,
+      assetId: 1,
+      today: LocalDate(2026, 1, 3),
+      settingsRepository: FakeSettings(),
+      currencyRepository: FakeCurrencies(),
+      rateRepository: FakeRates(rate: Decimal.fromInt(92)),
+    );
+    await _pump(tester, AccountDetailsScreen(viewModel: vm));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text(l10n.lockedAssetsTitle), findsOneWidget);
+    expect(
+      find.text(
+        l10n.lockedAmountSubtitle(
+          const MoneyFormatter().format(
+            const Money(minorUnits: 9900, currencyCode: 'USD'),
+            _usd,
+          ),
+        ),
+      ),
+      findsOneWidget,
+    );
+    expect(find.byIcon(Icons.lock_outline), findsNothing);
+  });
 }
+
+AssetSnapshot _lockedSnapshot({
+  bool archived = false,
+  List<Money> locked = const [],
+}) => AssetSnapshot(
+  asset: _investment(archived: archived),
+  currentValue: const Money(minorUnits: 10000000, currencyCode: 'RUB'),
+  currencyBalances: const [
+    Money(minorUnits: 10000000, currencyCode: 'RUB'),
+    Money(minorUnits: 12000, currencyCode: 'USD'),
+    Money(minorUnits: 500, currencyCode: 'EUR'),
+  ],
+  lockedBalances: locked.isEmpty ? null : locked,
+);

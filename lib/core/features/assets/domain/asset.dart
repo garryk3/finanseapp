@@ -93,11 +93,14 @@ final class PropertyAsset extends Asset {
 /// [currentValue] — стоимость в основной валюте актива (первая позиция
 /// [breakdown]); [currencyBalances] содержит все валютные позиции инвестиции
 /// (M4). Для счёта и квартиры поле остаётся `null`.
+/// [lockedBalances] — отмеченные заблокированные суммы инвестиции по валютам
+/// (schema v4); `null` — отметок нет.
 final class AssetSnapshot {
   const AssetSnapshot({
     required this.asset,
     required this.currentValue,
     this.currencyBalances,
+    this.lockedBalances,
   });
 
   final Asset asset;
@@ -106,6 +109,12 @@ final class AssetSnapshot {
   /// Позиции мультивалютной инвестиции; `null` — стоимость в одной валюте.
   final List<Money>? currencyBalances;
 
+  /// Заблокированные суммы инвестиции по валютам; `null` — отметок нет.
+  final List<Money>? lockedBalances;
+
   /// Все валютные позиции; для одно-валютного актива — одна [currentValue].
   List<Money> get breakdown => currencyBalances ?? [currentValue];
+
+  /// Отметки блокировки; для актива без отметок — пустой список.
+  List<Money> get locked => lockedBalances ?? const [];
 }
