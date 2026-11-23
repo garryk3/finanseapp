@@ -1,4 +1,5 @@
 import 'package:decimal/decimal.dart';
+import 'package:finanseapp/app/theme/app_semantic_colors.dart';
 import 'package:finanseapp/app/theme/app_theme.dart';
 import 'package:finanseapp/core/domain/common/currency.dart';
 import 'package:finanseapp/core/domain/common/exchange_rate.dart';
@@ -20,6 +21,7 @@ import 'package:finanseapp/core/features/categories/domain/category_repository.d
 import 'package:finanseapp/core/features/currencies/domain/currency_repository.dart';
 import 'package:finanseapp/core/features/currencies/domain/exchange_rate_repository.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
+import 'package:finanseapp/uikit/app_summary_card.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -258,5 +260,68 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.text(l10n.recurringAutoBadge), findsOneWidget);
     expect(find.text(l10n.recurringRuleLink), findsOneWidget);
+  });
+
+  testWidgets('детали дохода и расхода окрашивают карточку тоном', (
+    tester,
+  ) async {
+    const expected = <CashflowKind, AppMoneyTone>{
+      CashflowKind.income: AppMoneyTone.income,
+      CashflowKind.expense: AppMoneyTone.expense,
+    };
+    for (final kind in expected.keys) {
+      final entry = CashflowEntry(
+        id: 1,
+        kind: kind,
+        categoryId: 10,
+        amount: const Money(minorUnits: 1000, currencyCode: 'RUB'),
+        occurredOn: LocalDate(2026, 1, 2),
+        rateToRub: Decimal.one,
+        amountRub: const Money(minorUnits: 1000, currencyCode: 'RUB'),
+        affectsBalance: false,
+        revisionNo: 1,
+        createdAt: DateTime.utc(2026),
+        updatedAt: DateTime.utc(2026),
+      );
+      final repository = FakeCashflow(entry);
+      final currencies = FakeCurrencies();
+      final vm = CashflowDetailsViewModel(
+        repository: repository,
+        categoryRepository: FakeCategories(),
+        auditRepository: FakeAudit(),
+        currencyRepository: currencies,
+        commands: CashflowCommands(
+          repository: repository,
+          currencyRepository: currencies,
+          rateRepository: FakeRates(),
+          today: LocalDate(2026, 1, 3),
+        ),
+        entryId: 1,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.light(),
+          localizationsDelegates: const [
+            ...GlobalMaterialLocalizations.delegates,
+            AppLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('ru')],
+          home: CashflowDetailsScreen(viewModel: vm),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pump(const Duration(milliseconds: 300));
+
+      final card = tester.widget<AppSummaryCard>(find.byType(AppSummaryCard));
+      final context = tester.element(find.byType(AppSummaryCard));
+      expect(card.tone, expected[kind], reason: kind.name);
+      final amount = tester.widget<Text>(find.text(card.value));
+      expect(
+        amount.style?.color,
+        resolveMoneyToneColor(context, expected[kind]!),
+        reason: '${kind.name}: тон должен доходить до текста',
+      );
+    }
   });
 }

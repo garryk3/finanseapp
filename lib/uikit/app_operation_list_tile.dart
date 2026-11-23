@@ -140,7 +140,13 @@ class AppOperationListTile extends StatelessWidget {
                 child: AppMoneyText(
                   amountText,
                   tone: deleted ? AppMoneyTone.neutral : tone,
-                  style: textTheme.titleSmall?.copyWith(color: primaryText),
+                  // Явный цвет — только deleted-приглушение. У активной
+                  // операции стиль не передаётся: M3 textTheme несёт цвет
+                  // onSurface, и любой style.color перебил бы тон
+                  // (finance.md §2).
+                  style: deleted
+                      ? textTheme.titleSmall?.copyWith(color: primaryText)
+                      : null,
                   maxLines: 1,
                   semanticsLabel: amountText,
                 ),

@@ -1,4 +1,5 @@
 import 'package:finanseapp/app/routes.dart';
+import 'package:finanseapp/app/theme/app_semantic_colors.dart';
 import 'package:finanseapp/app/theme/app_spacing.dart';
 import 'package:finanseapp/core/domain/common/currency.dart';
 import 'package:finanseapp/core/domain/common/local_date.dart';
@@ -117,6 +118,7 @@ class _CashflowDetailsScreenState extends State<CashflowDetailsScreen> {
                 child: AppSummaryCard(
                   title: income ? l10n.cashflowIncome : l10n.cashflowExpense,
                   value: _money(entry.amount),
+                  tone: income ? AppMoneyTone.income : AppMoneyTone.expense,
                   subtitle: entry.amount.currencyCode == 'RUB'
                       ? null
                       : '${l10n.transactionAmountRub}: '

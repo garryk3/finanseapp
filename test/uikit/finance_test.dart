@@ -25,6 +25,27 @@ void main() {
       expect(text.style?.color, isNot(scheme.error));
     });
 
+    testWidgets('смысловой тон сильнее цвета textTheme', (tester) async {
+      final theme = AppTheme.light();
+      await tester.pumpWidget(
+        testApp(
+          AppMoneyText(
+            '−1 000,00 ₽',
+            tone: AppMoneyTone.expense,
+            style: theme.textTheme.headlineSmall,
+          ),
+          theme: theme,
+        ),
+      );
+      final context = tester.element(find.byType(AppMoneyText));
+      final text = tester.widget<Text>(find.text('−1 000,00 ₽'));
+      expect(
+        text.style?.color,
+        resolveMoneyToneColor(context, AppMoneyTone.expense),
+      );
+      expect(text.style?.color, isNot(theme.colorScheme.onSurface));
+    });
+
     testWidgets('семантика содержит полное значение', (tester) async {
       await tester.pumpWidget(
         testApp(
@@ -125,6 +146,63 @@ void main() {
           deleted: true,
         ),
         throwsAssertionError,
+      );
+    });
+
+    testWidgets('сумма окрашена тоном income/expense/transfer', (tester) async {
+      final colors = <AppMoneyTone, Color>{};
+      for (final tone in <AppMoneyTone>[
+        AppMoneyTone.income,
+        AppMoneyTone.expense,
+        AppMoneyTone.transfer,
+      ]) {
+        await tester.pumpWidget(
+          testApp(
+            AppOperationListTile(
+              title: 'Операция',
+              typeLabel: 'Тип',
+              icon: Icons.swap_horiz,
+              amountText: '1 000,00 ₽',
+              dateText: '',
+              tone: tone,
+            ),
+          ),
+        );
+        final context = tester.element(find.byType(AppOperationListTile));
+        final text = tester.widget<Text>(find.text('1 000,00 ₽'));
+        expect(
+          text.style?.color,
+          resolveMoneyToneColor(context, tone),
+          reason: tone.name,
+        );
+        colors[tone] = text.style!.color!;
+      }
+      expect(colors.values.toSet(), hasLength(3));
+    });
+
+    testWidgets('deleted сумма приглушена, а не окрашена тоном', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          const AppOperationListTile(
+            title: 'Операция',
+            typeLabel: 'Расход',
+            icon: Icons.arrow_downward,
+            amountText: '−1 000,00 ₽',
+            dateText: '',
+            tone: AppMoneyTone.expense,
+            deleted: true,
+            deletedLabel: 'Удалено',
+          ),
+        ),
+      );
+      final context = tester.element(find.byType(AppOperationListTile));
+      final text = tester.widget<Text>(find.text('−1 000,00 ₽'));
+      expect(text.style?.color, Theme.of(context).colorScheme.onSurfaceVariant);
+      expect(
+        text.style?.color,
+        isNot(resolveMoneyToneColor(context, AppMoneyTone.expense)),
       );
     });
   });

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:decimal/decimal.dart';
+import 'package:finanseapp/app/theme/app_semantic_colors.dart';
 import 'package:finanseapp/app/theme/app_theme.dart';
 import 'package:finanseapp/core/domain/common/currency.dart';
 import 'package:finanseapp/core/domain/common/exchange_rate.dart';
@@ -28,6 +29,7 @@ import 'package:finanseapp/core/features/transactions/ui/transaction_details_vie
 import 'package:finanseapp/core/features/transactions/ui/transactions_screen.dart';
 import 'package:finanseapp/core/features/transactions/ui/transactions_view_model.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
+import 'package:finanseapp/uikit/app_summary_card.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -437,6 +439,38 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.text(l10n.transactionDeleteBalanceBlocked), findsOneWidget);
+  });
+
+  testWidgets('детали операции окрашивают карточку по типу', (tester) async {
+    const expected = <AssetTransactionKind, AppMoneyTone>{
+      AssetTransactionKind.deposit: AppMoneyTone.income,
+      AssetTransactionKind.withdrawal: AppMoneyTone.expense,
+      AssetTransactionKind.transferOut: AppMoneyTone.transfer,
+      AssetTransactionKind.transferIn: AppMoneyTone.transfer,
+    };
+    for (final kind in expected.keys) {
+      final vm = TransactionDetailsViewModel(
+        repository: FakeTransactions([_transaction(kind: kind)]),
+        assetRepository: FakeAssets([_account(1, 'Счёт')]),
+        auditRepository: FakeAudit([]),
+        settingsRepository: FakeSettings(),
+        currencyRepository: FakeCurrencies(),
+        rateRepository: FakeRates(),
+        today: LocalDate(2026, 1, 3),
+        transactionId: 1,
+      );
+      await _pump(tester, TransactionDetailsScreen(viewModel: vm));
+
+      final card = tester.widget<AppSummaryCard>(find.byType(AppSummaryCard));
+      final context = tester.element(find.byType(AppSummaryCard));
+      expect(card.tone, expected[kind], reason: kind.name);
+      final amount = tester.widget<Text>(find.text(card.value));
+      expect(
+        amount.style?.color,
+        resolveMoneyToneColor(context, expected[kind]!),
+        reason: '${kind.name}: тон должен доходить до текста',
+      );
+    }
   });
 
   testWidgets('детали показывают ревизии и удаляют операцию', (tester) async {
