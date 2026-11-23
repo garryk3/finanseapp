@@ -27,6 +27,7 @@ class DashboardCashflow extends StatelessWidget {
     required this.formatMoney,
     required this.onOpenAnalytics,
     required this.onAddExpense,
+    this.padded = true,
   });
 
   final CashflowSummary summary;
@@ -37,6 +38,9 @@ class DashboardCashflow extends StatelessWidget {
   final String Function(Money) formatMoney;
   final VoidCallback onOpenAnalytics;
   final VoidCallback onAddExpense;
+
+  /// false — секция внутри контейнера с готовым горизонтальным отступом.
+  final bool padded;
 
   @override
   Widget build(BuildContext context) {
@@ -52,6 +56,7 @@ class DashboardCashflow extends StatelessWidget {
     );
     return AppSection(
       header: l10n.dashboardCashflowTitle,
+      padded: padded,
       child: empty
           ? Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,

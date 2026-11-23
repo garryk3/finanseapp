@@ -11,10 +11,19 @@ import 'package:finanseapp/uikit/app_text.dart';
 /// Экраны: все экраны с группировкой контента — Dashboard, Настройки,
 /// детали активов/операций, Аналитика, Ещё.
 class AppSection extends StatelessWidget {
-  const AppSection({super.key, required this.header, required this.child});
+  const AppSection({
+    super.key,
+    required this.header,
+    required this.child,
+    this.padded = true,
+  });
 
   final String header;
   final Widget child;
+
+  /// false — секция внутри контейнера, который уже даёт горизонтальный
+  /// отступ (например, AppAdaptiveGrid на Главной), без двойного inset.
+  final bool padded;
 
   @override
   Widget build(BuildContext context) {
@@ -22,9 +31,9 @@ class AppSection extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        AppSectionHeader(title: header),
+        AppSectionHeader(title: header, padded: padded),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+          padding: EdgeInsets.symmetric(horizontal: padded ? AppSpacing.md : 0),
           child: child,
         ),
       ],
@@ -37,18 +46,21 @@ class AppSection extends StatelessWidget {
 /// Экраны: все перечисленные для [AppSection]; также отдельные заголовки
 /// внутри форм (AppFormSection).
 class AppSectionHeader extends StatelessWidget {
-  const AppSectionHeader({super.key, required this.title});
+  const AppSectionHeader({super.key, required this.title, this.padded = true});
 
   final String title;
+
+  /// false — заголовок внутри контейнера с готовым горизонтальным отступом.
+  final bool padded;
 
   @override
   Widget build(BuildContext context) {
     final TextStyle? style = Theme.of(context).textTheme.titleMedium;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.md,
+      padding: EdgeInsets.fromLTRB(
+        padded ? AppSpacing.md : 0,
         AppSpacing.lg,
-        AppSpacing.md,
+        padded ? AppSpacing.md : 0,
         AppSpacing.sm,
       ),
       child: AppText(title, style: style),

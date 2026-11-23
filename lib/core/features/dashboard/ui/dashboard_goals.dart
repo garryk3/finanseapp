@@ -19,6 +19,7 @@ class DashboardGoals extends StatelessWidget {
     required this.onGoal,
     required this.onAll,
     required this.onAdd,
+    this.padded = true,
   });
 
   static const visibleLimit = 3;
@@ -30,11 +31,15 @@ class DashboardGoals extends StatelessWidget {
   final VoidCallback onAll;
   final VoidCallback onAdd;
 
+  /// false — секция внутри контейнера с готовым горизонтальным отступом.
+  final bool padded;
+
   @override
   Widget build(BuildContext context) {
     final visible = goals.take(visibleLimit).toList();
     return AppSection(
       header: l10n.dashboardGoalsTitle,
+      padded: padded,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

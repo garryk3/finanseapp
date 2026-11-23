@@ -110,6 +110,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         children: [
           AppSection(
             header: l10n.dashboardOverview,
+            padded: false,
             child: DashboardNetWorth(
               title: l10n.dashboardNetWorthTitle,
               value: switch (vm.netWorthError.value) {
@@ -125,6 +126,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           if (vm.cashflowError.value != null)
             AppSection(
               header: l10n.dashboardCashflowTitle,
+              padded: false,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -158,6 +160,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ' – ${const DateFormatter().format(vm.cashflowRange.end)}',
               l10n: l10n,
               formatMoney: vm.formatMoney,
+              padded: false,
               onOpenAnalytics: () =>
                   context.push('${AppRoutes.analytics}?period=month'),
               onAddExpense: () =>
@@ -167,6 +170,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             goals: vm.goals.value,
             l10n: l10n,
             formatMoney: vm.formatMoney,
+            padded: false,
             onGoal: (id) => context.push(AppRoutes.goalDetailsPath(id)),
             onAll: () => context.go(AppRoutes.goals),
             onAdd: () => context.push(AppRoutes.goalNew),
@@ -176,6 +180,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             assetNames: vm.assetNames.value,
             l10n: l10n,
             formatMoney: vm.formatMoney,
+            padded: false,
             onOpen: (id) => context.push(AppRoutes.transactionDetailsPath(id)),
             onAll: () =>
                 context.go(AppRoutes.operationsTab(tab: 'transactions')),
@@ -189,6 +194,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _quickActions(BuildContext context, AppLocalizations l10n) =>
       AppSection(
         header: l10n.dashboardQuickActions,
+        padded: false,
         child: Wrap(
           spacing: AppSpacing.sm,
           runSpacing: AppSpacing.xs,
