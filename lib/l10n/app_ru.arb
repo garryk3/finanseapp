@@ -2686,6 +2686,15 @@
   "@dashboardNetWorthUnavailable": {
     "description": "Нейтральная ошибка расчёта net worth."
   },
+  "dashboardStaleRateBanner": "Курс валют от {date}: актуальный получить не удалось",
+  "@dashboardStaleRateBanner": {
+    "description": "Плашка на Главной, когда суммы посчитаны по резервному (последнему известному) курсу.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "dashboardLockedTitle": "Заблокированные активы",
   "@dashboardLockedTitle": {
     "description": "Карточка заблокированных активов на Главной."

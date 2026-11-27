@@ -79,6 +79,7 @@ public API). Экраны — из матрицы `docs/architecture/navigation_
 | AppCategoryChip | CashflowForm, фильтры Аналитики/Операций, Categories |
 | AppGoalCard | GoalsScreen, Dashboard |
 | AppEmptyState, AppErrorState | Все списки/экраны; compact — offline курсы/обновления |
+| AppWarningBanner | Главная (резервный курс, BR-C-9); неразрушающие предупреждения поверх данных |
 | AppConfirmDialog | Все delete, импорт backup, unsaved back |
 | AppChartFrame/Legend/Tooltip, AppLineChart, AppCashflowChart | Аналитика, Dashboard |
 

@@ -10,6 +10,7 @@ import 'package:finanseapp/core/features/assets/domain/asset.dart';
 import 'package:finanseapp/core/features/assets/domain/asset_repository.dart';
 import 'package:finanseapp/core/features/currencies/domain/currency_repository.dart';
 import 'package:finanseapp/core/features/currencies/domain/exchange_rate_repository.dart';
+import 'package:finanseapp/core/features/currencies/logic/exchange_rate_resolver.dart';
 import 'package:finanseapp/core/features/settings/domain/settings_repository.dart';
 import 'package:finanseapp/core/presentation/money_formatter.dart';
 import 'package:finanseapp/core/presentation/view_state.dart';
@@ -114,8 +115,12 @@ class AssetsViewModel {
     if (missing.isEmpty) return;
     for (final code in missing) {
       try {
-        final rate = await rateRepository.find(code, today);
-        if (rate != null) _rateCache[code] = rate.rateToRub;
+        final resolved = await ExchangeRateResolver.resolve(
+          rateRepository,
+          code,
+          today,
+        );
+        if (resolved != null) _rateCache[code] = resolved.rateToRub;
       } on Exception {
         // Нет кэша курса — base equivalent не показывается.
       }

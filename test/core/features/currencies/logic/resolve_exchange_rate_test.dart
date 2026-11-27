@@ -20,6 +20,12 @@ final class _FakeRates implements ExchangeRateRepository {
   }
 
   @override
+  Future<ExchangeRate?> findLatestOnOrBefore(
+    String currencyCode,
+    LocalDate date,
+  ) async => null;
+
+  @override
   Future<ExchangeRate> fetchFromCbr(String currencyCode, LocalDate date) async {
     fetches++;
     final error = fetchError;

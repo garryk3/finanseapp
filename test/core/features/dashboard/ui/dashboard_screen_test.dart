@@ -36,11 +36,13 @@ import 'package:finanseapp/core/features/settings/domain/settings_repository.dar
 import 'package:finanseapp/core/features/transactions/domain/asset_transaction.dart';
 import 'package:finanseapp/core/features/transactions/domain/asset_transaction_repository.dart';
 import 'package:finanseapp/core/features/transactions/domain/transaction_filter.dart';
+import 'package:finanseapp/core/presentation/date_formatter.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
 import 'package:finanseapp/uikit/app_amount_blur.dart';
 import 'package:finanseapp/uikit/app_cashflow_summary.dart';
 import 'package:finanseapp/uikit/app_money_visibility.dart';
 import 'package:finanseapp/uikit/app_text.dart';
+import 'package:finanseapp/uikit/app_warning_banner.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -90,6 +92,7 @@ final class _Queries implements AnalyticsQueries {
     this.safetyError,
     this.taxBase,
     this.taxError,
+    this.staleRateDate,
   });
 
   Money total;
@@ -107,6 +110,7 @@ final class _Queries implements AnalyticsQueries {
   Money? taxBase;
   Object? taxError;
   int taxQueries = 0;
+  LocalDate? staleRateDate;
 
   @override
   Future<NetWorthSummary> netWorth(LocalDate onDate) async {
@@ -115,6 +119,7 @@ final class _Queries implements AnalyticsQueries {
     return NetWorthSummary(
       total: total,
       byAssetKind: byKind ?? {for (final kind in AssetKind.values) kind: total},
+      staleRateDate: staleRateDate,
     );
   }
 
@@ -446,9 +451,10 @@ final class _Categories implements CategoryRepository {
 }
 
 final class _Rates implements ExchangeRateRepository {
-  _Rates([this.rates = const {}]);
+  _Rates([this.rates = const {}, this.latest = const {}]);
 
   Map<String, Decimal> rates;
+  Map<String, Decimal> latest;
 
   @override
   Future<ExchangeRate?> find(String currencyCode, LocalDate date) async {
@@ -456,6 +462,23 @@ final class _Rates implements ExchangeRateRepository {
     if (rate == null) return null;
     return ExchangeRate(
       id: 1,
+      currencyCode: currencyCode,
+      date: date,
+      rateToRub: rate,
+      source: ExchangeRateSource.manual,
+      fetchedAt: DateTime.utc(2026, 1, 1),
+    );
+  }
+
+  @override
+  Future<ExchangeRate?> findLatestOnOrBefore(
+    String currencyCode,
+    LocalDate date,
+  ) async {
+    final rate = latest[currencyCode];
+    if (rate == null) return null;
+    return ExchangeRate(
+      id: 2,
       currencyCode: currencyCode,
       date: date,
       rateToRub: rate,
@@ -573,6 +596,7 @@ void main() {
     StreamController<Currency>? settingsController,
     StreamController<List<Currency>>? currencyController,
     Map<String, Decimal> rates = const {},
+    Map<String, Decimal> latestRates = const {},
     bool amountsHidden = false,
     StreamController<bool>? amountsController,
     int? depositInterestId = 1,
@@ -611,7 +635,7 @@ void main() {
       controller: amountsController,
     ),
     currencyRepository: _Currencies(currencyController),
-    rateRepository: _Rates(rates),
+    rateRepository: _Rates(rates, latestRates),
     categoryRepository: _Categories(depositInterestId: depositInterestId),
     now: () => _today,
   );
@@ -629,6 +653,7 @@ void main() {
     StreamController<Currency>? settingsController,
     StreamController<List<Currency>>? currencyController,
     Map<String, Decimal> rates = const {},
+    Map<String, Decimal> latestRates = const {},
     double width = 1000,
     bool dark = false,
     bool largeText = false,
@@ -649,6 +674,7 @@ void main() {
       settingsController: settingsController,
       currencyController: currencyController,
       rates: rates,
+      latestRates: latestRates,
       amountsHidden: amountsHidden,
       amountsController: amountsController,
       depositInterestId: depositInterestId,
@@ -1061,6 +1087,57 @@ void main() {
     expect(find.text(l10n.dashboardNetWorthAccounts), findsNothing);
     expect(find.text(l10n.dashboardNetWorthInvestments), findsNothing);
     expect(find.text(l10n.dashboardNetWorthProperty), findsNothing);
+  });
+
+  testWidgets('плашка резервного курса: показана с датой (BR-C-9)', (
+    tester,
+  ) async {
+    final stale = LocalDate(2026, 11, 14);
+    final vm = await pump(
+      tester,
+      width: 427,
+      queries: _Queries(_rubles(1000), staleRateDate: stale),
+    );
+
+    expect(vm.staleRateDate.value, stale);
+    expect(
+      find.text(
+        l10n.dashboardStaleRateBanner(const DateFormatter().format(stale)),
+      ),
+      findsOneWidget,
+    );
+    expect(find.byType(AppWarningBanner), findsOneWidget);
+  });
+
+  testWidgets('плашка резервного курса скрыта при точных курсах (BR-C-9)', (
+    tester,
+  ) async {
+    final vm = await pump(tester, width: 427, queries: _Queries(_rubles(1000)));
+
+    expect(vm.staleRateDate.value, isNull);
+    expect(find.byType(AppWarningBanner), findsNothing);
+  });
+
+  testWidgets('заблокированные: резервный курс даёт сумму и дату (BR-C-9)', (
+    tester,
+  ) async {
+    final vm = await pump(
+      tester,
+      width: 427,
+      total: _rubles(100000),
+      snapshots: [
+        _investmentSnapshot(
+          1,
+          const [Money(minorUnits: 10000000, currencyCode: 'RUB')],
+          locked: const [Money(minorUnits: 10000, currencyCode: 'USD')],
+        ),
+      ],
+      latestRates: {'USD': Decimal.fromInt(90)},
+    );
+
+    expect(vm.lockedTotal.value, _rubles(9000));
+    expect(vm.lockedError.value, isNull);
+    expect(vm.staleRateDate.value, _today);
   });
 
   testWidgets('заблокированные: сумма двух отметок в базовой валюте', (

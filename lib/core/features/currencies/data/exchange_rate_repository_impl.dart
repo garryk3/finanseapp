@@ -21,6 +21,15 @@ final class ExchangeRateRepositoryImpl implements ExchangeRateRepository {
     return row == null ? null : _map(row);
   }
 
+  @override
+  Future<ExchangeRate?> findLatestOnOrBefore(
+    String currencyCode,
+    LocalDate date,
+  ) async {
+    final row = await _dao.findLatestOnOrBeforeRate(currencyCode, date);
+    return row == null ? null : _map(row);
+  }
+
   /// Загружает курс на точную дату; ручной курс и кэш не перетираются.
   @override
   Future<ExchangeRate> fetchFromCbr(String currencyCode, LocalDate date) async {

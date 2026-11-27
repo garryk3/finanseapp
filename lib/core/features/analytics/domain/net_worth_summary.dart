@@ -4,10 +4,18 @@ import 'package:finanseapp/core/features/assets/domain/asset.dart';
 
 /// Итог чистого капитала на дату (domain_model §8).
 final class NetWorthSummary {
-  const NetWorthSummary({required this.total, required this.byAssetKind});
+  const NetWorthSummary({
+    required this.total,
+    required this.byAssetKind,
+    this.staleRateDate,
+  });
 
   final Money total;
   final Map<AssetKind, Money> byAssetKind;
+
+  /// Самая свежая дата резервного курса, использованного при расчёте
+  /// (BR-C-9); null — все курсы были точными.
+  final LocalDate? staleRateDate;
 }
 
 /// Точка графика чистого капитала.

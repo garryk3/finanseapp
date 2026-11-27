@@ -22,6 +22,7 @@ import 'package:finanseapp/core/features/categories/domain/category_repository.d
 import 'package:finanseapp/core/features/currencies/domain/currency_repository.dart';
 import 'package:finanseapp/core/features/currencies/domain/exchange_rate_repository.dart';
 import 'package:finanseapp/core/features/currencies/logic/exchange_rate_events.dart';
+import 'package:finanseapp/core/features/currencies/logic/exchange_rate_resolver.dart';
 import 'package:finanseapp/core/features/dashboard/logic/safety_cushion.dart';
 import 'package:finanseapp/core/features/dashboard/logic/tax_estimate.dart';
 import 'package:finanseapp/core/features/goals/domain/financial_goal.dart';
@@ -115,6 +116,10 @@ class DashboardViewModel {
   /// Причина, по которой [taxEstimate] не посчитан (D21.6/X5).
   final Signal<DomainErrorCode?> taxError = signal(null);
 
+  /// Самая свежая дата резервного курса, использованного на Главной
+  /// (BR-C-9/C4); null — все курсы актуальны, плашка скрыта.
+  final Signal<LocalDate?> staleRateDate = signal(null);
+
   /// Есть ли у неархивных инвестиций отметки заблокированных сумм.
   final Signal<bool> hasLockedAssets = signal(false);
 
@@ -135,6 +140,7 @@ class DashboardViewModel {
 
   final CalculateGoalProgress _goalCalculator = const CalculateGoalProgress();
   final Map<String, Decimal> _rateCache = {};
+  final Map<String, LocalDate> _rateStaleDates = {};
 
   List<FinancialGoal> _goals = const [];
   Map<int, AssetSnapshot> _snapshots = const {};
@@ -169,11 +175,22 @@ class DashboardViewModel {
   int _taxToken = 0;
   bool _taxReady = false;
 
+  LocalDate? _staleNetWorth;
+  LocalDate? _staleLocked;
+  LocalDate? _staleCashflow;
+  LocalDate? _staleSafety;
+
   void init() {
     today.value = now();
     amountsHidden.value = false;
     unawaited(_loadAmountsHidden());
     _rateCache.clear();
+    _rateStaleDates.clear();
+    staleRateDate.value = null;
+    _staleNetWorth = null;
+    _staleLocked = null;
+    _staleCashflow = null;
+    _staleSafety = null;
     _assetsReady = false;
     _fatal = false;
     _netWorthReady = false;
@@ -196,6 +213,7 @@ class DashboardViewModel {
       if (_disposed || revision == seenRateRevision) return;
       seenRateRevision = revision;
       _rateCache.clear();
+      _rateStaleDates.clear();
       unawaited(_reloadNetWorth());
       unawaited(_reloadLocked());
       unawaited(_reloadCashflow());
@@ -365,16 +383,22 @@ class DashboardViewModel {
       cashflowSummary.value = summary;
       cashflowPoints.value = points;
       cashflowError.value = null;
+      _staleCashflow = summary.staleRateDate;
+      _recomputeStaleRateDate();
       _cashflowReady = true;
       _emit();
     } on DomainException catch (error) {
       if (_disposed || token != _cashflowToken) return;
       cashflowError.value = error.code;
+      _staleCashflow = null;
+      _recomputeStaleRateDate();
       _cashflowReady = true;
       _emit();
     } on Exception {
       if (_disposed || token != _cashflowToken) return;
       cashflowError.value = DomainErrorCode.storageFailure;
+      _staleCashflow = null;
+      _recomputeStaleRateDate();
       _cashflowReady = true;
       _emit();
     }
@@ -383,6 +407,8 @@ class DashboardViewModel {
   void _failLocalCashflow(Object _) {
     if (_disposed) return;
     cashflowError.value = DomainErrorCode.storageFailure;
+    _staleCashflow = null;
+    _recomputeStaleRateDate();
     _cashflowReady = true;
     _emit();
   }
@@ -395,12 +421,16 @@ class DashboardViewModel {
       );
       if (_disposed || token != _safetyToken) return;
       _safetySummary = summary;
+      _staleSafety = summary.staleRateDate;
+      _recomputeStaleRateDate();
       _safetyReady = true;
       _recomputeSafety();
       _emit();
     } on Exception {
       if (_disposed || token != _safetyToken) return;
       _safetySummary = null;
+      _staleSafety = null;
+      _recomputeStaleRateDate();
       _safetyReady = true;
       safetyCushion.value = null;
       _emit();
@@ -545,6 +575,8 @@ class DashboardViewModel {
       if (_disposed || token != _netWorthToken) return;
       netWorth.value = summary;
       netWorthError.value = null;
+      _staleNetWorth = summary.staleRateDate;
+      _recomputeStaleRateDate();
       _netWorthReady = true;
       _recomputeSafety();
       unawaited(_reloadLocked());
@@ -553,6 +585,8 @@ class DashboardViewModel {
       if (_disposed || token != _netWorthToken) return;
       // Недоступный курс не должен скрывать остальные блоки главной.
       netWorthError.value = error.code;
+      _staleNetWorth = null;
+      _recomputeStaleRateDate();
       _netWorthReady = true;
       _recomputeSafety();
       unawaited(_reloadLocked());
@@ -560,6 +594,8 @@ class DashboardViewModel {
     } on Exception {
       if (_disposed || token != _netWorthToken) return;
       netWorthError.value = DomainErrorCode.storageFailure;
+      _staleNetWorth = null;
+      _recomputeStaleRateDate();
       _netWorthReady = true;
       _recomputeSafety();
       unawaited(_reloadLocked());
@@ -614,23 +650,38 @@ class DashboardViewModel {
         base.code,
     };
     final rates = <String, Decimal>{};
+    LocalDate? stale;
     try {
       for (final code in codes) {
         final cached = _rateCache[code];
         if (cached != null) {
           rates[code] = cached;
+          final cachedStale = _rateStaleDates[code];
+          if (cachedStale != null) {
+            stale = _laterDate(stale, cachedStale);
+          }
           continue;
         }
-        final rate = await rateRepository.find(code, today.value);
+        final resolved = await ExchangeRateResolver.resolve(
+          rateRepository,
+          code,
+          today.value,
+        );
         if (_disposed || token != _lockedToken) return;
-        if (rate == null) {
+        if (resolved == null) {
           throw DomainException(
             DomainErrorCode.rateUnavailable,
             fieldErrors: {'currencyCode': code},
           );
         }
-        _rateCache[code] = rate.rateToRub;
-        rates[code] = rate.rateToRub;
+        _rateCache[code] = resolved.rateToRub;
+        if (resolved.stale) {
+          _rateStaleDates[code] = resolved.effectiveDate;
+          stale = _laterDate(stale, resolved.effectiveDate);
+        } else {
+          _rateStaleDates.remove(code);
+        }
+        rates[code] = resolved.rateToRub;
       }
       if (_disposed || token != _lockedToken) return;
       final total = NetWorthCalculator.calculate(
@@ -641,18 +692,41 @@ class DashboardViewModel {
       lockedTotal.value = total;
       lockedShare.value = _lockedShareOf(total, base);
       lockedError.value = null;
+      _staleLocked = stale;
+      _recomputeStaleRateDate();
     } on DomainException catch (error) {
       if (_disposed || token != _lockedToken) return;
       lockedTotal.value = null;
       lockedShare.value = null;
       lockedError.value = error.code;
+      _staleLocked = null;
+      _recomputeStaleRateDate();
     } on Exception {
       if (_disposed || token != _lockedToken) return;
       lockedTotal.value = null;
       lockedShare.value = null;
       lockedError.value = DomainErrorCode.storageFailure;
+      _staleLocked = null;
+      _recomputeStaleRateDate();
     }
   }
+
+  /// Самая свежая дата резервного курса среди блоков Главной (BR-C-9/C4).
+  void _recomputeStaleRateDate() {
+    LocalDate? latest;
+    for (final date in [
+      _staleNetWorth,
+      _staleLocked,
+      _staleCashflow,
+      _staleSafety,
+    ]) {
+      if (date != null) latest = _laterDate(latest, date);
+    }
+    staleRateDate.value = latest;
+  }
+
+  static LocalDate _laterDate(LocalDate? current, LocalDate candidate) =>
+      current == null || candidate.compareTo(current) > 0 ? candidate : current;
 
   Decimal? _lockedShareOf(Money total, Currency base) {
     final summary = netWorthError.value == null ? netWorth.value : null;
