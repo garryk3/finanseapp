@@ -1,6 +1,6 @@
 # Drift-схема и транзакции записи
 
-Это нормативная схема `AppDatabase.schemaVersion = 4`. Имена таблиц/колонок в Dart —
+Это нормативная схема `AppDatabase.schemaVersion = 5`. Имена таблиц/колонок в Dart —
 lowerCamelCase, в SQLite — snake_case. Ни одна задача не меняет тип, constraint или
 индекс без обновления этого документа, schema dump и миграционного теста.
 
@@ -44,7 +44,7 @@ lowerCamelCase, в SQLite — snake_case. Ни одна задача не мен
 Drift `EnumIndexConverter` запрещён: вставка значения в середине enum сломала бы данные.
 Используются стабильные TEXT values: `account|investment|property`, `bank|broker`,
 `income|expense`, `deposit|withdrawal|transferOut|transferIn`, `cbr|manual`,
-`create|edit|delete|restore`, `accounts|investments`, `active|achieved|closed`.
+`create|edit|delete|restore`, `accounts|investments|mixed`, `active|achieved|closed`.
 Маппер отклоняет неизвестное значение явной `FormatException`.
 
 ## 3. Таблицы активов
@@ -246,7 +246,8 @@ Unique partial index `(kind, normalizedName) WHERE archivedAt IS NULL`;
 
 ### `goals`
 
-`id` PK; `name`; `category` `accounts|investments`; `targetAmountMinor` >0;
+`id` PK; `name`; `category` `accounts|investments|mixed` (производное значение от
+видов активов, schema v5); `targetAmountMinor` >0;
 `currencyCode` → currencies RESTRICT; `status` stable enum; `targetDate` LocalDate NULL;
 `createdAt`, `updatedAt` UTC; `deletedAt` UTC NULL.
 Индексы `(status, deletedAt)`, `(targetDate)`, `(currencyCode)`.
@@ -254,8 +255,9 @@ Unique partial index `(kind, normalizedName) WHERE archivedAt IS NULL`;
 ### `goal_assets`
 
 `goalId` → goals RESTRICT; `assetId` → assets RESTRICT; PK `(goalId, assetId)`;
-индекс `(assetId, goalId)`. Цель с `accounts` связывается только с account, с
-`investments` — только с investment. Удаление goal только soft, поэтому cascade не нужен.
+индекс `(assetId, goalId)`. Цель связывается с любыми счетами и инвестициями в любых
+сочетаниях (BR-G-1); недвижимость запрещена. Удаление goal только soft, поэтому cascade
+не нужен.
 
 ### `app_settings`
 
@@ -268,15 +270,19 @@ Unique partial index `(kind, normalizedName) WHERE archivedAt IS NULL`;
 
 - `AppDatabase` принимает `QueryExecutor`; production path —
   `<applicationDocuments>/finanseapp.sqlite` из `app_database_path.dart`.
-- `schemaVersion = 4`, `onCreate`: все таблицы/индексы v1–v4, затем
+- `schemaVersion = 5`, `onCreate`: все таблицы/индексы v1–v5, затем
   `ReferenceSeeder.seed` внутри одной транзакции. `onUpgrade` из v1: создать
   `recurring_cashflow_rules`, добавить `cashflow_entries.recurring_rule_id`, применить
   runtime-DDL `schemaObjectsV2` (частичные unique-индексы), затем добавить
   `asset_transactions.currency_code` и `asset_valuations.currency_code`, затем создать
-  `investment_locked_amounts`. Из v2: те же две nullable-колонки и таблица отметок.
-  Из v3: только `createTable(investment_locked_amounts)`. Runtime-DDL v3/v4 не нужен:
-  FK на `currencies.code` объявлен в таблицах и создаётся вместе с ними, PK отметок
-  `(asset_id, currency_code)` создаётся вместе с таблицей.
+  `investment_locked_amounts`, затем ослабить CHECK `goals.category` (`alterTable`).
+  Из v2: те же две nullable-колонки, таблица отметок и `alterTable(goals)`. Из v3:
+  `createTable(investment_locked_amounts)` и `alterTable(goals)`. Из v4: только
+  `alterTable(goals)`. Runtime-DDL v3/v4 не нужен: FK на `currencies.code` объявлен в
+  таблицах и создаётся вместе с ними, PK отметок `(asset_id, currency_code)` создаётся
+  вместе с таблицей. v5 меняет только CHECK `goals.category`: `alterTable(TableMigration(
+  goals))` пересоздаёт таблицу по текущей схеме и восстанавливает индексы
+  `goals_status_deleted`/`goals_target_date`/`goals_currency` из `sqlite_master`.
 - `beforeOpen`: `PRAGMA foreign_keys = ON`; в release не выполняются destructive fallback,
   `deleteAllTables` или молчаливая подмена схемы.
 - После каждой схемной задачи: `dart run build_runner build --delete-conflicting-outputs`,
@@ -287,6 +293,8 @@ Unique partial index `(kind, normalizedName) WHERE archivedAt IS NULL`;
   (`PRAGMA table_info`), целостность старых строк и чтение их в валюте актива.
   Тест v3→v4 проверяет `user_version = 4`, колонки/PK/CHECK/FK `investment_locked_amounts`,
   целостность старых строк и установку отметки через репозиторий после апгрейда.
+  Тест v4→v5 проверяет `user_version = 5`, CHECK `goals.category` с `mixed`, все три
+  индекса `goals`, целостность старых цели/связи и запись смешанной цели через DAO.
 - При будущем импорте более старой схемы она открывается только через новый AppDatabase,
   который выполняет последовательный upgrade **до** открытия приложения.
 
@@ -410,3 +418,20 @@ PK `(assetId, currencyCode)` — одна отметка на валюту ин�
 сохраняет; UI архивной инвестиции работает read-only. Стоимость актива, `net worth`
 и валютные позиции отметки не меняют (D4). Индексов нет: выборки идут по PK
 `asset_id` и батчем по всем строкам для снапшотов.
+
+## 12. Смешанные цели (schema v5)
+
+Цель может объединять счета и инвестиции в любых сочетаниях (BR-G-1). Категория
+`goals.category` — производное значение от видов связанных активов:
+`GoalCategory.forAssets` даёт `accounts` (только счета), `investments` (только
+инвестиции), `mixed` (оба вида) или `null` (пусто). Значение вычисляется в
+`GoalsDao._resolveCategory` при `create`/`updateGoal` — пользователь его не выбирает,
+поэтому сохранённая категория всегда согласована со связями `goal_assets`. DAO
+по-прежнему требует непустой набор, существование активов и отклоняет недвижимость
+(`validationGoalAssetKind`).
+
+Схема v5 меняет только CHECK `goals.category` — `IN ('accounts', 'investments',
+'mixed')`. `onUpgrade` выполняет `alterTable(TableMigration(goals))`: таблица
+пересоздаётся по текущей схеме, строки копируются, а индексы `goals_status_deleted`,
+`goals_target_date`, `goals_currency` и FK из `goal_assets` сохраняются. `GoalDraft`
+категорию не содержит.

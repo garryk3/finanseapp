@@ -7600,8 +7600,7 @@ class $GoalsTable extends Goals with TableInfo<$GoalsTable, GoalRow> {
         false,
         type: DriftSqlType.string,
         requiredDuringInsert: true,
-        $customConstraints:
-            'NOT NULL CHECK (category IN (\'accounts\', \'investments\'))',
+        $customConstraints: 'NOT NULL CHECK (category IN (\'accounts\', \'investments\', \'mixed\'))',
       ).withConverter<GoalCategory>($GoalsTable.$convertercategory);
   static const VerificationMeta _targetAmountMinorMeta = const VerificationMeta(
     'targetAmountMinor',

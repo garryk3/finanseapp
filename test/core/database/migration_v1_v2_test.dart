@@ -15,7 +15,7 @@ import '../../generated_migrations/schema_v1.dart' as v1;
 /// (`schemaObjectsV1/V2` — частичные индексы и триггеры), поэтому семантическое
 /// сравнение дало бы ложный SchemaMismatch. Состояние v2 проверяется явно.
 void main() {
-  test('v1→текущая: user_version=4, объекты v2/v3/v4 и данные целы', () async {
+  test('v1→текущая: user_version=5, объекты v2–v5 и данные целы', () async {
     final directory = await Directory.systemTemp.createTemp(
       'finanseapp_migration_',
     );
@@ -31,7 +31,15 @@ void main() {
     await db.customSelect('SELECT 1').get();
 
     final version = await db.customSelect('PRAGMA user_version').getSingle();
-    expect(version.read<int>('user_version'), 4);
+    expect(version.read<int>('user_version'), 5);
+
+    final goalsSql = await db
+        .customSelect(
+          'SELECT sql FROM sqlite_master '
+          "WHERE type = 'table' AND name = 'goals'",
+        )
+        .getSingle();
+    expect(goalsSql.read<String>('sql'), contains("'mixed'"));
 
     for (final table in ['asset_transactions', 'asset_valuations']) {
       final columns = await db
@@ -70,6 +78,9 @@ void main() {
         'recurring_property',
         'recurring_active_deposit_interest',
         'cashflow_recurring_period',
+        'goals_status_deleted',
+        'goals_target_date',
+        'goals_currency',
       ]),
     );
 

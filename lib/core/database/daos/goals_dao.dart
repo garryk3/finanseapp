@@ -44,7 +44,6 @@ class GoalsDao extends DatabaseAccessor<AppDatabase> with _$GoalsDaoMixin {
 
   Future<int> create({
     required String name,
-    required GoalCategory category,
     required int targetAmountMinor,
     required String currencyCode,
     required Set<int> assetIds,
@@ -55,7 +54,7 @@ class GoalsDao extends DatabaseAccessor<AppDatabase> with _$GoalsDaoMixin {
     _requirePositiveTarget(targetAmountMinor);
     _requireNotPastTargetDate(targetDate);
     await _requireCurrency(currencyCode);
-    await _requireCompatibleAssets(category, assetIds);
+    final category = await _resolveCategory(assetIds);
 
     final now = attachedDatabase.clock();
     final id = await into(goals).insert(
@@ -77,7 +76,6 @@ class GoalsDao extends DatabaseAccessor<AppDatabase> with _$GoalsDaoMixin {
   Future<void> updateGoal(
     int id, {
     required String name,
-    required GoalCategory category,
     required int targetAmountMinor,
     required String currencyCode,
     required Set<int> assetIds,
@@ -88,7 +86,7 @@ class GoalsDao extends DatabaseAccessor<AppDatabase> with _$GoalsDaoMixin {
     final trimmed = _requireName(name);
     _requirePositiveTarget(targetAmountMinor);
     await _requireCurrency(currencyCode);
-    await _requireCompatibleAssets(category, assetIds);
+    final category = await _resolveCategory(assetIds);
 
     await (update(goals)..where((g) => g.id.equals(id))).write(
       GoalsCompanion(
@@ -133,16 +131,19 @@ class GoalsDao extends DatabaseAccessor<AppDatabase> with _$GoalsDaoMixin {
     }
   }
 
-  Future<void> _requireCompatibleAssets(
-    GoalCategory category,
-    Set<int> assetIds,
-  ) async {
+  /// Проверяет набор активов и выводит категорию цели (BR-G-1).
+  ///
+  /// Требует непустой набор, существование активов и запрещает недвижимость
+  /// (`validationGoalAssetKind`). Категория — производное значение
+  /// ([GoalCategory.forAssets]): счета, инвестиции или `mixed`.
+  Future<GoalCategory> _resolveCategory(Set<int> assetIds) async {
     if (assetIds.isEmpty) {
       throw const DomainException(
         DomainErrorCode.validation,
         fieldErrors: {'assetIds': 'validationGoalAssetsRequired'},
       );
     }
+    final kinds = <AssetKind>{};
     for (final assetId in assetIds) {
       final asset = await (select(
         assets,
@@ -153,16 +154,15 @@ class GoalsDao extends DatabaseAccessor<AppDatabase> with _$GoalsDaoMixin {
           fieldErrors: {'assetId': 'validationAssetNotFound'},
         );
       }
-      final expected = category == GoalCategory.accounts
-          ? AssetKind.account
-          : AssetKind.investment;
-      if (asset.kind != expected) {
+      if (asset.kind == AssetKind.property) {
         throw const DomainException(
           DomainErrorCode.validation,
           fieldErrors: {'assetId': 'validationGoalAssetKind'},
         );
       }
+      kinds.add(asset.kind);
     }
+    return GoalCategory.forAssets(kinds)!;
   }
 
   Future<void> _requireCurrency(String code) async {

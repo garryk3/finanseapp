@@ -260,14 +260,13 @@ class GoalFormViewModel {
     }
   }
 
-  /// Архивные активы доступны только если уже привязаны к цели (8.1).
-  List<Asset> eligibleAssets(GoalCategory category) {
+  /// Активы, доступные для привязки: счета и инвестиции вместе (BR-G-1).
+  /// Архивные доступны только если уже привязаны к цели (8.1).
+  List<Asset> eligibleAssets() {
     final linked = goal.value?.assetIds ?? const <int>{};
     return [
       for (final asset in assets.value)
-        if (category == GoalCategory.accounts
-            ? asset is AccountAsset
-            : asset is InvestmentAsset)
+        if (asset is AccountAsset || asset is InvestmentAsset)
           if (asset.archivedAt == null || linked.contains(asset.id)) asset,
     ];
   }
@@ -284,7 +283,6 @@ class GoalFormViewModel {
 
   Future<Result<int>> save({
     required String name,
-    required GoalCategory category,
     required Money targetAmount,
     required Set<int> assetIds,
     LocalDate? targetDate,
@@ -293,7 +291,6 @@ class GoalFormViewModel {
     try {
       final draft = GoalDraft(
         name: name,
-        category: category,
         targetAmount: targetAmount,
         assetIds: assetIds,
         targetDate: targetDate,

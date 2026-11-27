@@ -21,7 +21,6 @@ final class GoalRepositoryImpl implements GoalRepository {
   @override
   Future<int> create(GoalDraft draft) => _dao.create(
     name: draft.name,
-    category: draft.category,
     targetAmountMinor: draft.targetAmount.minorUnits,
     currencyCode: draft.targetAmount.currencyCode,
     assetIds: draft.assetIds,
@@ -32,7 +31,6 @@ final class GoalRepositoryImpl implements GoalRepository {
   Future<void> update(int id, GoalDraft draft) => _dao.updateGoal(
     id,
     name: draft.name,
-    category: draft.category,
     targetAmountMinor: draft.targetAmount.minorUnits,
     currencyCode: draft.targetAmount.currencyCode,
     assetIds: draft.assetIds,

@@ -36,11 +36,21 @@ void main() {
       expect(await db.customSelect('PRAGMA foreign_key_check').get(), isEmpty);
     });
 
-    test('application_id = FNAP, schemaVersion = 4', () async {
+    test('application_id = FNAP, schemaVersion = 5', () async {
       final appId = await db.customSelect('PRAGMA application_id').getSingle();
       expect(appId.read<int>('application_id'), appDatabaseApplicationId);
       expect(appDatabaseApplicationId, 0x464E4150);
-      expect(db.schemaVersion, 4);
+      expect(db.schemaVersion, 5);
+    });
+
+    test('goals CHECK допускает mixed (21.1)', () async {
+      final sql = await db
+          .customSelect(
+            'SELECT sql FROM sqlite_master '
+            "WHERE type = 'table' AND name = 'goals'",
+          )
+          .getSingle();
+      expect(sql.read<String>('sql'), contains("'mixed'"));
     });
 
     test('UTC timestamp хранится фиксированной ширины', () {

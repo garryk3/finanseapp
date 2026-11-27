@@ -11,7 +11,6 @@ import 'package:finanseapp/core/features/assets/domain/asset_draft.dart';
 import 'package:finanseapp/core/features/assets/domain/asset_valuation.dart';
 import 'package:finanseapp/core/features/assets/domain/subgroup.dart';
 import 'package:finanseapp/core/features/categories/domain/category.dart';
-import 'package:finanseapp/core/features/goals/domain/financial_goal.dart';
 import 'package:finanseapp/core/features/transactions/domain/asset_transaction.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -134,7 +133,6 @@ void main() {
     final id = await createInvestment();
     await db.goalsDao.create(
       name: 'Цель',
-      category: GoalCategory.investments,
       targetAmountMinor: 1000000,
       currencyCode: 'RUB',
       assetIds: {id},

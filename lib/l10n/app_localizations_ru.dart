@@ -1534,6 +1534,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get goalCategoryInvestments => 'Инвестиции';
 
   @override
+  String get goalCategoryMixed => 'Счета и инвестиции';
+
+  @override
   String get goalAssetsLabel => 'Активы цели';
 
   @override

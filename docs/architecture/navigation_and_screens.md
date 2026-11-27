@@ -124,7 +124,7 @@ Android launch-тема (`LaunchTheme`, drawable `launch_background`) и
 | `/transactions/new` | `assetId`, `kind=deposit|withdrawal`, `cashflow=true` | только существующий account/investment; cashflow=true требует account и категорию |
 | `/cashflow/new` | `kind=income|expense`, `accountId`, `propertyId`, `affectsBalance=true|false` | accountId и propertyId взаимоисключающи; affectsBalance без accountId игнорируется с подсказкой; чекбокс «Повторять ежемесячно» создаёт правило |
 | `/recurring/new` | `kind=income|expense`, `accountId`, `propertyId` | preset-цель из экрана актива; иначе выбор счёта/недвижимости; endDate ≥ startDate |
-| `/goals/new` | `category=accounts|investments` | default accounts |
+| `/goals/new` | — | категория выводится из выбранных активов (счета/инвестиции); единый список |
 | `/assets` | `kind=account|investment|property`, `query` | filters не попадают в journal других разделов |
 | `/more/audit` | `type=assetTransaction|cashflow`, `query` | default assetTransaction |
 | `/more/analytics/details` | `period=month|3m|6m|year|all`, `kind=income|expense`, `categoryId` | default month; invalid period/kind/categoryId игнорируются; kind/category наследуются с аналитики и на странице не редактируются |

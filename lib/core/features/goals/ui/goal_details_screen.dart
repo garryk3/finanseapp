@@ -4,6 +4,7 @@ import 'package:finanseapp/app/theme/app_spacing.dart';
 import 'package:finanseapp/core/domain/common/currency.dart';
 import 'package:finanseapp/core/domain/common/money.dart';
 import 'package:finanseapp/core/domain/common/result.dart';
+import 'package:finanseapp/core/features/assets/domain/asset.dart';
 import 'package:finanseapp/core/features/goals/domain/financial_goal.dart';
 import 'package:finanseapp/core/features/goals/ui/goal_details_view_model.dart';
 import 'package:finanseapp/core/presentation/date_formatter.dart';
@@ -126,7 +127,7 @@ class _GoalDetailsScreenState extends State<GoalDetailsScreen> {
             children: [
               AppText(
                 '${l10n.goalCategoryLabel}: '
-                '${goal.category == GoalCategory.accounts ? l10n.goalCategoryAccounts : l10n.goalCategoryInvestments}',
+                '${_categoryLabel(l10n, goal.category)}',
               ),
               if (goal.targetDate != null)
                 AppText(
@@ -138,7 +139,11 @@ class _GoalDetailsScreenState extends State<GoalDetailsScreen> {
               for (final asset in vm.assets.value)
                 Row(
                   children: [
-                    Expanded(child: AppText(asset.name)),
+                    Expanded(
+                      child: AppText(
+                        '${asset.name} · ${_kindLabel(l10n, asset.kind)}',
+                      ),
+                    ),
                     if (asset.archivedAt != null) ...[
                       const SizedBox(width: AppSpacing.xs),
                       AppChip(label: l10n.accountArchivedBadge),
@@ -286,6 +291,20 @@ class _GoalDetailsScreenState extends State<GoalDetailsScreen> {
         GoalStatus.active => l10n.goalStatusActive,
         GoalStatus.achieved => l10n.goalStatusAchieved,
         GoalStatus.closed => l10n.goalStatusClosed,
+      };
+
+  static String _categoryLabel(AppLocalizations l10n, GoalCategory category) =>
+      switch (category) {
+        GoalCategory.accounts => l10n.goalCategoryAccounts,
+        GoalCategory.investments => l10n.goalCategoryInvestments,
+        GoalCategory.mixed => l10n.goalCategoryMixed,
+      };
+
+  static String _kindLabel(AppLocalizations l10n, AssetKind kind) =>
+      switch (kind) {
+        AssetKind.account => l10n.assetKindAccount,
+        AssetKind.investment => l10n.assetKindInvestment,
+        AssetKind.property => l10n.assetKindProperty,
       };
 
   String _money(Money money) => const MoneyFormatter().format(
