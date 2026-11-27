@@ -12,6 +12,7 @@ import 'package:finanseapp/core/presentation/money_formatter.dart';
 import 'package:finanseapp/core/presentation/view_state.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
 import 'package:finanseapp/uikit/app_amount_field.dart';
+import 'package:finanseapp/uikit/app_asset_select.dart';
 import 'package:finanseapp/uikit/app_button.dart';
 import 'package:finanseapp/uikit/app_date_picker_field.dart';
 import 'package:finanseapp/uikit/app_empty_state.dart';
@@ -19,7 +20,6 @@ import 'package:finanseapp/uikit/app_error_state.dart';
 import 'package:finanseapp/uikit/app_form_section.dart';
 import 'package:finanseapp/uikit/app_list_view.dart';
 import 'package:finanseapp/uikit/app_scaffold.dart';
-import 'package:finanseapp/uikit/app_select.dart';
 import 'package:finanseapp/uikit/app_spinner.dart';
 import 'package:finanseapp/uikit/app_text_field.dart';
 import 'package:go_router/go_router.dart';
@@ -27,7 +27,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:rational/rational.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
-/// Перевод между счетами (6.2).
+/// Перевод между активами (6.2, 21.2): счета и инвестиции в любых сочетаниях.
 class TransferFormScreen extends StatefulWidget {
   const TransferFormScreen({super.key, required this.viewModel});
 
@@ -58,12 +58,9 @@ class _TransferFormScreenState extends State<TransferFormScreen> {
     widget.viewModel.load().then((_) {
       if (!mounted) return;
       setState(() {
-        final accounts = widget.viewModel.accounts.value;
-        _fromId = _preferredFrom(accounts, widget.viewModel.initialFromId);
-        _toId = accounts
-            .where((account) => account.id != _fromId)
-            .firstOrNull
-            ?.id;
+        final assets = widget.viewModel.assets.value;
+        _fromId = _preferredFrom(assets, widget.viewModel.initialFromId);
+        _toId = assets.where((asset) => asset.id != _fromId).firstOrNull?.id;
         _date = widget.viewModel.today;
         _loaded = true;
       });
@@ -82,10 +79,8 @@ class _TransferFormScreenState extends State<TransferFormScreen> {
   Future<void> _save() async {
     if (_saving || widget.viewModel.busy.value) return;
     final l10n = AppLocalizations.of(context);
-    final from = _fromId == null
-        ? null
-        : widget.viewModel.accountById(_fromId!);
-    final to = _toId == null ? null : widget.viewModel.accountById(_toId!);
+    final from = _fromId == null ? null : widget.viewModel.assetById(_fromId!);
+    final to = _toId == null ? null : widget.viewModel.assetById(_toId!);
     final fromCurrency = from == null
         ? null
         : widget.viewModel.currencyOf(from.currencyCode);
@@ -155,6 +150,7 @@ class _TransferFormScreenState extends State<TransferFormScreen> {
         'validationDateInFuture' => l10n.transactionErrorDate,
         'validationDestinationAmountPositive' ||
         'validationDestinationAmountRequired' => l10n.transferErrorDestination,
+        'validationTransferAssetKind' => l10n.transferErrorAssetKind,
         _ when result.error.code == DomainErrorCode.negativeBalance =>
           l10n.transferErrorNegativeBalance,
         _ when result.error.code == DomainErrorCode.rateUnavailable =>
@@ -190,10 +186,27 @@ class _TransferFormScreenState extends State<TransferFormScreen> {
     if (navigator?.canPop() ?? false) navigator!.pop(true);
   }
 
-  static int? _preferredFrom(List<AccountAsset> accounts, int? preferred) =>
-      preferred != null && accounts.any((account) => account.id == preferred)
+  List<AppAssetOption> _assetOptions(AppLocalizations l10n) => [
+    for (final asset in widget.viewModel.assets.value)
+      AppAssetOption(
+        id: asset.id,
+        name: asset.name,
+        kindLabel: _kindLabel(l10n, asset.kind),
+        currencyCode: asset.currencyCode,
+      ),
+  ];
+
+  static String _kindLabel(AppLocalizations l10n, AssetKind kind) =>
+      switch (kind) {
+        AssetKind.account => l10n.assetKindAccount,
+        AssetKind.investment => l10n.assetKindInvestment,
+        AssetKind.property => l10n.assetKindProperty,
+      };
+
+  static int? _preferredFrom(List<Asset> assets, int? preferred) =>
+      preferred != null && assets.any((asset) => asset.id == preferred)
       ? preferred
-      : accounts.firstOrNull?.id;
+      : assets.firstOrNull?.id;
 
   Future<void> _addAccount() async {
     await context.push(AppRoutes.accountNew);
@@ -201,12 +214,9 @@ class _TransferFormScreenState extends State<TransferFormScreen> {
     await widget.viewModel.load();
     if (!mounted) return;
     setState(() {
-      final accounts = widget.viewModel.accounts.value;
-      _fromId = _preferredFrom(accounts, widget.viewModel.initialFromId);
-      _toId = accounts
-          .where((account) => account.id != _fromId)
-          .firstOrNull
-          ?.id;
+      final assets = widget.viewModel.assets.value;
+      _fromId = _preferredFrom(assets, widget.viewModel.initialFromId);
+      _toId = assets.where((asset) => asset.id != _fromId).firstOrNull?.id;
     });
   }
 
@@ -230,7 +240,7 @@ class _TransferFormScreenState extends State<TransferFormScreen> {
           if (!_loaded || _date == null) {
             return Center(child: AppSpinner(semanticLabel: l10n.commonLoading));
           }
-          if (vm.accounts.value.length < 2) {
+          if (vm.assets.value.length < 2) {
             return AppEmptyState(
               icon: Icons.account_balance_wallet_outlined,
               title: l10n.transferNoAccounts,
@@ -239,8 +249,8 @@ class _TransferFormScreenState extends State<TransferFormScreen> {
               onAction: _addAccount,
             );
           }
-          final from = _fromId == null ? null : vm.accountById(_fromId!);
-          final to = _toId == null ? null : vm.accountById(_toId!);
+          final from = _fromId == null ? null : vm.assetById(_fromId!);
+          final to = _toId == null ? null : vm.assetById(_toId!);
           final fromCurrency = from == null
               ? null
               : vm.currencyOf(from.currencyCode);
@@ -296,17 +306,10 @@ class _TransferFormScreenState extends State<TransferFormScreen> {
                     : l10n.transferFormTitle,
                 errorText: _formError,
                 children: [
-                  AppSelect<int>(
+                  AppAssetSelect(
                     label: l10n.transferFromLabel,
-                    value: _fromId,
-                    items: [
-                      for (final account in vm.accounts.value)
-                        AppSelectItem(
-                          value: account.id,
-                          label: account.name,
-                          subtitle: account.currencyCode,
-                        ),
-                    ],
+                    valueId: _fromId,
+                    items: _assetOptions(l10n),
                     onChanged: (value) => setState(() {
                       _fromId = value;
                       _fromError = null;
@@ -315,25 +318,20 @@ class _TransferFormScreenState extends State<TransferFormScreen> {
                       _destinationError = null;
                       _destination.clear();
                       if (value == _toId) {
-                        _toId = vm.accounts.value
-                            .where((account) => account.id != value)
+                        _toId = widget.viewModel.assets.value
+                            .where((asset) => asset.id != value)
                             .firstOrNull
                             ?.id;
                       }
                     }),
                     errorText: _fromError,
                   ),
-                  AppSelect<int>(
+                  AppAssetSelect(
                     label: l10n.transferToLabel,
-                    value: _toId,
+                    valueId: _toId,
                     items: [
-                      for (final account in vm.accounts.value)
-                        if (account.id != _fromId)
-                          AppSelectItem(
-                            value: account.id,
-                            label: account.name,
-                            subtitle: account.currencyCode,
-                          ),
+                      for (final option in _assetOptions(l10n))
+                        if (option.id != _fromId) option,
                     ],
                     onChanged: (value) => setState(() {
                       _toId = value;
@@ -382,7 +380,7 @@ class _TransferFormScreenState extends State<TransferFormScreen> {
                     label: l10n.commonSave,
                     pending: vm.busy.value || _saving,
                     onPressed:
-                        vm.busy.value || _saving || vm.accounts.value.length < 2
+                        vm.busy.value || _saving || vm.assets.value.length < 2
                         ? null
                         : _save,
                   ),

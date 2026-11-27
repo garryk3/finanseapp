@@ -12,6 +12,7 @@ import 'package:finanseapp/core/domain/common/result.dart';
 import 'package:finanseapp/core/features/assets/domain/asset.dart';
 import 'package:finanseapp/core/features/transactions/domain/asset_transaction.dart';
 import 'package:finanseapp/core/features/transactions/domain/transaction_filter.dart';
+import 'package:finanseapp/core/features/transactions/domain/transfer_asset_kinds.dart';
 
 part 'transactions_dao.g.dart';
 
@@ -623,8 +624,11 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase>
 
     final from = await _requireAsset(input.fromAccountId);
     final to = await _requireAsset(input.toAccountId);
-    if (from.kind != AssetKind.account || to.kind != AssetKind.account) {
-      throw _validation('assetId', 'validationTransferRequiresAccounts');
+    // Перевод допустим между счетами и инвестициями в любых сочетаниях
+    // (BR-T-10); квартира — нет.
+    if (!transferAssetKinds.contains(from.kind) ||
+        !transferAssetKinds.contains(to.kind)) {
+      throw _validation('assetId', 'validationTransferAssetKind');
     }
   }
 

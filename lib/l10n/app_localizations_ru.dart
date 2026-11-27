@@ -943,13 +943,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get transactionNoCategories => 'Нет категорий для этого вида.';
 
   @override
-  String get transferFormTitle => 'Перевод между счетами';
+  String get transferFormTitle => 'Перевод между активами';
 
   @override
-  String get transferFromLabel => 'Со счёта';
+  String get transferFromLabel => 'Списать с';
 
   @override
-  String get transferToLabel => 'На счёт';
+  String get transferToLabel => 'Зачислить на';
 
   @override
   String get transferAmountLabel => 'Сумма списания';
@@ -967,13 +967,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get transferAction => 'Перевести';
 
   @override
-  String get transferErrorFrom => 'Выберите счёт списания.';
+  String get transferErrorFrom => 'Выберите актив списания.';
 
   @override
-  String get transferErrorTo => 'Выберите счёт зачисления.';
+  String get transferErrorTo => 'Выберите актив зачисления.';
 
   @override
-  String get transferErrorSameAccount => 'Счета должны различаться.';
+  String get transferErrorSameAccount => 'Активы должны различаться.';
 
   @override
   String get transferErrorAmount => 'Введите положительную сумму перевода.';
@@ -983,7 +983,7 @@ class AppLocalizationsRu extends AppLocalizations {
       'Недостаточно средств на счёте списания.';
 
   @override
-  String get transferNoAccounts => 'Нужно минимум два счёта.';
+  String get transferNoAccounts => 'Нужно минимум два актива.';
 
   @override
   String transferRateHint(String fromUnit, String toAmount) {
@@ -992,11 +992,15 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get transferNeedAccountsMessage =>
-      'Добавьте второй счёт, чтобы переводить между счетами.';
+      'Добавьте второй счёт, чтобы выполнить перевод.';
 
   @override
   String get transferErrorDestination =>
       'Введите положительную сумму зачисления.';
+
+  @override
+  String get transferErrorAssetKind =>
+      'Переводы между этим видом актива недоступны.';
 
   @override
   String get transactionsSearchLabel => 'Поиск операций';
@@ -2242,7 +2246,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get transferDeleteMessage =>
-      'Обе операции перевода будут скрыты из журнала, балансы обоих счетов вернутся к прежним значениям. Восстановить можно в «Удалённых операциях».';
+      'Обе операции перевода будут скрыты из журнала, балансы обоих активов вернутся к прежним значениям. Восстановить можно в «Удалённых операциях».';
 
   @override
   String get transferDeleteAction => 'Удалить перевод';
@@ -2252,7 +2256,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get transferDeleteBalanceBlocked =>
-      'Нельзя удалить перевод: на одном из двух счетов остаток станет отрицательным. Сначала удалите или измените более поздние операции.';
+      'Нельзя удалить перевод: на одном из счетов перевода остаток станет отрицательным. Сначала удалите или измените более поздние операции.';
 
   @override
   String get transferDeleteConflict =>

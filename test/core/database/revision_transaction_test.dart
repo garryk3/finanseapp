@@ -414,7 +414,7 @@ void main() {
       expect(await db.select(db.assetTransactions).get(), isEmpty);
     });
 
-    test('один и тот же счёт и не-счёт отклоняются', () async {
+    test('один и тот же актив и недвижимость отклоняются', () async {
       await expectLater(
         db.transactionsDao.createTransfer(
           transferInput(from: fromId, to: fromId),
@@ -422,11 +422,25 @@ void main() {
         throwsDomain(DomainErrorCode.validation),
       );
 
-      final investmentId = await createInvestment(db);
+      final propertyId = await createProperty(db);
       await expectLater(
-        db.transactionsDao.createTransfer(transferInput(to: investmentId)),
+        db.transactionsDao.createTransfer(transferInput(to: propertyId)),
         throwsDomain(DomainErrorCode.validation),
       );
+    });
+
+    test('перевод между счётом и инвестицией допускается', () async {
+      final investmentId = await createInvestment(db);
+      final transferId = await db.transactionsDao.createTransfer(
+        transferInput(to: investmentId),
+      );
+
+      final legs = await (db.select(
+        db.assetTransactions,
+      )..where((t) => t.transferId.equals(transferId))).get();
+      expect(legs, hasLength(2));
+      expect(await balanceOf(fromId), 50000);
+      expect(await balanceOf(investmentId), 50000);
     });
 
     test(

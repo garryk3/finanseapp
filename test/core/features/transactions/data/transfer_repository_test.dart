@@ -62,6 +62,158 @@ void main() {
     );
   });
 
+  test('перевод счёта в инвестицию и обратно двигает оба баланса', () async {
+    final investmentId = await createInvestment(db);
+
+    await repository.transfer(
+      TransferDraft(
+        fromAccountId: fromId,
+        toAccountId: investmentId,
+        amount: const Money(minorUnits: 100000, currencyCode: 'RUB'),
+        destinationAmount: const Money(minorUnits: 100000, currencyCode: 'RUB'),
+        occurredOn: LocalDate(2026, 1, 2),
+        fromRateToRub: Decimal.one,
+        toRateToRub: Decimal.one,
+      ),
+    );
+
+    expect((await assets.getById(fromId)).currentValue.minorUnits, 400000);
+    expect(
+      (await assets.getById(investmentId)).currentValue.minorUnits,
+      100000,
+    );
+    final legs = await db.transactionsDao.allRows();
+    expect(legs, hasLength(2));
+    expect(legs.every((leg) => leg.currencyCode == null), isTrue);
+
+    await repository.transfer(
+      TransferDraft(
+        fromAccountId: investmentId,
+        toAccountId: toId,
+        amount: const Money(minorUnits: 40000, currencyCode: 'RUB'),
+        destinationAmount: const Money(minorUnits: 40000, currencyCode: 'RUB'),
+        occurredOn: LocalDate(2026, 1, 3),
+        fromRateToRub: Decimal.one,
+        toRateToRub: Decimal.one,
+      ),
+    );
+
+    expect((await assets.getById(investmentId)).currentValue.minorUnits, 60000);
+    expect((await assets.getById(toId)).currentValue.minorUnits, 40000);
+  });
+
+  test('инвестиция может уйти в минус при переводе', () async {
+    final investmentId = await createInvestment(db);
+
+    await repository.transfer(
+      TransferDraft(
+        fromAccountId: investmentId,
+        toAccountId: toId,
+        amount: const Money(minorUnits: 50000, currencyCode: 'RUB'),
+        destinationAmount: const Money(minorUnits: 50000, currencyCode: 'RUB'),
+        occurredOn: LocalDate(2026, 1, 2),
+        fromRateToRub: Decimal.one,
+        toRateToRub: Decimal.one,
+      ),
+    );
+
+    expect(
+      (await assets.getById(investmentId)).currentValue.minorUnits,
+      -50000,
+    );
+    expect((await assets.getById(toId)).currentValue.minorUnits, 50000);
+  });
+
+  test('перевод между двумя инвестициями двигает оба баланса', () async {
+    final fromInvestmentId = await createInvestment(
+      db,
+      name: 'Инвестиция А',
+      openingValueMinor: 500000,
+    );
+    final toInvestmentId = await createInvestment(db, name: 'Инвестиция Б');
+
+    await repository.transfer(
+      TransferDraft(
+        fromAccountId: fromInvestmentId,
+        toAccountId: toInvestmentId,
+        amount: const Money(minorUnits: 100000, currencyCode: 'RUB'),
+        destinationAmount: const Money(minorUnits: 100000, currencyCode: 'RUB'),
+        occurredOn: LocalDate(2026, 1, 2),
+        fromRateToRub: Decimal.one,
+        toRateToRub: Decimal.one,
+      ),
+    );
+
+    expect(
+      (await assets.getById(fromInvestmentId)).currentValue.minorUnits,
+      400000,
+    );
+    expect(
+      (await assets.getById(toInvestmentId)).currentValue.minorUnits,
+      100000,
+    );
+    final legs = await db.transactionsDao.allRows();
+    expect(legs, hasLength(2));
+    expect(legs.every((leg) => leg.currencyCode == null), isTrue);
+  });
+
+  test('перевод между двумя инвестициями двигает оба баланса', () async {
+    final firstId = await createInvestment(
+      db,
+      name: 'Инвестиция А',
+      openingValueMinor: 200000,
+    );
+    final secondId = await createInvestment(db, name: 'Инвестиция Б');
+
+    await repository.transfer(
+      TransferDraft(
+        fromAccountId: firstId,
+        toAccountId: secondId,
+        amount: const Money(minorUnits: 50000, currencyCode: 'RUB'),
+        destinationAmount: const Money(minorUnits: 50000, currencyCode: 'RUB'),
+        occurredOn: LocalDate(2026, 1, 2),
+        fromRateToRub: Decimal.one,
+        toRateToRub: Decimal.one,
+      ),
+    );
+
+    expect((await assets.getById(firstId)).currentValue.minorUnits, 150000);
+    expect((await assets.getById(secondId)).currentValue.minorUnits, 50000);
+    final legs = await db.transactionsDao.allRows();
+    expect(legs, hasLength(2));
+    expect(legs.every((leg) => leg.currencyCode == null), isTrue);
+  });
+
+  test('перевод с недвижимостью отклоняется без следов', () async {
+    final propertyId = await createProperty(db);
+
+    await expectLater(
+      repository.transfer(
+        TransferDraft(
+          fromAccountId: fromId,
+          toAccountId: propertyId,
+          amount: const Money(minorUnits: 100000, currencyCode: 'RUB'),
+          destinationAmount: const Money(
+            minorUnits: 100000,
+            currencyCode: 'RUB',
+          ),
+          occurredOn: LocalDate(2026, 1, 2),
+          fromRateToRub: Decimal.one,
+          toRateToRub: Decimal.one,
+        ),
+      ),
+      throwsA(
+        isA<DomainException>().having(
+          (error) => error.code,
+          'code',
+          DomainErrorCode.validation,
+        ),
+      ),
+    );
+
+    expect(await db.transactionsDao.allRows(), isEmpty);
+  });
+
   test('кросс-валютный перевод пишет независимые RUB snapshot', () async {
     final usdId = await createAccount(
       db,
