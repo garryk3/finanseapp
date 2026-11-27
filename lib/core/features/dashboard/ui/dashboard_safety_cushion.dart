@@ -1,9 +1,11 @@
 import 'package:finanseapp/app/theme/app_semantic_colors.dart';
 import 'package:finanseapp/app/theme/app_spacing.dart';
 import 'package:finanseapp/core/domain/common/money.dart';
+import 'package:finanseapp/core/domain/common/result.dart';
 import 'package:finanseapp/core/features/dashboard/logic/safety_cushion.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
 import 'package:finanseapp/uikit/app_amount_blur.dart';
+import 'package:finanseapp/uikit/app_button.dart';
 import 'package:finanseapp/uikit/app_card.dart';
 import 'package:finanseapp/uikit/app_icon.dart';
 import 'package:finanseapp/uikit/app_money_visibility.dart';
@@ -13,22 +15,65 @@ import 'package:material_ui/material_ui.dart';
 
 /// Карточка «Подушка безопасности»: runway по расходам, цель 6 месяцев и
 /// срок достижения цели при текущем профиците (задача 19.2, формула C).
+///
+/// При неустранимой ошибке курса карточка остаётся видимой с inline-состоянием
+/// «Курс недоступен» и повтором (D21.5/S5), а не исчезает.
 class DashboardSafetyCushion extends StatelessWidget {
   const DashboardSafetyCushion({
     super.key,
-    required this.cushion,
+    this.cushion,
+    this.error,
     required this.l10n,
     required this.formatMoney,
-  });
+    this.onRetry,
+  }) : assert(cushion != null || error != null);
 
-  final SafetyCushion cushion;
+  /// Расчёт подушки; null — расчёта нет (см. [error]).
+  final SafetyCushion? cushion;
+
+  /// Причина отсутствия расчёта; null — расчёт есть.
+  final DomainErrorCode? error;
+
   final AppLocalizations l10n;
   final String Function(Money) formatMoney;
+
+  /// Повторный расчёт при ошибке курса (S5).
+  final VoidCallback? onRetry;
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
+    final cushion = this.cushion;
+    if (cushion == null) {
+      return AppSection(
+        header: l10n.dashboardSafetyTitle,
+        padded: false,
+        child: AppCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              AppText(
+                error == DomainErrorCode.rateUnavailable
+                    ? l10n.assetBaseUnavailable
+                    : l10n.dashboardNetWorthUnavailable,
+                style: textTheme.titleMedium?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
+              ),
+              if (onRetry != null) ...[
+                const SizedBox(height: AppSpacing.xs),
+                AppButton(
+                  label: l10n.retry,
+                  variant: AppButtonVariant.text,
+                  onPressed: onRetry,
+                ),
+              ],
+            ],
+          ),
+        ),
+      );
+    }
     final secondary = textTheme.bodySmall?.copyWith(
       color: scheme.onSurfaceVariant,
     );
