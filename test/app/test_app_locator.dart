@@ -18,6 +18,7 @@ import 'package:finanseapp/core/features/currencies/domain/currency_repository.d
 import 'package:finanseapp/core/features/cashflow/ui/cashflow_view_model.dart';
 import 'package:finanseapp/core/features/dashboard/ui/dashboard_view_model.dart';
 import 'package:finanseapp/core/features/currencies/domain/exchange_rate_repository.dart';
+import 'package:finanseapp/core/features/settings/domain/display_settings_repository.dart';
 import 'package:finanseapp/core/features/settings/domain/settings_repository.dart';
 import 'package:finanseapp/core/features/settings/ui/about_view_model.dart';
 import 'package:finanseapp/core/features/settings/logic/update_check_view_model.dart';
@@ -64,6 +65,7 @@ Future<ServiceLocator> buildTestLocator({
         transactionRepository: locator.get<AssetTransactionRepository>(),
         cashflowRepository: locator.get<CashflowRepository>(),
         settingsRepository: locator.get<SettingsRepository>(),
+        displaySettings: locator.get<DisplaySettingsRepository>(),
         currencyRepository: locator.get<CurrencyRepository>(),
         rateRepository: locator.get<ExchangeRateRepository>(),
         now: () => LocalDate.fromDateTime(DateTime.now()),
@@ -106,7 +108,10 @@ Future<ServiceLocator> buildTestLocator({
       dispose: (viewModel) => viewModel.dispose(),
     )
     ..registerFactory<SettingsViewModel>(
-      () => SettingsViewModel(repository: locator.get<SettingsRepository>()),
+      () => SettingsViewModel(
+        repository: locator.get<SettingsRepository>(),
+        display: locator.get<DisplaySettingsRepository>(),
+      ),
     )
     ..registerFactory<UpdateCheckViewModel>(
       () => UpdateCheckViewModel(

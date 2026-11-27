@@ -16,10 +16,13 @@ import 'package:finanseapp/l10n/app_localizations.dart';
 import 'package:finanseapp/uikit/app_adaptive_grid.dart';
 import 'package:finanseapp/uikit/app_button.dart';
 import 'package:finanseapp/uikit/app_error_state.dart';
+import 'package:finanseapp/uikit/app_icon_button.dart';
+import 'package:finanseapp/uikit/app_money_visibility.dart';
 import 'package:finanseapp/uikit/app_scaffold.dart';
 import 'package:finanseapp/uikit/app_section.dart';
 import 'package:finanseapp/uikit/app_skeleton.dart';
 import 'package:finanseapp/uikit/app_text.dart';
+import 'package:finanseapp/uikit/app_top_app_bar.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:signals_flutter/signals_flutter.dart';
@@ -61,35 +64,54 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return AppScaffold(
-      title: l10n.navDashboard,
-      body: SignalBuilder(
-        builder: (context) {
-          final vm = _viewModel;
-          return switch (vm.state.value) {
-            ViewLoading() => const Padding(
-              padding: EdgeInsets.all(AppSpacing.md),
-              child: Column(
-                children: [
-                  AppSkeleton(width: double.infinity, height: 120),
-                  SizedBox(height: AppSpacing.md),
-                  AppSkeleton(width: double.infinity, height: 56),
-                  SizedBox(height: AppSpacing.sm),
-                  AppSkeleton(width: double.infinity, height: 56),
-                ],
-              ),
+    return SignalBuilder(
+      builder: (context) {
+        final hidden = _viewModel.amountsHidden.value;
+        return AppMoneyVisibility(
+          hidden: hidden,
+          child: AppScaffold(
+            appBar: AppTopAppBar(
+              title: l10n.navDashboard,
+              actions: [
+                AppIconButton(
+                  icon: hidden ? Icons.visibility_off : Icons.visibility,
+                  tooltip: hidden
+                      ? l10n.dashboardShowAmounts
+                      : l10n.dashboardHideAmounts,
+                  onPressed: _viewModel.toggleAmountsHidden,
+                ),
+              ],
             ),
-            ViewError() => AppErrorState(
-              title: l10n.errorStateTitle,
-              message: l10n.errorStateMessage,
-              errorLabel: l10n.errorLabel,
-              retryLabel: l10n.retry,
-              onRetry: vm.reload,
+            body: SignalBuilder(
+              builder: (context) {
+                final vm = _viewModel;
+                return switch (vm.state.value) {
+                  ViewLoading() => const Padding(
+                    padding: EdgeInsets.all(AppSpacing.md),
+                    child: Column(
+                      children: [
+                        AppSkeleton(width: double.infinity, height: 120),
+                        SizedBox(height: AppSpacing.md),
+                        AppSkeleton(width: double.infinity, height: 56),
+                        SizedBox(height: AppSpacing.sm),
+                        AppSkeleton(width: double.infinity, height: 56),
+                      ],
+                    ),
+                  ),
+                  ViewError() => AppErrorState(
+                    title: l10n.errorStateTitle,
+                    message: l10n.errorStateMessage,
+                    errorLabel: l10n.errorLabel,
+                    retryLabel: l10n.retry,
+                    onRetry: vm.reload,
+                  ),
+                  ViewData() => _body(context, l10n, vm),
+                };
+              },
             ),
-            ViewData() => _body(context, l10n, vm),
-          };
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 

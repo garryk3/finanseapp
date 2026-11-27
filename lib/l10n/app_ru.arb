@@ -2652,6 +2652,14 @@
   "@dashboardCashflowDynamics": {
     "description": "Подзаголовок недельного графика cashflow на главной."
   },
+  "dashboardHideAmounts": "Скрыть суммы",
+  "@dashboardHideAmounts": {
+    "description": "Тултип иконки, прячущей денежные суммы на главной блюром."
+  },
+  "dashboardShowAmounts": "Показать суммы",
+  "@dashboardShowAmounts": {
+    "description": "Тултип иконки, возвращающей денежные суммы на главной."
+  },
   "moreReferencesSection": "Справочники",
   "@moreReferencesSection": {
     "description": "Секция справочников в «Ещё»."
@@ -2667,6 +2675,14 @@
   "settingsReportsSection": "Отчёты",
   "@settingsReportsSection": {
     "description": "Секция отчётов в настройках."
+  },
+  "settingsDisplaySection": "Отображение",
+  "@settingsDisplaySection": {
+    "description": "Секция настроек отображения (скрытие сумм)."
+  },
+  "settingsHideAmountsLabel": "Скрывать суммы при входе",
+  "@settingsHideAmountsLabel": {
+    "description": "Настройка: прятать денежные суммы на главной блюром при запуске."
   },
   "aboutTitle": "О приложении",
   "@aboutTitle": {

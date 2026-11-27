@@ -46,6 +46,7 @@ import 'package:finanseapp/core/features/recurring/logic/recurring_catchup_servi
 import 'package:finanseapp/core/features/recurring/logic/recurring_generator.dart';
 import 'package:finanseapp/core/features/recurring/ui/recurring_rules_view_model.dart';
 import 'package:finanseapp/core/features/settings/data/settings_repository_impl.dart';
+import 'package:finanseapp/core/features/settings/domain/display_settings_repository.dart';
 import 'package:finanseapp/core/features/settings/domain/settings_repository.dart';
 import 'package:finanseapp/core/di/service_locator.dart';
 import 'package:finanseapp/core/presentation/date_formatter.dart';
@@ -117,7 +118,9 @@ Future<ServiceLocator> registerCoreServices(
   locator.register<OnboardingRepository>(
     OnboardingRepositoryImpl(db.settingsDao),
   );
-  locator.register<SettingsRepository>(SettingsRepositoryImpl(db.settingsDao));
+  final settingsRepository = SettingsRepositoryImpl(db.settingsDao);
+  locator.register<SettingsRepository>(settingsRepository);
+  locator.register<DisplaySettingsRepository>(settingsRepository);
   locator.register<AnalyticsQueries>(
     AnalyticsQueriesImpl(
       db,

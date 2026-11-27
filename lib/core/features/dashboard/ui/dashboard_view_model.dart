@@ -26,6 +26,7 @@ import 'package:finanseapp/core/features/goals/domain/goal_progress.dart';
 import 'package:finanseapp/core/features/goals/domain/goal_repository.dart';
 import 'package:finanseapp/core/features/goals/logic/calculate_goal_progress.dart';
 import 'package:finanseapp/core/features/goals/logic/goal_calculator.dart';
+import 'package:finanseapp/core/features/settings/domain/display_settings_repository.dart';
 import 'package:finanseapp/core/features/settings/domain/settings_repository.dart';
 import 'package:finanseapp/core/features/transactions/domain/asset_transaction.dart';
 import 'package:finanseapp/core/features/transactions/domain/asset_transaction_repository.dart';
@@ -57,6 +58,7 @@ class DashboardViewModel {
     required this.transactionRepository,
     required this.cashflowRepository,
     required this.settingsRepository,
+    required this.displaySettings,
     required this.currencyRepository,
     required this.rateRepository,
     required this.now,
@@ -68,6 +70,7 @@ class DashboardViewModel {
   final AssetTransactionRepository transactionRepository;
   final CashflowRepository cashflowRepository;
   final SettingsRepository settingsRepository;
+  final DisplaySettingsRepository displaySettings;
   final CurrencyRepository currencyRepository;
   final ExchangeRateRepository rateRepository;
   final LocalDate Function() now;
@@ -106,6 +109,12 @@ class DashboardViewModel {
   /// Причина, по которой [lockedTotal] не посчитан.
   final Signal<DomainErrorCode?> lockedError = signal(null);
 
+  /// Скрыты ли денежные суммы на Главной (D21.4).
+  ///
+  /// Начальное значение берётся из настройки «скрывать суммы при входе»;
+  /// иконка на Главной переключает только текущую сессию (не персистится).
+  final Signal<bool> amountsHidden = signal(false);
+
   final CalculateGoalProgress _goalCalculator = const CalculateGoalProgress();
   final Map<String, Decimal> _rateCache = {};
 
@@ -139,6 +148,8 @@ class DashboardViewModel {
 
   void init() {
     today.value = now();
+    amountsHidden.value = false;
+    unawaited(_loadAmountsHidden());
     _rateCache.clear();
     _assetsReady = false;
     _fatal = false;
@@ -222,6 +233,20 @@ class DashboardViewModel {
           _emit();
         }, onError: _fail);
   }
+
+  /// Начальное состояние блюра — из настройки (D21.4/H5).
+  Future<void> _loadAmountsHidden() async {
+    try {
+      final hidden = await displaySettings.getAmountsHidden();
+      if (_disposed) return;
+      amountsHidden.value = hidden;
+    } on Object {
+      // Настройка недоступна — оставляем суммы видимыми.
+    }
+  }
+
+  /// Переключить блюр сумм на текущую сессию (не персистится).
+  void toggleAmountsHidden() => amountsHidden.value = !amountsHidden.value;
 
   void _updateOverdueAccounts(List<AssetSnapshot> snapshots) {
     final today = this.today.value;

@@ -39,6 +39,11 @@ const presetExpenseCategories = <String>[
 /// Ключ базовой валюты в `app_settings` (BR-C-5).
 const baseCurrencySettingKey = 'baseCurrencyCode';
 
+/// Ключ настройки «скрывать суммы при входе» в `app_settings` (D21.4).
+///
+/// Значение — `'true'`/`'false'`; отсутствие ключа трактуется как `false`.
+const amountsHiddenSettingKey = 'amountsHidden';
+
 /// Начальные справочники v1.
 ///
 /// Идемпотентен: повторный запуск не создаёт дублей и не перезаписывает

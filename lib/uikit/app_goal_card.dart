@@ -3,7 +3,9 @@
 // (см. AGENTS.md «Сырые Material-виджеты», CI-гейты).
 import 'package:material_ui/material_ui.dart';
 import 'package:finanseapp/app/theme/app_spacing.dart';
+import 'package:finanseapp/uikit/app_amount_blur.dart';
 import 'package:finanseapp/uikit/app_card.dart';
+import 'package:finanseapp/uikit/app_money_visibility.dart';
 import 'package:finanseapp/uikit/app_progress.dart';
 import 'package:finanseapp/uikit/app_text.dart';
 
@@ -35,9 +37,11 @@ class AppGoalCard extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
     final secondary = scheme.onSurfaceVariant;
+    // D21.4: при скрытых суммах имя остаётся, суммы уходят из семантики.
+    final hidden = AppMoneyVisibility.of(context);
     return AppCard(
       onTap: onTap,
-      semanticLabel: '$name, $progressText из $targetText',
+      semanticLabel: hidden ? name : '$name, $progressText из $targetText',
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -79,28 +83,32 @@ class AppGoalCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.sm),
           AppProgress(
             value: ratio,
-            semanticLabel: '$progressText из $targetText',
+            semanticLabel: hidden ? null : '$progressText из $targetText',
           ),
           const SizedBox(height: AppSpacing.sm),
           Row(
             children: <Widget>[
               Expanded(
-                child: AppText(
-                  progressText,
-                  style: textTheme.titleMedium,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  semanticsLabel: 'Текущий прогресс: $progressText',
+                child: AppAmountBlur(
+                  child: AppText(
+                    progressText,
+                    style: textTheme.titleMedium,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    semanticsLabel: 'Текущий прогресс: $progressText',
+                  ),
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
               Flexible(
-                child: AppText(
-                  targetText,
-                  style: textTheme.bodySmall?.copyWith(color: secondary),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  semanticsLabel: 'Цель: $targetText',
+                child: AppAmountBlur(
+                  child: AppText(
+                    targetText,
+                    style: textTheme.bodySmall?.copyWith(color: secondary),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    semanticsLabel: 'Цель: $targetText',
+                  ),
                 ),
               ),
             ],

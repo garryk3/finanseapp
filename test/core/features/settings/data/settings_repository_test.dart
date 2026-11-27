@@ -36,4 +36,21 @@ void main() {
     );
     expect((await repository.getBaseCurrency()).code, 'RUB');
   });
+
+  test(
+    'настройка «скрывать суммы при входе» по умолчанию false и меняется',
+    () async {
+      expect(await repository.getAmountsHidden(), isFalse);
+      expect(await repository.watchAmountsHidden().first, isFalse);
+
+      await repository.setAmountsHidden(true);
+
+      expect(await repository.getAmountsHidden(), isTrue);
+      expect(await repository.watchAmountsHidden().first, isTrue);
+
+      await repository.setAmountsHidden(false);
+
+      expect(await repository.getAmountsHidden(), isFalse);
+    },
+  );
 }

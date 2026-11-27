@@ -28,12 +28,15 @@ import 'package:finanseapp/core/features/dashboard/ui/dashboard_net_worth.dart';
 import 'package:finanseapp/core/features/dashboard/ui/dashboard_view_model.dart';
 import 'package:finanseapp/core/features/goals/domain/financial_goal.dart';
 import 'package:finanseapp/core/features/goals/domain/goal_repository.dart';
+import 'package:finanseapp/core/features/settings/domain/display_settings_repository.dart';
 import 'package:finanseapp/core/features/settings/domain/settings_repository.dart';
 import 'package:finanseapp/core/features/transactions/domain/asset_transaction.dart';
 import 'package:finanseapp/core/features/transactions/domain/asset_transaction_repository.dart';
 import 'package:finanseapp/core/features/transactions/domain/transaction_filter.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
+import 'package:finanseapp/uikit/app_amount_blur.dart';
 import 'package:finanseapp/uikit/app_cashflow_summary.dart';
+import 'package:finanseapp/uikit/app_money_visibility.dart';
 import 'package:finanseapp/uikit/app_text.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -321,6 +324,26 @@ final class _Settings implements SettingsRepository {
   Future<void> setBaseCurrency(String code) async {}
 }
 
+final class _DisplaySettings implements DisplaySettingsRepository {
+  _DisplaySettings({this.hidden = false, this.controller});
+
+  bool hidden;
+  final StreamController<bool>? controller;
+
+  @override
+  Stream<bool> watchAmountsHidden() =>
+      controller?.stream ?? Stream.value(hidden);
+
+  @override
+  Future<bool> getAmountsHidden() async => hidden;
+
+  @override
+  Future<void> setAmountsHidden(bool value) async {
+    hidden = value;
+    controller?.add(value);
+  }
+}
+
 final class _Currencies implements CurrencyRepository {
   _Currencies([this.controller]);
 
@@ -481,6 +504,8 @@ void main() {
     StreamController<Currency>? settingsController,
     StreamController<List<Currency>>? currencyController,
     Map<String, Decimal> rates = const {},
+    bool amountsHidden = false,
+    StreamController<bool>? amountsController,
   }) => DashboardViewModel(
     queries:
         queries ??
@@ -506,6 +531,10 @@ void main() {
     ),
     cashflowRepository: _Cashflows(),
     settingsRepository: _Settings(controller: settingsController, base: base),
+    displaySettings: _DisplaySettings(
+      hidden: amountsHidden,
+      controller: amountsController,
+    ),
     currencyRepository: _Currencies(currencyController),
     rateRepository: _Rates(rates),
     now: () => _today,
@@ -527,6 +556,8 @@ void main() {
     double width = 1000,
     bool dark = false,
     bool largeText = false,
+    bool amountsHidden = false,
+    StreamController<bool>? amountsController,
   }) async {
     final vm = viewModel(
       total: total,
@@ -540,6 +571,8 @@ void main() {
       settingsController: settingsController,
       currencyController: currencyController,
       rates: rates,
+      amountsHidden: amountsHidden,
+      amountsController: amountsController,
     );
     tester.view.physicalSize = Size(width, 2000);
     tester.view.devicePixelRatio = 1;
@@ -580,6 +613,63 @@ void main() {
     expect(find.text(l10n.dashboardAddExpense), findsOneWidget);
     expect(find.text(l10n.dashboardEmptyTitle), findsNothing);
     expect(find.text(l10n.dashboardSafetyTitle), findsNothing);
+  });
+
+  testWidgets('иконка скрывает суммы, затем возвращает их', (tester) async {
+    await pump(tester, total: _rubles(1234));
+
+    expect(find.byIcon(Icons.visibility), findsOneWidget);
+    expect(find.byType(ImageFiltered), findsNothing);
+
+    await tester.tap(find.byIcon(Icons.visibility));
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.visibility_off), findsOneWidget);
+    expect(
+      tester.widget<AppMoneyVisibility>(find.byType(AppMoneyVisibility)).hidden,
+      isTrue,
+    );
+    expect(find.byType(ImageFiltered), findsWidgets);
+
+    await tester.tap(find.byIcon(Icons.visibility_off));
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.visibility), findsOneWidget);
+    expect(find.byType(ImageFiltered), findsNothing);
+  });
+
+  testWidgets('начальное состояние блюра берётся из настройки', (tester) async {
+    await pump(tester, total: _rubles(100), amountsHidden: true);
+
+    expect(find.byIcon(Icons.visibility_off), findsOneWidget);
+    expect(
+      tester.widget<AppMoneyVisibility>(find.byType(AppMoneyVisibility)).hidden,
+      isTrue,
+    );
+    expect(find.byType(ImageFiltered), findsWidgets);
+  });
+
+  testWidgets('суммы скрыты: значение помечено hidden в семантике', (
+    tester,
+  ) async {
+    final handle = tester.ensureSemantics();
+    await pump(tester, total: _rubles(1234), amountsHidden: true);
+
+    final blur = find
+        .descendant(
+          of: find.byType(DashboardNetWorth),
+          matching: find.byType(AppAmountBlur),
+        )
+        .first;
+    expect(tester.getSemantics(blur).flagsCollection.isHidden, isTrue);
+    expect(find.text(l10n.dashboardNetWorthTitle), findsOneWidget);
+    handle.dispose();
+  });
+
+  testWidgets('на 320dp при скрытых суммах нет overflow', (tester) async {
+    await pump(tester, width: 320, total: _rubles(1234), amountsHidden: true);
+
+    expect(find.byType(DashboardNetWorth), findsOneWidget);
   });
 
   testWidgets('на 427dp контент Главной имеет отступ 16dp, как на Операциях', (
@@ -1520,6 +1610,7 @@ void main() {
       transactionRepository: _Transactions(const [], controller: operations),
       cashflowRepository: _Cashflows(),
       settingsRepository: _Settings(),
+      displaySettings: _DisplaySettings(),
       currencyRepository: _Currencies(),
       rateRepository: _Rates(),
       now: () => _today,
@@ -1746,6 +1837,7 @@ void main() {
       transactionRepository: _Transactions(const []),
       cashflowRepository: _Cashflows(controller: cashflows),
       settingsRepository: _Settings(controller: settings),
+      displaySettings: _DisplaySettings(),
       currencyRepository: _Currencies(),
       rateRepository: _Rates(),
       now: () => _today,

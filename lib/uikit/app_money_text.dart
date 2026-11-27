@@ -3,6 +3,7 @@
 // (см. AGENTS.md «Сырые Material-виджеты», CI-гейты).
 import 'package:material_ui/material_ui.dart';
 import 'package:finanseapp/app/theme/app_semantic_colors.dart';
+import 'package:finanseapp/uikit/app_amount_blur.dart';
 import 'package:finanseapp/uikit/app_text.dart';
 
 /// Форматированная денежная строка с тоном (income/expense/transfer/
@@ -43,13 +44,17 @@ class AppMoneyText extends StatelessWidget {
       color: resolvedColor,
       fontFeatures: const <FontFeature>[FontFeature.tabularFigures()],
     );
-    return AppText(
-      formattedAmount,
-      style: effectiveStyle,
-      textAlign: textAlign,
-      maxLines: maxLines,
-      overflow: maxLines == null ? null : TextOverflow.ellipsis,
-      semanticsLabel: semanticsLabel,
+    // D21.4: под активным AppMoneyVisibility сумма прячется за блюром и
+    // исключается из семантики.
+    return AppAmountBlur(
+      child: AppText(
+        formattedAmount,
+        style: effectiveStyle,
+        textAlign: textAlign,
+        maxLines: maxLines,
+        overflow: maxLines == null ? null : TextOverflow.ellipsis,
+        semanticsLabel: semanticsLabel,
+      ),
     );
   }
 }

@@ -178,6 +178,9 @@ void main() {
 
     router.go(AppRoutes.settings);
     await tester.pumpAndSettle();
+    // Секции «Резервная копия»/«Обновление» ниже вьюпорта при 320dp/1.3 —
+    // доскроллим, иначе ленивый ListView их не строит.
+    await tester.scrollUntilVisible(find.text(l10n.updateCheck), 100);
     expect(find.text(l10n.backupImport), findsOneWidget);
     expect(find.text(l10n.updateCheck), findsOneWidget);
 
