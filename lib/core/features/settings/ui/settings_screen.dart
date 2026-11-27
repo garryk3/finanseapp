@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:finanseapp/app/app_restart.dart';
 import 'package:finanseapp/app/routes.dart';
 import 'package:finanseapp/app/theme/app_spacing.dart';
@@ -12,6 +14,7 @@ import 'package:finanseapp/uikit/app_list_tile.dart';
 import 'package:finanseapp/uikit/app_list_view.dart';
 import 'package:finanseapp/uikit/app_scaffold.dart';
 import 'package:finanseapp/uikit/app_section.dart';
+import 'package:finanseapp/uikit/app_switch.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:signals_flutter/signals_flutter.dart';
@@ -81,6 +84,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   subtitle: base == null ? null : '${base.code} · ${base.name}',
                   leading: const AppIcon(Icons.star_outline),
                   onTap: () => context.push(AppRoutes.baseCurrency),
+                ),
+              ),
+              AppSection(
+                header: l10n.settingsDisplaySection,
+                child: AppSwitch(
+                  value: _viewModel.amountsHidden.value,
+                  label: l10n.settingsHideAmountsLabel,
+                  onChanged: (value) =>
+                      unawaited(_viewModel.setAmountsHidden(value)),
                 ),
               ),
               BackupSection(

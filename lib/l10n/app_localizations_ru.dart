@@ -1947,6 +1947,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get dashboardCashflowDynamics => 'По неделям';
 
   @override
+  String get dashboardHideAmounts => 'Скрыть суммы';
+
+  @override
+  String get dashboardShowAmounts => 'Показать суммы';
+
+  @override
   String get moreReferencesSection => 'Справочники';
 
   @override
@@ -1957,6 +1963,12 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get settingsReportsSection => 'Отчёты';
+
+  @override
+  String get settingsDisplaySection => 'Отображение';
+
+  @override
+  String get settingsHideAmountsLabel => 'Скрывать суммы при входе';
 
   @override
   String get aboutTitle => 'О приложении';

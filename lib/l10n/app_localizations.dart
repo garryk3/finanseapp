@@ -3591,6 +3591,18 @@ abstract class AppLocalizations {
   /// **'По неделям'**
   String get dashboardCashflowDynamics;
 
+  /// Тултип иконки, прячущей денежные суммы на главной блюром.
+  ///
+  /// In ru, this message translates to:
+  /// **'Скрыть суммы'**
+  String get dashboardHideAmounts;
+
+  /// Тултип иконки, возвращающей денежные суммы на главной.
+  ///
+  /// In ru, this message translates to:
+  /// **'Показать суммы'**
+  String get dashboardShowAmounts;
+
   /// Секция справочников в «Ещё».
   ///
   /// In ru, this message translates to:
@@ -3614,6 +3626,18 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Отчёты'**
   String get settingsReportsSection;
+
+  /// Секция настроек отображения (скрытие сумм).
+  ///
+  /// In ru, this message translates to:
+  /// **'Отображение'**
+  String get settingsDisplaySection;
+
+  /// Настройка: прятать денежные суммы на главной блюром при запуске.
+  ///
+  /// In ru, this message translates to:
+  /// **'Скрывать суммы при входе'**
+  String get settingsHideAmountsLabel;
 
   /// Заголовок экрана о приложении.
   ///

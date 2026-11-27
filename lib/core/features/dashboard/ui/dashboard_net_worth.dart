@@ -1,5 +1,6 @@
 import 'package:finanseapp/app/theme/app_spacing.dart';
 import 'package:finanseapp/uikit/app_money_text.dart';
+import 'package:finanseapp/uikit/app_money_visibility.dart';
 import 'package:finanseapp/uikit/app_summary_card.dart';
 import 'package:finanseapp/uikit/app_text.dart';
 import 'package:material_ui/material_ui.dart';
@@ -35,6 +36,8 @@ class DashboardNetWorth extends StatelessWidget {
     final secondaryStyle = textTheme.bodySmall?.copyWith(
       color: scheme.onSurfaceVariant,
     );
+    // D21.4: при скрытых суммах разбивка читается только подписями.
+    final hidden = AppMoneyVisibility.of(context);
     return AppSummaryCard(
       title: title,
       value: value,
@@ -44,7 +47,10 @@ class DashboardNetWorth extends StatelessWidget {
           ? null
           : Semantics(
               label: breakdown
-                  .map((part) => '${part.label} ${part.value}')
+                  .map(
+                    (part) =>
+                        hidden ? part.label : '${part.label} ${part.value}',
+                  )
                   .join(', '),
               excludeSemantics: true,
               child: LayoutBuilder(

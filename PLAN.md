@@ -258,7 +258,7 @@
   Ревью — один раз на релиз (`task-reviewer` + `design-reviewer` по диффу `release/21` → `main`).
 - **Предлагаемый commit:** `task/21.3: автообновление курсов валют`.
 
-### 21.4 Скрытие сумм на Главной блюром — [ ]
+### 21.4 Скрытие сумм на Главной блюром — [x] (2026-11-27)
 
 - **Приоритет/зависимости:** P1; независима; пересекается по файлам с 21.5/21.6/21.8.
 - **Суть:** иконка «скрыть суммы» в правом верхнем углу Главной; при нажатии все
@@ -278,6 +278,13 @@
   - **H4.** Переключатель — `AppIconButton` (`visibility`/`visibility_off`) в
     `AppTopAppBar.actions` с тултипом и семантикой; состояние общее для всех
     блоков.
+  - **H5.** Персистентная настройка «скрывать суммы при входе»: ключ
+    `amountsHidden` в `app_settings` (`'true'`/`'false'`);
+    `SettingsRepository.watchAmountsHidden()/getAmountsHidden()/
+    setAmountsHidden(bool)`; переключатель `AppSwitch` в секции «Отображение»
+    экрана «Настройки»; `DashboardViewModel.init()` берёт начальное значение
+    `amountsHidden` из настройки (иконка на Главной остаётся session-only и не
+    переписывает настройку).
 - **Files:**
   - Create: `lib/uikit/app_money_visibility.dart`, `lib/uikit/app_amount_blur.dart`,
     тесты `test/uikit/app_money_visibility_test.dart`.
@@ -285,12 +292,18 @@
     `dashboard_screen.dart` (actions + скоуп), `lib/uikit/app_money_text.dart`,
     `app_metric.dart`, `app_goal_card.dart`, `lib/core/features/dashboard/ui/
     dashboard_safety_cushion.dart`, `dashboard_recent_operations.dart`,
-    `lib/l10n/app_ru.arb` (тултип/семантика).
+    `lib/core/database/daos/settings_dao.dart`,
+    `lib/core/features/settings/domain/settings_repository.dart`,
+    `lib/core/features/settings/data/settings_repository_impl.dart`,
+    `lib/core/features/settings/ui/settings_view_model.dart`,
+    `lib/core/features/settings/ui/settings_screen.dart`,
+    `lib/l10n/app_ru.arb` (тултип/семантика/настройка).
 - **TDD:** тумблер скрывает/показывает все денежные блоки; `AppMoneyText` при
   hidden применяет фильтр, при show — нет; подписи не блюрятся; семантика сумм
-  скрыта; иконка меняет состояние; 320dp/2.0 без overflow.
-- **DoD:** format/analyze/test/build; `task-reviewer` + `design-reviewer`; статус
-  `[x]` до PR; e2e спросить.
+  скрыта; иконка меняет состояние; 320dp/2.0 без overflow; настройка
+  `amountsHidden` персистится, читается и задаёт начальное состояние Главной.
+- **DoD:** format/analyze/test/build; PR в `release/21`; статус `[x]` до PR; e2e спросить.
+  Ревью — один раз на релиз (`task-reviewer` + `design-reviewer` по диффу `release/21` → `main`).
 - **Предлагаемый commit:** `task/21.4: скрытие сумм на главной блюром`.
 
 ### 21.5 Подушка безопасности отображается — [ ]

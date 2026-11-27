@@ -2,6 +2,7 @@ import 'package:finanseapp/app/theme/app_theme.dart';
 import 'package:finanseapp/core/domain/common/currency.dart';
 import 'package:finanseapp/core/features/backup/domain/backup_service.dart';
 import 'package:finanseapp/core/features/backup/logic/backup_view_model.dart';
+import 'package:finanseapp/core/features/settings/domain/display_settings_repository.dart';
 import 'package:finanseapp/core/features/settings/domain/settings_repository.dart';
 import 'package:finanseapp/core/features/settings/domain/update_service.dart';
 import 'package:finanseapp/core/features/settings/logic/update_check_view_model.dart';
@@ -12,6 +13,7 @@ import 'package:finanseapp/core/features/settings/ui/more_view_model.dart';
 import 'package:finanseapp/core/features/settings/ui/settings_screen.dart';
 import 'package:finanseapp/core/features/settings/ui/settings_view_model.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
+import 'package:finanseapp/uikit/app_switch.dart';
 import 'package:finanseapp/uikit/app_text.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -52,6 +54,21 @@ final class _Settings implements SettingsRepository {
 
   @override
   Future<void> setBaseCurrency(String code) async {}
+}
+
+final class _DisplaySettings implements DisplaySettingsRepository {
+  _DisplaySettings({this.hidden = false});
+
+  bool hidden;
+
+  @override
+  Stream<bool> watchAmountsHidden() => Stream.value(hidden);
+
+  @override
+  Future<bool> getAmountsHidden() async => hidden;
+
+  @override
+  Future<void> setAmountsHidden(bool value) async => hidden = value;
 }
 
 void main() {
@@ -144,7 +161,10 @@ void main() {
     final router = await pump(
       tester,
       home: SettingsScreen(
-        viewModel: SettingsViewModel(repository: _Settings()),
+        viewModel: SettingsViewModel(
+          repository: _Settings(),
+          display: _DisplaySettings(hidden: true),
+        ),
         backupViewModel: BackupViewModel(
           () => throw UnimplementedError(),
           _Gateway(),
@@ -169,6 +189,8 @@ void main() {
     expect(find.text(l10n.baseCurrencyTitle), findsOneWidget);
     expect(find.text('USD · Доллар'), findsOneWidget);
     expect(find.text(l10n.settingsUpdateVersion('0.1.0')), findsOneWidget);
+    // Настройка отображения отражает сохранённое значение (D21.4).
+    expect(tester.widget<AppSwitch>(find.byType(AppSwitch)).value, isTrue);
 
     await tester.tap(find.text(l10n.baseCurrencyTitle));
     await tester.pumpAndSettle();
@@ -179,6 +201,36 @@ void main() {
     await tester.tap(find.text(l10n.settingsAboutDetails));
     await tester.pumpAndSettle();
     expect(find.text('ABOUT'), findsOneWidget);
+  });
+
+  testWidgets('Settings: переключатель скрытия сумм меняет настройку', (
+    tester,
+  ) async {
+    final display = _DisplaySettings();
+    await pump(
+      tester,
+      home: SettingsScreen(
+        viewModel: SettingsViewModel(repository: _Settings(), display: display),
+        backupViewModel: BackupViewModel(
+          () => throw UnimplementedError(),
+          _Gateway(),
+        ),
+        updateViewModel: UpdateCheckViewModel(
+          service: _Updates(),
+          installedVersionProvider: () async => '0.1.0',
+        ),
+      ),
+    );
+
+    expect(find.text(l10n.settingsDisplaySection), findsOneWidget);
+    expect(find.text(l10n.settingsHideAmountsLabel), findsOneWidget);
+    expect(tester.widget<AppSwitch>(find.byType(AppSwitch)).value, isFalse);
+
+    await tester.tap(find.byType(AppSwitch));
+    await tester.pumpAndSettle();
+
+    expect(display.hidden, isTrue);
+    expect(tester.widget<AppSwitch>(find.byType(AppSwitch)).value, isTrue);
   });
 
   testWidgets('About показывает назначение и offline-дисклеймер', (

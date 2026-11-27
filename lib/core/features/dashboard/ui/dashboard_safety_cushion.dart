@@ -3,8 +3,10 @@ import 'package:finanseapp/app/theme/app_spacing.dart';
 import 'package:finanseapp/core/domain/common/money.dart';
 import 'package:finanseapp/core/features/dashboard/logic/safety_cushion.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
+import 'package:finanseapp/uikit/app_amount_blur.dart';
 import 'package:finanseapp/uikit/app_card.dart';
 import 'package:finanseapp/uikit/app_icon.dart';
+import 'package:finanseapp/uikit/app_money_visibility.dart';
 import 'package:finanseapp/uikit/app_section.dart';
 import 'package:finanseapp/uikit/app_text.dart';
 import 'package:material_ui/material_ui.dart';
@@ -59,6 +61,7 @@ class DashboardSafetyCushion extends StatelessWidget {
       }
     }
 
+    final hidden = AppMoneyVisibility.of(context);
     final targetText = l10n.dashboardSafetyTarget(formatMoney(cushion.target));
     final monthsToTarget = cushion.monthsToTarget;
     final String statusText;
@@ -91,12 +94,15 @@ class DashboardSafetyCushion extends StatelessWidget {
       status = AppText(statusText, style: secondary);
     }
 
+    // D21.4: суммы (цель и профицит) прячутся и не читаются TalkBack'ом;
+    // неденежные строки (сроки, «Достигнута») остаются.
+    final statusHasMoney = monthsToTarget != null && monthsToTarget != 0;
     final phrase = yearsText ?? valueText;
     final semanticsLabel = [
       if (showRunwayLabel) '${l10n.dashboardSafetyRunway} $phrase' else phrase,
       l10n.dashboardSafetyPeriod,
-      targetText,
-      statusText,
+      if (!hidden) targetText,
+      if (!(hidden && statusHasMoney)) statusText,
     ].join('. ');
 
     return AppSection(
@@ -139,9 +145,9 @@ class DashboardSafetyCushion extends StatelessWidget {
               const SizedBox(height: AppSpacing.xxs),
               AppText(l10n.dashboardSafetyPeriod, style: secondary),
               const SizedBox(height: AppSpacing.sm),
-              AppText(targetText, style: secondary),
+              AppAmountBlur(child: AppText(targetText, style: secondary)),
               const SizedBox(height: AppSpacing.xxs),
-              status,
+              if (statusHasMoney) AppAmountBlur(child: status) else status,
             ],
           ),
         ),

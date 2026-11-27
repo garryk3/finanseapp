@@ -41,6 +41,24 @@ class SettingsDao extends DatabaseAccessor<AppDatabase>
     return row?.value;
   }
 
+  /// Поток значения настройки; `null` — ключа нет.
+  Stream<String?> watchValue(String key) =>
+      (select(appSettings)..where((s) => s.key.equals(key)))
+          .watchSingleOrNull()
+          .map((row) => row?.value);
+
+  /// Настройка «скрывать суммы при входе» (D21.4); отсутствие ключа — `false`.
+  Stream<bool> watchAmountsHidden() =>
+      watchValue(amountsHiddenSettingKey).map(_parseBool);
+
+  Future<bool> getAmountsHidden() async =>
+      _parseBool(await getValue(amountsHiddenSettingKey));
+
+  Future<void> setAmountsHidden(bool hidden) =>
+      setValue(amountsHiddenSettingKey, hidden ? 'true' : 'false');
+
+  static bool _parseBool(String? value) => value == 'true';
+
   Future<void> setValue(String key, String value) =>
       into(appSettings).insertOnConflictUpdate(
         AppSettingsCompanion.insert(
