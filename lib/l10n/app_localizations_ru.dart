@@ -411,6 +411,25 @@ class AppLocalizationsRu extends AppLocalizations {
   String get currencyToggled => 'Настройки валюты обновлены.';
 
   @override
+  String get currenciesRefreshTooltip => 'Обновить курсы';
+
+  @override
+  String get currenciesRefreshPending => 'Обновление курсов';
+
+  @override
+  String currenciesRefreshDone(int count) {
+    return 'Курсы обновлены: $count.';
+  }
+
+  @override
+  String get currenciesRefreshUpToDate => 'Курсы уже актуальны.';
+
+  @override
+  String currenciesRefreshFailed(int count) {
+    return 'Не удалось обновить курсы: $count.';
+  }
+
+  @override
   String get baseCurrencyHint =>
       'Итоги и дашборд будут пересчитаны в выбранной валюте; сохранённые суммы в RUB не меняются.';
 
