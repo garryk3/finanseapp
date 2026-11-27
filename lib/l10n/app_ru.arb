@@ -1268,17 +1268,17 @@
   "@transactionNoCategories": {
     "description": "Пустой список категорий."
   },
-  "transferFormTitle": "Перевод между счетами",
+  "transferFormTitle": "Перевод между активами",
   "@transferFormTitle": {
     "description": "Заголовок формы перевода."
   },
-  "transferFromLabel": "Со счёта",
+  "transferFromLabel": "Списать с",
   "@transferFromLabel": {
-    "description": "Счёт-источник перевода."
+    "description": "Актив-источник перевода."
   },
-  "transferToLabel": "На счёт",
+  "transferToLabel": "Зачислить на",
   "@transferToLabel": {
-    "description": "Счёт назначения перевода."
+    "description": "Актив назначения перевода."
   },
   "transferAmountLabel": "Сумма списания",
   "@transferAmountLabel": {
@@ -1300,17 +1300,17 @@
   "@transferAction": {
     "description": "Действие перевода между счетами."
   },
-  "transferErrorFrom": "Выберите счёт списания.",
+  "transferErrorFrom": "Выберите актив списания.",
   "@transferErrorFrom": {
-    "description": "Ошибка счёта-источника."
+    "description": "Ошибка актива-источника."
   },
-  "transferErrorTo": "Выберите счёт зачисления.",
+  "transferErrorTo": "Выберите актив зачисления.",
   "@transferErrorTo": {
-    "description": "Ошибка счёта назначения."
+    "description": "Ошибка актива назначения."
   },
-  "transferErrorSameAccount": "Счета должны различаться.",
+  "transferErrorSameAccount": "Активы должны различаться.",
   "@transferErrorSameAccount": {
-    "description": "Ошибка одинаковых счетов."
+    "description": "Ошибка одинаковых активов."
   },
   "transferErrorAmount": "Введите положительную сумму перевода.",
   "@transferErrorAmount": {
@@ -1320,9 +1320,9 @@
   "@transferErrorNegativeBalance": {
     "description": "Ошибка баланса перевода."
   },
-  "transferNoAccounts": "Нужно минимум два счёта.",
+  "transferNoAccounts": "Нужно минимум два актива.",
   "@transferNoAccounts": {
-    "description": "Пустое состояние выбора счетов."
+    "description": "Пустое состояние выбора активов."
   },
   "transferRateHint": "{fromUnit} ≈ {toAmount}",
   "@transferRateHint": {
@@ -1336,13 +1336,17 @@
       }
     }
   },
-  "transferNeedAccountsMessage": "Добавьте второй счёт, чтобы переводить между счетами.",
+  "transferNeedAccountsMessage": "Добавьте второй счёт, чтобы выполнить перевод.",
   "@transferNeedAccountsMessage": {
-    "description": "Пояснение состояния с одним счётом."
+    "description": "Пояснение состояния с одним активом."
   },
   "transferErrorDestination": "Введите положительную сумму зачисления.",
   "@transferErrorDestination": {
     "description": "Ошибка суммы зачисления."
+  },
+  "transferErrorAssetKind": "Переводы между этим видом актива недоступны.",
+  "@transferErrorAssetKind": {
+    "description": "Ошибка недопустимого вида актива перевода."
   },
   "transactionsSearchLabel": "Поиск операций",
   "@transactionsSearchLabel": {
@@ -3036,7 +3040,7 @@
   "@transferDeleteTitle": {
     "description": "Подтверждение удаления перевода."
   },
-  "transferDeleteMessage": "Обе операции перевода будут скрыты из журнала, балансы обоих счетов вернутся к прежним значениям. Восстановить можно в «Удалённых операциях».",
+  "transferDeleteMessage": "Обе операции перевода будут скрыты из журнала, балансы обоих активов вернутся к прежним значениям. Восстановить можно в «Удалённых операциях».",
   "@transferDeleteMessage": {
     "description": "Пояснение удаления перевода."
   },
@@ -3048,7 +3052,7 @@
   "@transferDeleted": {
     "description": "Успешное удаление перевода."
   },
-  "transferDeleteBalanceBlocked": "Нельзя удалить перевод: на одном из двух счетов остаток станет отрицательным. Сначала удалите или измените более поздние операции.",
+  "transferDeleteBalanceBlocked": "Нельзя удалить перевод: на одном из счетов перевода остаток станет отрицательным. Сначала удалите или измените более поздние операции.",
   "@transferDeleteBalanceBlocked": {
     "description": "Удаление перевода нарушает историю баланса."
   },

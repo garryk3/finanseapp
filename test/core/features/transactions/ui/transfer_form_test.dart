@@ -17,7 +17,7 @@ import 'package:finanseapp/core/features/transactions/domain/transaction_filter.
 import 'package:finanseapp/core/features/transactions/ui/transfer_form_screen.dart';
 import 'package:finanseapp/core/features/transactions/ui/transfer_form_view_model.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
-import 'package:finanseapp/uikit/app_select.dart';
+import 'package:finanseapp/uikit/app_asset_select.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -48,16 +48,26 @@ AccountAsset _account(int id, String code, {int opening = 1000000}) =>
       startDate: LocalDate(2026, 1, 1),
     );
 
-final class FakeAssets implements AssetRepository {
-  FakeAssets(this.accounts);
+InvestmentAsset _investment(int id, String code, {int opening = 0}) =>
+    InvestmentAsset(
+      id: id,
+      name: 'Инвестиция $id',
+      currencyCode: code,
+      openingValue: Money(minorUnits: opening, currencyCode: code),
+      createdAt: DateTime.utc(2026),
+      brokerId: 1,
+    );
 
-  final List<AccountAsset> accounts;
+final class FakeAssets implements AssetRepository {
+  FakeAssets(this.assets);
+
+  final List<Asset> assets;
 
   @override
   Stream<List<AssetSnapshot>> watchAll({bool includeArchived = false}) =>
       Stream.value([
-        for (final account in accounts)
-          AssetSnapshot(asset: account, currentValue: account.openingValue),
+        for (final asset in assets)
+          AssetSnapshot(asset: asset, currentValue: asset.openingValue),
       ]);
 
   @override
@@ -199,10 +209,10 @@ final class FakeRates implements ExchangeRateRepository {
 
 TransferFormViewModel _viewModel(
   FakeTransactions transactions, {
-  List<AccountAsset>? accounts,
+  List<Asset>? assets,
 }) => TransferFormViewModel(
   assetRepository: FakeAssets(
-    accounts ?? [_account(1, 'RUB'), _account(2, 'RUB')],
+    assets ?? [_account(1, 'RUB'), _account(2, 'RUB')],
   ),
   transactionRepository: transactions,
   currencyRepository: FakeCurrencies(),
@@ -260,7 +270,7 @@ void main() {
     final transactions = FakeTransactions();
     final vm = _viewModel(
       transactions,
-      accounts: [_account(1, 'RUB'), _account(2, 'USD')],
+      assets: [_account(1, 'RUB'), _account(2, 'USD')],
     );
     await vm.load();
 
@@ -338,7 +348,7 @@ void main() {
   ) async {
     final vm = _viewModel(
       FakeTransactions(),
-      accounts: [_account(1, 'RUB'), _account(2, 'USD')],
+      assets: [_account(1, 'RUB'), _account(2, 'USD')],
     );
     await _pump(tester, vm);
 
@@ -353,7 +363,7 @@ void main() {
   testWidgets('кросс-курс USD→RUB показывает прямой курс', (tester) async {
     final vm = _viewModel(
       FakeTransactions(),
-      accounts: [_account(1, 'USD'), _account(2, 'RUB')],
+      assets: [_account(1, 'USD'), _account(2, 'RUB')],
     );
     await _pump(tester, vm);
 
@@ -377,9 +387,9 @@ void main() {
     await _pump(tester, vm);
 
     final source = tester
-        .widgetList<AppSelect<int>>(find.byType(AppSelect<int>))
+        .widgetList<AppAssetSelect>(find.byType(AppAssetSelect))
         .first;
-    expect(source.value, 1);
+    expect(source.valueId, 1);
   });
 
   testWidgets('счёт-источник не предлагается в списке назначения', (
@@ -387,12 +397,12 @@ void main() {
   ) async {
     await _pump(tester, _viewModel(FakeTransactions()));
 
-    final selects = tester.widgetList<AppSelect<int>>(
-      find.byType(AppSelect<int>),
+    final selects = tester.widgetList<AppAssetSelect>(
+      find.byType(AppAssetSelect),
     );
     final destination = selects.last;
-    expect(destination.items.map((item) => item.value), isNot(contains(1)));
-    expect(destination.items.map((item) => item.value), contains(2));
+    expect(destination.items.map((item) => item.id), isNot(contains(1)));
+    expect(destination.items.map((item) => item.id), contains(2));
   });
 
   testWidgets('форма перевода сохраняет сумму и счета', (tester) async {
@@ -407,5 +417,50 @@ void main() {
     expect(transactions.transfers.single.fromAccountId, 1);
     expect(transactions.transfers.single.toAccountId, 2);
     expect(transactions.transfers.single.amount.minorUnits, 100000);
+  });
+
+  test('перевод счёта в инвестицию сохраняется', () async {
+    final transactions = FakeTransactions();
+    final vm = _viewModel(
+      transactions,
+      assets: [_account(1, 'RUB'), _investment(2, 'RUB')],
+    );
+    await vm.load();
+
+    final result = await vm.save(
+      fromId: 1,
+      toId: 2,
+      amount: const Money(minorUnits: 100000, currencyCode: 'RUB'),
+      occurredOn: LocalDate(2026, 1, 3),
+    );
+
+    expect(result, isA<Success<int>>());
+    expect(transactions.transfers.single.toAccountId, 2);
+  });
+
+  testWidgets('инвестиция доступна в списке перевода с подписью вида', (
+    tester,
+  ) async {
+    final transactions = FakeTransactions();
+    await _pump(
+      tester,
+      _viewModel(
+        transactions,
+        assets: [_account(1, 'RUB'), _investment(2, 'RUB')],
+      ),
+    );
+
+    final destination = tester
+        .widgetList<AppAssetSelect>(find.byType(AppAssetSelect))
+        .last;
+    final investment = destination.items.firstWhere((item) => item.id == 2);
+    expect(investment.kindLabel, l10n.assetKindInvestment);
+    expect(investment.currencyCode, 'RUB');
+
+    await tester.enterText(find.byType(TextField).first, '1000');
+    await tester.tap(find.text(l10n.commonSave));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(transactions.transfers.single.toAccountId, 2);
   });
 }

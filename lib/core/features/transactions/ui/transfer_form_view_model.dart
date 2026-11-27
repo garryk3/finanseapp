@@ -9,10 +9,11 @@ import 'package:finanseapp/core/features/currencies/domain/exchange_rate_reposit
 import 'package:finanseapp/core/features/currencies/logic/resolve_exchange_rate.dart';
 import 'package:finanseapp/core/features/transactions/domain/asset_transaction.dart';
 import 'package:finanseapp/core/features/transactions/domain/asset_transaction_repository.dart';
+import 'package:finanseapp/core/features/transactions/domain/transfer_asset_kinds.dart';
 import 'package:finanseapp/core/presentation/view_state.dart';
 import 'package:signals/signals.dart';
 
-/// ViewModel перевода между счетами (6.2).
+/// ViewModel перевода между активами: счетами и инвестициями (6.2, 21.2).
 class TransferFormViewModel {
   TransferFormViewModel({
     required this.assetRepository,
@@ -31,18 +32,18 @@ class TransferFormViewModel {
   final int? initialFromId;
 
   final Signal<ViewState<void>> state = signal(const ViewLoading());
-  final Signal<List<AccountAsset>> accounts = signal(const []);
+  final Signal<List<Asset>> assets = signal(const []);
   final Signal<Map<String, Currency>> currencies = signal(const {});
   final Signal<bool> busy = signal(false);
 
   Future<void> load() async {
     try {
       final snapshots = await assetRepository.watchAll().first;
-      accounts.value = [
+      assets.value = [
         for (final snapshot in snapshots)
-          if (snapshot.asset is AccountAsset &&
+          if (transferAssetKinds.contains(snapshot.asset.kind) &&
               snapshot.asset.archivedAt == null)
-            snapshot.asset as AccountAsset,
+            snapshot.asset,
       ];
       final list = await currencyRepository.getEnabled();
       currencies.value = {for (final currency in list) currency.code: currency};
@@ -54,8 +55,8 @@ class TransferFormViewModel {
     }
   }
 
-  AccountAsset? accountById(int id) =>
-      accounts.value.where((account) => account.id == id).firstOrNull;
+  Asset? assetById(int id) =>
+      assets.value.where((asset) => asset.id == id).firstOrNull;
 
   Currency currencyOf(String code) =>
       currencies.value[code] ??
@@ -75,13 +76,13 @@ class TransferFormViewModel {
     required LocalDate occurredOn,
     String? comment,
   }) async {
-    final from = accountById(fromId);
-    final to = accountById(toId);
+    final from = assetById(fromId);
+    final to = assetById(toId);
     if (from == null || to == null) {
       return const Failure(
         DomainException(
           DomainErrorCode.validation,
-          fieldErrors: {'accountId': 'validationAccountRequired'},
+          fieldErrors: {'assetId': 'validationAssetRequired'},
         ),
       );
     }

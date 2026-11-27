@@ -1795,19 +1795,19 @@ abstract class AppLocalizations {
   /// Заголовок формы перевода.
   ///
   /// In ru, this message translates to:
-  /// **'Перевод между счетами'**
+  /// **'Перевод между активами'**
   String get transferFormTitle;
 
-  /// Счёт-источник перевода.
+  /// Актив-источник перевода.
   ///
   /// In ru, this message translates to:
-  /// **'Со счёта'**
+  /// **'Списать с'**
   String get transferFromLabel;
 
-  /// Счёт назначения перевода.
+  /// Актив назначения перевода.
   ///
   /// In ru, this message translates to:
-  /// **'На счёт'**
+  /// **'Зачислить на'**
   String get transferToLabel;
 
   /// Сумма перевода со счёта-источника.
@@ -1840,22 +1840,22 @@ abstract class AppLocalizations {
   /// **'Перевести'**
   String get transferAction;
 
-  /// Ошибка счёта-источника.
+  /// Ошибка актива-источника.
   ///
   /// In ru, this message translates to:
-  /// **'Выберите счёт списания.'**
+  /// **'Выберите актив списания.'**
   String get transferErrorFrom;
 
-  /// Ошибка счёта назначения.
+  /// Ошибка актива назначения.
   ///
   /// In ru, this message translates to:
-  /// **'Выберите счёт зачисления.'**
+  /// **'Выберите актив зачисления.'**
   String get transferErrorTo;
 
-  /// Ошибка одинаковых счетов.
+  /// Ошибка одинаковых активов.
   ///
   /// In ru, this message translates to:
-  /// **'Счета должны различаться.'**
+  /// **'Активы должны различаться.'**
   String get transferErrorSameAccount;
 
   /// Ошибка суммы перевода.
@@ -1870,10 +1870,10 @@ abstract class AppLocalizations {
   /// **'Недостаточно средств на счёте списания.'**
   String get transferErrorNegativeBalance;
 
-  /// Пустое состояние выбора счетов.
+  /// Пустое состояние выбора активов.
   ///
   /// In ru, this message translates to:
-  /// **'Нужно минимум два счёта.'**
+  /// **'Нужно минимум два актива.'**
   String get transferNoAccounts;
 
   /// Курс по введённым суммам перевода.
@@ -1882,10 +1882,10 @@ abstract class AppLocalizations {
   /// **'{fromUnit} ≈ {toAmount}'**
   String transferRateHint(String fromUnit, String toAmount);
 
-  /// Пояснение состояния с одним счётом.
+  /// Пояснение состояния с одним активом.
   ///
   /// In ru, this message translates to:
-  /// **'Добавьте второй счёт, чтобы переводить между счетами.'**
+  /// **'Добавьте второй счёт, чтобы выполнить перевод.'**
   String get transferNeedAccountsMessage;
 
   /// Ошибка суммы зачисления.
@@ -1893,6 +1893,12 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Введите положительную сумму зачисления.'**
   String get transferErrorDestination;
+
+  /// Ошибка недопустимого вида актива перевода.
+  ///
+  /// In ru, this message translates to:
+  /// **'Переводы между этим видом актива недоступны.'**
+  String get transferErrorAssetKind;
 
   /// Поле поиска по комментарию.
   ///
@@ -4127,7 +4133,7 @@ abstract class AppLocalizations {
   /// Пояснение удаления перевода.
   ///
   /// In ru, this message translates to:
-  /// **'Обе операции перевода будут скрыты из журнала, балансы обоих счетов вернутся к прежним значениям. Восстановить можно в «Удалённых операциях».'**
+  /// **'Обе операции перевода будут скрыты из журнала, балансы обоих активов вернутся к прежним значениям. Восстановить можно в «Удалённых операциях».'**
   String get transferDeleteMessage;
 
   /// Кнопка удаления перевода в деталях.
@@ -4145,7 +4151,7 @@ abstract class AppLocalizations {
   /// Удаление перевода нарушает историю баланса.
   ///
   /// In ru, this message translates to:
-  /// **'Нельзя удалить перевод: на одном из двух счетов остаток станет отрицательным. Сначала удалите или измените более поздние операции.'**
+  /// **'Нельзя удалить перевод: на одном из счетов перевода остаток станет отрицательным. Сначала удалите или измените более поздние операции.'**
   String get transferDeleteBalanceBlocked;
 
   /// Конфликт при удалении перевода.

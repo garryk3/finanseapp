@@ -175,7 +175,7 @@
   `[x]` до PR; e2e спросить.
 - **Предлагаемый commit:** `task/21.1: смешанные цели счета и инвестиции`.
 
-### 21.2 Переводы счёт ↔ инвестиция — [ ]
+### 21.2 Переводы счёт ↔ инвестиция — [x] (2026-11-27)
 
 - **Приоритет/зависимости:** P1; независима. Развивает `BR-T-8…10` (18.1 M6).
 - **Симптом:** форма перевода берёт только `AccountAsset`; DAO запрещает
@@ -196,6 +196,8 @@
     типа; empty-state «нужно ≥ 2 актива»; кнопка «Добавить счёт» сохраняется.
   - **T5.** Кросс-валютность (`destinationAmount`, `rateHint`) — без изменений.
 - **Files:**
+  - Add: `lib/core/features/transactions/domain/transfer_asset_kinds.dart`
+    (единый набор видов для перевода, BR-T-10; используется DAO и VM).
   - Modify: `lib/core/features/transactions/ui/transfer_form_view_model.dart`
     (тип сигнала, `assetById`, сообщения), `lib/core/features/transactions/ui/
     transfer_form_screen.dart` (списки/подписи/empty-state), `lib/core/database/
