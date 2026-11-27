@@ -214,6 +214,18 @@ abstract class AppLocalizations {
   /// **'Биометрия недоступна на этом устройстве'**
   String get appLockBiometricUnavailable;
 
+  /// Кнопка ручного перехода к PIN-клавиатуре на экране блокировки (D21.7).
+  ///
+  /// In ru, this message translates to:
+  /// **'Ввести PIN-код'**
+  String get appLockEnterPin;
+
+  /// Статус в биометрическом состоянии экрана блокировки (D21.7).
+  ///
+  /// In ru, this message translates to:
+  /// **'Подтвердите личность, чтобы войти'**
+  String get appLockBiometricPrompt;
+
   /// Подпись настройки auto-lock.
   ///
   /// In ru, this message translates to:

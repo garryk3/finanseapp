@@ -146,4 +146,80 @@ void main() {
       expect(controller.locked.value, isFalse);
     });
   });
+
+  group('показ PIN и авто-биометрия (D21.7)', () {
+    test('биометрия выключена — виден PIN, авто-вызова нет', () {
+      expect(viewModel.pinVisible.value, isTrue);
+      expect(viewModel.biometricVisible.value, isFalse);
+      expect(bio.authenticateCount, 0);
+    });
+
+    test('биометрия включена — PIN скрыт до попытки', () async {
+      bio.available = true;
+      await harness.service.setBiometricEnabled(true);
+      final vm = buildViewModel(harness, bio, controller);
+
+      await vm.init();
+
+      expect(vm.biometricVisible.value, isTrue);
+      expect(vm.pinVisible.value, isFalse);
+    });
+
+    test('init сбрасывает ввод и ошибку при повторном локе', () async {
+      '9999'.split('').forEach(viewModel.onDigit);
+      await viewModel.submitFuture;
+      expect(viewModel.error.value, ApplockInputError.wrongPin);
+      viewModel.onDigit('1');
+
+      await viewModel.init();
+
+      expect(viewModel.entered.value, isEmpty);
+      expect(viewModel.error.value, isNull);
+    });
+
+    test('успешная биометрия возвращает true и разблокирует', () async {
+      bio.available = true;
+      await harness.service.setBiometricEnabled(true);
+      final vm = buildViewModel(harness, bio, controller);
+      await vm.init();
+      bio.authenticateResult = true;
+
+      expect(await vm.authenticateBiometric(reason: 'r'), isTrue);
+      expect(controller.locked.value, isFalse);
+      expect(vm.pinVisible.value, isFalse);
+    });
+
+    test(
+      'неудача/отмена биометрии возвращает false и показывает PIN',
+      () async {
+        bio.available = true;
+        await harness.service.setBiometricEnabled(true);
+        final vm = buildViewModel(harness, bio, controller);
+        await vm.init();
+        bio.authenticateResult = false;
+
+        expect(await vm.authenticateBiometric(reason: 'r'), isFalse);
+        expect(controller.locked.value, isTrue);
+        expect(vm.pinVisible.value, isTrue);
+      },
+    );
+
+    test('без доступной биометрии сенсор не вызывается', () async {
+      expect(await viewModel.authenticateBiometric(reason: 'r'), isFalse);
+      expect(bio.lastReason, isNull);
+      expect(bio.authenticateCount, 0);
+    });
+
+    test('showPin показывает клавиатуру PIN вручную', () async {
+      bio.available = true;
+      await harness.service.setBiometricEnabled(true);
+      final vm = buildViewModel(harness, bio, controller);
+      await vm.init();
+      expect(vm.pinVisible.value, isFalse);
+
+      vm.showPin();
+
+      expect(vm.pinVisible.value, isTrue);
+    });
+  });
 }

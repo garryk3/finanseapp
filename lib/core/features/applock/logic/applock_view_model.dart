@@ -23,16 +23,26 @@ class ApplockViewModel {
   final Signal<Duration?> lockoutRemaining = signal(null);
   final Signal<bool> biometricVisible = signal(false);
 
+  /// Видна ли PIN-клавиатура (D21.7/B1): при доступной биометрии сначала
+  /// скрыта, показывается при ручном запросе или неудаче биометрии.
+  final Signal<bool> pinVisible = signal(true);
+
   Future<void>? _submitFuture;
   Future<void>? get submitFuture => _submitFuture;
 
   int get pinLength => _service.pinLength;
 
   Future<void> init() async {
+    entered.value = '';
+    error.value = null;
     biometricVisible.value =
         _service.biometricEnabled && await _biometrics.isAvailable();
+    pinVisible.value = !biometricVisible.value;
     await refreshLockout();
   }
+
+  /// Ручной показ PIN-клавиатуры (D21.7/B3, кнопка «Ввести PIN-код»).
+  void showPin() => pinVisible.value = true;
 
   void onDigit(String digit) {
     if (digit.length != 1 || !PinCode.parseAllowedDigit(digit)) return;
@@ -76,13 +86,18 @@ class ApplockViewModel {
     await refreshLockout();
   }
 
-  Future<void> authenticateBiometric({required String reason}) async {
-    if (!biometricVisible.value) return;
+  /// Биометрическая аутентификация (BR-Sec-4). Возвращает `true`, если
+  /// разблокировано; при неудаче/отмене показывает PIN (D21.7/B2).
+  Future<bool> authenticateBiometric({required String reason}) async {
+    if (!biometricVisible.value) return false;
     final ok = await _biometrics.authenticate(reason: reason);
     if (ok) {
       entered.value = '';
       error.value = null;
       _controller.unlock();
+      return true;
     }
+    pinVisible.value = true;
+    return false;
   }
 }

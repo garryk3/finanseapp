@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:finanseapp/app/theme/app_theme.dart';
 import 'package:finanseapp/core/features/applock/data/biometric_gateway.dart';
 import 'package:finanseapp/core/features/applock/domain/applock_service.dart';
@@ -5,7 +7,6 @@ import 'package:finanseapp/core/features/applock/domain/applock_snapshot.dart';
 import 'package:finanseapp/core/features/applock/domain/pin_code.dart';
 import 'package:finanseapp/core/features/applock/domain/pin_hasher.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
-import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// In-memory хранилище для unit-тестов applock.
@@ -28,6 +29,11 @@ class FakeBiometricGateway implements BiometricGateway {
   bool available = false;
   bool authenticateResult = false;
   String? lastReason;
+  int authenticateCount = 0;
+
+  /// Если задан — `authenticate` ждёт его завершения (проверка состояния
+  /// «идёт биометрия»); иначе сразу отдаёт [authenticateResult].
+  Completer<bool>? pending;
 
   @override
   Future<bool> isAvailable() async => available;
@@ -35,6 +41,9 @@ class FakeBiometricGateway implements BiometricGateway {
   @override
   Future<bool> authenticate({required String reason}) async {
     lastReason = reason;
+    authenticateCount++;
+    final pending = this.pending;
+    if (pending != null) return pending.future;
     return authenticateResult;
   }
 }

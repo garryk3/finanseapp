@@ -74,6 +74,12 @@ class AppLocalizationsRu extends AppLocalizations {
       'Биометрия недоступна на этом устройстве';
 
   @override
+  String get appLockEnterPin => 'Ввести PIN-код';
+
+  @override
+  String get appLockBiometricPrompt => 'Подтвердите личность, чтобы войти';
+
+  @override
   String get appLockAutoLock => 'Блокировка при сворачивании';
 
   @override
