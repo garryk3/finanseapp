@@ -36,6 +36,7 @@ import 'package:finanseapp/core/features/currencies/data/currency_repository_imp
 import 'package:finanseapp/core/features/currencies/data/exchange_rate_repository_impl.dart';
 import 'package:finanseapp/core/features/currencies/domain/currency_repository.dart';
 import 'package:finanseapp/core/features/currencies/domain/exchange_rate_repository.dart';
+import 'package:finanseapp/core/features/currencies/logic/rate_refresh_service.dart';
 import 'package:finanseapp/core/features/currencies/ui/base_currency_view_model.dart';
 import 'package:finanseapp/core/features/currencies/ui/currencies_view_model.dart';
 import 'package:finanseapp/core/features/currencies/ui/currency_form_view_model.dart';
@@ -115,6 +116,12 @@ Future<ServiceLocator> registerCoreServices(
       locator.get<CbrExchangeRateClient>(),
     ),
   );
+  locator.register<RateRefreshService>(
+    RateRefreshService(
+      currencyRepository: locator.get<CurrencyRepository>(),
+      rateRepository: locator.get<ExchangeRateRepository>(),
+    ),
+  );
   locator.register<OnboardingRepository>(
     OnboardingRepositoryImpl(db.settingsDao),
   );
@@ -156,6 +163,7 @@ Future<ServiceLocator> registerCoreServices(
     () => CurrenciesViewModel(
       repository: locator.get<CurrencyRepository>(),
       settingsRepository: locator.get<SettingsRepository>(),
+      rateRefreshService: locator.get<RateRefreshService>(),
     ),
   );
   locator.registerFactory<CurrencyFormViewModel>(

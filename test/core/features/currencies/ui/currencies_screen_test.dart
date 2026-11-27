@@ -3,8 +3,12 @@ import 'dart:async';
 import 'package:decimal/decimal.dart';
 import 'package:finanseapp/app/theme/app_theme.dart';
 import 'package:finanseapp/core/domain/common/currency.dart';
+import 'package:finanseapp/core/domain/common/exchange_rate.dart';
+import 'package:finanseapp/core/domain/common/local_date.dart';
 import 'package:finanseapp/core/domain/common/result.dart';
 import 'package:finanseapp/core/features/currencies/domain/currency_repository.dart';
+import 'package:finanseapp/core/features/currencies/domain/exchange_rate_repository.dart';
+import 'package:finanseapp/core/features/currencies/logic/rate_refresh_service.dart';
 import 'package:finanseapp/core/features/currencies/ui/base_currency_screen.dart';
 import 'package:finanseapp/core/features/currencies/ui/base_currency_view_model.dart';
 import 'package:finanseapp/core/features/currencies/ui/currencies_screen.dart';
@@ -100,6 +104,54 @@ final class FakeSettingsRepository implements SettingsRepository {
   Future<void> setBaseCurrency(String code) async => this.code = code;
 }
 
+/// Курсы для ручного обновления: `cached` уже в кэше, `failures` — сетевые
+/// сбои по коду, `gate` удерживает ответ для проверки pending-индикатора.
+final class _FakeRateRepository implements ExchangeRateRepository {
+  final Set<String> cached = <String>{};
+  final Map<String, Object> failures = <String, Object>{};
+  final List<String> fetched = <String>[];
+  Completer<void>? gate;
+
+  ExchangeRate _rate(String code, LocalDate date) => ExchangeRate(
+    id: 1,
+    currencyCode: code,
+    date: date,
+    rateToRub: Decimal.parse('90'),
+    source: ExchangeRateSource.cbr,
+    fetchedAt: DateTime.utc(2026, 11, 18),
+  );
+
+  @override
+  Future<ExchangeRate?> find(String currencyCode, LocalDate date) async =>
+      cached.contains(currencyCode) ? _rate(currencyCode, date) : null;
+
+  @override
+  Future<ExchangeRate> fetchFromCbr(String currencyCode, LocalDate date) async {
+    final waiting = gate;
+    if (waiting != null) await waiting.future;
+    fetched.add(currencyCode);
+    final error = failures[currencyCode];
+    if (error != null) throw error;
+    return _rate(currencyCode, date);
+  }
+
+  @override
+  Future<ExchangeRate> saveManual(
+    String currencyCode,
+    LocalDate date,
+    Decimal rateToRub,
+  ) async => _rate(currencyCode, date);
+}
+
+RateRefreshService _refreshService({
+  CurrencyRepository? currencies,
+  _FakeRateRepository? rates,
+}) => RateRefreshService(
+  currencyRepository: currencies ?? FakeCurrencyRepository(),
+  rateRepository: rates ?? _FakeRateRepository(),
+  today: () => LocalDate(2026, 11, 18),
+);
+
 Future<void> pumpScreen(WidgetTester tester, Widget child) async {
   await tester.pumpWidget(
     MaterialApp(
@@ -129,6 +181,7 @@ void main() {
     final viewModel = CurrenciesViewModel(
       repository: repository,
       settingsRepository: FakeSettingsRepository('RUB'),
+      rateRefreshService: _refreshService(),
     );
     addTearDown(viewModel.dispose);
 
@@ -152,6 +205,7 @@ void main() {
     final viewModel = CurrenciesViewModel(
       repository: repository,
       settingsRepository: FakeSettingsRepository('RUB'),
+      rateRefreshService: _refreshService(),
     );
     addTearDown(viewModel.dispose);
 
@@ -222,5 +276,57 @@ void main() {
     await tester.tap(find.text(l10n.commonSave));
     await tester.pump(const Duration(milliseconds: 300));
     expect(result, Decimal.parse('93.4567'));
+  });
+
+  testWidgets('ручное обновление курсов: индикатор и snackbar', (tester) async {
+    final currencies = FakeCurrencyRepository();
+    final rates = _FakeRateRepository()
+      ..cached.add('USD')
+      ..gate = Completer<void>();
+    final viewModel = CurrenciesViewModel(
+      repository: currencies,
+      settingsRepository: FakeSettingsRepository('RUB'),
+      rateRefreshService: _refreshService(currencies: currencies, rates: rates),
+    );
+    addTearDown(viewModel.dispose);
+
+    await pumpScreen(tester, CurrenciesScreen(viewModel: viewModel));
+    currencies.emit(const [_rub, _usd, _eur]);
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await tester.tap(find.byTooltip(l10n.currenciesRefreshTooltip));
+    await tester.pump();
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+    rates.gate!.complete();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text(l10n.currenciesRefreshDone(1)), findsOneWidget);
+  });
+
+  testWidgets('ручное обновление: сетевая ошибка не скрывает данные', (
+    tester,
+  ) async {
+    final currencies = FakeCurrencyRepository();
+    final rates = _FakeRateRepository()
+      ..cached.add('USD')
+      ..failures['EUR'] = const DomainException(
+        DomainErrorCode.networkUnavailable,
+      );
+    final viewModel = CurrenciesViewModel(
+      repository: currencies,
+      settingsRepository: FakeSettingsRepository('RUB'),
+      rateRefreshService: _refreshService(currencies: currencies, rates: rates),
+    );
+    addTearDown(viewModel.dispose);
+
+    await pumpScreen(tester, CurrenciesScreen(viewModel: viewModel));
+    currencies.emit(const [_rub, _usd, _eur]);
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await tester.tap(find.byTooltip(l10n.currenciesRefreshTooltip));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text(l10n.currenciesRefreshFailed(1)), findsOneWidget);
+    expect(find.text('USD · Доллар США'), findsOneWidget);
   });
 }

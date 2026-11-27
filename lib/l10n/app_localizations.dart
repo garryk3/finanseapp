@@ -826,6 +826,36 @@ abstract class AppLocalizations {
   /// **'Настройки валюты обновлены.'**
   String get currencyToggled;
 
+  /// Подсказка кнопки ручного обновления курсов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Обновить курсы'**
+  String get currenciesRefreshTooltip;
+
+  /// Семантика pending при обновлении курсов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Обновление курсов'**
+  String get currenciesRefreshPending;
+
+  /// Результат обновления курсов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Курсы обновлены: {count}.'**
+  String currenciesRefreshDone(int count);
+
+  /// Результат обновления, когда все курсы уже в кэше.
+  ///
+  /// In ru, this message translates to:
+  /// **'Курсы уже актуальны.'**
+  String get currenciesRefreshUpToDate;
+
+  /// Результат обновления при сетевых ошибках.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось обновить курсы: {count}.'**
+  String currenciesRefreshFailed(int count);
+
   /// Пояснение смены базовой валюты.
   ///
   /// In ru, this message translates to:

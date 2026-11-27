@@ -551,6 +551,36 @@
   "@currencyToggled": {
     "description": "Подтверждение включения/отключения валюты."
   },
+  "currenciesRefreshTooltip": "Обновить курсы",
+  "@currenciesRefreshTooltip": {
+    "description": "Подсказка кнопки ручного обновления курсов."
+  },
+  "currenciesRefreshPending": "Обновление курсов",
+  "@currenciesRefreshPending": {
+    "description": "Семантика pending при обновлении курсов."
+  },
+  "currenciesRefreshDone": "Курсы обновлены: {count}.",
+  "@currenciesRefreshDone": {
+    "description": "Результат обновления курсов.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "currenciesRefreshUpToDate": "Курсы уже актуальны.",
+  "@currenciesRefreshUpToDate": {
+    "description": "Результат обновления, когда все курсы уже в кэше."
+  },
+  "currenciesRefreshFailed": "Не удалось обновить курсы: {count}.",
+  "@currenciesRefreshFailed": {
+    "description": "Результат обновления при сетевых ошибках.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "baseCurrencyHint": "Итоги и дашборд будут пересчитаны в выбранной валюте; сохранённые суммы в RUB не меняются.",
   "@baseCurrencyHint": {
     "description": "Пояснение смены базовой валюты."

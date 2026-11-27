@@ -5,6 +5,7 @@ import 'package:finanseapp/app/routes.dart';
 import 'package:finanseapp/app/theme/app_spacing.dart';
 import 'package:finanseapp/core/domain/common/currency.dart';
 import 'package:finanseapp/core/domain/common/result.dart';
+import 'package:finanseapp/core/features/currencies/logic/rate_refresh_service.dart';
 import 'package:finanseapp/core/features/currencies/ui/currencies_view_model.dart';
 import 'package:finanseapp/core/presentation/view_state.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
@@ -15,6 +16,7 @@ import 'package:finanseapp/uikit/app_empty_state.dart';
 import 'package:finanseapp/uikit/app_error_state.dart';
 import 'package:finanseapp/uikit/app_floating_action_button.dart';
 import 'package:finanseapp/uikit/app_icon.dart';
+import 'package:finanseapp/uikit/app_icon_button.dart';
 import 'package:finanseapp/uikit/app_list_tile.dart';
 import 'package:finanseapp/uikit/app_list_view.dart';
 import 'package:finanseapp/uikit/app_popup_menu.dart';
@@ -23,6 +25,7 @@ import 'package:finanseapp/uikit/app_skeleton.dart';
 import 'package:finanseapp/uikit/app_snack_bar.dart';
 import 'package:finanseapp/uikit/app_text.dart';
 import 'package:finanseapp/uikit/app_text_field.dart';
+import 'package:finanseapp/uikit/app_top_app_bar.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:signals_flutter/signals_flutter.dart';
@@ -69,7 +72,20 @@ class _CurrenciesScreenState extends State<CurrenciesScreen> {
   Widget build(BuildContext context) {
     final l10n = _l10n;
     return AppScaffold(
-      title: l10n.currenciesTitle,
+      appBar: AppTopAppBar(
+        title: l10n.currenciesTitle,
+        actions: [
+          SignalBuilder(
+            builder: (context) => AppIconButton(
+              icon: Icons.refresh,
+              tooltip: l10n.currenciesRefreshTooltip,
+              pending: _viewModel.refreshing.value,
+              pendingLabel: l10n.currenciesRefreshPending,
+              onPressed: _refreshRates,
+            ),
+          ),
+        ],
+      ),
       floatingActionButton: AppFloatingActionButton(
         icon: Icons.add,
         tooltip: l10n.currencyAdd,
@@ -260,6 +276,30 @@ class _CurrenciesScreenState extends State<CurrenciesScreen> {
       ],
     ),
   );
+
+  /// Ручное обновление курсов (R3): индикатор на иконке + snackbar-результат.
+  Future<void> _refreshRates() async {
+    final l10n = _l10n;
+    final RateRefreshReport report;
+    try {
+      report = await _viewModel.refreshRates();
+    } on DomainException {
+      if (!mounted) return;
+      _showError(l10n.errorStateMessage);
+      return;
+    }
+    if (!mounted) return;
+    if (report.hasFailures) {
+      _showError(l10n.currenciesRefreshFailed(report.failures.length));
+      return;
+    }
+    showAppSnackBar(
+      context,
+      message: report.refreshed == 0
+          ? l10n.currenciesRefreshUpToDate
+          : l10n.currenciesRefreshDone(report.refreshed),
+    );
+  }
 
   void _report(Result<void> result, {String? success}) {
     if (result is Failure<void>) {

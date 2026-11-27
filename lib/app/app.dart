@@ -13,6 +13,7 @@ import 'package:finanseapp/core/features/recurring/logic/recurring_catchup_servi
 import 'package:finanseapp/core/features/settings/domain/settings_repository.dart';
 import 'package:finanseapp/core/features/currencies/domain/currency_repository.dart';
 import 'package:finanseapp/core/features/currencies/logic/exchange_rate_events.dart';
+import 'package:finanseapp/core/features/currencies/logic/rate_refresh_service.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
@@ -32,7 +33,10 @@ class _FinanseAppState extends State<FinanseApp> with WidgetsBindingObserver {
   late final GoRouter _router = buildRouter(locator: widget.locator);
   late final RecurringCatchupService _catchup = widget.locator
       .get<RecurringCatchupService>();
+  late final RateRefreshService _rateRefresh = widget.locator
+      .get<RateRefreshService>();
   EffectCleanup? _rateCleanup;
+  Timer? _dateChangeTimer;
 
   @override
   void initState() {
@@ -42,12 +46,20 @@ class _FinanseAppState extends State<FinanseApp> with WidgetsBindingObserver {
     _rateCleanup = exchangeRateRevision.subscribe((_) {
       unawaited(_catchup.catchUp());
     });
+    // Автообновление курсов на «сегодня» (D21.3/R2): после первого кадра,
+    // чтобы не блокировать старт приложения.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      unawaited(_refreshRates());
+    });
+    _scheduleDateChangeRefresh();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       unawaited(_catchup.catchUp());
+      unawaited(_refreshRates());
     }
   }
 
@@ -55,7 +67,33 @@ class _FinanseAppState extends State<FinanseApp> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _rateCleanup?.call();
+    _dateChangeTimer?.cancel();
     super.dispose();
+  }
+
+  /// Автообновление курсов не критично для UI: сеть и ошибки глушим здесь —
+  /// результат вручную показывает справочник валют (R3).
+  Future<void> _refreshRates() async {
+    try {
+      await _rateRefresh.refreshToday();
+    } on Exception {
+      // Следующая попытка — на `resumed`, смене даты или вручную.
+    }
+  }
+
+  /// Смена локальной даты (R2): один таймер до ближайшей полуночи; после
+  /// срабатывания обновляем курсы и переставляем таймер.
+  void _scheduleDateChangeRefresh() {
+    _dateChangeTimer?.cancel();
+    final now = DateTime.now();
+    final nextMidnight = DateTime(now.year, now.month, now.day + 1);
+    _dateChangeTimer = Timer(
+      nextMidnight.difference(now) + const Duration(seconds: 1),
+      () {
+        unawaited(_refreshRates());
+        _scheduleDateChangeRefresh();
+      },
+    );
   }
 
   @override
