@@ -185,11 +185,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
               l10n: l10n,
               onAccount: (id) => context.push(AppRoutes.assetDetailsPath(id)),
             ),
-          if (cushion != null)
+          if (cushion != null || vm.safetyCushionError.value != null)
             DashboardSafetyCushion(
               cushion: cushion,
+              error: vm.safetyCushionError.value,
               l10n: l10n,
               formatMoney: vm.formatMoney,
+              onRetry: vm.reload,
             ),
           if (vm.taxEstimate.value != null || vm.taxError.value != null)
             DashboardTaxEstimate(

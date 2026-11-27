@@ -505,12 +505,13 @@ AssetSnapshot _snapshot(
   LocalDate? endDate,
   DateTime? archivedAt,
   String? name,
+  String currencyCode = 'RUB',
 }) => AssetSnapshot(
   asset: AccountAsset(
     id: id,
     name: name ?? 'Счёт $id',
-    currencyCode: 'RUB',
-    openingValue: const Money(minorUnits: 0, currencyCode: 'RUB'),
+    currencyCode: currencyCode,
+    openingValue: Money(minorUnits: 0, currencyCode: currencyCode),
     createdAt: DateTime.utc(2024, 1, 1),
     bankId: 1,
     annualRate: Decimal.zero,
@@ -1574,7 +1575,9 @@ void main() {
     expect(queries.safetyQueries, greaterThan(before));
   });
 
-  testWidgets('подушка скрывается при ошибке курса net worth', (tester) async {
+  testWidgets('подушка остаётся при ошибке курса net worth (S1)', (
+    tester,
+  ) async {
     final queries = _Queries(
       _rubles(3000),
       safetyResult: CashflowSummary(
@@ -1591,12 +1594,94 @@ void main() {
       snapshots: [_snapshot(1, _rubles(3000))],
     );
     expect(find.text(l10n.dashboardSafetyTitle), findsOneWidget);
+    expect(find.text(l10n.dashboardSafetyMonths(3)), findsOneWidget);
 
+    // Мультивалютная инвестиция в чистом капитале даёт rateUnavailable, но
+    // подушке нужны только счета и денежный поток (D21.5/S1).
     queries.error = const DomainException(DomainErrorCode.rateUnavailable);
     markExchangeRateChanged();
     await tester.pumpAndSettle();
 
-    expect(find.text(l10n.dashboardSafetyTitle), findsNothing);
+    expect(find.text(l10n.dashboardSafetyTitle), findsOneWidget);
+    expect(find.text(l10n.dashboardSafetyMonths(3)), findsOneWidget);
+  });
+
+  testWidgets('подушка: ошибка курса в safety-запросе — inline (S2/S5)', (
+    tester,
+  ) async {
+    final queries = _Queries(
+      _rubles(3000),
+      safetyError: const DomainException(DomainErrorCode.rateUnavailable),
+    );
+    final vm = await pump(
+      tester,
+      width: 427,
+      queries: queries,
+      snapshots: [_snapshot(1, _rubles(3000))],
+    );
+
+    expect(vm.safetyCushionError.value, DomainErrorCode.rateUnavailable);
+    expect(find.text(l10n.dashboardSafetyTitle), findsOneWidget);
+    expect(find.text(l10n.assetBaseUnavailable), findsOneWidget);
+    expect(find.text(l10n.retry), findsOneWidget);
+  });
+
+  testWidgets('подушка: нет курса для счёта — inline (S5)', (tester) async {
+    final queries = _Queries(
+      _rubles(3000),
+      safetyResult: CashflowSummary(
+        income: _rubles(3600),
+        expense: _rubles(3000),
+        net: _rubles(600),
+        currencyCode: 'RUB',
+      ),
+    );
+    final vm = await pump(
+      tester,
+      width: 427,
+      queries: queries,
+      snapshots: [
+        _snapshot(
+          1,
+          const Money(minorUnits: 100000, currencyCode: 'USD'),
+          currencyCode: 'USD',
+        ),
+      ],
+    );
+
+    expect(vm.safetyCushionError.value, DomainErrorCode.rateUnavailable);
+    expect(find.text(l10n.dashboardSafetyTitle), findsOneWidget);
+    expect(find.text(l10n.assetBaseUnavailable), findsOneWidget);
+  });
+
+  testWidgets('подушка: счёт в валюте с резервным курсом (S4)', (tester) async {
+    final queries = _Queries(
+      _rubles(0),
+      safetyResult: CashflowSummary(
+        income: _rubles(3600),
+        expense: _rubles(3000),
+        net: _rubles(600),
+        currencyCode: 'RUB',
+      ),
+    );
+    final vm = await pump(
+      tester,
+      width: 427,
+      queries: queries,
+      snapshots: [
+        _snapshot(
+          1,
+          const Money(minorUnits: 100000, currencyCode: 'USD'),
+          currencyCode: 'USD',
+        ),
+      ],
+      latestRates: {'USD': Decimal.fromInt(90)},
+    );
+
+    expect(vm.safetyCushionError.value, isNull);
+    expect(vm.safetyCushion.value!.cash, _rubles(90000));
+    expect(vm.staleRateDate.value, _today);
+    expect(find.text(l10n.dashboardSafetyTitle), findsOneWidget);
   });
 
   testWidgets('подушка скрывается при ошибке safety-запроса', (tester) async {

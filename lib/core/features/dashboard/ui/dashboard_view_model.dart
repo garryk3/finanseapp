@@ -106,6 +106,10 @@ class DashboardViewModel {
   /// Подушка безопасности; null — нет расходов/счетов/курса.
   final Signal<SafetyCushion?> safetyCushion = signal(null);
 
+  /// Неустранимая ошибка курса в подушке (D21.5/S5); блок остаётся видимым
+  /// с inline-состоянием («Курс недоступен» + повторить) вместо исчезновения.
+  final Signal<DomainErrorCode?> safetyCushionError = signal(null);
+
   /// Предполагаемый налог с процентов по вкладам за год (D21.6);
   /// null — нет счетов/расчёта или ошибка (см. [taxError]).
   final Signal<TaxEstimate?> taxEstimate = signal(null);
@@ -168,6 +172,9 @@ class DashboardViewModel {
   EffectCleanup? _rateCleanup;
 
   CashflowSummary? _safetySummary;
+  Money? _safetyCash;
+  DomainErrorCode? _safetyCashError;
+  DomainErrorCode? _safetyFlowError;
   int _safetyToken = 0;
   bool _safetyReady = false;
 
@@ -229,18 +236,16 @@ class DashboardViewModel {
           onError: _failLocalCashflow,
         );
     _safetySummary = null;
+    _safetyCash = null;
+    _safetyCashError = null;
+    _safetyFlowError = null;
     _safetyReady = false;
     safetyCushion.value = null;
+    safetyCushionError.value = null;
     _safetySubscription?.cancel();
     _safetySubscription = cashflowRepository
         .watch(CashflowFilter(period: _safetyRange))
-        .listen(
-          (_) => unawaited(_reloadSafety()),
-          onError: (_) {
-            _safetySummary = null;
-            safetyCushion.value = null;
-          },
-        );
+        .listen((_) => unawaited(_reloadSafety()), onError: _failLocalSafety);
     unawaited(_reloadSafety());
     _taxBase = null;
     _taxReady = false;
@@ -264,7 +269,7 @@ class DashboardViewModel {
             for (final snapshot in snapshots) snapshot.asset.id: snapshot,
           };
           _updateOverdueAccounts(snapshots);
-          _recomputeSafety();
+          unawaited(_reloadSafety());
           unawaited(_reloadTax());
           assetNames.value = {
             for (final snapshot in snapshots)
@@ -330,6 +335,7 @@ class DashboardViewModel {
         _currencies = {for (final currency in list) currency.code: currency};
         unawaited(_recomputeGoals());
         unawaited(_reloadLocked());
+        unawaited(_reloadSafety());
       },
       onError: (_) {
         // Итоги показываются без эквивалента, если справочник недоступен.
@@ -415,26 +421,68 @@ class DashboardViewModel {
 
   Future<void> _reloadSafety() async {
     final token = ++_safetyToken;
-    try {
-      final summary = await queries.cashflow(
-        CashflowFilter(period: _safetyRange),
-      );
-      if (_disposed || token != _safetyToken) return;
-      _safetySummary = summary;
-      _staleSafety = summary.staleRateDate;
-      _recomputeStaleRateDate();
-      _safetyReady = true;
-      _recomputeSafety();
-      _emit();
-    } on Exception {
-      if (_disposed || token != _safetyToken) return;
+    final base = baseCurrency.value;
+    if (!_hasActiveAccounts || base == null) {
+      // S3: без неархивных счетов блок законно скрыт.
+      _safetyCash = null;
       _safetySummary = null;
+      _safetyCashError = null;
+      _safetyFlowError = null;
       _staleSafety = null;
-      _recomputeStaleRateDate();
-      _safetyReady = true;
       safetyCushion.value = null;
+      safetyCushionError.value = null;
+      _safetyReady = true;
+      _recomputeStaleRateDate();
       _emit();
+      return;
     }
+    Money? cash;
+    LocalDate? cashStale;
+    DomainErrorCode? cashError;
+    try {
+      final resolved = await _cashInBase(base);
+      cash = resolved.cash;
+      cashStale = resolved.stale;
+    } on DomainException catch (error) {
+      cashError = error.code;
+    } on Exception {
+      cashError = DomainErrorCode.storageFailure;
+    }
+    if (_disposed || token != _safetyToken) return;
+    CashflowSummary? summary;
+    DomainErrorCode? flowError;
+    try {
+      summary = await queries.cashflow(CashflowFilter(period: _safetyRange));
+    } on DomainException catch (error) {
+      flowError = error.code;
+    } on Exception {
+      flowError = DomainErrorCode.storageFailure;
+    }
+    if (_disposed || token != _safetyToken) return;
+    _safetyCash = cash;
+    _safetyCashError = cashError;
+    _safetySummary = summary;
+    _safetyFlowError = flowError;
+    _staleSafety = cashError == null && flowError == null
+        ? _laterNullable(cashStale, summary?.staleRateDate)
+        : null;
+    _safetyReady = true;
+    _recomputeStaleRateDate();
+    _recomputeSafety();
+    _emit();
+  }
+
+  void _failLocalSafety(Object _) {
+    if (_disposed) return;
+    _safetyCash = null;
+    _safetySummary = null;
+    _safetyCashError = null;
+    _safetyFlowError = DomainErrorCode.storageFailure;
+    _staleSafety = null;
+    _safetyReady = true;
+    _recomputeStaleRateDate();
+    _recomputeSafety();
+    _emit();
   }
 
   bool get _hasActiveAccounts => _snapshots.values.any(
@@ -443,18 +491,23 @@ class DashboardViewModel {
   );
 
   void _recomputeSafety() {
-    final netWorth = this.netWorth.value;
+    final error = _safetyCashError ?? _safetyFlowError;
+    if (error != null) {
+      safetyCushion.value = null;
+      // S5: неустранимая ошибка курса оставляет блок с inline-состоянием;
+      // прочие ошибки (хранилище) блок скрывают (S3).
+      safetyCushionError.value = error == DomainErrorCode.rateUnavailable
+          ? error
+          : null;
+      return;
+    }
+    safetyCushionError.value = null;
+    final cash = _safetyCash;
     final summary = _safetySummary;
-    if (netWorthError.value != null ||
-        netWorth == null ||
-        summary == null ||
-        !_hasActiveAccounts) {
+    if (cash == null || summary == null || !_hasActiveAccounts) {
       safetyCushion.value = null;
       return;
     }
-    final cash =
-        netWorth.byAssetKind[AssetKind.account] ??
-        Money(minorUnits: 0, currencyCode: netWorth.total.currencyCode);
     safetyCushion.value = SafetyCushion.calculate(
       cash: cash,
       lastThreeMonths: summary,
@@ -578,7 +631,6 @@ class DashboardViewModel {
       _staleNetWorth = summary.staleRateDate;
       _recomputeStaleRateDate();
       _netWorthReady = true;
-      _recomputeSafety();
       unawaited(_reloadLocked());
       _emit();
     } on DomainException catch (error) {
@@ -588,7 +640,6 @@ class DashboardViewModel {
       _staleNetWorth = null;
       _recomputeStaleRateDate();
       _netWorthReady = true;
-      _recomputeSafety();
       unawaited(_reloadLocked());
       _emit();
     } on Exception {
@@ -597,7 +648,6 @@ class DashboardViewModel {
       _staleNetWorth = null;
       _recomputeStaleRateDate();
       _netWorthReady = true;
-      _recomputeSafety();
       unawaited(_reloadLocked());
       _emit();
     }
@@ -649,50 +699,18 @@ class DashboardViewModel {
       if (!base.isRub && marks.any((mark) => mark.currency.code != base.code))
         base.code,
     };
-    final rates = <String, Decimal>{};
-    LocalDate? stale;
     try {
-      for (final code in codes) {
-        final cached = _rateCache[code];
-        if (cached != null) {
-          rates[code] = cached;
-          final cachedStale = _rateStaleDates[code];
-          if (cachedStale != null) {
-            stale = _laterDate(stale, cachedStale);
-          }
-          continue;
-        }
-        final resolved = await ExchangeRateResolver.resolve(
-          rateRepository,
-          code,
-          today.value,
-        );
-        if (_disposed || token != _lockedToken) return;
-        if (resolved == null) {
-          throw DomainException(
-            DomainErrorCode.rateUnavailable,
-            fieldErrors: {'currencyCode': code},
-          );
-        }
-        _rateCache[code] = resolved.rateToRub;
-        if (resolved.stale) {
-          _rateStaleDates[code] = resolved.effectiveDate;
-          stale = _laterDate(stale, resolved.effectiveDate);
-        } else {
-          _rateStaleDates.remove(code);
-        }
-        rates[code] = resolved.rateToRub;
-      }
+      final resolved = await _resolveRates(codes);
       if (_disposed || token != _lockedToken) return;
       final total = NetWorthCalculator.calculate(
         assets: marks,
-        ratesToRub: rates,
+        ratesToRub: resolved.rates,
         baseCurrency: base,
       ).total;
       lockedTotal.value = total;
       lockedShare.value = _lockedShareOf(total, base);
       lockedError.value = null;
-      _staleLocked = stale;
+      _staleLocked = resolved.stale;
       _recomputeStaleRateDate();
     } on DomainException catch (error) {
       if (_disposed || token != _lockedToken) return;
@@ -711,6 +729,74 @@ class DashboardViewModel {
     }
   }
 
+  /// Резолвит курсы [codes] к RUB на текущую дату с кэшем и резервным курсом
+  /// чтения (BR-C-9); при отсутствии курса вовсе — `rateUnavailable`.
+  Future<({Map<String, Decimal> rates, LocalDate? stale})> _resolveRates(
+    Set<String> codes,
+  ) async {
+    final rates = <String, Decimal>{};
+    LocalDate? stale;
+    for (final code in codes) {
+      final cached = _rateCache[code];
+      if (cached != null) {
+        rates[code] = cached;
+        final cachedStale = _rateStaleDates[code];
+        if (cachedStale != null) stale = _laterDate(stale, cachedStale);
+        continue;
+      }
+      final resolved = await ExchangeRateResolver.resolve(
+        rateRepository,
+        code,
+        today.value,
+      );
+      if (resolved == null) {
+        throw DomainException(
+          DomainErrorCode.rateUnavailable,
+          fieldErrors: {'currencyCode': code},
+        );
+      }
+      _rateCache[code] = resolved.rateToRub;
+      if (resolved.stale) {
+        _rateStaleDates[code] = resolved.effectiveDate;
+        stale = _laterDate(stale, resolved.effectiveDate);
+      } else {
+        _rateStaleDates.remove(code);
+      }
+      rates[code] = resolved.rateToRub;
+    }
+    return (rates: rates, stale: stale);
+  }
+
+  /// Деньги неархивных счетов в базовой валюте с резервным курсом (S4/D21.5),
+  /// независимо от `netWorth`/`netWorthError`.
+  Future<({Money cash, LocalDate? stale})> _cashInBase(Currency base) async {
+    final accounts = <NetWorthAssetValue>[
+      for (final snapshot in _snapshots.values)
+        if (snapshot.asset.kind == AssetKind.account &&
+            snapshot.asset.archivedAt == null)
+          NetWorthAssetValue(
+            kind: AssetKind.account,
+            value: snapshot.currentValue,
+            currency: currencyOf(snapshot.asset.currencyCode),
+          ),
+    ];
+    final codes = <String>{
+      for (final account in accounts)
+        if (account.currency.code != base.code && !account.currency.isRub)
+          account.currency.code,
+      if (!base.isRub &&
+          accounts.any((account) => account.currency.code != base.code))
+        base.code,
+    };
+    final resolved = await _resolveRates(codes);
+    final total = NetWorthCalculator.calculate(
+      assets: accounts,
+      ratesToRub: resolved.rates,
+      baseCurrency: base,
+    ).total;
+    return (cash: total, stale: resolved.stale);
+  }
+
   /// Самая свежая дата резервного курса среди блоков Главной (BR-C-9/C4).
   void _recomputeStaleRateDate() {
     LocalDate? latest;
@@ -727,6 +813,12 @@ class DashboardViewModel {
 
   static LocalDate _laterDate(LocalDate? current, LocalDate candidate) =>
       current == null || candidate.compareTo(current) > 0 ? candidate : current;
+
+  static LocalDate? _laterNullable(LocalDate? a, LocalDate? b) {
+    if (a == null) return b;
+    if (b == null) return a;
+    return _laterDate(a, b);
+  }
 
   Decimal? _lockedShareOf(Money total, Currency base) {
     final summary = netWorthError.value == null ? netWorth.value : null;
