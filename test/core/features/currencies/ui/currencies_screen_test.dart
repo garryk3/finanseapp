@@ -131,6 +131,12 @@ final class _FakeRateRepository implements ExchangeRateRepository {
       cached.contains(currencyCode) ? _rate(currencyCode, date) : null;
 
   @override
+  Future<ExchangeRate?> findLatestOnOrBefore(
+    String currencyCode,
+    LocalDate date,
+  ) async => null;
+
+  @override
   Future<ExchangeRate> fetchFromCbr(String currencyCode, LocalDate date) async {
     final waiting = gate;
     if (waiting != null) await waiting.future;

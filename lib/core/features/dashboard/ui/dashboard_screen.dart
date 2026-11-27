@@ -24,6 +24,7 @@ import 'package:finanseapp/uikit/app_section.dart';
 import 'package:finanseapp/uikit/app_skeleton.dart';
 import 'package:finanseapp/uikit/app_text.dart';
 import 'package:finanseapp/uikit/app_top_app_bar.dart';
+import 'package:finanseapp/uikit/app_warning_banner.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:signals_flutter/signals_flutter.dart';
@@ -142,10 +143,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
               value: vm.formatMoney(summary.byAssetKind[kind]!),
             ),
     ];
+    final staleDate = vm.staleRateDate.value;
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
       child: AppAdaptiveGrid(
         children: [
+          if (staleDate != null)
+            AppWarningBanner(
+              message: l10n.dashboardStaleRateBanner(
+                const DateFormatter().format(staleDate),
+              ),
+            ),
           AppSection(
             header: l10n.dashboardOverview,
             padded: false,

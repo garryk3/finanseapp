@@ -80,6 +80,43 @@ void main() {
     });
   });
 
+  group('AppWarningBanner', () {
+    testWidgets('рендерит сообщение и не использует error-роль', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(const AppWarningBanner(message: 'Курс валют от 15.11.2026')),
+      );
+      expect(find.text('Курс валют от 15.11.2026'), findsOneWidget);
+      expect(find.byType(AppButton), findsNothing);
+    });
+
+    testWidgets('действие вызывает onAction один раз', (tester) async {
+      var actions = 0;
+      await tester.pumpWidget(
+        testApp(
+          AppWarningBanner(
+            message: 'Курс недоступен',
+            actionLabel: 'Повторить',
+            onAction: () => actions++,
+          ),
+        ),
+      );
+      await tester.tap(find.text('Повторить'));
+      await tester.pump();
+      expect(actions, 1);
+    });
+
+    testWidgets('semantics содержит сообщение', (tester) async {
+      final handle = tester.ensureSemantics();
+      await tester.pumpWidget(
+        testApp(const AppWarningBanner(message: 'Курс валют от 15.11.2026')),
+      );
+      expect(find.bySemanticsLabel('Курс валют от 15.11.2026'), findsOneWidget);
+      handle.dispose();
+    });
+  });
+
   group('AppConfirmDialog', () {
     testWidgets('destructive: confirm в error-роли, cancel текстовая', (
       tester,

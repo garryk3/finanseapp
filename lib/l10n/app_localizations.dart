@@ -3627,6 +3627,12 @@ abstract class AppLocalizations {
   /// **'Не удалось рассчитать'**
   String get dashboardNetWorthUnavailable;
 
+  /// Плашка на Главной, когда суммы посчитаны по резервному (последнему известному) курсу.
+  ///
+  /// In ru, this message translates to:
+  /// **'Курс валют от {date}: актуальный получить не удалось'**
+  String dashboardStaleRateBanner(String date);
+
   /// Карточка заблокированных активов на Главной.
   ///
   /// In ru, this message translates to:

@@ -144,6 +144,12 @@ final class _NoRates implements ExchangeRateRepository {
   Future<ExchangeRate?> find(String currencyCode, LocalDate date) async => null;
 
   @override
+  Future<ExchangeRate?> findLatestOnOrBefore(
+    String currencyCode,
+    LocalDate date,
+  ) async => null;
+
+  @override
   Future<ExchangeRate> fetchFromCbr(String currencyCode, LocalDate date) =>
       throw const DomainException(DomainErrorCode.rateUnavailable);
 
@@ -173,6 +179,12 @@ final class _Rates implements ExchangeRateRepository {
       fetchedAt: DateTime.utc(2026, 1, 1),
     );
   }
+
+  @override
+  Future<ExchangeRate?> findLatestOnOrBefore(
+    String currencyCode,
+    LocalDate date,
+  ) => find(currencyCode, date);
 
   @override
   Future<ExchangeRate> fetchFromCbr(String currencyCode, LocalDate date) =>

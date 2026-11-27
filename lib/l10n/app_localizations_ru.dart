@@ -1969,6 +1969,11 @@ class AppLocalizationsRu extends AppLocalizations {
   String get dashboardNetWorthUnavailable => 'Не удалось рассчитать';
 
   @override
+  String dashboardStaleRateBanner(String date) {
+    return 'Курс валют от $date: актуальный получить не удалось';
+  }
+
+  @override
   String get dashboardLockedTitle => 'Заблокированные активы';
 
   @override

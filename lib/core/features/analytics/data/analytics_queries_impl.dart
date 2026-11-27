@@ -17,6 +17,7 @@ import 'package:finanseapp/core/features/cashflow/domain/cashflow_filter.dart';
 import 'package:finanseapp/core/features/cashflow/domain/cashflow_summary.dart';
 import 'package:finanseapp/core/features/currencies/domain/currency_repository.dart';
 import 'package:finanseapp/core/features/currencies/domain/exchange_rate_repository.dart';
+import 'package:finanseapp/core/features/currencies/logic/exchange_rate_resolver.dart';
 import 'package:finanseapp/core/features/settings/domain/settings_repository.dart';
 
 /// Агрегаты итогов: dated-курсы и исторические стоимости (9.1–9.2).
@@ -36,11 +37,7 @@ final class AnalyticsQueriesImpl implements AnalyticsQueries {
   @override
   Future<NetWorthSummary> netWorth(LocalDate onDate) async {
     final data = await _load();
-    return _summaryAt(
-      data: data,
-      onDate: onDate,
-      rateCache: <String, Decimal>{},
-    );
+    return _summaryAt(data: data, onDate: onDate, reads: _RateReads());
   }
 
   @override
@@ -117,7 +114,7 @@ final class AnalyticsQueriesImpl implements AnalyticsQueries {
     }
 
     final ordered = dates.toList()..sort();
-    final rateCache = <String, Decimal>{};
+    final reads = _RateReads();
     final points = <NetWorthPoint>[];
     for (final date in ordered) {
       final summary = await _summaryAt(
@@ -125,7 +122,7 @@ final class AnalyticsQueriesImpl implements AnalyticsQueries {
         onDate: date,
         assetKind: assetKind,
         assetId: assetId,
-        rateCache: rateCache,
+        reads: reads,
       );
       points.add(NetWorthPoint(date: date, value: summary.total));
     }
@@ -135,7 +132,7 @@ final class AnalyticsQueriesImpl implements AnalyticsQueries {
   Future<NetWorthSummary> _summaryAt({
     required _AnalyticsDataset data,
     required LocalDate onDate,
-    required Map<String, Decimal> rateCache,
+    required _RateReads reads,
     AssetKind? assetKind,
     int? assetId,
   }) async {
@@ -167,11 +164,11 @@ final class AnalyticsQueriesImpl implements AnalyticsQueries {
         final currency = data.currencies[code];
         if (currency == null) throw AnalyticsMappers.currencyNotFound(code);
         if (code != data.baseCurrency.code) {
-          rates[code] = await _rateFor(code, onDate, rateCache);
+          rates[code] = await _rateFor(code, onDate, reads);
           rates[data.baseCurrency.code] = await _rateFor(
             data.baseCurrency.code,
             onDate,
-            rateCache,
+            reads,
           );
         }
         values.add(
@@ -187,27 +184,33 @@ final class AnalyticsQueriesImpl implements AnalyticsQueries {
       assets: values,
       ratesToRub: rates,
       baseCurrency: data.baseCurrency,
+      staleRateDate: reads.staleDate,
     );
   }
 
+  /// Курс на дату для чтения: точный или последний известный (BR-C-9).
   Future<Decimal> _rateFor(
     String code,
     LocalDate onDate,
-    Map<String, Decimal> cache,
+    _RateReads reads,
   ) async {
-    if (code == Currency.rubCode) return Decimal.one;
     final key = '$code@${onDate.toIsoString()}';
-    final cached = cache[key];
+    final cached = reads.cache[key];
     if (cached != null) return cached;
-    final rate = await _rateRepository.find(code, onDate);
-    if (rate == null) {
+    final resolved = await ExchangeRateResolver.resolve(
+      _rateRepository,
+      code,
+      onDate,
+    );
+    if (resolved == null) {
       throw DomainException(
         DomainErrorCode.rateUnavailable,
         fieldErrors: {'currencyCode': code, 'date': onDate.toIsoString()},
       );
     }
-    cache[key] = rate.rateToRub;
-    return rate.rateToRub;
+    reads.cache[key] = resolved.rateToRub;
+    if (resolved.stale) reads.mark(resolved.effectiveDate);
+    return resolved.rateToRub;
   }
 
   Future<_AnalyticsDataset> _load() async {
@@ -241,7 +244,11 @@ final class AnalyticsQueriesImpl implements AnalyticsQueries {
   @override
   Future<CashflowSummary> cashflow(CashflowFilter filter) async {
     final data = await _cashflowValues(filter);
-    return CashflowAnalytics.summarize(data.values, data.baseCurrency);
+    return CashflowAnalytics.summarize(
+      data.values,
+      data.baseCurrency,
+      staleRateDate: data.staleRateDate,
+    );
   }
 
   @override
@@ -264,7 +271,13 @@ final class AnalyticsQueriesImpl implements AnalyticsQueries {
     );
   }
 
-  Future<({List<CashflowAmount> values, Currency baseCurrency})>
+  Future<
+    ({
+      List<CashflowAmount> values,
+      Currency baseCurrency,
+      LocalDate? staleRateDate,
+    })
+  >
   _cashflowValues(CashflowFilter filter) async {
     final baseCurrency = await _settingsRepository.getBaseCurrency();
     final currencies = {
@@ -285,7 +298,7 @@ final class AnalyticsQueriesImpl implements AnalyticsQueries {
         )
         .first;
     final values = <CashflowAmount>[];
-    final rateCache = <String, Decimal>{};
+    final reads = _RateReads();
     for (final row in rows) {
       if (search.isNotEmpty &&
           !(row.comment ?? '').toLowerCase().contains(search)) {
@@ -305,12 +318,12 @@ final class AnalyticsQueriesImpl implements AnalyticsQueries {
                 (await _rateFor(
                   row.currencyCode,
                   row.occurredOn,
-                  rateCache,
+                  reads,
                 )).toRational() /
                 (await _rateFor(
                   baseCurrency.code,
                   row.occurredOn,
-                  rateCache,
+                  reads,
                 )).toRational();
       values.add(
         CashflowAmount(
@@ -321,7 +334,11 @@ final class AnalyticsQueriesImpl implements AnalyticsQueries {
         ),
       );
     }
-    return (values: values, baseCurrency: baseCurrency);
+    return (
+      values: values,
+      baseCurrency: baseCurrency,
+      staleRateDate: reads.staleDate,
+    );
   }
 
   static DateRange? _periodOf(List<CashflowAmount> values) {
@@ -333,6 +350,18 @@ final class AnalyticsQueriesImpl implements AnalyticsQueries {
       if (value.occurredOn.compareTo(end) > 0) end = value.occurredOn;
     }
     return DateRange(start: start, end: end);
+  }
+}
+
+/// Накопитель курсов одного чтения: кэш значений и самая свежая дата
+/// использованного резервного курса (BR-C-9).
+final class _RateReads {
+  final Map<String, Decimal> cache = <String, Decimal>{};
+  LocalDate? staleDate;
+
+  void mark(LocalDate date) {
+    final current = staleDate;
+    if (current == null || date.compareTo(current) > 0) staleDate = date;
   }
 }
 

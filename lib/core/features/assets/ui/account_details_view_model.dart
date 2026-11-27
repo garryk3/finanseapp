@@ -14,6 +14,7 @@ import 'package:finanseapp/core/features/cashflow/domain/cashflow_repository.dar
 import 'package:finanseapp/core/features/categories/domain/category_repository.dart';
 import 'package:finanseapp/core/features/currencies/domain/currency_repository.dart';
 import 'package:finanseapp/core/features/currencies/domain/exchange_rate_repository.dart';
+import 'package:finanseapp/core/features/currencies/logic/exchange_rate_resolver.dart';
 import 'package:finanseapp/core/features/recurring/domain/recurring_repository.dart';
 import 'package:finanseapp/core/features/settings/domain/settings_repository.dart';
 import 'package:signals/signals.dart';
@@ -165,12 +166,16 @@ class AccountDetailsViewModel {
           if (base.code != 'RUB') base.code,
         };
         for (final code in codes) {
-          final rate = await rateRepository.find(code, today);
-          if (rate == null) {
+          final resolved = await ExchangeRateResolver.resolve(
+            rateRepository,
+            code,
+            today,
+          );
+          if (resolved == null) {
             baseRateUnavailable.value = true;
             return;
           }
-          rates[code] = rate.rateToRub;
+          rates[code] = resolved.rateToRub;
         }
       }
       final values = <NetWorthAssetValue>[];

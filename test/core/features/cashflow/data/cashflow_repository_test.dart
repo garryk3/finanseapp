@@ -121,6 +121,12 @@ final class FakeRates implements ExchangeRateRepository {
   Future<ExchangeRate?> find(String currencyCode, LocalDate date) async => null;
 
   @override
+  Future<ExchangeRate?> findLatestOnOrBefore(
+    String currencyCode,
+    LocalDate date,
+  ) async => null;
+
+  @override
   Future<ExchangeRate> fetchFromCbr(String currencyCode, LocalDate date) =>
       throw const DomainException(DomainErrorCode.rateUnavailable);
 

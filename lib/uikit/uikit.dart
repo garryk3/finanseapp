@@ -69,4 +69,5 @@ export 'package:finanseapp/uikit/app_text.dart';
 export 'package:finanseapp/uikit/app_text_field.dart';
 export 'package:finanseapp/uikit/app_tooltip.dart';
 export 'package:finanseapp/uikit/app_top_app_bar.dart';
+export 'package:finanseapp/uikit/app_warning_banner.dart';
 export 'package:finanseapp/uikit/app_grid_view.dart';
