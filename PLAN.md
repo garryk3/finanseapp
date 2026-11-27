@@ -15,12 +15,15 @@
    Domain не импортирует Flutter/Drift/signals; ViewModel получает зависимости конструктором.
 5. Общий DoD: format; `flutter analyze --fatal-infos`; `dart analyze lib --fatal-infos`;
    `flutter test`; `flutter build apk --release`; generated файлы проверены; `git diff --check`;
-   статус задачи `[x]` + дата до PR. Перед commit/PR — `task-reviewer`, при UI — также
-   `design-reviewer`; DO NOT SHIP/REDESIGN REQUIRED блокирует. После функционала —
-   короткий `android-tester` с append-only обновлением `TEST_PLAN.md`.
-6. Каждая задача — ветка `task/<NN.NN>-<slug>` из main, sync только `git merge origin/main`.
-   Commit message ниже — предложение, не разрешение на commit. **Перед PR исполнитель
-   обязан отдельно спросить владельца, запускать ли `flutter test integration_test -d linux`.**
+   статус задачи `[x]` + дата до PR. Ревью — **один раз на релиз** по диффу
+   `origin/main...release/<NN>` (перед слиянием в `main`): `task-reviewer`, при UI — также
+   `design-reviewer`; DO NOT SHIP/REDESIGN REQUIRED блокирует. Короткий `android-tester`
+   (append-only `TEST_PLAN.md`) — пачкой на этап перед релизным ревью.
+6. Каждая задача — ветка `task/<NN.NN>-<slug>` **из `release/<NN>`** (PR в `release/<NN>`),
+   sync только `git merge origin/release/<NN>`. Слияние `release/<NN>` → `main` — после
+   релизного ревью и `plan-review`. Commit message ниже — предложение, не разрешение на commit.
+   **Перед PR исполнитель обязан отдельно спросить владельца, запускать ли
+   `flutter test integration_test -d linux`.**
 7. Если контракт невозможно выполнить, остановиться и зафиксировать blocker; не заменять
    архитектуру молча и не уменьшать тестовое покрытие.
 
@@ -251,8 +254,8 @@
 - **TDD:** обновляет только enabled не-RUB; пропускает уже закэшированный курс;
   второй вызов в тот же день без `force` — no-op; ошибка одной валюты не мешает
   другим; успех инкрементит revision; UI-кнопка показывает pending/результат.
-- **DoD:** format/analyze/test/build; `task-reviewer` + `design-reviewer`; статус
-  `[x]` до PR; e2e спросить.
+- **DoD:** format/analyze/test/build; PR в `release/21`; статус `[x]` до PR; e2e спросить.
+  Ревью — один раз на релиз (`task-reviewer` + `design-reviewer` по диффу `release/21` → `main`).
 - **Предлагаемый commit:** `task/21.3: автообновление курсов валют`.
 
 ### 21.4 Скрытие сумм на Главной блюром — [ ]
@@ -320,8 +323,8 @@
   в инвестиционной части net worth → подушка показана; нет курса для расхода →
   показана с предупреждением/резервным курсом; диапазон ровно 3 полных месяца;
   смена базовой валюты пересчитывает.
-- **DoD:** format/analyze/test/build; `task-reviewer` + `design-reviewer`; статус
-  `[x]` до PR; e2e спросить.
+- **DoD:** format/analyze/test/build; PR в `release/21`; статус `[x]` до PR; e2e спросить.
+  Ревью — один раз на релиз (`task-reviewer` + `design-reviewer` по диффу `release/21` → `main`).
 - **Предлагаемый commit:** `task/21.5: подушка безопасности отображается`.
 
 ### 21.6 Предполагаемый налог с процентов по вкладам — [ ]
@@ -356,8 +359,8 @@
 - **TDD:** сумма за год; ставки 13/0/изменённая; нет процентов → 0; нет счетов →
   скрыт; тултип; изменение ставки пересчитывает; ручные записи категории учтены;
   320dp/2.0.
-- **DoD:** format/analyze/test/build; `task-reviewer` + `design-reviewer`; статус
-  `[x]` до PR; e2e спросить.
+- **DoD:** format/analyze/test/build; PR в `release/21`; статус `[x]` до PR; e2e спросить.
+  Ревью — один раз на релиз (`task-reviewer` + `design-reviewer` по диффу `release/21` → `main`).
 - **Предлагаемый commit:** `task/21.6: предполагаемый налог с процентов по вкладам`.
 
 ### 21.7 Биометрия сразу при блокировке — [ ]
@@ -387,8 +390,8 @@
 - **TDD:** при показе с включённой биометрией — авто-вызов; успех → unlock;
   отмена/неудача → PIN виден; биометрия выключена → PIN виден, авто-вызова нет;
   ручной показ PIN; повторный лок снова авто-вызывает.
-- **DoD:** format/analyze/test/build; `task-reviewer` + `design-reviewer`; статус
-  `[x]` до PR; e2e спросить.
+- **DoD:** format/analyze/test/build; PR в `release/21`; статус `[x]` до PR; e2e спросить.
+  Ревью — один раз на релиз (`task-reviewer` + `design-reviewer` по диффу `release/21` → `main`).
 - **Предлагаемый commit:** `task/21.7: биометрия сразу при блокировке`.
 
 ### 21.8 Резервный последний курс и плашка на Главной — [ ]
@@ -428,6 +431,7 @@
   плашка с датой; нет никакой → «Курс недоступен»; сохранение операции без
   точного курса по-прежнему требует ручной (`BR-C-2`); граница даты (`<=`);
   заблокированные активы; активы/детали счёта/цели.
-- **DoD:** format/analyze/test/build; docs обновлены; `task-reviewer` +
-  `design-reviewer`; статус `[x]` до PR; e2e спросить.
+- **DoD:** format/analyze/test/build; docs обновлены; PR в `release/21`; статус `[x]` до PR;
+  e2e спросить. Ревью — один раз на релиз (`task-reviewer` + `design-reviewer` по диффу
+  `release/21` → `main`).
 - **Предлагаемый commit:** `task/21.8: резервный курс и плашка на главной`.

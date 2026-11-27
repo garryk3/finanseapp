@@ -46,7 +46,7 @@ permission:
 ## Процесс проверки
 
 1. Прочитайте текущий `PLAN.md` (индекс + текущий этап); при необходимости сверьтесь с `PLAN_ARCHIVE.md` (только нужные секции, `grep -n`).
-2. Соберите релизный дифф: `git diff origin/main...HEAD` и `git diff --name-status origin/main..HEAD`.
+2. Соберите релизный дифф: `git diff origin/main...release/<NN>` и `git diff --name-status origin/main...release/<NN>` (generated-файлы — `*.g.dart`, `lib/l10n/app_localizations*.dart`, `test/generated_migrations/**`, `drift_schemas/**` — вне области).
 3. Сравните изменения кода с обновлениями в PLAN.md; выявите несоответствия.
 
 ## Формат отчета

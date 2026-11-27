@@ -33,15 +33,16 @@ flutter build apk --release
 ## Workflow & conventions
 
 - Язык репо — русский: `PLAN.md`, commit messages (`task/NN.NN: <описание> (#PR)`), UI-строки — только через `lib/l10n/app_ru.arb`.
-- Задача = ветка `task/<NN>-<slug>` из `main` → PR → зелёный CI → squash merge, в порядке зависимостей. Перед коммитом/PR ветка синхронизируется с `origin/main` через **`git merge origin/main` (никогда не `rebase`)**; реальный diff — только фактически изменённые файлы (`git diff --name-status origin/main..HEAD`).
+- **Модель этапа — релизная ветка:** этап ведётся в `release/<NN>` от `main` (`NN` — номер этапа, напр. `release/21`). Задача = ветка `task/<NN.NN>-<slug>` от `release/<NN>` → PR **в `release/<NN>`** → зелёный CI → squash merge, в порядке зависимостей. Перед коммитом/PR ветка синхронизируется с `origin/release/<NN>` через **`git merge origin/release/<NN>` (никогда не `rebase`)**; реальный diff задачи — только фактически изменённые файлы (`git diff --name-status origin/release/<NN>..HEAD`). `release/<NN>` периодически синхронизируется с `origin/main` тем же merge.
 - **Состояние задачи в `PLAN.md` — до открытия PR, а не после.**
 - **Перед PR спросите пользователя, запускать ли e2e** (`flutter test integration_test -d linux`). Молча не запускать и не пропускать вопрос нельзя.
 - **Перед публикацией релизного тега спросите владельца, нужен ли полный QA-прогон android-tester** (~час; иначе релиз на unit-тестах и CI). Отказ не блокирует релиз; молчать нельзя.
-- **Гейты ревью (субагенты, `.agents/agents/`):**
-  - После реализации, **перед коммитом/PR — `task-reviewer`** (вердикт `DO NOT SHIP` блокирует). Исключение: задачи без изменений кода (чистка `TASKS.md`, планы).
-  - Задача с UI-изменениями в `lib/` — также **`design-reviewer`** (только diff-файлы; вердикт `REDESIGN REQUIRED` блокирует).
+- **Гейты ревью (субагенты, `.agents/agents/`) — один раз на релиз, в релизной ветке:**
+  - Перед слиянием `release/<NN>` → `main` — **`task-reviewer`** по релизному диффу (`git diff --name-status origin/main...release/<NN>`); вердикт `DO NOT SHIP` блокирует слияние.
+  - Если в релизе есть UI-изменения в `lib/` — также **`design-reviewer`** по тем же diff-файлам; вердикт `REDESIGN REQUIRED` блокирует.
+  - Область ревью — только изменённые/новые файлы; generated исключён (`*.g.dart`, `*.freezed.dart`, `*.mocks.dart`, `lib/l10n/app_localizations*.dart`, `test/generated_migrations/**`, `drift_schemas/**`). Ревьюеры **не** запускают полный `flutter test`/`flutter analyze` (это CI) — только точечные проверки под гипотезу; родитель передаёт им готовый дифф/список файлов в промпте.
   - **Перед релизом — `plan-review`** (задачи с `[x]`+датой и рабочими планами в `PLAN.md`).
-  - **После релиза `release-manager` сжимает `PLAN.md`** (завершённые этапы → `PLAN_ARCHIVE.md`, индекс и нумерация сохраняются).
-  - После задачи с новым функционалом — **`android-tester` коротким прогоном** дополняет `TEST_PLAN.md` (только append сценариев). Полный QA — по требованию или перед релизом.
+  - **Слияние и публикация — `release-manager`**: `release/<NN>` → `main`, версия, тег; **после релиза** сжимает `PLAN.md` (завершённые этапы → `PLAN_ARCHIVE.md`, индекс и нумерация сохраняются).
+  - **`android-tester` коротким прогоном** дополняет `TEST_PLAN.md` (только append сценариев) — **пачкой на этап** (перед релизным ревью), не после каждой задачи. Полный QA — по требованию или перед релизом.
 - **UI — только через `lib/uikit/`**: заголовки секций — `AppSectionHeader`/`AppSection`, primary CTA — `AppButton` (без градиентов), карточки/списки — `AppCard`/`AppListTile`. Полный каталог контрактов — `lib/uikit/design/README.md`; правила запрета сырых Material-виджетов (`restrict_raw_flutter`: `Text`→`AppText`, `Scaffold`→`AppScaffold`, `FilledButton`→`AppButton`, `Colors.*`/`Color(...)` вне theme — запрещены и т.д.) — в `analysis_options.yaml` и CI-гейтах; зоны исключения — `lib/uikit/**`, `lib/app/theme/**`, `test/**`, `integration_test/**`.
 - Generated-код коммитится (drift, l10n) — команды и тонкости: `docs/AGENTS_DETAILS.md`.

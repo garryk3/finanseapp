@@ -62,8 +62,9 @@ uikit → core.features / repositories / AppDatabase
   из `calculations.md`, а не вычислены тем же алгоритмом внутри теста.
 - Generated Drift/l10n и schema dump обновлены и включены в diff, когда менялись источники.
 - Проходят format, оба analyze-гейта, `flutter test`, debug APK.
-- Перед commit/PR выполнен `task-reviewer`; для UI также `design-reviewer`.
-- После нового функционала `android-tester` только дописывает сценарии в `TEST_PLAN.md`.
+- Ревью выполняется **один раз на релиз** по диффу `origin/main...release/<NN>` перед слиянием
+  в `main`: `task-reviewer`, для UI также `design-reviewer` (generated исключён).
+- `android-tester` коротким прогоном только дописывает сценарии в `TEST_PLAN.md` — пачкой на этап.
 - Перед PR владельцу задан отдельный вопрос о запуске e2e.
 - Статус задачи обновлён в `PLAN.md` до PR; ветка синхронизируется только merge с
-  `origin/main`, не rebase.
+  `origin/release/<NN>`, не rebase.
