@@ -160,6 +160,11 @@ final class FakeSettings implements SettingsRepository {
 
   @override
   Future<void> setBaseCurrency(String code) async {}
+  @override
+  Future<int> getTaxRatePercent() async => defaultTaxRatePercent;
+
+  @override
+  Future<void> setTaxRatePercent(int percent) async {}
 }
 
 final class FakeRates implements ExchangeRateRepository {

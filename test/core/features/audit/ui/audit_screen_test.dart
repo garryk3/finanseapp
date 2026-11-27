@@ -216,6 +216,8 @@ final class _Categories implements CategoryRepository {
 
   @override
   Future<void> deleteIfUnused(int id) => throw UnimplementedError();
+  @override
+  Future<int?> findActiveIdByName(String name, CashflowKind kind) async => null;
 }
 
 AssetTransaction _transaction({

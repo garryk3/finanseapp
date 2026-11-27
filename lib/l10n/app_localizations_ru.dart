@@ -1896,6 +1896,30 @@ class AppLocalizationsRu extends AppLocalizations {
       'Доходы не превышают расходы — цель не приближается';
 
   @override
+  String get dashboardTaxTitle => 'Предполагаемый налог';
+
+  @override
+  String dashboardTaxBase(String amount) {
+    return 'Проценты по вкладам за год: $amount';
+  }
+
+  @override
+  String get dashboardTaxRateLabel => 'Ставка налога, %';
+
+  @override
+  String get dashboardTaxRateInvalid => 'Введите число от 0 до 100';
+
+  @override
+  String get dashboardTaxRateUnavailable => 'Не удалось рассчитать: нет курса';
+
+  @override
+  String get dashboardTaxInfoTitle => 'Как считается налог';
+
+  @override
+  String get dashboardTaxInfoBody =>
+      'Налог = сумма процентов по вкладам с 1 января по сегодня × ставка / 100. Ставка по умолчанию 13 %, её можно изменить, если у вас другая.';
+
+  @override
   String get dashboardQuickActions => 'Быстрые действия';
 
   @override

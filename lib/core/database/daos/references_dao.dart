@@ -220,6 +220,22 @@ class ReferencesDao extends DatabaseAccessor<AppDatabase>
     return query.watch();
   }
 
+  /// id активной (неархивной) категории с нормализованным [name] и видом
+  /// [kind]; null — категории нет или она архивирована (D21.6/X1).
+  ///
+  /// Используется для поиска служебных категорий по имени («Проценты по
+  /// вкладу»), которые пользователь может переименовать/архивировать.
+  Future<int?> findActiveIdByName(String name, CashflowKind kind) async {
+    final normalized = normalizeEntityName(name);
+    final query = select(categories)
+      ..where((c) => c.kind.equalsValue(kind))
+      ..where((c) => c.normalizedName.equals(normalized))
+      ..where((c) => c.archivedAt.isNull())
+      ..limit(1);
+    final row = await query.getSingleOrNull();
+    return row?.id;
+  }
+
   Future<int> createCategory(
     CashflowKind kind,
     String name, {

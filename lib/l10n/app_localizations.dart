@@ -3495,6 +3495,48 @@ abstract class AppLocalizations {
   /// **'Доходы не превышают расходы — цель не приближается'**
   String get dashboardSafetyNoProfit;
 
+  /// Блок предполагаемого налога с процентов по вкладам (D21.6).
+  ///
+  /// In ru, this message translates to:
+  /// **'Предполагаемый налог'**
+  String get dashboardTaxTitle;
+
+  /// Сумма процентов по вкладам с 1 января по сегодня в базовой валюте.
+  ///
+  /// In ru, this message translates to:
+  /// **'Проценты по вкладам за год: {amount}'**
+  String dashboardTaxBase(String amount);
+
+  /// Поле ставки налога с процентов по вкладам.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ставка налога, %'**
+  String get dashboardTaxRateLabel;
+
+  /// Ошибка нечисловой/вне диапазона ставки налога.
+  ///
+  /// In ru, this message translates to:
+  /// **'Введите число от 0 до 100'**
+  String get dashboardTaxRateInvalid;
+
+  /// Inline-состояние блока налога при неустранимой ошибке курса (D21.6/X5).
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось рассчитать: нет курса'**
+  String get dashboardTaxRateUnavailable;
+
+  /// Заголовок инфо-диалога о расчёте налога.
+  ///
+  /// In ru, this message translates to:
+  /// **'Как считается налог'**
+  String get dashboardTaxInfoTitle;
+
+  /// Формула расчёта предполагаемого налога (D21.6/X4).
+  ///
+  /// In ru, this message translates to:
+  /// **'Налог = сумма процентов по вкладам с 1 января по сегодня × ставка / 100. Ставка по умолчанию 13 %, её можно изменить, если у вас другая.'**
+  String get dashboardTaxInfoBody;
+
   /// Секция быстрых действий.
   ///
   /// In ru, this message translates to:

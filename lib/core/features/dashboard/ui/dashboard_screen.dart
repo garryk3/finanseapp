@@ -8,6 +8,7 @@ import 'package:finanseapp/core/features/dashboard/ui/dashboard_net_worth.dart';
 import 'package:finanseapp/core/features/dashboard/ui/dashboard_overdue_accounts.dart';
 import 'package:finanseapp/core/features/dashboard/ui/dashboard_recent_operations.dart';
 import 'package:finanseapp/core/features/dashboard/ui/dashboard_safety_cushion.dart';
+import 'package:finanseapp/core/features/dashboard/ui/dashboard_tax_estimate.dart';
 import 'package:finanseapp/core/features/dashboard/ui/dashboard_view_model.dart';
 import 'package:finanseapp/core/domain/common/result.dart';
 import 'package:finanseapp/core/presentation/date_formatter.dart';
@@ -181,6 +182,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
               cushion: cushion,
               l10n: l10n,
               formatMoney: vm.formatMoney,
+            ),
+          if (vm.taxEstimate.value != null || vm.taxError.value != null)
+            DashboardTaxEstimate(
+              estimate: vm.taxEstimate.value,
+              ratePercent: vm.taxRatePercent.value,
+              error: vm.taxError.value,
+              l10n: l10n,
+              formatMoney: vm.formatMoney,
+              onRateChanged: vm.setTaxRatePercent,
             ),
           if (vm.cashflowError.value != null)
             AppSection(
