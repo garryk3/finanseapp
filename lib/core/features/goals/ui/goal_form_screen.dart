@@ -4,8 +4,8 @@ import 'package:finanseapp/core/domain/common/local_date.dart';
 import 'package:finanseapp/core/domain/common/money.dart';
 import 'package:finanseapp/core/domain/common/money_math.dart';
 import 'package:finanseapp/core/domain/common/result.dart';
+import 'package:finanseapp/core/features/assets/domain/asset.dart';
 import 'package:finanseapp/core/features/assets/ui/account_form_view_model.dart';
-import 'package:finanseapp/core/features/goals/domain/financial_goal.dart';
 import 'package:finanseapp/core/features/goals/ui/goals_view_model.dart';
 import 'package:finanseapp/core/presentation/date_formatter.dart';
 import 'package:finanseapp/core/presentation/view_state.dart';
@@ -19,7 +19,6 @@ import 'package:finanseapp/uikit/app_error_state.dart';
 import 'package:finanseapp/uikit/app_form_section.dart';
 import 'package:finanseapp/uikit/app_list_view.dart';
 import 'package:finanseapp/uikit/app_scaffold.dart';
-import 'package:finanseapp/uikit/app_segmented_control.dart';
 import 'package:finanseapp/uikit/app_spinner.dart';
 import 'package:finanseapp/uikit/app_switch.dart';
 import 'package:finanseapp/uikit/app_text.dart';
@@ -40,7 +39,6 @@ class GoalFormScreen extends StatefulWidget {
 class _GoalFormScreenState extends State<GoalFormScreen> {
   final _name = TextEditingController();
   final _target = TextEditingController();
-  GoalCategory _category = GoalCategory.accounts;
   String _currencyCode = 'RUB';
   Set<int> _assetIds = {};
   LocalDate _targetDate = LocalDate.fromDateTime(DateTime.now());
@@ -60,7 +58,6 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
       final goal = widget.viewModel.goal.value;
       if (goal != null) {
         _name.text = goal.name;
-        _category = goal.category;
         _currencyCode = goal.targetAmount.currencyCode;
         _target.text = MoneyMath.toDecimal(
           goal.targetAmount,
@@ -92,17 +89,6 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
     return DateTime(date.year, date.month, date.day);
   }
 
-  void _setCategory(GoalCategory category) {
-    final eligible = {
-      for (final asset in widget.viewModel.eligibleAssets(category)) asset.id,
-    };
-    setState(() {
-      _category = category;
-      _assetIds = _assetIds.intersection(eligible);
-      _assetsError = null;
-    });
-  }
-
   Future<void> _save() async {
     if (widget.viewModel.busy.value) return;
     final l10n = AppLocalizations.of(context);
@@ -128,7 +114,6 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
     });
     final result = await widget.viewModel.save(
       name: _name.text,
-      category: _category,
       targetAmount: Money(
         minorUnits: amount!.minorUnits,
         currencyCode: _currencyCode,
@@ -180,7 +165,7 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
           if (!_loaded) {
             return Center(child: AppSpinner(semanticLabel: l10n.commonLoading));
           }
-          final eligible = vm.eligibleAssets(_category);
+          final eligible = vm.eligibleAssets();
           return AppListView(
             padding: const EdgeInsets.all(AppSpacing.md),
             children: [
@@ -193,28 +178,6 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
                     controller: _name,
                     errorText: _nameError,
                     onChanged: (_) => setState(() => _nameError = null),
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      AppText(l10n.goalCategoryLabel),
-                      const SizedBox(height: AppSpacing.xxs),
-                      AppSegmentedControl<GoalCategory>(
-                        segments: [
-                          AppSegment(
-                            value: GoalCategory.accounts,
-                            label: l10n.goalCategoryAccounts,
-                          ),
-                          AppSegment(
-                            value: GoalCategory.investments,
-                            label: l10n.goalCategoryInvestments,
-                          ),
-                        ],
-                        selected: {_category},
-                        onSelectionChanged: (selection) =>
-                            _setCategory(selection.single),
-                      ),
-                    ],
                   ),
                   AppAmountField(
                     controller: _target,
@@ -261,9 +224,7 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
                   for (final asset in eligible)
                     AppCheckbox(
                       value: _assetIds.contains(asset.id),
-                      label: asset.archivedAt == null
-                          ? asset.name
-                          : '${asset.name} · ${l10n.accountArchivedBadge}',
+                      label: _assetLabel(l10n, asset),
                       onChanged: (value) => setState(() {
                         if (value == true) {
                           _assetIds.add(asset.id);
@@ -296,4 +257,18 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
       ),
     );
   }
+
+  static String _assetLabel(AppLocalizations l10n, Asset asset) {
+    final kind = _kindLabel(l10n, asset.kind);
+    return asset.archivedAt == null
+        ? '${asset.name} · $kind'
+        : '${asset.name} · $kind · ${l10n.accountArchivedBadge}';
+  }
+
+  static String _kindLabel(AppLocalizations l10n, AssetKind kind) =>
+      switch (kind) {
+        AssetKind.account => l10n.assetKindAccount,
+        AssetKind.investment => l10n.assetKindInvestment,
+        AssetKind.property => l10n.assetKindProperty,
+      };
 }

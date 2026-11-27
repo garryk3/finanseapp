@@ -116,7 +116,7 @@
 
 ---
 
-### 21.1 Смешанная цель: счета и инвестиции вместе — [ ]
+### 21.1 Смешанная цель: счета и инвестиции вместе — [x] (2026-11-27)
 
 - **Приоритет/зависимости:** P1; независима. Меняет `BR-G-1` и `domain_model §7`.
 - **Симптом:** форма цели (сегмент «Счета | Инвестиции») и DAO не позволяют
@@ -153,10 +153,12 @@
     `lib/core/features/goals/ui/goal_form_screen.dart` (убрать сегмент, единый
     список), `lib/core/features/goals/ui/goal_details_screen.dart` (подпись
     `mixed`), `lib/l10n/app_ru.arb` (+`goalCategoryMixed`).
-  - Create: `test/core/database/migration_v4_v5_test.dart`.
+  - Create: `test/core/database/migration_v4_v5_test.dart`,
+    `test/core/features/goals/domain/goal_category_test.dart`,
+    `test/core/features/goals/ui/goal_form_test.dart`.
   - Generated: `dart run build_runner build --delete-conflicting-outputs`;
     `dart run drift_dev schema dump lib/core/database/app_database.dart
-    drift_schemas/` (→ `drift_schema_v5.json`); `dart run drift_dev schema
+    drift_schemas/drift_schema_v5.json`; `dart run drift_dev schema
     generate drift_schemas/ test/generated_migrations/` (→ `schema_v5.dart`);
     `app_localizations*.dart`.
 - **TDD (failing → pass):**
@@ -171,7 +173,7 @@
     `test/core/features/goals/data/goal_repository_test.dart` (строки 53–67).
 - **DoD:** format; `flutter analyze --fatal-infos`; `dart analyze lib --fatal-infos`;
   `flutter test`; `flutter build apk --release`; миграционный тест + schema dump +
-  `data_schema.md` §7/§11 обновлены; `task-reviewer` + `design-reviewer`; статус
+  `data_schema.md` §7/§12 обновлены; `task-reviewer` + `design-reviewer`; статус
   `[x]` до PR; e2e спросить.
 - **Предлагаемый commit:** `task/21.1: смешанные цели счета и инвестиции`.
 

@@ -48,7 +48,7 @@ part 'app_database.g.dart';
 const appDatabaseApplicationId = 0x464E4150;
 
 /// Текущая версия схемы БД; используется backup-валидацией.
-const appDatabaseSchemaVersion = 4;
+const appDatabaseSchemaVersion = 5;
 
 /// Схема v1 FinanseApp (data_schema).
 ///
@@ -142,6 +142,12 @@ class AppDatabase extends _$AppDatabase {
         // Отметки заблокированных сумм по валютам инвестиции (L1).
         // PK создаётся вместе с таблицей; runtime-DDL не нужен.
         await m.createTable(investmentLockedAmounts);
+      }
+      if (from < 5) {
+        // Смешанная цель (21.1): CHECK goals.category ослаблен до
+        // accounts|investments|mixed. alterTable пересоздаёт goals по текущей
+        // схеме и восстанавливает индексы/триггеры из sqlite_master.
+        await m.alterTable(TableMigration(goals));
       }
     },
     beforeOpen: (details) async {

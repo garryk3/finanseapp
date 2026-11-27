@@ -17,7 +17,7 @@ class Goals extends Table {
   TextColumn get category => text()
       .map(const GoalCategoryConverter())
       .customConstraint(
-        "NOT NULL CHECK (category IN ('accounts', 'investments'))",
+        "NOT NULL CHECK (category IN ('accounts', 'investments', 'mixed'))",
       )();
 
   IntColumn get targetAmountMinor =>

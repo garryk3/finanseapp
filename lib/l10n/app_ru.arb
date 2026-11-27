@@ -2066,6 +2066,10 @@
   "@goalCategoryInvestments": {
     "description": "Цель по инвестициям."
   },
+  "goalCategoryMixed": "Счета и инвестиции",
+  "@goalCategoryMixed": {
+    "description": "Цель со счетами и инвестициями вместе."
+  },
   "goalAssetsLabel": "Активы цели",
   "@goalAssetsLabel": {
     "description": "Список привязанных активов."

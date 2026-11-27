@@ -25,15 +25,15 @@ void main() {
 
   Future<int> investment(String name) => createInvestment(db, name: name);
 
+  Future<int> property(String name) => createProperty(db, name: name);
+
   GoalDraft draft({
-    GoalCategory category = GoalCategory.accounts,
     Set<int>? assetIds,
     int target = 1000000,
     String name = 'Цель',
     LocalDate? targetDate,
   }) => GoalDraft(
     name: name,
-    category: category,
     targetAmount: Money(minorUnits: target, currencyCode: 'RUB'),
     assetIds: assetIds ?? {},
     targetDate: targetDate,
@@ -50,19 +50,28 @@ void main() {
     expect(goal.targetAmount.minorUnits, 1000000);
   });
 
-  test('accounts отклоняет инвестицию, investments — счёт', () async {
+  test('смешанная цель создаётся и читается как mixed', () async {
     final acc = await account('А');
     final inv = await investment('И');
+    final id = await repository.create(draft(assetIds: {acc, inv}));
+
+    final goal = await repository.getById(id);
+    expect(goal.category, GoalCategory.mixed);
+    expect(goal.assetIds, {acc, inv});
+  });
+
+  test('недвижимость в цели отклоняется', () async {
+    final flat = await property('Квартира');
 
     await expectLater(
-      repository.create(draft(assetIds: {inv})),
-      throwsA(isA<DomainException>()),
-    );
-    await expectLater(
-      repository.create(
-        draft(category: GoalCategory.investments, assetIds: {acc}),
+      repository.create(draft(assetIds: {flat})),
+      throwsA(
+        isA<DomainException>().having(
+          (error) => error.fieldErrors['assetId'],
+          'assetId',
+          'validationGoalAssetKind',
+        ),
       ),
-      throwsA(isA<DomainException>()),
     );
   });
 

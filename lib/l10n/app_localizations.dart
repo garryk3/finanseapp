@@ -2878,6 +2878,12 @@ abstract class AppLocalizations {
   /// **'Инвестиции'**
   String get goalCategoryInvestments;
 
+  /// Цель со счетами и инвестициями вместе.
+  ///
+  /// In ru, this message translates to:
+  /// **'Счета и инвестиции'**
+  String get goalCategoryMixed;
+
   /// Список привязанных активов.
   ///
   /// In ru, this message translates to:

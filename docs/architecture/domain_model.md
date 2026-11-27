@@ -549,7 +549,7 @@ final class RecurringRuleDraft { /* те же поля без id/маркера/
 ## 7. Цели
 
 ```dart
-enum GoalCategory { accounts, investments }
+enum GoalCategory { accounts, investments, mixed }
 enum GoalStatus { active, achieved, closed }
 
 final class FinancialGoal {
@@ -580,13 +580,11 @@ final class FinancialGoal {
 final class GoalDraft {
   const GoalDraft({
     required this.name,
-    required this.category,
     required this.targetAmount,
     required this.assetIds,
     this.targetDate,
   });
   final String name;
-  final GoalCategory category;
   final Money targetAmount;
   final Set<int> assetIds;
   final LocalDate? targetDate;
@@ -609,6 +607,11 @@ final class GoalProgress {
   final Money? monthlyContribution;
 }
 ```
+
+Категория цели — производное значение (BR-G-1): `GoalCategory.forAssets(Iterable<
+AssetKind>)` даёт `null` для пустого набора, `accounts`/`investments` для одного вида
+и `mixed` для счетов и инвестиций вместе. DAO вычисляет её при записи; `GoalDraft`
+категорию не хранит.
 
 ## 8. Фильтры и аналитические модели
 

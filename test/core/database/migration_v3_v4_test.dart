@@ -9,14 +9,15 @@ import 'package:path/path.dart' as p;
 
 import '../../generated_migrations/schema_v3.dart' as v3;
 
-/// Миграция v3→v4 на файловой БД с реальными данными (18.3).
+/// Миграция v3→текущая на файловой БД с реальными данными (18.3).
 ///
 /// v3 создаётся сгенерированной моделью `DatabaseAtV3`; затем файл открывается
 /// как [AppDatabase], и drift выполняет onUpgrade. Проверяются новая таблица
-/// `investment_locked_amounts` (PK, CHECK, FK), `user_version = 4`, целостность
-/// старых строк и работа отметки через репозиторий.
+/// `investment_locked_amounts` (PK, CHECK, FK), ослабленный CHECK
+/// `goals.category` (`mixed`), `user_version = 5`, целостность старых строк и
+/// работа отметки через репозиторий.
 void main() {
-  test('v3→v4: таблица отметок создана, user_version=4, данные целы', () async {
+  test('v3→текущая: таблица отметок и CHECK goals, user_version=5', () async {
     final directory = await Directory.systemTemp.createTemp(
       'finanseapp_migration_',
     );
@@ -32,7 +33,15 @@ void main() {
     await db.customSelect('SELECT 1').get();
 
     final version = await db.customSelect('PRAGMA user_version').getSingle();
-    expect(version.read<int>('user_version'), 4);
+    expect(version.read<int>('user_version'), 5);
+
+    final goalsSql = await db
+        .customSelect(
+          'SELECT sql FROM sqlite_master '
+          "WHERE type = 'table' AND name = 'goals'",
+        )
+        .getSingle();
+    expect(goalsSql.read<String>('sql'), contains("'mixed'"));
 
     final columns = await db
         .customSelect("PRAGMA table_info('investment_locked_amounts')")

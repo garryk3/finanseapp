@@ -6,7 +6,6 @@ import 'package:finanseapp/core/database/daos/transactions_dao.dart';
 import 'package:finanseapp/core/domain/common/local_date.dart';
 import 'package:finanseapp/core/features/assets/domain/subgroup.dart';
 import 'package:finanseapp/core/features/categories/domain/category.dart';
-import 'package:finanseapp/core/features/goals/domain/financial_goal.dart';
 import 'package:finanseapp/core/features/transactions/domain/asset_transaction.dart';
 import 'package:finanseapp/app/routes.dart';
 import 'package:finanseapp/core/features/analytics/ui/analytics_screen.dart';
@@ -64,7 +63,6 @@ void main() {
     );
     final goalId = await db.goalsDao.create(
       name: 'Цель',
-      category: GoalCategory.accounts,
       targetAmountMinor: 200000,
       currencyCode: 'RUB',
       assetIds: {accountId},

@@ -138,6 +138,7 @@ final class GoalCategoryConverter extends TypeConverter<GoalCategory, String> {
   GoalCategory fromSql(String fromDb) => switch (fromDb) {
     'accounts' => GoalCategory.accounts,
     'investments' => GoalCategory.investments,
+    'mixed' => GoalCategory.mixed,
     _ => throw FormatException('Неизвестная категория цели: $fromDb'),
   };
 
@@ -145,6 +146,7 @@ final class GoalCategoryConverter extends TypeConverter<GoalCategory, String> {
   String toSql(GoalCategory value) => switch (value) {
     GoalCategory.accounts => 'accounts',
     GoalCategory.investments => 'investments',
+    GoalCategory.mixed => 'mixed',
   };
 }
 
