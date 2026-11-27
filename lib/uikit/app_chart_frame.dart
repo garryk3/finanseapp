@@ -11,6 +11,9 @@ import 'package:finanseapp/uikit/app_text.dart';
 /// под графиком feature Screen обязан показать text alternative тех же
 /// точек (charts.md §2).
 ///
+/// [semanticsHidden] исключает денежную сводку из подписи (D21.4): заголовок
+/// остаётся читаемым, а суммы не попадают в TalkBack.
+///
 /// Экраны: Аналитика (net worth line, cashflow bars), Dashboard
 /// (chart teaser).
 class AppChartFrame extends StatelessWidget {
@@ -22,6 +25,7 @@ class AppChartFrame extends StatelessWidget {
     this.subtitle,
     this.actions = const <Widget>[],
     this.height = 240,
+    this.semanticsHidden = false,
   });
 
   final String title;
@@ -31,12 +35,15 @@ class AppChartFrame extends StatelessWidget {
   final List<Widget> actions;
   final double height;
 
+  /// `true` — не включать [accessibleSummary] в подпись (скрытые суммы).
+  final bool semanticsHidden;
+
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
     return Semantics(
-      label: '$title. $accessibleSummary',
+      label: semanticsHidden ? title : '$title. $accessibleSummary',
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(

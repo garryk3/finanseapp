@@ -54,10 +54,8 @@ void main() {
 
     expect(find.text(l10n.dashboardTaxTitle), findsOneWidget);
     expect(find.text(_formatMoney(estimate.tax)), findsOneWidget);
-    expect(
-      find.text(l10n.dashboardTaxBase(_formatMoney(estimate.base))),
-      findsOneWidget,
-    );
+    expect(find.text(l10n.dashboardTaxBaseLabel), findsOneWidget);
+    expect(find.text(_formatMoney(estimate.base)), findsOneWidget);
   });
 
   testWidgets('изменение ставки отдаёт валидное значение', (tester) async {

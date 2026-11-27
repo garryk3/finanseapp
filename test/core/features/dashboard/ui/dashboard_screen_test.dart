@@ -39,6 +39,7 @@ import 'package:finanseapp/core/features/transactions/domain/transaction_filter.
 import 'package:finanseapp/core/presentation/date_formatter.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
 import 'package:finanseapp/uikit/app_amount_blur.dart';
+import 'package:finanseapp/uikit/app_cashflow_chart.dart';
 import 'package:finanseapp/uikit/app_cashflow_summary.dart';
 import 'package:finanseapp/uikit/app_money_visibility.dart';
 import 'package:finanseapp/uikit/app_text.dart';
@@ -92,6 +93,7 @@ final class _Queries implements AnalyticsQueries {
     this.safetyError,
     this.taxBase,
     this.taxError,
+    this.taxStaleRateDate,
     this.staleRateDate,
   });
 
@@ -109,6 +111,7 @@ final class _Queries implements AnalyticsQueries {
   int safetyQueries = 0;
   Money? taxBase;
   Object? taxError;
+  LocalDate? taxStaleRateDate;
   int taxQueries = 0;
   LocalDate? staleRateDate;
 
@@ -149,6 +152,7 @@ final class _Queries implements AnalyticsQueries {
         expense: const Money(minorUnits: 0, currencyCode: 'RUB'),
         net: base,
         currencyCode: base.currencyCode,
+        staleRateDate: taxStaleRateDate,
       );
     }
     if (filter.period?.start != LocalDate(2026, 11, 1)) {
@@ -779,6 +783,99 @@ void main() {
     expect(find.byType(DashboardNetWorth), findsOneWidget);
   });
 
+  testWidgets('скрытые суммы: заголовок графика не блюрится, канвас — да', (
+    tester,
+  ) async {
+    const summary = CashflowSummary(
+      income: Money(minorUnits: 100000, currencyCode: 'RUB'),
+      expense: Money(minorUnits: 25000, currencyCode: 'RUB'),
+      net: Money(minorUnits: 75000, currencyCode: 'RUB'),
+      currencyCode: 'RUB',
+    );
+    final queries = _Queries(
+      _rubles(0),
+      cashflowResult: summary,
+      cashflowPoints: [
+        CashflowPeriodPoint(
+          periodStart: LocalDate(2026, 11, 5),
+          summary: summary,
+        ),
+      ],
+    );
+    await pump(tester, width: 427, queries: queries, amountsHidden: true);
+
+    expect(find.text(l10n.dashboardCashflowDynamics), findsOneWidget);
+    // Заголовок «Динамика» не размывается (D21.4/H3)…
+    expect(
+      find.ancestor(
+        of: find.text(l10n.dashboardCashflowDynamics),
+        matching: find.byType(ImageFiltered),
+      ),
+      findsNothing,
+    );
+    // …а сам график — да.
+    expect(
+      find.ancestor(
+        of: find.byType(AppCashflowChart),
+        matching: find.byType(ImageFiltered),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets(
+    'скрытые суммы: подписи подушки и налога не блюрятся (D21.4/H3)',
+    (tester) async {
+      final queries = _Queries(
+        _rubles(3000),
+        safetyResult: CashflowSummary(
+          income: _rubles(3600),
+          expense: _rubles(3000),
+          net: _rubles(600),
+          currencyCode: 'RUB',
+        ),
+        taxBase: _rubles(10000),
+      );
+      final vm = await pump(
+        tester,
+        width: 427,
+        queries: queries,
+        snapshots: [_snapshot(1, _rubles(3000))],
+        amountsHidden: true,
+      );
+
+      for (final label in [
+        l10n.dashboardSafetyTargetLabel,
+        l10n.dashboardSafetyEtaPrefix(15),
+        l10n.dashboardTaxBaseLabel,
+      ]) {
+        expect(
+          find.ancestor(
+            of: find.text(label),
+            matching: find.byType(ImageFiltered),
+          ),
+          findsNothing,
+          reason: label,
+        );
+      }
+      // Суммы при этом размыты.
+      expect(
+        find.ancestor(
+          of: find.text('(${vm.formatMoney(_rubles(6000))})'),
+          matching: find.byType(ImageFiltered),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.ancestor(
+          of: find.text(vm.formatMoney(_rubles(10000))),
+          matching: find.byType(ImageFiltered),
+        ),
+        findsOneWidget,
+      );
+    },
+  );
+
   testWidgets('на 427dp контент Главной имеет отступ 16dp, как на Операциях', (
     tester,
   ) async {
@@ -1117,6 +1214,26 @@ void main() {
 
     expect(vm.staleRateDate.value, isNull);
     expect(find.byType(AppWarningBanner), findsNothing);
+  });
+
+  testWidgets('налог: резервный курс в базе включает плашку (BR-C-9/C4)', (
+    tester,
+  ) async {
+    final stale = LocalDate(2026, 10, 1);
+    final queries = _Queries(
+      _rubles(3000),
+      taxBase: _rubles(10000),
+      taxStaleRateDate: stale,
+    );
+    final vm = await pump(
+      tester,
+      width: 427,
+      queries: queries,
+      snapshots: [_snapshot(1, _rubles(3000))],
+    );
+
+    expect(vm.staleRateDate.value, stale);
+    expect(find.byType(AppWarningBanner), findsOneWidget);
   });
 
   testWidgets('заблокированные: резервный курс даёт сумму и дату (BR-C-9)', (
@@ -1517,12 +1634,13 @@ void main() {
 
     expect(find.text(l10n.dashboardSafetyTitle), findsOneWidget);
     expect(find.text(l10n.dashboardSafetyMonths(3)), findsOneWidget);
+    expect(find.text(l10n.dashboardSafetyTargetLabel), findsOneWidget);
+    expect(find.text('(${vm.formatMoney(_rubles(6000))})'), findsOneWidget);
+    expect(find.text(l10n.dashboardSafetyEtaPrefix(15)), findsOneWidget);
     expect(
-      find.text(l10n.dashboardSafetyTarget(vm.formatMoney(_rubles(6000)))),
-      findsOneWidget,
-    );
-    expect(
-      find.text(l10n.dashboardSafetyEta(15, vm.formatMoney(_rubles(200)))),
+      find.text(
+        '${vm.formatMoney(_rubles(200))}${l10n.dashboardSafetyEtaSuffix}',
+      ),
       findsOneWidget,
     );
     expect(queries.lastSafetyFilter?.period?.start, LocalDate(2026, 8, 1));
@@ -2143,10 +2261,8 @@ void main() {
 
     expect(find.text(l10n.dashboardTaxTitle), findsOneWidget);
     expect(find.text(vm.formatMoney(_rubles(1300))), findsOneWidget);
-    expect(
-      find.text(l10n.dashboardTaxBase(vm.formatMoney(_rubles(10000)))),
-      findsOneWidget,
-    );
+    expect(find.text(l10n.dashboardTaxBaseLabel), findsOneWidget);
+    expect(find.text(vm.formatMoney(_rubles(10000))), findsOneWidget);
     expect(queries.lastTaxFilter?.period?.start, LocalDate(2026, 1, 1));
     expect(queries.lastTaxFilter?.period?.end, _today);
     expect(queries.lastTaxFilter?.categoryId, 1);

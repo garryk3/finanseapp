@@ -3477,23 +3477,47 @@ abstract class AppLocalizations {
   /// **'Деньги на всех счетах · средние расходы за 3 полных месяца'**
   String get dashboardSafetyPeriod;
 
-  /// Целевой размер подушки.
+  /// Целевой размер подушки (для семантики).
   ///
   /// In ru, this message translates to:
   /// **'Цель — 6 месяцев расходов ({amount})'**
   String dashboardSafetyTarget(String amount);
 
-  /// Срок достижения цели при текущем профиците.
+  /// Подпись цели подушки; сумма выводится отдельно и блюрится (D21.4).
+  ///
+  /// In ru, this message translates to:
+  /// **'Цель — 6 месяцев расходов'**
+  String get dashboardSafetyTargetLabel;
+
+  /// Срок достижения цели при текущем профиците (для семантики).
   ///
   /// In ru, this message translates to:
   /// **'До цели — {months} мес, если откладывать {profit}/мес'**
   String dashboardSafetyEta(int months, String profit);
 
-  /// Срок цели больше 10 лет.
+  /// Начало строки срока цели; сумма профицита выводится отдельно (D21.4).
+  ///
+  /// In ru, this message translates to:
+  /// **'До цели — {months} мес, если откладывать'**
+  String dashboardSafetyEtaPrefix(int months);
+
+  /// Единица профицита в строке срока цели.
+  ///
+  /// In ru, this message translates to:
+  /// **'/мес'**
+  String get dashboardSafetyEtaSuffix;
+
+  /// Срок цели больше 10 лет (для семантики).
   ///
   /// In ru, this message translates to:
   /// **'До цели — больше 10 лет, если откладывать {profit}/мес'**
   String dashboardSafetyEtaMoreThan10Years(String profit);
+
+  /// Начало строки срока >10 лет; сумма профицита выводится отдельно (D21.4).
+  ///
+  /// In ru, this message translates to:
+  /// **'До цели — больше 10 лет, если откладывать'**
+  String get dashboardSafetyEtaMoreThan10YearsPrefix;
 
   /// Подушка достигла целевых 6 месяцев.
   ///
@@ -3513,11 +3537,11 @@ abstract class AppLocalizations {
   /// **'Предполагаемый налог'**
   String get dashboardTaxTitle;
 
-  /// Сумма процентов по вкладам с 1 января по сегодня в базовой валюте.
+  /// Подпись базы налога; сумма выводится отдельно и блюрится (D21.4).
   ///
   /// In ru, this message translates to:
-  /// **'Проценты по вкладам за год: {amount}'**
-  String dashboardTaxBase(String amount);
+  /// **'Проценты по вкладам за год:'**
+  String get dashboardTaxBaseLabel;
 
   /// Поле ставки налога с процентов по вкладам.
   ///

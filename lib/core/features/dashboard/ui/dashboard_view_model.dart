@@ -186,6 +186,7 @@ class DashboardViewModel {
   LocalDate? _staleLocked;
   LocalDate? _staleCashflow;
   LocalDate? _staleSafety;
+  LocalDate? _staleTax;
 
   void init() {
     today.value = now();
@@ -198,6 +199,7 @@ class DashboardViewModel {
     _staleLocked = null;
     _staleCashflow = null;
     _staleSafety = null;
+    _staleTax = null;
     _assetsReady = false;
     _fatal = false;
     _netWorthReady = false;
@@ -534,8 +536,10 @@ class DashboardViewModel {
     final token = ++_taxToken;
     if (!_hasActiveAccounts) {
       _taxBase = null;
+      _staleTax = null;
       taxEstimate.value = null;
       taxError.value = null;
+      _recomputeStaleRateDate();
       _taxReady = true;
       _emit();
       return;
@@ -545,6 +549,7 @@ class DashboardViewModel {
         depositInterestCategoryName,
         CashflowKind.income,
       );
+      LocalDate? stale;
       final Money base;
       if (categoryId == null) {
         base = Money(
@@ -560,25 +565,34 @@ class DashboardViewModel {
           ),
         );
         base = summary.income;
+        // BR-C-9/C4: проценты могли быть сконвертированы резервным курсом —
+        // дату нужно учесть в плашке Главной.
+        stale = summary.staleRateDate;
       }
       if (_disposed || token != _taxToken) return;
       _taxBase = base;
+      _staleTax = stale;
       taxError.value = null;
+      _recomputeStaleRateDate();
       _recomputeTax();
       _taxReady = true;
       _emit();
     } on DomainException catch (error) {
       if (_disposed || token != _taxToken) return;
       _taxBase = null;
+      _staleTax = null;
       taxEstimate.value = null;
       taxError.value = error.code;
+      _recomputeStaleRateDate();
       _taxReady = true;
       _emit();
     } on Exception {
       if (_disposed || token != _taxToken) return;
       _taxBase = null;
+      _staleTax = null;
       taxEstimate.value = null;
       taxError.value = DomainErrorCode.storageFailure;
+      _recomputeStaleRateDate();
       _taxReady = true;
       _emit();
     }
@@ -587,8 +601,10 @@ class DashboardViewModel {
   void _failLocalTax() {
     if (_disposed) return;
     _taxBase = null;
+    _staleTax = null;
     taxEstimate.value = null;
     taxError.value = DomainErrorCode.storageFailure;
+    _recomputeStaleRateDate();
     _taxReady = true;
     _emit();
   }
@@ -805,6 +821,7 @@ class DashboardViewModel {
       _staleLocked,
       _staleCashflow,
       _staleSafety,
+      _staleTax,
     ]) {
       if (date != null) latest = _laterDate(latest, date);
     }

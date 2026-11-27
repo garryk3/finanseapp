@@ -107,7 +107,8 @@ class DashboardSafetyCushion extends StatelessWidget {
     }
 
     final hidden = AppMoneyVisibility.of(context);
-    final targetText = l10n.dashboardSafetyTarget(formatMoney(cushion.target));
+    final targetAmount = formatMoney(cushion.target);
+    final targetText = l10n.dashboardSafetyTarget(targetAmount);
     final monthsToTarget = cushion.monthsToTarget;
     final String statusText;
     final Widget status;
@@ -125,15 +126,30 @@ class DashboardSafetyCushion extends StatelessWidget {
         ],
       );
     } else if (monthsToTarget != null) {
+      final profitAmount = formatMoney(cushion.monthlyProfit);
       statusText = monthsToTarget > 120
-          ? l10n.dashboardSafetyEtaMoreThan10Years(
-              formatMoney(cushion.monthlyProfit),
-            )
-          : l10n.dashboardSafetyEta(
-              monthsToTarget,
-              formatMoney(cushion.monthlyProfit),
-            );
-      status = AppText(statusText, style: secondary);
+          ? l10n.dashboardSafetyEtaMoreThan10Years(profitAmount)
+          : l10n.dashboardSafetyEta(monthsToTarget, profitAmount);
+      // D21.4/H3: неденежная часть («N мес») остаётся читаемой — блюрится
+      // только сумма профицита.
+      status = Wrap(
+        spacing: AppSpacing.xxs,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          AppText(
+            monthsToTarget > 120
+                ? l10n.dashboardSafetyEtaMoreThan10YearsPrefix
+                : l10n.dashboardSafetyEtaPrefix(monthsToTarget),
+            style: secondary,
+          ),
+          AppAmountBlur(
+            child: AppText(
+              '$profitAmount${l10n.dashboardSafetyEtaSuffix}',
+              style: secondary,
+            ),
+          ),
+        ],
+      );
     } else {
       statusText = l10n.dashboardSafetyNoProfit;
       status = AppText(statusText, style: secondary);
@@ -190,9 +206,19 @@ class DashboardSafetyCushion extends StatelessWidget {
               const SizedBox(height: AppSpacing.xxs),
               AppText(l10n.dashboardSafetyPeriod, style: secondary),
               const SizedBox(height: AppSpacing.sm),
-              AppAmountBlur(child: AppText(targetText, style: secondary)),
+              // D21.4/H3: подпись цели остаётся читаемой — блюрится только сумма.
+              Wrap(
+                spacing: AppSpacing.xxs,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  AppText(l10n.dashboardSafetyTargetLabel, style: secondary),
+                  AppAmountBlur(
+                    child: AppText('($targetAmount)', style: secondary),
+                  ),
+                ],
+              ),
               const SizedBox(height: AppSpacing.xxs),
-              if (statusHasMoney) AppAmountBlur(child: status) else status,
+              status,
             ],
           ),
         ),

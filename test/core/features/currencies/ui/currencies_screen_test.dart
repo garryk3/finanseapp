@@ -340,4 +340,27 @@ void main() {
     expect(find.text(l10n.currenciesRefreshFailed(1)), findsOneWidget);
     expect(find.text('USD · Доллар США'), findsOneWidget);
   });
+
+  testWidgets('ручное обновление: ошибка хранилища показывает snackbar', (
+    tester,
+  ) async {
+    final currencies = FakeCurrencyRepository();
+    final rates = _FakeRateRepository()..failures['EUR'] = Exception('db down');
+    final viewModel = CurrenciesViewModel(
+      repository: currencies,
+      settingsRepository: FakeSettingsRepository('RUB'),
+      rateRefreshService: _refreshService(currencies: currencies, rates: rates),
+    );
+    addTearDown(viewModel.dispose);
+
+    await pumpScreen(tester, CurrenciesScreen(viewModel: viewModel));
+    currencies.emit(const [_rub, _usd, _eur]);
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await tester.tap(find.byTooltip(l10n.currenciesRefreshTooltip));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text(l10n.errorStateMessage), findsOneWidget);
+    expect(find.text('USD · Доллар США'), findsOneWidget);
+  });
 }

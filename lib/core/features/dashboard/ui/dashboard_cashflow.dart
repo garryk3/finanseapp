@@ -12,6 +12,7 @@ import 'package:finanseapp/uikit/app_cashflow_chart.dart';
 import 'package:finanseapp/uikit/app_cashflow_summary.dart';
 import 'package:finanseapp/uikit/app_chart_data.dart';
 import 'package:finanseapp/uikit/app_chart_frame.dart';
+import 'package:finanseapp/uikit/app_money_visibility.dart';
 import 'package:finanseapp/uikit/app_section.dart';
 import 'package:finanseapp/uikit/app_text.dart';
 import 'package:material_ui/material_ui.dart';
@@ -85,13 +86,14 @@ class DashboardCashflow extends StatelessWidget {
                   onTap: onOpenAnalytics,
                 ),
                 const SizedBox(height: AppSpacing.sm),
-                // D21.4: график целиком (включая тултипы сумм и доступное
-                // описание) прячется за блюром.
-                AppAmountBlur(
-                  child: AppChartFrame(
-                    title: l10n.dashboardCashflowDynamics,
-                    height: 140,
-                    accessibleSummary: accessible,
+                // D21.4: заголовок «Динамика» не блюрится — прячем только
+                // сам график (bars + тултипы сумм) и его денежную сводку.
+                AppChartFrame(
+                  title: l10n.dashboardCashflowDynamics,
+                  height: 140,
+                  accessibleSummary: accessible,
+                  semanticsHidden: AppMoneyVisibility.of(context),
+                  child: AppAmountBlur(
                     child: AppCashflowChart(
                       groups: _weeklyGroups(points),
                       accessibleSummary: accessible,
