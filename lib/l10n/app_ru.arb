@@ -85,6 +85,14 @@
   "@appLockBiometricUnavailable": {
     "description": "Ошибка при попытке включить недоступную биометрию."
   },
+  "appLockEnterPin": "Ввести PIN-код",
+  "@appLockEnterPin": {
+    "description": "Кнопка ручного перехода к PIN-клавиатуре на экране блокировки (D21.7)."
+  },
+  "appLockBiometricPrompt": "Подтвердите личность, чтобы войти",
+  "@appLockBiometricPrompt": {
+    "description": "Статус в биометрическом состоянии экрана блокировки (D21.7)."
+  },
   "appLockAutoLock": "Блокировка при сворачивании",
   "@appLockAutoLock": {
     "description": "Подпись настройки auto-lock."
