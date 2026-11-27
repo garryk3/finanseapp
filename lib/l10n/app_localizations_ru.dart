@@ -1885,14 +1885,29 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
+  String get dashboardSafetyTargetLabel => 'Цель — 6 месяцев расходов';
+
+  @override
   String dashboardSafetyEta(int months, String profit) {
     return 'До цели — $months мес, если откладывать $profit/мес';
   }
 
   @override
+  String dashboardSafetyEtaPrefix(int months) {
+    return 'До цели — $months мес, если откладывать';
+  }
+
+  @override
+  String get dashboardSafetyEtaSuffix => '/мес';
+
+  @override
   String dashboardSafetyEtaMoreThan10Years(String profit) {
     return 'До цели — больше 10 лет, если откладывать $profit/мес';
   }
+
+  @override
+  String get dashboardSafetyEtaMoreThan10YearsPrefix =>
+      'До цели — больше 10 лет, если откладывать';
 
   @override
   String get dashboardSafetyReached => 'Цель достигнута';
@@ -1905,9 +1920,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get dashboardTaxTitle => 'Предполагаемый налог';
 
   @override
-  String dashboardTaxBase(String amount) {
-    return 'Проценты по вкладам за год: $amount';
-  }
+  String get dashboardTaxBaseLabel => 'Проценты по вкладам за год:';
 
   @override
   String get dashboardTaxRateLabel => 'Ставка налога, %';

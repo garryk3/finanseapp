@@ -283,7 +283,7 @@ class _CurrenciesScreenState extends State<CurrenciesScreen> {
     final RateRefreshReport report;
     try {
       report = await _viewModel.refreshRates();
-    } on DomainException {
+    } on Exception {
       if (!mounted) return;
       _showError(l10n.errorStateMessage);
       return;

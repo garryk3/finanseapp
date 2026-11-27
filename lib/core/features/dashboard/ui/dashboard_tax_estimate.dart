@@ -125,13 +125,23 @@ class _DashboardTaxEstimateState extends State<DashboardTaxEstimate> {
                       value,
                       if (estimate != null) ...[
                         const SizedBox(height: AppSpacing.xxs),
-                        AppAmountBlur(
-                          child: AppText(
-                            l10n.dashboardTaxBase(
-                              widget.formatMoney(estimate.base),
+                        // D21.4/H3: подпись «Проценты по вкладам за год»
+                        // остаётся читаемой — блюрится только сумма.
+                        Wrap(
+                          spacing: AppSpacing.xxs,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            AppText(
+                              l10n.dashboardTaxBaseLabel,
+                              style: secondary,
                             ),
-                            style: secondary,
-                          ),
+                            AppAmountBlur(
+                              child: AppText(
+                                widget.formatMoney(estimate.base),
+                                style: secondary,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ],

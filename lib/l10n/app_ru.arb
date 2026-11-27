@@ -2555,16 +2555,20 @@
   },
   "dashboardSafetyTarget": "Цель — 6 месяцев расходов ({amount})",
   "@dashboardSafetyTarget": {
-    "description": "Целевой размер подушки.",
+    "description": "Целевой размер подушки (для семантики).",
     "placeholders": {
       "amount": {
         "type": "String"
       }
     }
   },
+  "dashboardSafetyTargetLabel": "Цель — 6 месяцев расходов",
+  "@dashboardSafetyTargetLabel": {
+    "description": "Подпись цели подушки; сумма выводится отдельно и блюрится (D21.4)."
+  },
   "dashboardSafetyEta": "До цели — {months} мес, если откладывать {profit}/мес",
   "@dashboardSafetyEta": {
-    "description": "Срок достижения цели при текущем профиците.",
+    "description": "Срок достижения цели при текущем профиците (для семантики).",
     "placeholders": {
       "months": {
         "type": "int"
@@ -2574,14 +2578,31 @@
       }
     }
   },
+  "dashboardSafetyEtaPrefix": "До цели — {months} мес, если откладывать",
+  "@dashboardSafetyEtaPrefix": {
+    "description": "Начало строки срока цели; сумма профицита выводится отдельно (D21.4).",
+    "placeholders": {
+      "months": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboardSafetyEtaSuffix": "/мес",
+  "@dashboardSafetyEtaSuffix": {
+    "description": "Единица профицита в строке срока цели."
+  },
   "dashboardSafetyEtaMoreThan10Years": "До цели — больше 10 лет, если откладывать {profit}/мес",
   "@dashboardSafetyEtaMoreThan10Years": {
-    "description": "Срок цели больше 10 лет.",
+    "description": "Срок цели больше 10 лет (для семантики).",
     "placeholders": {
       "profit": {
         "type": "String"
       }
     }
+  },
+  "dashboardSafetyEtaMoreThan10YearsPrefix": "До цели — больше 10 лет, если откладывать",
+  "@dashboardSafetyEtaMoreThan10YearsPrefix": {
+    "description": "Начало строки срока >10 лет; сумма профицита выводится отдельно (D21.4)."
   },
   "dashboardSafetyReached": "Цель достигнута",
   "@dashboardSafetyReached": {
@@ -2595,14 +2616,9 @@
   "@dashboardTaxTitle": {
     "description": "Блок предполагаемого налога с процентов по вкладам (D21.6)."
   },
-  "dashboardTaxBase": "Проценты по вкладам за год: {amount}",
-  "@dashboardTaxBase": {
-    "description": "Сумма процентов по вкладам с 1 января по сегодня в базовой валюте.",
-    "placeholders": {
-      "amount": {
-        "type": "String"
-      }
-    }
+  "dashboardTaxBaseLabel": "Проценты по вкладам за год:",
+  "@dashboardTaxBaseLabel": {
+    "description": "Подпись базы налога; сумма выводится отдельно и блюрится (D21.4)."
   },
   "dashboardTaxRateLabel": "Ставка налога, %",
   "@dashboardTaxRateLabel": {
