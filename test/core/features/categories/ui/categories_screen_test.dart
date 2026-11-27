@@ -115,6 +115,9 @@ final class FakeCategoryRepository implements CategoryRepository {
     }
     categories.removeWhere((category) => category.id == id);
   }
+
+  @override
+  Future<int?> findActiveIdByName(String name, CashflowKind kind) async => null;
 }
 
 void main() {

@@ -27,6 +27,10 @@ final class CategoryRepositoryImpl implements CategoryRepository {
   );
 
   @override
+  Future<int?> findActiveIdByName(String name, CashflowKind kind) =>
+      _dao.findActiveIdByName(name, kind);
+
+  @override
   Future<void> update(CashflowCategory category) async {
     await _dao.renameCategory(category.id, category.name);
     await _dao.updateCategoryAppearance(

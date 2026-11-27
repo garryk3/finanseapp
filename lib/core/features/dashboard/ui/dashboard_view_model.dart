@@ -17,10 +17,13 @@ import 'package:finanseapp/core/features/cashflow/domain/cashflow_entry.dart';
 import 'package:finanseapp/core/features/cashflow/domain/cashflow_filter.dart';
 import 'package:finanseapp/core/features/cashflow/domain/cashflow_repository.dart';
 import 'package:finanseapp/core/features/cashflow/domain/cashflow_summary.dart';
+import 'package:finanseapp/core/features/categories/domain/category.dart';
+import 'package:finanseapp/core/features/categories/domain/category_repository.dart';
 import 'package:finanseapp/core/features/currencies/domain/currency_repository.dart';
 import 'package:finanseapp/core/features/currencies/domain/exchange_rate_repository.dart';
 import 'package:finanseapp/core/features/currencies/logic/exchange_rate_events.dart';
 import 'package:finanseapp/core/features/dashboard/logic/safety_cushion.dart';
+import 'package:finanseapp/core/features/dashboard/logic/tax_estimate.dart';
 import 'package:finanseapp/core/features/goals/domain/financial_goal.dart';
 import 'package:finanseapp/core/features/goals/domain/goal_progress.dart';
 import 'package:finanseapp/core/features/goals/domain/goal_repository.dart';
@@ -61,6 +64,7 @@ class DashboardViewModel {
     required this.displaySettings,
     required this.currencyRepository,
     required this.rateRepository,
+    required this.categoryRepository,
     required this.now,
   });
 
@@ -73,9 +77,13 @@ class DashboardViewModel {
   final DisplaySettingsRepository displaySettings;
   final CurrencyRepository currencyRepository;
   final ExchangeRateRepository rateRepository;
+  final CategoryRepository categoryRepository;
   final LocalDate Function() now;
 
   static const recentLimit = 5;
+
+  /// Категория доходов, проценты по вкладам (D21.6/X1).
+  static const depositInterestCategoryName = 'Проценты по вкладу';
 
   final Signal<ViewState<void>> state = signal(const ViewLoading());
   final Signal<NetWorthSummary?> netWorth = signal(null);
@@ -96,6 +104,16 @@ class DashboardViewModel {
 
   /// Подушка безопасности; null — нет расходов/счетов/курса.
   final Signal<SafetyCushion?> safetyCushion = signal(null);
+
+  /// Предполагаемый налог с процентов по вкладам за год (D21.6);
+  /// null — нет счетов/расчёта или ошибка (см. [taxError]).
+  final Signal<TaxEstimate?> taxEstimate = signal(null);
+
+  /// Ставка налога, % (D21.6/X2); начальное значение — из настройки.
+  final Signal<int> taxRatePercent = signal(defaultTaxRatePercent);
+
+  /// Причина, по которой [taxEstimate] не посчитан (D21.6/X5).
+  final Signal<DomainErrorCode?> taxError = signal(null);
 
   /// Есть ли у неархивных инвестиций отметки заблокированных сумм.
   final Signal<bool> hasLockedAssets = signal(false);
@@ -139,12 +157,17 @@ class DashboardViewModel {
   StreamSubscription<Currency>? _baseSubscription;
   StreamSubscription<List<CashflowEntry>>? _cashflowSubscription;
   StreamSubscription<List<CashflowEntry>>? _safetySubscription;
+  StreamSubscription<List<CashflowEntry>>? _taxSubscription;
   StreamSubscription<List<Currency>>? _currenciesSubscription;
   EffectCleanup? _rateCleanup;
 
   CashflowSummary? _safetySummary;
   int _safetyToken = 0;
   bool _safetyReady = false;
+
+  Money? _taxBase;
+  int _taxToken = 0;
+  bool _taxReady = false;
 
   void init() {
     today.value = now();
@@ -177,6 +200,7 @@ class DashboardViewModel {
       unawaited(_reloadLocked());
       unawaited(_reloadCashflow());
       unawaited(_reloadSafety());
+      unawaited(_reloadTax());
       unawaited(_recomputeGoals());
     });
     _cashflowSubscription?.cancel();
@@ -200,6 +224,19 @@ class DashboardViewModel {
           },
         );
     unawaited(_reloadSafety());
+    _taxBase = null;
+    _taxReady = false;
+    taxEstimate.value = null;
+    taxError.value = null;
+    _taxSubscription?.cancel();
+    _taxSubscription = cashflowRepository
+        .watch(CashflowFilter(period: _taxRange))
+        .listen(
+          (_) => unawaited(_reloadTax()),
+          onError: (_) => _failLocalTax(),
+        );
+    unawaited(_loadTaxRate());
+    unawaited(_reloadTax());
     _assetsSubscription?.cancel();
     _assetsSubscription = assetRepository
         .watchAll(includeArchived: true)
@@ -210,6 +247,7 @@ class DashboardViewModel {
           };
           _updateOverdueAccounts(snapshots);
           _recomputeSafety();
+          unawaited(_reloadTax());
           assetNames.value = {
             for (final snapshot in snapshots)
               snapshot.asset.id: snapshot.asset.name,
@@ -291,6 +329,7 @@ class DashboardViewModel {
       unawaited(_reloadNetWorth());
       unawaited(_reloadLocked());
       unawaited(_reloadSafety());
+      unawaited(_reloadTax());
     }, onError: _fail);
   }
 
@@ -308,6 +347,12 @@ class DashboardViewModel {
       start: LocalDate.fromDateTime(start),
       end: LocalDate.fromDateTime(end),
     );
+  }
+
+  /// С 1 января текущего года по today (D21.6/X1).
+  DateRange get _taxRange {
+    final today = this.today.value;
+    return DateRange(start: LocalDate(today.year, 1, 1), end: today);
   }
 
   Future<void> _reloadCashflow() async {
@@ -384,6 +429,112 @@ class DashboardViewModel {
       cash: cash,
       lastThreeMonths: summary,
     );
+  }
+
+  /// Ставка налога из настройки; отсутствие ключа — дефолт (D21.6/X2).
+  Future<void> _loadTaxRate() async {
+    try {
+      final percent = await settingsRepository.getTaxRatePercent();
+      if (_disposed) return;
+      taxRatePercent.value = percent;
+      _recomputeTax();
+    } on Object {
+      // Настройка недоступна — оставляем дефолт.
+    }
+  }
+
+  /// Сумма процентов по вкладам за текущий год в базовой валюте (D21.6/X1).
+  ///
+  /// Блок скрыт без неархивных счетов (X3); ошибка курса не скрывает блок, а
+  /// переводит его в inline-состояние (X5).
+  Future<void> _reloadTax() async {
+    final token = ++_taxToken;
+    if (!_hasActiveAccounts) {
+      _taxBase = null;
+      taxEstimate.value = null;
+      taxError.value = null;
+      _taxReady = true;
+      _emit();
+      return;
+    }
+    try {
+      final categoryId = await categoryRepository.findActiveIdByName(
+        depositInterestCategoryName,
+        CashflowKind.income,
+      );
+      final Money base;
+      if (categoryId == null) {
+        base = Money(
+          minorUnits: 0,
+          currencyCode: baseCurrency.value?.code ?? Currency.rubCode,
+        );
+      } else {
+        final summary = await queries.cashflow(
+          CashflowFilter(
+            period: _taxRange,
+            kind: CashflowKind.income,
+            categoryId: categoryId,
+          ),
+        );
+        base = summary.income;
+      }
+      if (_disposed || token != _taxToken) return;
+      _taxBase = base;
+      taxError.value = null;
+      _recomputeTax();
+      _taxReady = true;
+      _emit();
+    } on DomainException catch (error) {
+      if (_disposed || token != _taxToken) return;
+      _taxBase = null;
+      taxEstimate.value = null;
+      taxError.value = error.code;
+      _taxReady = true;
+      _emit();
+    } on Exception {
+      if (_disposed || token != _taxToken) return;
+      _taxBase = null;
+      taxEstimate.value = null;
+      taxError.value = DomainErrorCode.storageFailure;
+      _taxReady = true;
+      _emit();
+    }
+  }
+
+  void _failLocalTax() {
+    if (_disposed) return;
+    _taxBase = null;
+    taxEstimate.value = null;
+    taxError.value = DomainErrorCode.storageFailure;
+    _taxReady = true;
+    _emit();
+  }
+
+  /// Пересчитывает налог по текущей базе и ставке без повторного запроса.
+  void _recomputeTax() {
+    final base = _taxBase;
+    if (base == null || taxError.value != null) {
+      taxEstimate.value = null;
+      return;
+    }
+    taxEstimate.value = TaxEstimate.calculate(
+      base: base,
+      ratePercent: taxRatePercent.value,
+    );
+  }
+
+  /// Меняет ставку налога (D21.6/X2): валидация диапазона, сохранение и
+  /// мгновенный пересчёт. Невалидное значение игнорируется.
+  Future<void> setTaxRatePercent(int percent) async {
+    if (!TaxEstimate.isValidRatePercent(percent)) return;
+    if (percent == taxRatePercent.value) return;
+    taxRatePercent.value = percent;
+    _recomputeTax();
+    try {
+      await settingsRepository.setTaxRatePercent(percent);
+    } on Object {
+      // Настройка недоступна — расчёт в текущей сессии остаётся верным.
+    }
   }
 
   Future<void> _reloadNetWorth() async {
@@ -566,7 +717,8 @@ class DashboardViewModel {
         !_cashflowReady ||
         !_goalsReady ||
         !_transactionsReady ||
-        !_safetyReady) {
+        !_safetyReady ||
+        !_taxReady) {
       return;
     }
     state.value = const ViewData(null);
@@ -600,11 +752,13 @@ class DashboardViewModel {
     _netWorthToken++;
     _lockedToken++;
     _safetyToken++;
+    _taxToken++;
     _assetsSubscription?.cancel();
     _goalsSubscription?.cancel();
     _transactionsSubscription?.cancel();
     _cashflowSubscription?.cancel();
     _safetySubscription?.cancel();
+    _taxSubscription?.cancel();
     _currenciesSubscription?.cancel();
     _baseSubscription?.cancel();
     _rateCleanup?.call();

@@ -4,7 +4,8 @@ import 'package:finanseapp/core/domain/common/currency.dart';
 import 'package:finanseapp/core/features/settings/domain/display_settings_repository.dart';
 import 'package:finanseapp/core/features/settings/domain/settings_repository.dart';
 
-/// Реализация настроек: базовая валюта (BR-C-5) и отображение (D21.4).
+/// Реализация настроек: базовая валюта (BR-C-5), отображение (D21.4),
+/// ставка налога (D21.6).
 final class SettingsRepositoryImpl
     implements SettingsRepository, DisplaySettingsRepository {
   const SettingsRepositoryImpl(this._dao);
@@ -29,6 +30,13 @@ final class SettingsRepositoryImpl
 
   @override
   Future<void> setAmountsHidden(bool hidden) => _dao.setAmountsHidden(hidden);
+
+  @override
+  Future<int> getTaxRatePercent() => _dao.getTaxRatePercent();
+
+  @override
+  Future<void> setTaxRatePercent(int percent) =>
+      _dao.setTaxRatePercent(percent);
 
   static Currency _map(CurrencyRow row) => Currency(
     code: row.code,

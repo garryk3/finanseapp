@@ -102,6 +102,11 @@ final class FakeSettingsRepository implements SettingsRepository {
 
   @override
   Future<void> setBaseCurrency(String code) async => this.code = code;
+  @override
+  Future<int> getTaxRatePercent() async => defaultTaxRatePercent;
+
+  @override
+  Future<void> setTaxRatePercent(int percent) async {}
 }
 
 /// Курсы для ручного обновления: `cached` уже в кэше, `failures` — сетевые

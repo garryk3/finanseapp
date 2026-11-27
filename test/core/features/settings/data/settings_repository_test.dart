@@ -1,6 +1,8 @@
 import 'package:finanseapp/core/database/app_database.dart';
+import 'package:finanseapp/core/database/seed/seed_data.dart';
 import 'package:finanseapp/core/domain/common/result.dart';
 import 'package:finanseapp/core/features/settings/data/settings_repository_impl.dart';
+import 'package:finanseapp/core/features/settings/domain/settings_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../database/database_fixtures.dart';
@@ -53,4 +55,33 @@ void main() {
       expect(await repository.getAmountsHidden(), isFalse);
     },
   );
+
+  test('ставка налога по умолчанию 13 и меняется', () async {
+    expect(await repository.getTaxRatePercent(), defaultTaxRatePercent);
+
+    await repository.setTaxRatePercent(20);
+    expect(await repository.getTaxRatePercent(), 20);
+
+    await repository.setTaxRatePercent(0);
+    expect(await repository.getTaxRatePercent(), 0);
+  });
+
+  test('ставка налога вне 0..100 отклоняется', () async {
+    await expectLater(
+      repository.setTaxRatePercent(101),
+      throwsA(isA<DomainException>()),
+    );
+    await expectLater(
+      repository.setTaxRatePercent(-1),
+      throwsA(isA<DomainException>()),
+    );
+
+    expect(await repository.getTaxRatePercent(), defaultTaxRatePercent);
+  });
+
+  test('мусорное значение ставки трактуется как дефолт', () async {
+    await db.settingsDao.setValue(taxRatePercentSettingKey, 'abc');
+
+    expect(await repository.getTaxRatePercent(), defaultTaxRatePercent);
+  });
 }

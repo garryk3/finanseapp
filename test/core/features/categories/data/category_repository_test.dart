@@ -197,4 +197,33 @@ void main() {
       throwsA(isA<DomainException>()),
     );
   });
+
+  test('findActiveIdByName находит активную и игнорирует архив', () async {
+    final salary = await (db.select(
+      db.categories,
+    )..where((c) => c.name.equals('Зарплата'))).getSingle();
+
+    expect(
+      await repository.findActiveIdByName('Зарплата', CashflowKind.income),
+      salary.id,
+    );
+
+    await repository.archive(salary.id);
+
+    expect(
+      await repository.findActiveIdByName('Зарплата', CashflowKind.income),
+      isNull,
+    );
+  });
+
+  test('findActiveIdByName нормализует имя и различает вид', () async {
+    expect(
+      await repository.findActiveIdByName('  зарплата ', CashflowKind.income),
+      isNotNull,
+    );
+    expect(
+      await repository.findActiveIdByName('Зарплата', CashflowKind.expense),
+      isNull,
+    );
+  });
 }

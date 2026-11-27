@@ -2583,6 +2583,39 @@
   "@dashboardSafetyNoProfit": {
     "description": "При нулевом/отрицательном профиците срок цели не считается."
   },
+  "dashboardTaxTitle": "Предполагаемый налог",
+  "@dashboardTaxTitle": {
+    "description": "Блок предполагаемого налога с процентов по вкладам (D21.6)."
+  },
+  "dashboardTaxBase": "Проценты по вкладам за год: {amount}",
+  "@dashboardTaxBase": {
+    "description": "Сумма процентов по вкладам с 1 января по сегодня в базовой валюте.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboardTaxRateLabel": "Ставка налога, %",
+  "@dashboardTaxRateLabel": {
+    "description": "Поле ставки налога с процентов по вкладам."
+  },
+  "dashboardTaxRateInvalid": "Введите число от 0 до 100",
+  "@dashboardTaxRateInvalid": {
+    "description": "Ошибка нечисловой/вне диапазона ставки налога."
+  },
+  "dashboardTaxRateUnavailable": "Не удалось рассчитать: нет курса",
+  "@dashboardTaxRateUnavailable": {
+    "description": "Inline-состояние блока налога при неустранимой ошибке курса (D21.6/X5)."
+  },
+  "dashboardTaxInfoTitle": "Как считается налог",
+  "@dashboardTaxInfoTitle": {
+    "description": "Заголовок инфо-диалога о расчёте налога."
+  },
+  "dashboardTaxInfoBody": "Налог = сумма процентов по вкладам с 1 января по сегодня × ставка / 100. Ставка по умолчанию 13 %, её можно изменить, если у вас другая.",
+  "@dashboardTaxInfoBody": {
+    "description": "Формула расчёта предполагаемого налога (D21.6/X4)."
+  },
   "dashboardQuickActions": "Быстрые действия",
   "@dashboardQuickActions": {
     "description": "Секция быстрых действий."

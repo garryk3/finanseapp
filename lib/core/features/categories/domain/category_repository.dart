@@ -10,6 +10,10 @@ abstract interface class CategoryRepository {
 
   Future<int> create(CashflowCategoryDraft draft);
 
+  /// id активной (неархивной) категории с именем [name] и видом [kind];
+  /// null — категории нет или она архивирована (D21.6/X1).
+  Future<int?> findActiveIdByName(String name, CashflowKind kind);
+
   Future<void> update(CashflowCategory category);
 
   Future<int> countEntries(int id);

@@ -20,6 +20,9 @@ import 'package:finanseapp/core/features/cashflow/domain/cashflow_entry.dart';
 import 'package:finanseapp/core/features/cashflow/domain/cashflow_filter.dart';
 import 'package:finanseapp/core/features/cashflow/domain/cashflow_repository.dart';
 import 'package:finanseapp/core/features/cashflow/domain/cashflow_summary.dart';
+import 'package:finanseapp/core/features/categories/domain/cashflow_category.dart';
+import 'package:finanseapp/core/features/categories/domain/category.dart';
+import 'package:finanseapp/core/features/categories/domain/category_repository.dart';
 import 'package:finanseapp/core/features/currencies/domain/currency_repository.dart';
 import 'package:finanseapp/core/features/currencies/domain/exchange_rate_repository.dart';
 import 'package:finanseapp/core/features/currencies/logic/exchange_rate_events.dart';
@@ -85,6 +88,8 @@ final class _Queries implements AnalyticsQueries {
     this.cashflowError,
     this.safetyResult,
     this.safetyError,
+    this.taxBase,
+    this.taxError,
   });
 
   Money total;
@@ -93,11 +98,15 @@ final class _Queries implements AnalyticsQueries {
   CashflowSummary cashflowResult;
   CashflowFilter? lastCashflowFilter;
   CashflowFilter? lastSafetyFilter;
+  CashflowFilter? lastTaxFilter;
   final List<CashflowPeriodPoint> cashflowPoints;
   Object? cashflowError;
   CashflowSummary? safetyResult;
   Object? safetyError;
   int safetyQueries = 0;
+  Money? taxBase;
+  Object? taxError;
+  int taxQueries = 0;
 
   @override
   Future<NetWorthSummary> netWorth(LocalDate onDate) async {
@@ -124,6 +133,19 @@ final class _Queries implements AnalyticsQueries {
 
   @override
   Future<CashflowSummary> cashflow(CashflowFilter filter) async {
+    if (filter.categoryId != null) {
+      taxQueries++;
+      lastTaxFilter = filter;
+      final failure = taxError;
+      if (failure != null) throw failure;
+      final base = taxBase ?? const Money(minorUnits: 0, currencyCode: 'RUB');
+      return CashflowSummary(
+        income: base,
+        expense: const Money(minorUnits: 0, currencyCode: 'RUB'),
+        net: base,
+        currencyCode: base.currencyCode,
+      );
+    }
     if (filter.period?.start != LocalDate(2026, 11, 1)) {
       safetyQueries++;
       lastSafetyFilter = filter;
@@ -308,10 +330,15 @@ final class _Cashflows implements CashflowRepository {
 }
 
 final class _Settings implements SettingsRepository {
-  _Settings({this.controller, this.base = _rub});
+  _Settings({
+    this.controller,
+    this.base = _rub,
+    this.taxRatePercent = defaultTaxRatePercent,
+  });
 
   final StreamController<Currency>? controller;
   final Currency base;
+  int taxRatePercent;
 
   @override
   Stream<Currency> watchBaseCurrency() =>
@@ -322,6 +349,12 @@ final class _Settings implements SettingsRepository {
 
   @override
   Future<void> setBaseCurrency(String code) async {}
+
+  @override
+  Future<int> getTaxRatePercent() async => taxRatePercent;
+
+  @override
+  Future<void> setTaxRatePercent(int percent) async => taxRatePercent = percent;
 }
 
 final class _DisplaySettings implements DisplaySettingsRepository {
@@ -374,6 +407,42 @@ final class _Currencies implements CurrencyRepository {
 
   @override
   Future<void> deleteIfUnused(String code) async {}
+}
+
+final class _Categories implements CategoryRepository {
+  _Categories({this.depositInterestId = 1});
+
+  /// id категории «Проценты по вкладу»; null — категории нет.
+  final int? depositInterestId;
+
+  @override
+  Future<int?> findActiveIdByName(String name, CashflowKind kind) async =>
+      kind == CashflowKind.income ? depositInterestId : null;
+
+  @override
+  Stream<List<CashflowCategory>> watchByKind(
+    CashflowKind kind, {
+    bool includeArchived = false,
+  }) => const Stream.empty();
+
+  @override
+  Future<int> create(CashflowCategoryDraft draft) => throw UnimplementedError();
+
+  @override
+  Future<void> update(CashflowCategory category) => throw UnimplementedError();
+
+  @override
+  Future<int> countEntries(int id) => throw UnimplementedError();
+
+  @override
+  Future<void> archive(int id) => throw UnimplementedError();
+
+  @override
+  Future<void> moveEntriesAndDelete(int id, int targetId) =>
+      throw UnimplementedError();
+
+  @override
+  Future<void> deleteIfUnused(int id) => throw UnimplementedError();
 }
 
 final class _Rates implements ExchangeRateRepository {
@@ -506,6 +575,8 @@ void main() {
     Map<String, Decimal> rates = const {},
     bool amountsHidden = false,
     StreamController<bool>? amountsController,
+    int? depositInterestId = 1,
+    int taxRatePercent = defaultTaxRatePercent,
   }) => DashboardViewModel(
     queries:
         queries ??
@@ -530,13 +601,18 @@ void main() {
       controller: transactionController,
     ),
     cashflowRepository: _Cashflows(),
-    settingsRepository: _Settings(controller: settingsController, base: base),
+    settingsRepository: _Settings(
+      controller: settingsController,
+      base: base,
+      taxRatePercent: taxRatePercent,
+    ),
     displaySettings: _DisplaySettings(
       hidden: amountsHidden,
       controller: amountsController,
     ),
     currencyRepository: _Currencies(currencyController),
     rateRepository: _Rates(rates),
+    categoryRepository: _Categories(depositInterestId: depositInterestId),
     now: () => _today,
   );
 
@@ -558,6 +634,8 @@ void main() {
     bool largeText = false,
     bool amountsHidden = false,
     StreamController<bool>? amountsController,
+    int? depositInterestId = 1,
+    int taxRatePercent = defaultTaxRatePercent,
   }) async {
     final vm = viewModel(
       total: total,
@@ -573,6 +651,8 @@ void main() {
       rates: rates,
       amountsHidden: amountsHidden,
       amountsController: amountsController,
+      depositInterestId: depositInterestId,
+      taxRatePercent: taxRatePercent,
     );
     tester.view.physicalSize = Size(width, 2000);
     tester.view.devicePixelRatio = 1;
@@ -1613,6 +1693,7 @@ void main() {
       displaySettings: _DisplaySettings(),
       currencyRepository: _Currencies(),
       rateRepository: _Rates(),
+      categoryRepository: _Categories(),
       now: () => _today,
     );
     addTearDown(vm.dispose);
@@ -1840,6 +1921,7 @@ void main() {
       displaySettings: _DisplaySettings(),
       currencyRepository: _Currencies(),
       rateRepository: _Rates(),
+      categoryRepository: _Categories(),
       now: () => _today,
     );
     addTearDown(vm.dispose);
@@ -1879,5 +1961,116 @@ void main() {
     settings.add(_rub);
     await tester.pumpAndSettle();
     expect(find.text(vm.formatMoney(third.income)), findsWidgets);
+  });
+
+  testWidgets('налог: без счетов блок скрыт', (tester) async {
+    final queries = _Queries(_rubles(0), taxBase: _rubles(10000));
+    await pump(tester, width: 427, queries: queries);
+
+    expect(find.text(l10n.dashboardTaxTitle), findsNothing);
+  });
+
+  testWidgets('налог: 13% от процентов за текущий год', (tester) async {
+    final queries = _Queries(_rubles(3000), taxBase: _rubles(10000));
+    final vm = await pump(
+      tester,
+      width: 427,
+      queries: queries,
+      snapshots: [_snapshot(1, _rubles(3000))],
+    );
+
+    expect(find.text(l10n.dashboardTaxTitle), findsOneWidget);
+    expect(find.text(vm.formatMoney(_rubles(1300))), findsOneWidget);
+    expect(
+      find.text(l10n.dashboardTaxBase(vm.formatMoney(_rubles(10000)))),
+      findsOneWidget,
+    );
+    expect(queries.lastTaxFilter?.period?.start, LocalDate(2026, 1, 1));
+    expect(queries.lastTaxFilter?.period?.end, _today);
+    expect(queries.lastTaxFilter?.categoryId, 1);
+    expect(queries.lastTaxFilter?.kind, CashflowKind.income);
+  });
+
+  testWidgets('налог: ставка 0 — нулевой налог', (tester) async {
+    final queries = _Queries(_rubles(3000), taxBase: _rubles(10000));
+    final vm = await pump(
+      tester,
+      width: 427,
+      queries: queries,
+      snapshots: [_snapshot(1, _rubles(3000))],
+      taxRatePercent: 0,
+    );
+
+    expect(vm.taxRatePercent.value, 0);
+    expect(
+      vm.taxEstimate.value?.tax,
+      const Money(minorUnits: 0, currencyCode: 'RUB'),
+    );
+  });
+
+  testWidgets('налог: нет категории — нулевая база', (tester) async {
+    final queries = _Queries(_rubles(3000), taxBase: _rubles(10000));
+    final vm = await pump(
+      tester,
+      width: 427,
+      queries: queries,
+      snapshots: [_snapshot(1, _rubles(3000))],
+      depositInterestId: null,
+    );
+
+    expect(
+      vm.taxEstimate.value?.base,
+      const Money(minorUnits: 0, currencyCode: 'RUB'),
+    );
+    expect(queries.taxQueries, 0);
+  });
+
+  testWidgets('налог: изменение ставки пересчитывает', (tester) async {
+    final queries = _Queries(_rubles(3000), taxBase: _rubles(10000));
+    final vm = await pump(
+      tester,
+      width: 427,
+      queries: queries,
+      snapshots: [_snapshot(1, _rubles(3000))],
+    );
+    expect(vm.taxEstimate.value?.tax, _rubles(1300));
+
+    await tester.enterText(find.byType(TextField), '20');
+    await tester.pump();
+
+    expect(vm.taxRatePercent.value, 20);
+    expect(vm.taxEstimate.value?.tax, _rubles(2000));
+  });
+
+  testWidgets('налог: ошибка курса — inline, блок не исчезает', (tester) async {
+    final queries = _Queries(
+      _rubles(3000),
+      taxBase: _rubles(10000),
+      taxError: const DomainException(DomainErrorCode.rateUnavailable),
+    );
+    await pump(
+      tester,
+      width: 427,
+      queries: queries,
+      snapshots: [_snapshot(1, _rubles(3000))],
+    );
+
+    expect(find.text(l10n.dashboardTaxTitle), findsOneWidget);
+    expect(find.text(l10n.dashboardTaxRateUnavailable), findsOneWidget);
+  });
+
+  testWidgets('налог: 320dp, 1.3, тёмная тема — без overflow', (tester) async {
+    final queries = _Queries(_rubles(3000), taxBase: _rubles(12345678));
+    await pump(
+      tester,
+      width: 320,
+      dark: true,
+      largeText: true,
+      queries: queries,
+      snapshots: [_snapshot(1, _rubles(3000))],
+    );
+
+    expect(tester.takeException(), isNull);
+    expect(find.text(l10n.dashboardTaxTitle), findsOneWidget);
   });
 }
