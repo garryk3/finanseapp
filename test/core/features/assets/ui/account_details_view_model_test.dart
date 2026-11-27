@@ -195,6 +195,11 @@ final class _Settings implements SettingsRepository {
 
   @override
   Future<void> setBaseCurrency(String code) async {}
+  @override
+  Future<int> getTaxRatePercent() async => defaultTaxRatePercent;
+
+  @override
+  Future<void> setTaxRatePercent(int percent) async {}
 }
 
 final class _Rates implements ExchangeRateRepository {
@@ -215,6 +220,12 @@ final class _Rates implements ExchangeRateRepository {
       fetchedAt: DateTime.utc(2026, 1, 1),
     );
   }
+
+  @override
+  Future<ExchangeRate?> findLatestOnOrBefore(
+    String currencyCode,
+    LocalDate date,
+  ) async => null;
 
   @override
   Future<ExchangeRate> fetchFromCbr(String code, LocalDate date) =>

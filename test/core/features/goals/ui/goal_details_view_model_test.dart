@@ -227,6 +227,12 @@ final class _Rates implements ExchangeRateRepository {
   }
 
   @override
+  Future<ExchangeRate?> findLatestOnOrBefore(
+    String currencyCode,
+    LocalDate date,
+  ) async => null;
+
+  @override
   Future<ExchangeRate> fetchFromCbr(String code, LocalDate date) =>
       throw UnimplementedError();
 

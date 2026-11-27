@@ -1,5 +1,6 @@
 import 'package:decimal/decimal.dart';
 import 'package:finanseapp/core/domain/common/currency.dart';
+import 'package:finanseapp/core/domain/common/local_date.dart';
 import 'package:finanseapp/core/domain/common/money.dart';
 import 'package:finanseapp/core/domain/common/money_math.dart';
 import 'package:finanseapp/core/domain/common/result.dart';
@@ -26,6 +27,7 @@ abstract final class NetWorthCalculator {
     required List<NetWorthAssetValue> assets,
     required Map<String, Decimal> ratesToRub,
     required Currency baseCurrency,
+    LocalDate? staleRateDate,
   }) {
     final byKind = <AssetKind, Rational>{
       for (final kind in AssetKind.values) kind: Rational.zero,
@@ -66,7 +68,11 @@ abstract final class NetWorthCalculator {
       );
     }
 
-    return NetWorthSummary(total: totalMoney, byAssetKind: kindMoney);
+    return NetWorthSummary(
+      total: totalMoney,
+      byAssetKind: kindMoney,
+      staleRateDate: staleRateDate,
+    );
   }
 
   static Rational _convert({

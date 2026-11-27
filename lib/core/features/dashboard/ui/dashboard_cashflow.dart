@@ -6,11 +6,13 @@ import 'package:finanseapp/core/domain/common/money_math.dart';
 import 'package:finanseapp/core/features/analytics/domain/cashflow_period_point.dart';
 import 'package:finanseapp/core/features/cashflow/domain/cashflow_summary.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
+import 'package:finanseapp/uikit/app_amount_blur.dart';
 import 'package:finanseapp/uikit/app_button.dart';
 import 'package:finanseapp/uikit/app_cashflow_chart.dart';
 import 'package:finanseapp/uikit/app_cashflow_summary.dart';
 import 'package:finanseapp/uikit/app_chart_data.dart';
 import 'package:finanseapp/uikit/app_chart_frame.dart';
+import 'package:finanseapp/uikit/app_money_visibility.dart';
 import 'package:finanseapp/uikit/app_section.dart';
 import 'package:finanseapp/uikit/app_text.dart';
 import 'package:material_ui/material_ui.dart';
@@ -84,15 +86,20 @@ class DashboardCashflow extends StatelessWidget {
                   onTap: onOpenAnalytics,
                 ),
                 const SizedBox(height: AppSpacing.sm),
+                // D21.4: заголовок «Динамика» не блюрится — прячем только
+                // сам график (bars + тултипы сумм) и его денежную сводку.
                 AppChartFrame(
                   title: l10n.dashboardCashflowDynamics,
                   height: 140,
                   accessibleSummary: accessible,
-                  child: AppCashflowChart(
-                    groups: _weeklyGroups(points),
-                    accessibleSummary: accessible,
-                    incomeLabel: l10n.cashflowIncome,
-                    expenseLabel: l10n.cashflowExpense,
+                  semanticsHidden: AppMoneyVisibility.of(context),
+                  child: AppAmountBlur(
+                    child: AppCashflowChart(
+                      groups: _weeklyGroups(points),
+                      accessibleSummary: accessible,
+                      incomeLabel: l10n.cashflowIncome,
+                      expenseLabel: l10n.cashflowExpense,
+                    ),
                   ),
                 ),
               ],

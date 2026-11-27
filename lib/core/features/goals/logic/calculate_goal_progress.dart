@@ -5,6 +5,7 @@ import 'package:finanseapp/core/domain/common/local_date.dart';
 import 'package:finanseapp/core/domain/common/money.dart';
 import 'package:finanseapp/core/domain/common/result.dart';
 import 'package:finanseapp/core/features/currencies/domain/exchange_rate_repository.dart';
+import 'package:finanseapp/core/features/currencies/logic/exchange_rate_resolver.dart';
 import 'package:finanseapp/core/features/goals/domain/financial_goal.dart';
 import 'package:finanseapp/core/features/goals/domain/goal_progress.dart';
 import 'package:finanseapp/core/features/goals/logic/goal_calculator.dart';
@@ -45,10 +46,14 @@ final class CalculateGoalProgress {
         continue;
       }
       try {
-        final rate = await rateRepository.find(code, today);
-        if (rate == null) return null;
-        rates[code] = rate.rateToRub;
-        rateCache?[code] = rate.rateToRub;
+        final resolved = await ExchangeRateResolver.resolve(
+          rateRepository,
+          code,
+          today,
+        );
+        if (resolved == null) return null;
+        rates[code] = resolved.rateToRub;
+        rateCache?[code] = resolved.rateToRub;
       } on Exception {
         return null;
       }

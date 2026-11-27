@@ -155,6 +155,8 @@ final class _Categories implements CategoryRepository {
 
   @override
   Future<void> deleteIfUnused(int id) => throw UnimplementedError();
+  @override
+  Future<int?> findActiveIdByName(String name, CashflowKind kind) async => null;
 }
 
 final class _Settings implements SettingsRepository {
@@ -166,6 +168,11 @@ final class _Settings implements SettingsRepository {
 
   @override
   Future<void> setBaseCurrency(String code) async {}
+  @override
+  Future<int> getTaxRatePercent() async => defaultTaxRatePercent;
+
+  @override
+  Future<void> setTaxRatePercent(int percent) async {}
 }
 
 final class _Currencies implements CurrencyRepository {
@@ -198,6 +205,12 @@ final class _Currencies implements CurrencyRepository {
 final class _Rates implements ExchangeRateRepository {
   @override
   Future<ExchangeRate?> find(String currencyCode, LocalDate date) async => null;
+
+  @override
+  Future<ExchangeRate?> findLatestOnOrBefore(
+    String currencyCode,
+    LocalDate date,
+  ) async => null;
 
   @override
   Future<ExchangeRate> fetchFromCbr(String currencyCode, LocalDate date) =>

@@ -8,6 +8,7 @@ import 'package:finanseapp/core/features/dashboard/ui/dashboard_net_worth.dart';
 import 'package:finanseapp/core/features/dashboard/ui/dashboard_overdue_accounts.dart';
 import 'package:finanseapp/core/features/dashboard/ui/dashboard_recent_operations.dart';
 import 'package:finanseapp/core/features/dashboard/ui/dashboard_safety_cushion.dart';
+import 'package:finanseapp/core/features/dashboard/ui/dashboard_tax_estimate.dart';
 import 'package:finanseapp/core/features/dashboard/ui/dashboard_view_model.dart';
 import 'package:finanseapp/core/domain/common/result.dart';
 import 'package:finanseapp/core/presentation/date_formatter.dart';
@@ -16,10 +17,14 @@ import 'package:finanseapp/l10n/app_localizations.dart';
 import 'package:finanseapp/uikit/app_adaptive_grid.dart';
 import 'package:finanseapp/uikit/app_button.dart';
 import 'package:finanseapp/uikit/app_error_state.dart';
+import 'package:finanseapp/uikit/app_icon_button.dart';
+import 'package:finanseapp/uikit/app_money_visibility.dart';
 import 'package:finanseapp/uikit/app_scaffold.dart';
 import 'package:finanseapp/uikit/app_section.dart';
 import 'package:finanseapp/uikit/app_skeleton.dart';
 import 'package:finanseapp/uikit/app_text.dart';
+import 'package:finanseapp/uikit/app_top_app_bar.dart';
+import 'package:finanseapp/uikit/app_warning_banner.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:signals_flutter/signals_flutter.dart';
@@ -61,35 +66,54 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return AppScaffold(
-      title: l10n.navDashboard,
-      body: SignalBuilder(
-        builder: (context) {
-          final vm = _viewModel;
-          return switch (vm.state.value) {
-            ViewLoading() => const Padding(
-              padding: EdgeInsets.all(AppSpacing.md),
-              child: Column(
-                children: [
-                  AppSkeleton(width: double.infinity, height: 120),
-                  SizedBox(height: AppSpacing.md),
-                  AppSkeleton(width: double.infinity, height: 56),
-                  SizedBox(height: AppSpacing.sm),
-                  AppSkeleton(width: double.infinity, height: 56),
-                ],
-              ),
+    return SignalBuilder(
+      builder: (context) {
+        final hidden = _viewModel.amountsHidden.value;
+        return AppMoneyVisibility(
+          hidden: hidden,
+          child: AppScaffold(
+            appBar: AppTopAppBar(
+              title: l10n.navDashboard,
+              actions: [
+                AppIconButton(
+                  icon: hidden ? Icons.visibility_off : Icons.visibility,
+                  tooltip: hidden
+                      ? l10n.dashboardShowAmounts
+                      : l10n.dashboardHideAmounts,
+                  onPressed: _viewModel.toggleAmountsHidden,
+                ),
+              ],
             ),
-            ViewError() => AppErrorState(
-              title: l10n.errorStateTitle,
-              message: l10n.errorStateMessage,
-              errorLabel: l10n.errorLabel,
-              retryLabel: l10n.retry,
-              onRetry: vm.reload,
+            body: SignalBuilder(
+              builder: (context) {
+                final vm = _viewModel;
+                return switch (vm.state.value) {
+                  ViewLoading() => const Padding(
+                    padding: EdgeInsets.all(AppSpacing.md),
+                    child: Column(
+                      children: [
+                        AppSkeleton(width: double.infinity, height: 120),
+                        SizedBox(height: AppSpacing.md),
+                        AppSkeleton(width: double.infinity, height: 56),
+                        SizedBox(height: AppSpacing.sm),
+                        AppSkeleton(width: double.infinity, height: 56),
+                      ],
+                    ),
+                  ),
+                  ViewError() => AppErrorState(
+                    title: l10n.errorStateTitle,
+                    message: l10n.errorStateMessage,
+                    errorLabel: l10n.errorLabel,
+                    retryLabel: l10n.retry,
+                    onRetry: vm.reload,
+                  ),
+                  ViewData() => _body(context, l10n, vm),
+                };
+              },
             ),
-            ViewData() => _body(context, l10n, vm),
-          };
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -119,10 +143,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
               value: vm.formatMoney(summary.byAssetKind[kind]!),
             ),
     ];
+    final staleDate = vm.staleRateDate.value;
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
       child: AppAdaptiveGrid(
         children: [
+          if (staleDate != null)
+            AppWarningBanner(
+              message: l10n.dashboardStaleRateBanner(
+                const DateFormatter().format(staleDate),
+              ),
+            ),
           AppSection(
             header: l10n.dashboardOverview,
             padded: false,
@@ -154,11 +185,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
               l10n: l10n,
               onAccount: (id) => context.push(AppRoutes.assetDetailsPath(id)),
             ),
-          if (cushion != null)
+          if (cushion != null || vm.safetyCushionError.value != null)
             DashboardSafetyCushion(
               cushion: cushion,
+              error: vm.safetyCushionError.value,
               l10n: l10n,
               formatMoney: vm.formatMoney,
+              onRetry: vm.reload,
+            ),
+          if (vm.taxEstimate.value != null || vm.taxError.value != null)
+            DashboardTaxEstimate(
+              estimate: vm.taxEstimate.value,
+              ratePercent: vm.taxRatePercent.value,
+              error: vm.taxError.value,
+              l10n: l10n,
+              formatMoney: vm.formatMoney,
+              onRateChanged: vm.setTaxRatePercent,
             ),
           if (vm.cashflowError.value != null)
             AppSection(

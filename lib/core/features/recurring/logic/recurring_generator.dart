@@ -9,7 +9,6 @@ import 'package:finanseapp/core/domain/common/local_date.dart';
 import 'package:finanseapp/core/domain/common/money.dart';
 import 'package:finanseapp/core/domain/common/money_math.dart';
 import 'package:finanseapp/core/domain/common/result.dart';
-import 'package:finanseapp/core/domain/common/validation.dart';
 import 'package:finanseapp/core/features/cashflow/logic/cashflow_commands.dart';
 import 'package:finanseapp/core/features/cashflow/logic/linked_cashflow_writer.dart';
 import 'package:finanseapp/core/features/categories/domain/category.dart';
@@ -253,16 +252,8 @@ final class RecurringGenerator {
     }
   }
 
-  Future<int?> _activeCategoryId(String name) async {
-    final normalized = normalizeEntityName(name);
-    final query = db.select(db.categories)
-      ..where((c) => c.kind.equalsValue(CashflowKind.income))
-      ..where((c) => c.normalizedName.equals(normalized))
-      ..where((c) => c.archivedAt.isNull())
-      ..limit(1);
-    final row = await query.getSingleOrNull();
-    return row?.id;
-  }
+  Future<int?> _activeCategoryId(String name) =>
+      db.referencesDao.findActiveIdByName(name, CashflowKind.income);
 
   /// Возвращает причину отложенного периода или null, если он создан/пропущен.
   Future<_PeriodResult> _generatePeriod({

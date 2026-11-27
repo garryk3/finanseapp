@@ -33,7 +33,7 @@ permission:
 
 - CI — `.github/workflows/ci.yml` (format, analyze + гейт плагина `dart analyze lib`, vendor-шаг, grep-гейты uikit, тесты, debug APK). Release workflow `.github/workflows/release.yml` — на пуш тега `v*`, публикует GitHub Release с APK.
 - Теги: `vX.Y.Z` и с суффиксами `-beta`/`-gamma`/`-alpha`. Суффикс последнего релиза наследуется (`v1.0.11-beta` → `v1.0.12-beta`).
-- Ревьюеры-гейты: `task-reviewer` — по каждой задаче до коммита/PR; `plan-review` — перед релизом. Перед публикацией убедитесь, что по всем релизным задачам пройден `task-reviewer`, и запустите `plan-review`.
+- Ревьюеры-гейты: `task-reviewer` (+ `design-reviewer` при UI-изменениях) — **один раз по релизному диффу** `origin/main...release/<NN>` до слияния в `main`; `plan-review` — перед релизом.
 
 ## Шаги публикации
 
@@ -42,18 +42,19 @@ permission:
 
 ### 2. Коммит текущих изменений (если есть)
 - Просмотрите `git diff`, застейджите только нужные файлы, закоммитьте на русском.
-- Перед коммитом убедитесь, что по задаче изменений уже пройден `task-reviewer` (иначе запустите).
 - **Спросите пользователя**, запускать ли e2e (`flutter test integration_test -d linux`).
 
-### 3. Проверка тестов и PLAN.md
+### 3. Проверка тестов, ревью и PLAN.md
 - Локально прогоните хотя бы `flutter analyze --fatal-infos` и `flutter test` из корня.
+- Убедитесь, что задачи этапа влиты в `release/<NN>` (PR → `release/<NN>`, squash, CI зелёный).
+- **Релизное ревью (один раз):** запустите `task-reviewer` (+ `design-reviewer` при UI-изменениях в релизе) по диффу `git diff --name-status origin/main...release/<NN>`; generated-файлы исключены (`*.g.dart`, `lib/l10n/app_localizations*.dart`, `test/generated_migrations/**`, `drift_schemas/**`). Вердикты `DO NOT SHIP`/`REDESIGN REQUIRED` — остановитесь.
 - Перед публикацией запустите `plan-review` (задачи с `[x]`+датой и рабочими планами в `PLAN.md`). Блокирующие замечания — остановитесь.
 - Если есть открытые PR — убедитесь, что CI на них зелёный.
 - Любая красная проверка — остановитесь и сообщите пользователю, не публикуйте.
 
-### 4. Слияние в main после CI
-- Определите готовые ветки `task/*`. Перед PR синхронизируйте каждую с `origin/main`: `git fetch origin && git merge origin/main` (без `rebase`); diff против `main` — только фактически изменённые файлы (`git diff --name-status origin/main..HEAD`).
-- Для каждой: PR в `main` (через `gh`), дождитесь зелёного CI, squash merge.
+### 4. Слияние `release/<NN>` в main после CI
+- Если `release/<NN>` отстала от main — `git fetch origin && git merge origin/main` (без `rebase`).
+- PR `release/<NN>` → `main` (через `gh`), дождитесь зелёного CI, **merge-коммит** (не squash — сохранить задачи этапа).
 - Обновите локальный main: `git checkout main && git pull origin main`. Убедитесь, что `origin/main` актуален.
 
 ### 5. Поднятие версии и пуш тега

@@ -43,6 +43,8 @@ final class _FakeCategories implements CategoryRepository {
 
   @override
   dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError();
+  @override
+  Future<int?> findActiveIdByName(String name, CashflowKind kind) async => null;
 }
 
 final class _FakeCurrencies implements CurrencyRepository {

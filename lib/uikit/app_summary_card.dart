@@ -6,6 +6,7 @@ import 'package:finanseapp/app/theme/app_semantic_colors.dart';
 import 'package:finanseapp/app/theme/app_spacing.dart';
 import 'package:finanseapp/uikit/app_card.dart';
 import 'package:finanseapp/uikit/app_money_text.dart';
+import 'package:finanseapp/uikit/app_money_visibility.dart';
 import 'package:finanseapp/uikit/app_text.dart';
 
 /// Summary-карточка «заголовок — главное значение — подпись» с опциональными
@@ -37,9 +38,11 @@ class AppSummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
+    // Скрытая сумма не должна попадать в семантику карточки (D21.4).
+    final hidden = AppMoneyVisibility.of(context);
     return AppCard(
       onTap: onTap,
-      semanticLabel: '$title, $value',
+      semanticLabel: hidden ? title : '$title, $value',
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,

@@ -1,6 +1,7 @@
 import 'package:finanseapp/app/theme/app_semantic_colors.dart';
 import 'package:finanseapp/app/theme/app_theme.dart';
 import 'package:finanseapp/core/domain/common/money.dart';
+import 'package:finanseapp/core/domain/common/result.dart';
 import 'package:finanseapp/core/features/dashboard/logic/safety_cushion.dart';
 import 'package:finanseapp/core/features/dashboard/ui/dashboard_safety_cushion.dart';
 import 'package:finanseapp/l10n/app_localizations.dart';
@@ -181,5 +182,52 @@ void main() {
     );
     expect(find.bySemanticsLabel(RegExp('хватит на 100\\+ лет')), findsNothing);
     semantics.dispose();
+  });
+
+  testWidgets('ошибка курса — inline «Курс недоступен» и повтор (S5)', (
+    tester,
+  ) async {
+    var retried = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light(),
+        home: SizedBox(
+          width: 288,
+          child: DashboardSafetyCushion(
+            error: DomainErrorCode.rateUnavailable,
+            l10n: l10n,
+            formatMoney: _formatMoney,
+            onRetry: () => retried++,
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text(l10n.dashboardSafetyTitle), findsOneWidget);
+    expect(find.text(l10n.assetBaseUnavailable), findsOneWidget);
+    await tester.tap(find.text(l10n.retry));
+    await tester.pump();
+    expect(retried, 1);
+  });
+
+  testWidgets('ошибка хранилища — без повтора', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light(),
+        home: SizedBox(
+          width: 288,
+          child: DashboardSafetyCushion(
+            error: DomainErrorCode.storageFailure,
+            l10n: l10n,
+            formatMoney: _formatMoney,
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text(l10n.dashboardSafetyTitle), findsOneWidget);
+    expect(find.text(l10n.retry), findsNothing);
   });
 }

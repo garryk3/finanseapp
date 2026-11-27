@@ -228,6 +228,11 @@ final class FakeSettings implements SettingsRepository {
 
   @override
   Future<void> setBaseCurrency(String code) async {}
+  @override
+  Future<int> getTaxRatePercent() async => defaultTaxRatePercent;
+
+  @override
+  Future<void> setTaxRatePercent(int percent) async {}
 }
 
 final class FakeRates implements ExchangeRateRepository {
@@ -248,6 +253,12 @@ final class FakeRates implements ExchangeRateRepository {
       fetchedAt: DateTime.utc(2026),
     );
   }
+
+  @override
+  Future<ExchangeRate?> findLatestOnOrBefore(
+    String currencyCode,
+    LocalDate date,
+  ) async => null;
 
   @override
   Future<ExchangeRate> fetchFromCbr(String currencyCode, LocalDate date) =>

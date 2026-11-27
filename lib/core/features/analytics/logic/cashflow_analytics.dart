@@ -26,8 +26,9 @@ final class CashflowAmount {
 abstract final class CashflowAnalytics {
   static CashflowSummary summarize(
     List<CashflowAmount> values,
-    Currency baseCurrency,
-  ) {
+    Currency baseCurrency, {
+    LocalDate? staleRateDate,
+  }) {
     final income = _sum(values, CashflowKind.income);
     final expense = _sum(values, CashflowKind.expense);
     final incomeMoney = MoneyMath.fromRational(income, baseCurrency);
@@ -37,6 +38,7 @@ abstract final class CashflowAnalytics {
       expense: expenseMoney,
       net: MoneyMath.subtract(incomeMoney, expenseMoney),
       currencyCode: baseCurrency.code,
+      staleRateDate: staleRateDate,
     );
   }
 

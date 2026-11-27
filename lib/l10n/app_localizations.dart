@@ -214,6 +214,18 @@ abstract class AppLocalizations {
   /// **'Биометрия недоступна на этом устройстве'**
   String get appLockBiometricUnavailable;
 
+  /// Кнопка ручного перехода к PIN-клавиатуре на экране блокировки (D21.7).
+  ///
+  /// In ru, this message translates to:
+  /// **'Ввести PIN-код'**
+  String get appLockEnterPin;
+
+  /// Статус в биометрическом состоянии экрана блокировки (D21.7).
+  ///
+  /// In ru, this message translates to:
+  /// **'Подтвердите личность, чтобы войти'**
+  String get appLockBiometricPrompt;
+
   /// Подпись настройки auto-lock.
   ///
   /// In ru, this message translates to:
@@ -825,6 +837,36 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Настройки валюты обновлены.'**
   String get currencyToggled;
+
+  /// Подсказка кнопки ручного обновления курсов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Обновить курсы'**
+  String get currenciesRefreshTooltip;
+
+  /// Семантика pending при обновлении курсов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Обновление курсов'**
+  String get currenciesRefreshPending;
+
+  /// Результат обновления курсов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Курсы обновлены: {count}.'**
+  String currenciesRefreshDone(int count);
+
+  /// Результат обновления, когда все курсы уже в кэше.
+  ///
+  /// In ru, this message translates to:
+  /// **'Курсы уже актуальны.'**
+  String get currenciesRefreshUpToDate;
+
+  /// Результат обновления при сетевых ошибках.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось обновить курсы: {count}.'**
+  String currenciesRefreshFailed(int count);
 
   /// Пояснение смены базовой валюты.
   ///
@@ -3435,23 +3477,47 @@ abstract class AppLocalizations {
   /// **'Деньги на всех счетах · средние расходы за 3 полных месяца'**
   String get dashboardSafetyPeriod;
 
-  /// Целевой размер подушки.
+  /// Целевой размер подушки (для семантики).
   ///
   /// In ru, this message translates to:
   /// **'Цель — 6 месяцев расходов ({amount})'**
   String dashboardSafetyTarget(String amount);
 
-  /// Срок достижения цели при текущем профиците.
+  /// Подпись цели подушки; сумма выводится отдельно и блюрится (D21.4).
+  ///
+  /// In ru, this message translates to:
+  /// **'Цель — 6 месяцев расходов'**
+  String get dashboardSafetyTargetLabel;
+
+  /// Срок достижения цели при текущем профиците (для семантики).
   ///
   /// In ru, this message translates to:
   /// **'До цели — {months} мес, если откладывать {profit}/мес'**
   String dashboardSafetyEta(int months, String profit);
 
-  /// Срок цели больше 10 лет.
+  /// Начало строки срока цели; сумма профицита выводится отдельно (D21.4).
+  ///
+  /// In ru, this message translates to:
+  /// **'До цели — {months} мес, если откладывать'**
+  String dashboardSafetyEtaPrefix(int months);
+
+  /// Единица профицита в строке срока цели.
+  ///
+  /// In ru, this message translates to:
+  /// **'/мес'**
+  String get dashboardSafetyEtaSuffix;
+
+  /// Срок цели больше 10 лет (для семантики).
   ///
   /// In ru, this message translates to:
   /// **'До цели — больше 10 лет, если откладывать {profit}/мес'**
   String dashboardSafetyEtaMoreThan10Years(String profit);
+
+  /// Начало строки срока >10 лет; сумма профицита выводится отдельно (D21.4).
+  ///
+  /// In ru, this message translates to:
+  /// **'До цели — больше 10 лет, если откладывать'**
+  String get dashboardSafetyEtaMoreThan10YearsPrefix;
 
   /// Подушка достигла целевых 6 месяцев.
   ///
@@ -3464,6 +3530,48 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Доходы не превышают расходы — цель не приближается'**
   String get dashboardSafetyNoProfit;
+
+  /// Блок предполагаемого налога с процентов по вкладам (D21.6).
+  ///
+  /// In ru, this message translates to:
+  /// **'Предполагаемый налог'**
+  String get dashboardTaxTitle;
+
+  /// Подпись базы налога; сумма выводится отдельно и блюрится (D21.4).
+  ///
+  /// In ru, this message translates to:
+  /// **'Проценты по вкладам за год:'**
+  String get dashboardTaxBaseLabel;
+
+  /// Поле ставки налога с процентов по вкладам.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ставка налога, %'**
+  String get dashboardTaxRateLabel;
+
+  /// Ошибка нечисловой/вне диапазона ставки налога.
+  ///
+  /// In ru, this message translates to:
+  /// **'Введите число от 0 до 100'**
+  String get dashboardTaxRateInvalid;
+
+  /// Inline-состояние блока налога при неустранимой ошибке курса (D21.6/X5).
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось рассчитать: нет курса'**
+  String get dashboardTaxRateUnavailable;
+
+  /// Заголовок инфо-диалога о расчёте налога.
+  ///
+  /// In ru, this message translates to:
+  /// **'Как считается налог'**
+  String get dashboardTaxInfoTitle;
+
+  /// Формула расчёта предполагаемого налога (D21.6/X4).
+  ///
+  /// In ru, this message translates to:
+  /// **'Налог = сумма процентов по вкладам с 1 января по сегодня × ставка / 100. Ставка по умолчанию 13 %, её можно изменить, если у вас другая.'**
+  String get dashboardTaxInfoBody;
 
   /// Секция быстрых действий.
   ///
@@ -3543,6 +3651,12 @@ abstract class AppLocalizations {
   /// **'Не удалось рассчитать'**
   String get dashboardNetWorthUnavailable;
 
+  /// Плашка на Главной, когда суммы посчитаны по резервному (последнему известному) курсу.
+  ///
+  /// In ru, this message translates to:
+  /// **'Курс валют от {date}: актуальный получить не удалось'**
+  String dashboardStaleRateBanner(String date);
+
   /// Карточка заблокированных активов на Главной.
   ///
   /// In ru, this message translates to:
@@ -3591,6 +3705,18 @@ abstract class AppLocalizations {
   /// **'По неделям'**
   String get dashboardCashflowDynamics;
 
+  /// Тултип иконки, прячущей денежные суммы на главной блюром.
+  ///
+  /// In ru, this message translates to:
+  /// **'Скрыть суммы'**
+  String get dashboardHideAmounts;
+
+  /// Тултип иконки, возвращающей денежные суммы на главной.
+  ///
+  /// In ru, this message translates to:
+  /// **'Показать суммы'**
+  String get dashboardShowAmounts;
+
   /// Секция справочников в «Ещё».
   ///
   /// In ru, this message translates to:
@@ -3614,6 +3740,18 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Отчёты'**
   String get settingsReportsSection;
+
+  /// Секция настроек отображения (скрытие сумм).
+  ///
+  /// In ru, this message translates to:
+  /// **'Отображение'**
+  String get settingsDisplaySection;
+
+  /// Настройка: прятать денежные суммы на главной блюром при запуске.
+  ///
+  /// In ru, this message translates to:
+  /// **'Скрывать суммы при входе'**
+  String get settingsHideAmountsLabel;
 
   /// Заголовок экрана о приложении.
   ///

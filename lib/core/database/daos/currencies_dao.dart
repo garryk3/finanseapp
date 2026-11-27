@@ -174,6 +174,22 @@ class CurrenciesDao extends DatabaseAccessor<AppDatabase>
           ))
           .getSingleOrNull();
 
+  /// Последний сохранённый курс не позже [date] (BR-C-9, чтение).
+  Future<ExchangeRateRow?> findLatestOnOrBeforeRate(
+    String currencyCode,
+    LocalDate date,
+  ) {
+    final query = select(exchangeRates)
+      ..where(
+        (r) =>
+            r.currencyCode.equals(currencyCode) &
+            r.date.isSmallerOrEqualValue(date.toIsoString()),
+      )
+      ..orderBy([(r) => OrderingTerm.desc(r.date)])
+      ..limit(1);
+    return query.getSingleOrNull();
+  }
+
   /// Сохранённый/ручной курс, связанный с операцией или оценкой, неизменяем
   /// (BR-C-3); ручной курс не перезаписывается ответом ЦБ.
   Future<ExchangeRateRow> saveRate({

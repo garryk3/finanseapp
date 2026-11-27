@@ -85,6 +85,14 @@
   "@appLockBiometricUnavailable": {
     "description": "Ошибка при попытке включить недоступную биометрию."
   },
+  "appLockEnterPin": "Ввести PIN-код",
+  "@appLockEnterPin": {
+    "description": "Кнопка ручного перехода к PIN-клавиатуре на экране блокировки (D21.7)."
+  },
+  "appLockBiometricPrompt": "Подтвердите личность, чтобы войти",
+  "@appLockBiometricPrompt": {
+    "description": "Статус в биометрическом состоянии экрана блокировки (D21.7)."
+  },
   "appLockAutoLock": "Блокировка при сворачивании",
   "@appLockAutoLock": {
     "description": "Подпись настройки auto-lock."
@@ -550,6 +558,36 @@
   "currencyToggled": "Настройки валюты обновлены.",
   "@currencyToggled": {
     "description": "Подтверждение включения/отключения валюты."
+  },
+  "currenciesRefreshTooltip": "Обновить курсы",
+  "@currenciesRefreshTooltip": {
+    "description": "Подсказка кнопки ручного обновления курсов."
+  },
+  "currenciesRefreshPending": "Обновление курсов",
+  "@currenciesRefreshPending": {
+    "description": "Семантика pending при обновлении курсов."
+  },
+  "currenciesRefreshDone": "Курсы обновлены: {count}.",
+  "@currenciesRefreshDone": {
+    "description": "Результат обновления курсов.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "currenciesRefreshUpToDate": "Курсы уже актуальны.",
+  "@currenciesRefreshUpToDate": {
+    "description": "Результат обновления, когда все курсы уже в кэше."
+  },
+  "currenciesRefreshFailed": "Не удалось обновить курсы: {count}.",
+  "@currenciesRefreshFailed": {
+    "description": "Результат обновления при сетевых ошибках.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "baseCurrencyHint": "Итоги и дашборд будут пересчитаны в выбранной валюте; сохранённые суммы в RUB не меняются.",
   "@baseCurrencyHint": {
@@ -2517,16 +2555,20 @@
   },
   "dashboardSafetyTarget": "Цель — 6 месяцев расходов ({amount})",
   "@dashboardSafetyTarget": {
-    "description": "Целевой размер подушки.",
+    "description": "Целевой размер подушки (для семантики).",
     "placeholders": {
       "amount": {
         "type": "String"
       }
     }
   },
+  "dashboardSafetyTargetLabel": "Цель — 6 месяцев расходов",
+  "@dashboardSafetyTargetLabel": {
+    "description": "Подпись цели подушки; сумма выводится отдельно и блюрится (D21.4)."
+  },
   "dashboardSafetyEta": "До цели — {months} мес, если откладывать {profit}/мес",
   "@dashboardSafetyEta": {
-    "description": "Срок достижения цели при текущем профиците.",
+    "description": "Срок достижения цели при текущем профиците (для семантики).",
     "placeholders": {
       "months": {
         "type": "int"
@@ -2536,14 +2578,31 @@
       }
     }
   },
+  "dashboardSafetyEtaPrefix": "До цели — {months} мес, если откладывать",
+  "@dashboardSafetyEtaPrefix": {
+    "description": "Начало строки срока цели; сумма профицита выводится отдельно (D21.4).",
+    "placeholders": {
+      "months": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboardSafetyEtaSuffix": "/мес",
+  "@dashboardSafetyEtaSuffix": {
+    "description": "Единица профицита в строке срока цели."
+  },
   "dashboardSafetyEtaMoreThan10Years": "До цели — больше 10 лет, если откладывать {profit}/мес",
   "@dashboardSafetyEtaMoreThan10Years": {
-    "description": "Срок цели больше 10 лет.",
+    "description": "Срок цели больше 10 лет (для семантики).",
     "placeholders": {
       "profit": {
         "type": "String"
       }
     }
+  },
+  "dashboardSafetyEtaMoreThan10YearsPrefix": "До цели — больше 10 лет, если откладывать",
+  "@dashboardSafetyEtaMoreThan10YearsPrefix": {
+    "description": "Начало строки срока >10 лет; сумма профицита выводится отдельно (D21.4)."
   },
   "dashboardSafetyReached": "Цель достигнута",
   "@dashboardSafetyReached": {
@@ -2552,6 +2611,34 @@
   "dashboardSafetyNoProfit": "Доходы не превышают расходы — цель не приближается",
   "@dashboardSafetyNoProfit": {
     "description": "При нулевом/отрицательном профиците срок цели не считается."
+  },
+  "dashboardTaxTitle": "Предполагаемый налог",
+  "@dashboardTaxTitle": {
+    "description": "Блок предполагаемого налога с процентов по вкладам (D21.6)."
+  },
+  "dashboardTaxBaseLabel": "Проценты по вкладам за год:",
+  "@dashboardTaxBaseLabel": {
+    "description": "Подпись базы налога; сумма выводится отдельно и блюрится (D21.4)."
+  },
+  "dashboardTaxRateLabel": "Ставка налога, %",
+  "@dashboardTaxRateLabel": {
+    "description": "Поле ставки налога с процентов по вкладам."
+  },
+  "dashboardTaxRateInvalid": "Введите число от 0 до 100",
+  "@dashboardTaxRateInvalid": {
+    "description": "Ошибка нечисловой/вне диапазона ставки налога."
+  },
+  "dashboardTaxRateUnavailable": "Не удалось рассчитать: нет курса",
+  "@dashboardTaxRateUnavailable": {
+    "description": "Inline-состояние блока налога при неустранимой ошибке курса (D21.6/X5)."
+  },
+  "dashboardTaxInfoTitle": "Как считается налог",
+  "@dashboardTaxInfoTitle": {
+    "description": "Заголовок инфо-диалога о расчёте налога."
+  },
+  "dashboardTaxInfoBody": "Налог = сумма процентов по вкладам с 1 января по сегодня × ставка / 100. Ставка по умолчанию 13 %, её можно изменить, если у вас другая.",
+  "@dashboardTaxInfoBody": {
+    "description": "Формула расчёта предполагаемого налога (D21.6/X4)."
   },
   "dashboardQuickActions": "Быстрые действия",
   "@dashboardQuickActions": {
@@ -2615,6 +2702,15 @@
   "@dashboardNetWorthUnavailable": {
     "description": "Нейтральная ошибка расчёта net worth."
   },
+  "dashboardStaleRateBanner": "Курс валют от {date}: актуальный получить не удалось",
+  "@dashboardStaleRateBanner": {
+    "description": "Плашка на Главной, когда суммы посчитаны по резервному (последнему известному) курсу.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "dashboardLockedTitle": "Заблокированные активы",
   "@dashboardLockedTitle": {
     "description": "Карточка заблокированных активов на Главной."
@@ -2652,6 +2748,14 @@
   "@dashboardCashflowDynamics": {
     "description": "Подзаголовок недельного графика cashflow на главной."
   },
+  "dashboardHideAmounts": "Скрыть суммы",
+  "@dashboardHideAmounts": {
+    "description": "Тултип иконки, прячущей денежные суммы на главной блюром."
+  },
+  "dashboardShowAmounts": "Показать суммы",
+  "@dashboardShowAmounts": {
+    "description": "Тултип иконки, возвращающей денежные суммы на главной."
+  },
   "moreReferencesSection": "Справочники",
   "@moreReferencesSection": {
     "description": "Секция справочников в «Ещё»."
@@ -2667,6 +2771,14 @@
   "settingsReportsSection": "Отчёты",
   "@settingsReportsSection": {
     "description": "Секция отчётов в настройках."
+  },
+  "settingsDisplaySection": "Отображение",
+  "@settingsDisplaySection": {
+    "description": "Секция настроек отображения (скрытие сумм)."
+  },
+  "settingsHideAmountsLabel": "Скрывать суммы при входе",
+  "@settingsHideAmountsLabel": {
+    "description": "Настройка: прятать денежные суммы на главной блюром при запуске."
   },
   "aboutTitle": "О приложении",
   "@aboutTitle": {

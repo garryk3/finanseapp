@@ -105,6 +105,8 @@ final class FakeCategories implements CategoryRepository {
 
   @override
   Future<void> deleteIfUnused(int id) async {}
+  @override
+  Future<int?> findActiveIdByName(String name, CashflowKind kind) async => null;
 }
 
 final class FakeCurrencies implements CurrencyRepository {

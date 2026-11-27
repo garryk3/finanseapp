@@ -188,6 +188,8 @@ final class FakeCategories implements CategoryRepository {
 
   @override
   Future<void> deleteIfUnused(int id) async {}
+  @override
+  Future<int?> findActiveIdByName(String name, CashflowKind kind) async => null;
 }
 
 final class FakeCurrencies implements CurrencyRepository {
@@ -239,6 +241,12 @@ final class FakeRates implements ExchangeRateRepository {
       fetchedAt: DateTime.utc(2026),
     );
   }
+
+  @override
+  Future<ExchangeRate?> findLatestOnOrBefore(
+    String currencyCode,
+    LocalDate date,
+  ) async => null;
 
   @override
   Future<ExchangeRate> fetchFromCbr(String currencyCode, LocalDate date) =>

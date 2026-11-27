@@ -132,11 +132,22 @@ final class _StreamSettings implements SettingsRepository {
 
   @override
   Future<void> setBaseCurrency(String code) async {}
+  @override
+  Future<int> getTaxRatePercent() async => defaultTaxRatePercent;
+
+  @override
+  Future<void> setTaxRatePercent(int percent) async {}
 }
 
 final class _NoRates implements ExchangeRateRepository {
   @override
   Future<ExchangeRate?> find(String currencyCode, LocalDate date) async => null;
+
+  @override
+  Future<ExchangeRate?> findLatestOnOrBefore(
+    String currencyCode,
+    LocalDate date,
+  ) async => null;
 
   @override
   Future<ExchangeRate> fetchFromCbr(String currencyCode, LocalDate date) =>
@@ -168,6 +179,12 @@ final class _Rates implements ExchangeRateRepository {
       fetchedAt: DateTime.utc(2026, 1, 1),
     );
   }
+
+  @override
+  Future<ExchangeRate?> findLatestOnOrBefore(
+    String currencyCode,
+    LocalDate date,
+  ) => find(currencyCode, date);
 
   @override
   Future<ExchangeRate> fetchFromCbr(String currencyCode, LocalDate date) =>

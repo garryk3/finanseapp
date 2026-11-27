@@ -74,6 +74,12 @@ class AppLocalizationsRu extends AppLocalizations {
       'Биометрия недоступна на этом устройстве';
 
   @override
+  String get appLockEnterPin => 'Ввести PIN-код';
+
+  @override
+  String get appLockBiometricPrompt => 'Подтвердите личность, чтобы войти';
+
+  @override
   String get appLockAutoLock => 'Блокировка при сворачивании';
 
   @override
@@ -409,6 +415,25 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get currencyToggled => 'Настройки валюты обновлены.';
+
+  @override
+  String get currenciesRefreshTooltip => 'Обновить курсы';
+
+  @override
+  String get currenciesRefreshPending => 'Обновление курсов';
+
+  @override
+  String currenciesRefreshDone(int count) {
+    return 'Курсы обновлены: $count.';
+  }
+
+  @override
+  String get currenciesRefreshUpToDate => 'Курсы уже актуальны.';
+
+  @override
+  String currenciesRefreshFailed(int count) {
+    return 'Не удалось обновить курсы: $count.';
+  }
 
   @override
   String get baseCurrencyHint =>
@@ -1860,9 +1885,20 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
+  String get dashboardSafetyTargetLabel => 'Цель — 6 месяцев расходов';
+
+  @override
   String dashboardSafetyEta(int months, String profit) {
     return 'До цели — $months мес, если откладывать $profit/мес';
   }
+
+  @override
+  String dashboardSafetyEtaPrefix(int months) {
+    return 'До цели — $months мес, если откладывать';
+  }
+
+  @override
+  String get dashboardSafetyEtaSuffix => '/мес';
 
   @override
   String dashboardSafetyEtaMoreThan10Years(String profit) {
@@ -1870,11 +1906,37 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
+  String get dashboardSafetyEtaMoreThan10YearsPrefix =>
+      'До цели — больше 10 лет, если откладывать';
+
+  @override
   String get dashboardSafetyReached => 'Цель достигнута';
 
   @override
   String get dashboardSafetyNoProfit =>
       'Доходы не превышают расходы — цель не приближается';
+
+  @override
+  String get dashboardTaxTitle => 'Предполагаемый налог';
+
+  @override
+  String get dashboardTaxBaseLabel => 'Проценты по вкладам за год:';
+
+  @override
+  String get dashboardTaxRateLabel => 'Ставка налога, %';
+
+  @override
+  String get dashboardTaxRateInvalid => 'Введите число от 0 до 100';
+
+  @override
+  String get dashboardTaxRateUnavailable => 'Не удалось рассчитать: нет курса';
+
+  @override
+  String get dashboardTaxInfoTitle => 'Как считается налог';
+
+  @override
+  String get dashboardTaxInfoBody =>
+      'Налог = сумма процентов по вкладам с 1 января по сегодня × ставка / 100. Ставка по умолчанию 13 %, её можно изменить, если у вас другая.';
 
   @override
   String get dashboardQuickActions => 'Быстрые действия';
@@ -1920,6 +1982,11 @@ class AppLocalizationsRu extends AppLocalizations {
   String get dashboardNetWorthUnavailable => 'Не удалось рассчитать';
 
   @override
+  String dashboardStaleRateBanner(String date) {
+    return 'Курс валют от $date: актуальный получить не удалось';
+  }
+
+  @override
   String get dashboardLockedTitle => 'Заблокированные активы';
 
   @override
@@ -1947,6 +2014,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get dashboardCashflowDynamics => 'По неделям';
 
   @override
+  String get dashboardHideAmounts => 'Скрыть суммы';
+
+  @override
+  String get dashboardShowAmounts => 'Показать суммы';
+
+  @override
   String get moreReferencesSection => 'Справочники';
 
   @override
@@ -1957,6 +2030,12 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get settingsReportsSection => 'Отчёты';
+
+  @override
+  String get settingsDisplaySection => 'Отображение';
+
+  @override
+  String get settingsHideAmountsLabel => 'Скрывать суммы при входе';
 
   @override
   String get aboutTitle => 'О приложении';

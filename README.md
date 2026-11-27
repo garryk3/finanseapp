@@ -90,10 +90,12 @@ flutter build apk --release
 
 ## Релиз
 
-1. Убедиться, что `main` зелёный и `plan-review` пройден.
+1. Убедиться, что релизная ветка `release/<NN>` зелёная, прошла релизное ревью (`task-reviewer`,
+   при UI — `design-reviewer`) и `plan-review`.
 2. Спросить владельца, нужен ли полный QA-прогон `android-tester` перед тегом.
-3. Поднять patch-версию и поставить тег `vX.Y.Z` (release workflow соберёт APK из тега,
-   прогонит гейты и опубликует GitHub Release с `app-release.apk`).
+3. Слить `release/<NN>` в `main` (merge-коммит), поднять patch-версию и поставить тег `vX.Y.Z`
+   (release workflow соберёт APK из тега, прогонит гейты и опубликует GitHub Release
+   с `app-release.apk`).
 4. Проверить ассет `app-release.apk` и заметки релиза; обновления в приложении читают
    последний GitHub Release.
 
@@ -104,8 +106,8 @@ flutter build apk --release
 
 ## Git-процесс
 
-Каждая задача из `PLAN.md` выполняется в отдельной ветке `task/<NN>-<slug>`,
-открывается Pull Request в `main`. Проверки выполняет GitHub Actions
-(`.github/workflows/ci.yml`) на каждом PR и пуше в `main`. Перед коммитом/PR —
-ревью агентом `task-reviewer` (и `design-reviewer` при UI-изменениях);
-перед релизом — `plan-review`. Полный процесс — `AGENTS.md`.
+Каждый этап `PLAN.md` ведётся в релизной ветке `release/<NN>`; задачи — ветки
+`task/<NN.NN>-<slug>` с Pull Request **в `release/<NN>`**. Проверки выполняет GitHub Actions
+(`.github/workflows/ci.yml`) на каждом PR и пуше. Перед слиянием `release/<NN>` в `main` —
+**один раз на релиз** ревью агентами `task-reviewer` (и `design-reviewer` при UI-изменениях)
+по релизному диффу; перед релизом — `plan-review`. Полный процесс — `AGENTS.md`.

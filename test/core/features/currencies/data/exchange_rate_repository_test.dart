@@ -60,6 +60,53 @@ void main() {
     expect(await repository.find('USD', date), isNull);
   });
 
+  test(
+    'findLatestOnOrBefore берёт последний курс не позже даты (BR-C-9)',
+    () async {
+      await repository.saveManual(
+        'USD',
+        LocalDate(2026, 11, 15),
+        Decimal.parse('90'),
+      );
+      await repository.saveManual(
+        'USD',
+        LocalDate(2026, 11, 17),
+        Decimal.parse('91'),
+      );
+      await repository.saveManual(
+        'USD',
+        LocalDate(2026, 11, 20),
+        Decimal.parse('92'),
+      );
+
+      final onDate = await repository.findLatestOnOrBefore(
+        'USD',
+        LocalDate(2026, 11, 18),
+      );
+      expect(onDate!.rateToRub, Decimal.parse('91'));
+      expect(onDate.date, LocalDate(2026, 11, 17));
+
+      // Граница `<=`: точная дата тоже подходит.
+      final exact = await repository.findLatestOnOrBefore(
+        'USD',
+        LocalDate(2026, 11, 17),
+      );
+      expect(exact!.rateToRub, Decimal.parse('91'));
+    },
+  );
+
+  test('findLatestOnOrBefore null, если курсов не позже даты нет', () async {
+    await repository.saveManual(
+      'USD',
+      LocalDate(2026, 11, 20),
+      Decimal.parse('92'),
+    );
+    expect(
+      await repository.findLatestOnOrBefore('USD', LocalDate(2026, 11, 18)),
+      isNull,
+    );
+  });
+
   test('ручной курс сохраняется и читается', () async {
     final rate = await repository.saveManual(
       'USD',

@@ -39,6 +39,16 @@ const presetExpenseCategories = <String>[
 /// Ключ базовой валюты в `app_settings` (BR-C-5).
 const baseCurrencySettingKey = 'baseCurrencyCode';
 
+/// Ключ настройки «скрывать суммы при входе» в `app_settings` (D21.4).
+///
+/// Значение — `'true'`/`'false'`; отсутствие ключа трактуется как `false`.
+const amountsHiddenSettingKey = 'amountsHidden';
+
+/// Ключ ставки налога с процентов по вкладам в `app_settings` (D21.6/X2).
+///
+/// Значение — целое число `0..100`; отсутствие ключа трактуется как дефолт.
+const taxRatePercentSettingKey = 'taxRatePercent';
+
 /// Начальные справочники v1.
 ///
 /// Идемпотентен: повторный запуск не создаёт дублей и не перезаписывает

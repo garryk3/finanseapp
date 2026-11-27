@@ -4,6 +4,7 @@ import 'package:finanseapp/core/database/tables/app_settings.dart';
 import 'package:finanseapp/core/database/tables/currencies.dart';
 import 'package:finanseapp/core/database/seed/seed_data.dart';
 import 'package:finanseapp/core/domain/common/result.dart';
+import 'package:finanseapp/core/features/settings/domain/settings_repository.dart';
 
 part 'settings_dao.g.dart';
 
@@ -40,6 +41,46 @@ class SettingsDao extends DatabaseAccessor<AppDatabase>
     )..where((s) => s.key.equals(key))).getSingleOrNull();
     return row?.value;
   }
+
+  /// Поток значения настройки; `null` — ключа нет.
+  Stream<String?> watchValue(String key) =>
+      (select(appSettings)..where((s) => s.key.equals(key)))
+          .watchSingleOrNull()
+          .map((row) => row?.value);
+
+  /// Настройка «скрывать суммы при входе» (D21.4); отсутствие ключа — `false`.
+  Stream<bool> watchAmountsHidden() =>
+      watchValue(amountsHiddenSettingKey).map(_parseBool);
+
+  Future<bool> getAmountsHidden() async =>
+      _parseBool(await getValue(amountsHiddenSettingKey));
+
+  Future<void> setAmountsHidden(bool hidden) =>
+      setValue(amountsHiddenSettingKey, hidden ? 'true' : 'false');
+
+  /// Ставка налога с процентов, % (D21.6/X2); отсутствие/мусор — дефолт.
+  Future<int> getTaxRatePercent() async {
+    final raw = await getValue(taxRatePercentSettingKey);
+    final parsed = raw == null ? null : int.tryParse(raw);
+    if (parsed == null ||
+        parsed < minTaxRatePercent ||
+        parsed > maxTaxRatePercent) {
+      return defaultTaxRatePercent;
+    }
+    return parsed;
+  }
+
+  Future<void> setTaxRatePercent(int percent) async {
+    if (percent < minTaxRatePercent || percent > maxTaxRatePercent) {
+      throw const DomainException(
+        DomainErrorCode.validation,
+        fieldErrors: {'taxRatePercent': 'validationTaxRateOutOfRange'},
+      );
+    }
+    await setValue(taxRatePercentSettingKey, '$percent');
+  }
+
+  static bool _parseBool(String? value) => value == 'true';
 
   Future<void> setValue(String key, String value) =>
       into(appSettings).insertOnConflictUpdate(

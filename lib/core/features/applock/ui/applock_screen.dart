@@ -36,8 +36,23 @@ class _ApplockScreenState extends State<ApplockScreen> {
         unawaited(viewModel.refreshLockout());
       }
     });
-    unawaited(viewModel.init());
+    unawaited(_startLock());
   }
+
+  /// `init()` и, при доступной биометрии, авто-вызов после первого кадра
+  /// (D21.7/B2): успех разблокирует, неудача покажет PIN.
+  Future<void> _startLock() async {
+    await viewModel.init();
+    if (!mounted || !viewModel.biometricVisible.value) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      unawaited(_authenticateBiometric());
+    });
+  }
+
+  Future<void> _authenticateBiometric() => viewModel.authenticateBiometric(
+    reason: AppLocalizations.of(context).appLockBiometricReason,
+  );
 
   @override
   void dispose() {
@@ -54,62 +69,102 @@ class _ApplockScreenState extends State<ApplockScreen> {
         title: l10n.appLockLockTitle,
         body: SignalBuilder(
           builder: (context) {
-            final error = viewModel.error.value;
-            final remaining = viewModel.lockoutRemaining.value;
-            return Column(
-              children: <Widget>[
-                const AppBox(height: 48),
-                PinDots(
-                  length: viewModel.pinLength,
-                  filled: viewModel.entered.value.length,
-                  hasError: error != null,
-                  semanticsLabel: l10n.appLockDotsSemantics(
-                    viewModel.entered.value.length,
-                    viewModel.pinLength,
-                  ),
-                ),
-                const AppBox(height: 16),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: AppText(
-                    error == ApplockInputError.wrongPin
-                        ? l10n.appLockWrongPin
-                        : remaining != null
-                        ? l10n.appLockLockedOut(
-                            remaining.inSeconds.clamp(1, 9999),
-                          )
-                        : '',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyMedium
-                        ?.copyWith(color: Theme.of(context).colorScheme.error),
-                  ),
-                ),
-                const Spacer(),
-                Opacity(
-                  opacity: remaining != null ? 0.4 : 1,
-                  child: PinKeypad(
-                    onDigit: viewModel.onDigit,
-                    onBackspace: viewModel.onBackspace,
-                    backspaceLabel: l10n.appLockBackspace,
-                  ),
-                ),
-                const AppBox(height: 16),
-                if (viewModel.biometricVisible.value)
-                  AppButton(
-                    label: l10n.appLockBiometricUnlock,
-                    variant: AppButtonVariant.tonal,
-                    onPressed: () => unawaited(
-                      viewModel.authenticateBiometric(
-                        reason: l10n.appLockBiometricReason,
-                      ),
-                    ),
-                  ),
-                const AppBox(height: 32),
-              ],
-            );
+            // Биометрический режим только пока PIN скрыт и биометрия доступна
+            // (D21.7/B3).
+            final biometricMode =
+                viewModel.biometricVisible.value && !viewModel.pinVisible.value;
+            return biometricMode
+                ? _biometricBody(context, l10n)
+                : _pinBody(context, l10n);
           },
         ),
       ),
+    );
+  }
+
+  /// Клавиатура PIN с ошибкой/lockout и опциональной кнопкой биометрии.
+  Widget _pinBody(BuildContext context, AppLocalizations l10n) {
+    final error = viewModel.error.value;
+    final remaining = viewModel.lockoutRemaining.value;
+    return Column(
+      children: <Widget>[
+        const AppBox(height: 48),
+        PinDots(
+          length: viewModel.pinLength,
+          filled: viewModel.entered.value.length,
+          hasError: error != null,
+          semanticsLabel: l10n.appLockDotsSemantics(
+            viewModel.entered.value.length,
+            viewModel.pinLength,
+          ),
+        ),
+        const AppBox(height: 16),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: AppText(
+            error == ApplockInputError.wrongPin
+                ? l10n.appLockWrongPin
+                : remaining != null
+                ? l10n.appLockLockedOut(remaining.inSeconds.clamp(1, 9999))
+                : '',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyMedium
+                ?.copyWith(color: Theme.of(context).colorScheme.error),
+          ),
+        ),
+        const Spacer(),
+        Opacity(
+          opacity: remaining != null ? 0.4 : 1,
+          child: PinKeypad(
+            onDigit: viewModel.onDigit,
+            onBackspace: viewModel.onBackspace,
+            backspaceLabel: l10n.appLockBackspace,
+          ),
+        ),
+        const AppBox(height: 16),
+        if (viewModel.biometricVisible.value)
+          AppButton(
+            label: l10n.appLockBiometricUnlock,
+            variant: AppButtonVariant.tonal,
+            onPressed: () => unawaited(_authenticateBiometric()),
+          ),
+        const AppBox(height: 32),
+      ],
+    );
+  }
+
+  /// Биометрический режим: статус, повторный вызов и переход к PIN.
+  Widget _biometricBody(BuildContext context, AppLocalizations l10n) {
+    return Column(
+      children: <Widget>[
+        const Spacer(),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: AppText(
+            l10n.appLockBiometricPrompt,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+        ),
+        const AppBox(height: 24),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: AppButton(
+            label: l10n.appLockBiometricUnlock,
+            icon: Icons.fingerprint,
+            expanded: true,
+            onPressed: () => unawaited(_authenticateBiometric()),
+          ),
+        ),
+        const AppBox(height: 8),
+        AppButton(
+          label: l10n.appLockEnterPin,
+          variant: AppButtonVariant.text,
+          onPressed: viewModel.showPin,
+        ),
+        const Spacer(),
+        const AppBox(height: 32),
+      ],
     );
   }
 }

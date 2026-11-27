@@ -29,10 +29,11 @@
 
 ## Субагенты (`.agents/agents/`)
 
-- `task-reviewer` — ревью реализации задачи перед коммитом/PR (вердикт SHIP / SHIP WITH FIXES / DO NOT SHIP).
+- Ревью запускается **один раз на релиз, в релизной ветке** `release/<NN>` (до слияния в `main`), по релизному диффу; generated-файлы вне области ревью.
+- `task-reviewer` — ревью релизного диффа (вердикт SHIP / SHIP WITH FIXES / DO NOT SHIP).
 - `design-reviewer` — ревью UI по `DESIGN.md` (вердикт APPROVE / APPROVE WITH FIXES / REDESIGN REQUIRED).
 - `plan-review` — проверка `PLAN.md` перед релизом.
-- `release-manager` — публикация релизов (теги `v*`), сжатие `PLAN.md` после релиза.
-- `android-tester` — ручной QA в Android-эмуляторе, ведёт `TEST_PLAN.md`.
+- `release-manager` — публикация релизов (слияние `release/<NN>` → `main`, теги `v*`), сжатие `PLAN.md` после релиза.
+- `android-tester` — ручной QA в Android-эмуляторе, ведёт `TEST_PLAN.md` (короткие прогоны — пачкой на этап).
 
 Полные протоколы запуска — `AGENTS.md` и `docs/AGENTS_DETAILS.md`.

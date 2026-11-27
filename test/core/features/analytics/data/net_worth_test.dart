@@ -246,6 +246,32 @@ void main() {
     );
   });
 
+  test(
+    'CALC-048: нет точного курса, есть прошлый → сумма + staleRateDate',
+    () async {
+      await createAccount(db, currencyCode: 'RUB', openingValueMinor: 100000);
+      await createInvestment(db, currencyCode: 'USD', openingValueMinor: 1000);
+      final past = LocalDate(2026, 11, 14);
+      await saveRate('USD', 90, onDate: past);
+
+      final summary = await queries.netWorth(today());
+
+      expect(summary.total, rub(1900));
+      expect(summary.staleRateDate, past);
+    },
+  );
+
+  test('точный курс → staleRateDate null', () async {
+    await createAccount(db, currencyCode: 'RUB', openingValueMinor: 100000);
+    await createInvestment(db, currencyCode: 'USD', openingValueMinor: 1000);
+    await saveRate('USD', 90);
+
+    final summary = await queries.netWorth(today());
+
+    expect(summary.total, rub(1900));
+    expect(summary.staleRateDate, isNull);
+  });
+
   test('CALC-022: 1000 RUB + 20 USD×90 + 1000 EUR×100 = 102 800 RUB', () async {
     await createAccount(db, currencyCode: 'RUB', openingValueMinor: 100000);
     await createInvestment(db, currencyCode: 'USD', openingValueMinor: 2000);

@@ -209,6 +209,11 @@ final class _Settings implements SettingsRepository {
 
   @override
   Future<void> setBaseCurrency(String code) async => base = code;
+  @override
+  Future<int> getTaxRatePercent() async => defaultTaxRatePercent;
+
+  @override
+  Future<void> setTaxRatePercent(int percent) async {}
 }
 
 final class _Onboarding implements OnboardingRepository {
@@ -276,6 +281,11 @@ final class _FailingSettings implements SettingsRepository {
 
   @override
   Future<void> setBaseCurrency(String code) async => throw StateError('db');
+  @override
+  Future<int> getTaxRatePercent() async => defaultTaxRatePercent;
+
+  @override
+  Future<void> setTaxRatePercent(int percent) async {}
 }
 
 final class _FailingOnboarding implements OnboardingRepository {
